@@ -220,8 +220,8 @@ async function doRoll(isAI = false) {
     if (isAI) {
         const selected = chooseAIMove(game);
         if (selected !== null) {
-            setTimeout(() => {
-                if (!game || game.phase !== 'move') return;
+            aiTimer = setTimeout(() => {
+                if (!game || game.phase !== 'move' || isPaused()) return;
                 finishMove(movePiece(game, selected));
             }, speedDelay());
         }
