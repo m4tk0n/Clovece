@@ -115,43 +115,60 @@ function updateTurnControls() {
     $('end-turn-btn').classList.add('hidden');
 }
 
-function animateDice(value) {
-    $('dice-value').textContent = value;
-    const animation = $('dice-animation');
-    const dice = $('dice-3d');
-    if (!animation || !dice || !settings.animations) return Promise.resolve();
+// Aktuální natočení kostky se uchovává mezi jednotlivými hody.
+let diceCurrentX = 0;
+let diceCurrentY = 0;
 
-    // Natočení výsledné stěny dopředu: 1 přední, 2 pravá, 3 horní,
-    // 4 levá, 5 spodní, 6 zadní stěna krychle.
-    const finalRotation = {
-        1: [0, 0],
-        2: [0, -90],
-        3: [-90, 0],
-        4: [0, 90],
-        5: [90, 0],
-        6: [0, 180]
-    }[value] || [0, 0];
+function animateDice(value) {
+    const diceValue = Math.max(1, Math.min(6, Number(value) || 1));
+    $('dice-value').textContent = diceValue;
+
+    const animation = $('dice-animation');
+    const scene = $('dice-scene');
+    const cube = $('dice-3d');
+
+    if (!animation || !scene || !cube || !settings.animations) {
+        return Promise.resolve();
+    }
+
+    // Stěny kostky: 1 přední, 2 pravá, 3 horní,
+    // 4 spodní, 5 levá, 6 zadní.
+    const BASE = {
+        1: { x: 0, y: 0 },
+        2: { x: 0, y: -90 },
+        3: { x: -90, y: 0 },
+        4: { x: 90, y: 0 },
+        5: { x: 0, y: 90 },
+        6: { x: 0, y: 180 }
+    };
+
+    const spin = (current, base) => {
+        const turns = Math.ceil((current - base) / 360) + 2 + Math.floor(Math.random() * 2);
+        return base + turns * 360;
+    };
+
+    const target = BASE[diceValue];
+    diceCurrentX = spin(diceCurrentX, target.x);
+    diceCurrentY = spin(diceCurrentY, target.y);
 
     animation.classList.remove('hidden');
-    animation.classList.remove('is-rolling');
-    dice.style.animation = 'none';
-    dice.style.transform = 'none';
-    dice.style.setProperty('--dice-end-x', finalRotation[0] + 'deg');
-    dice.style.setProperty('--dice-end-y', finalRotation[1] + 'deg');
+    scene.classList.remove('rolling');
 
-    // Vynutí nový začátek animace i při opakovaném hodu.
-    void dice.offsetWidth;
-    dice.style.animation = '';
-    animation.classList.add('is-rolling');
+    // Kostka se otáčí kolem více os a současně vyskočí.
+    cube.style.transform =
+        'rotateX(' + (diceCurrentX - 24) + 'deg) rotateY(' + (diceCurrentY - 32) + 'deg)';
+
+    void scene.offsetWidth;
+    scene.classList.add('rolling');
     play('dice-sound');
 
-    return new Promise(resolve => setTimeout(() => {
-        animation.classList.remove('is-rolling');
-        dice.style.animation = 'none';
-        dice.style.transform = 'rotateX(' + finalRotation[0] + 'deg) rotateY(' + finalRotation[1] + 'deg)';
-        animation.classList.add('hidden');
-        resolve();
-    }, 1150));
+    return new Promise(resolve => {
+        window.setTimeout(() => {
+            scene.classList.remove('rolling');
+            animation.classList.add('hidden');
+            resolve();
+        }, 1180);
+    });
 }
 
 function openKickModal(move) {
