@@ -32,6 +32,7 @@ export async function loadScreen(name) {
     template.innerHTML = markup;
     host.append(template.content);
     loadedScreens.add(name);
+    if (name === 'game') await loadScreen('game-overlays');
     return true;
   } catch (error) {
     console.error('Nepodařilo se načíst obrazovku:', name, error);
@@ -40,6 +41,17 @@ export async function loadScreen(name) {
 }
 
 window.loadScreen = loadScreen;
+
+// Odstraň úvodní loader a zobraz hlavní menu po načtení malého bootstrapu.
+function showInitialScreen() {
+  document.getElementById('loading-screen')?.classList.add('hidden');
+  document.getElementById('main-menu')?.classList.remove('hidden');
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', showInitialScreen, { once: true });
+} else {
+  showInitialScreen();
+}
 
 // Médium se registruje až při první interakci; samotné obrazovky se načítají
 // nezávisle až podle navigace.
