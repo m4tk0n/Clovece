@@ -3,7 +3,7 @@
  * Čtyři hráči: čtyři výrazné základny. Pět až osm: osmisměrná aréna,
  * každý hráč má vlastní start, čtyři domácí pole a čtyři figurky.
  */
-import { getPiecePosition, getHomeLaneIndex } from './game-engine.js';
+import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine.js';
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
@@ -32,7 +32,7 @@ function svgText(x, y, value, size, fill) {
     return '<text x="' + x + '" y="' + y + '" text-anchor="middle" dominant-baseline="central" font-size="' + size + '" fill="' + fill + '" font-weight="800">' + value + '</text>';
 }
 
-function baseMarkup(game, player) {
+function baseMarkup(game, player, validMoves) {
     const angle = playerAngle(player, game.players.length);
     const center = point(angle, BASE_RADIUS);
     const color = player.color;
@@ -50,7 +50,7 @@ function baseMarkup(game, player) {
         ][piece.id];
         const x = center.x + offset[0];
         const y = center.y + offset[1];
-        markup += '<g class="board-piece ' + (game.currentPlayer === player.id && game.phase === 'move' && game.diceValue === 6 ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">';
+        markup += '<g class="board-piece ' + (game.currentPlayer === player.id && validMoves.has(piece.id) ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">';
         markup += '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 4) + '" r="13"/>';
         markup += '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="12" fill="' + color + '"/>';
         markup += '<circle cx="' + (x - 3) + '" cy="' + (y - 4) + '" r="3.5" fill="#fff" fill-opacity=".65"/>';
@@ -61,7 +61,7 @@ function baseMarkup(game, player) {
     return markup;
 }
 
-function pieceMarkup(game, player, piece, stackIndex, stackCount) {
+function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     const color = player.color;
     const maxSteps = game.trackLength + 4;
     if (piece.steps < 0 || piece.steps === maxSteps) return '';
@@ -81,9 +81,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount) {
     const radians = angle * Math.PI / 180;
     const x = pos.x + Math.cos(radians) * spread;
     const y = pos.y + Math.sin(radians) * spread;
-    const selectable = player.id === game.currentPlayer &&
-        game.phase === 'move' &&
-        game.diceValue > 0;
+    const selectable = player.id === game.currentPlayer && validMoves.has(piece.id);
     return '<g class="board-piece ' + (selectable ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">' +
         '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 5) + '" r="14"/>' +
         '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="13" fill="' + color + '"/>' +
@@ -95,6 +93,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount) {
 export function renderBoard(container, game) {
     if (!container || !game) return;
     const total = game.players.length;
+    const validMoves = new Set(getValidMoves(game));
     const track = [];
     for (let i = 0; i < game.trackLength; i++) {
         const angle = trackAngle(i, game);
@@ -117,7 +116,7 @@ export function renderBoard(container, game) {
         return '<g class="home-lane">' + cells + '</g>';
     }).join('');
 
-    const bases = game.players.map(player => baseMarkup(game, player)).join('');
+    const bases = game.players.map(player => baseMarkup(game, player, validMoves)).join('');
     const boardPieces = game.players.map(player => {
         const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps < game.trackLength + 4);
         return active.map(piece => {
@@ -134,7 +133,7 @@ export function renderBoard(container, game) {
                 stackIndex = all.findIndex(item => item.playerId === player.id && item.piece.id === piece.id);
                 stackCount = all.length;
             }
-            return pieceMarkup(game, player, piece, stackIndex, stackCount);
+            return pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves);
         }).join('');
     }).join('');
 
