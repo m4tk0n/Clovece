@@ -40,7 +40,8 @@ function baseMarkup(game, player) {
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
     markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="' + color + '" fill-opacity=".13" stroke="' + color + '" stroke-opacity=".7" stroke-width="2"/>';
     markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="' + color + '" stroke-opacity=".3" stroke-dasharray="3 7"/>';
-    markup += svgText(center.x, center.y - 68, player.name, 12, '#f4f0e8');
+    const labelAngle = (angle + 90) * Math.PI / 180;
+    markup += svgText(center.x + Math.cos(labelAngle) * 55, center.y + Math.sin(labelAngle) * 55, player.name, 10, '#f4f0e8');
 
     pieces.forEach(piece => {
         if (piece.steps !== -1) return;
