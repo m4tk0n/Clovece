@@ -19,8 +19,13 @@ function point(angle, radius) {
     };
 }
 
-function playerAngle(index, total) {
-    return -90 + index * 360 / total;
+function playerAngle(player, total) {
+    const slot = player.slot ?? player.id;
+    return total <= 4 ? -135 + slot * 90 : -90 + slot * 45;
+}
+
+function trackAngle(index, game) {
+    return (game.players.length <= 4 ? -135 : -90) + index * 360 / game.trackLength;
 }
 
 function svgText(x, y, value, size, fill) {
@@ -28,7 +33,7 @@ function svgText(x, y, value, size, fill) {
 }
 
 function baseMarkup(game, player) {
-    const angle = playerAngle(player.id, game.players.length);
+    const angle = playerAngle(player, game.players.length);
     const center = point(angle, BASE_RADIUS);
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
@@ -63,7 +68,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount) {
     let pos;
     if (piece.steps < game.trackLength) {
         const trackIndex = getPiecePosition(game, player.id, piece);
-        const angle = -90 + trackIndex * 360 / game.trackLength;
+        const angle = trackAngle(trackIndex, game);
         pos = point(angle, TRACK_RADIUS);
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
@@ -91,7 +96,7 @@ export function renderBoard(container, game) {
     const total = game.players.length;
     const track = [];
     for (let i = 0; i < game.trackLength; i++) {
-        const angle = -90 + i * 360 / game.trackLength;
+        const angle = trackAngle(i, game);
         const p = point(angle, TRACK_RADIUS);
         const startPlayer = game.players.find(player => player.start === i);
         track.push(
@@ -103,7 +108,7 @@ export function renderBoard(container, game) {
     }
 
     const homeLanes = game.players.map(player => {
-        const angle = playerAngle(player.id, total);
+        const angle = playerAngle(player, total);
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
             return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="' + player.color + '" fill-opacity=".28" stroke="' + player.color + '" stroke-opacity=".85" stroke-width="1.5"/>';
