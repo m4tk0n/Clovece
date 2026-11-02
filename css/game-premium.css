@@ -174,7 +174,7 @@
     max-width:1440px;
     margin:20px auto 0;
     display:grid;
-    grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);
+    grid-template-columns:1fr;
     gap:18px;
 }
 .players-panel {
@@ -217,6 +217,7 @@
 .player-card-progress { color:var(--player-color); font:700 22px/1 "Bangers",Impact,sans-serif; }
 .player-card-progress small { font:700 10px/1 sans-serif; color:#9eaa9f; }
 #game-screen .game-chat {
+    display:none;
     max-width:none;
     margin:0;
     background:rgba(255,255,255,.035);
