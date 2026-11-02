@@ -2,7 +2,8 @@
 # Člověče, nezlob se! - Git Ignore
 # ============================================
 
-# Environment file (contains sensitive data)
+# Environment file (contains sensitive data - DO NOT COMMIT REAL CREDENTIALS)
+# Template file .env.dist is committed and should be renamed to .env on server
 .env
 
 # IDE files
