@@ -4,7 +4,8 @@
 
 # Environment file (contains sensitive data - DO NOT COMMIT REAL CREDENTIALS)
 # Template file .env.dist is committed and should be renamed to .env on server
-.env
+# .env is also committed with placeholder values for automatic deployment
+# !.env
 
 # IDE files
 .idea/
