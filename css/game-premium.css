@@ -355,3 +355,105 @@
     #game-screen .premium-player-card { min-height:26px; padding:3px 6px; }
     #game-screen .player-card-progress { font-size:16px; }
 }
+
+
+/* Ivory casino-style dice with black pips */
+#dice-animation .dice-3d {
+    width: 132px;
+    height: 132px;
+    filter: drop-shadow(0 14px 18px rgba(0,0,0,.42));
+}
+
+#dice-animation .dice-3d .side {
+    box-sizing: border-box;
+    width: 132px;
+    height: 132px;
+    border: 1px solid #c9bea5;
+    border-radius: 22px;
+    background: linear-gradient(145deg, #fffef5 0%, #f4eedc 48%, #e4dac1 100%);
+    box-shadow:
+        inset 0 3px 5px rgba(255,255,255,.95),
+        inset 0 -5px 9px rgba(119,99,64,.18),
+        0 5px 12px rgba(0,0,0,.2);
+}
+
+#dice-animation .dice-3d .side span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-size: 0;
+    background-repeat: no-repeat;
+}
+
+#dice-animation .dice-3d .side.one span {
+    background-image: radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px);
+}
+
+#dice-animation .dice-3d .side.two span {
+    background-image:
+        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
+}
+
+#dice-animation .dice-3d .side.three span {
+    background-image:
+        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
+}
+
+#dice-animation .dice-3d .side.four span {
+    background-image:
+        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 25%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 25% 75%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
+}
+
+#dice-animation .dice-3d .side.five span {
+    background-image:
+        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 25%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 25% 75%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
+}
+
+#dice-animation .dice-3d .side.six span {
+    background-image:
+        radial-gradient(circle at 25% 20%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 20%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 25% 50%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 50%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 25% 80%, #171717 0 7px, transparent 8px),
+        radial-gradient(circle at 75% 80%, #171717 0 7px, transparent 8px);
+}
+
+#dice-animation .dice-3d .side.one { transform: translateZ(66px); }
+#dice-animation .dice-3d .side.two { transform: translateX(66px) rotateY(90deg); }
+#dice-animation .dice-3d .side.three { transform: translateY(-66px) rotateX(90deg); }
+#dice-animation .dice-3d .side.four { transform: translateX(-66px) rotateY(-90deg); }
+#dice-animation .dice-3d .side.five { transform: translateY(66px) rotateX(-90deg); }
+#dice-animation .dice-3d .side.six { transform: translateZ(-66px) rotateY(180deg); }
+
+@media (max-width: 600px) {
+    #dice-animation .dice-3d {
+        width: 104px;
+        height: 104px;
+    }
+    #dice-animation .dice-3d .side {
+        width: 104px;
+        height: 104px;
+        border-radius: 18px;
+    }
+    #dice-animation .dice-3d .side span {
+        background-size: 100% 100%;
+    }
+    #dice-animation .dice-3d .side.one { transform: translateZ(52px); }
+    #dice-animation .dice-3d .side.two { transform: translateX(52px) rotateY(90deg); }
+    #dice-animation .dice-3d .side.three { transform: translateY(-52px) rotateX(90deg); }
+    #dice-animation .dice-3d .side.four { transform: translateX(-52px) rotateY(-90deg); }
+    #dice-animation .dice-3d .side.five { transform: translateY(52px) rotateX(-90deg); }
+    #dice-animation .dice-3d .side.six { transform: translateZ(-52px) rotateY(180deg); }
+}
