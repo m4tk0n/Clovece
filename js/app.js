@@ -119,6 +119,10 @@ function updateTurnControls() {
 let diceCurrentX = 0;
 let diceCurrentY = 0;
 
+// Úhly poslední dokončené polohy kostky (bez počátečního náklonu).
+let diceCurrentX = 0;
+let diceCurrentY = 0;
+
 function animateDice(value) {
     const diceValue = Math.max(1, Math.min(6, Number(value) || 1));
     $('dice-value').textContent = diceValue;
@@ -131,8 +135,6 @@ function animateDice(value) {
         return Promise.resolve();
     }
 
-    // Stěny kostky: 1 přední, 2 pravá, 3 horní,
-    // 4 spodní, 5 levá, 6 zadní.
     const BASE = {
         1: { x: 0, y: 0 },
         2: { x: 0, y: -90 },
@@ -147,19 +149,31 @@ function animateDice(value) {
         return base + turns * 360;
     };
 
+    // Cílové natočení vždy končí správnou stěnou směrem k divákovi.
     const target = BASE[diceValue];
-    diceCurrentX = spin(diceCurrentX, target.x);
-    diceCurrentY = spin(diceCurrentY, target.y);
+    const nextX = spin(diceCurrentX, target.x);
+    const nextY = spin(diceCurrentY, target.y);
 
+    // Nejdřív kostku zobrazíme a nastavíme její skutečnou výchozí polohu.
+    // Teprve po vynuceném layoutu změníme transformaci, aby prohlížeč
+    // přehrál celý CSS transition i po předchozím display:none.
     animation.classList.remove('hidden');
     scene.classList.remove('rolling');
-
-    // Kostka se otáčí kolem více os a současně vyskočí.
+    cube.style.transition = 'none';
     cube.style.transform =
         'rotateX(' + (diceCurrentX - 24) + 'deg) rotateY(' + (diceCurrentY - 32) + 'deg)';
+    void cube.offsetWidth;
 
-    void scene.offsetWidth;
+    // Obnovíme plynulou rotaci a v dalším snímku spustíme několik otáček.
+    cube.style.transition = '';
     scene.classList.add('rolling');
+    requestAnimationFrame(() => {
+        cube.style.transform =
+            'rotateX(' + (nextX - 24) + 'deg) rotateY(' + (nextY - 32) + 'deg)';
+    });
+
+    diceCurrentX = nextX;
+    diceCurrentY = nextY;
     play('dice-sound');
 
     return new Promise(resolve => {
@@ -167,7 +181,7 @@ function animateDice(value) {
             scene.classList.remove('rolling');
             animation.classList.add('hidden');
             resolve();
-        }, 1180);
+        }, 1200);
     });
 }
 
