@@ -1,0 +1,57 @@
+/* ============================================
+   ČLOVĚČE NEZLOB SE - Reset & Base Styles
+   ============================================ */
+
+/* Box Sizing */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* HTML */
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+/* Body */
+body {
+    font-family: var(--font-main);
+    background: var(--darker);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark);
+    border-radius: var(--radius);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: var(--radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Selection */
+::selection {
+    background: var(--primary);
+    color: var(--white);
+}

@@ -1,0 +1,212 @@
+/* ============================================
+   ČLOVĚČE NEZLOB SE - Animations
+   ============================================ */
+
+/* Basic Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.2); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.2); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes rotateBg {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes boardGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Dice Animations */
+@keyframes diceBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-30px); }
+}
+
+@keyframes diceRoll {
+    0%, 100% { transform: rotateX(0deg) rotateY(0deg); }
+    25% { transform: rotateX(90deg) rotateY(0deg); }
+    50% { transform: rotateX(90deg) rotateY(90deg); }
+    75% { transform: rotateX(0deg) rotateY(90deg); }
+}
+
+/* Glitch Effect */
+@keyframes glitch-effect {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-3px); }
+    40% { transform: translateX(3px); }
+    60% { transform: translateX(-1px); }
+    80% { transform: translateX(2px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes glitch-skew {
+    0% { transform: skew(0deg); }
+    10% { transform: skew(-0.5deg); }
+    20% { transform: skew(0.5deg); }
+    30% { transform: skew(0deg); }
+    100% { transform: skew(0deg); }
+}
+
+/* Title & Logo Animations */
+@keyframes titlePulse {
+    0%, 100% { 
+        transform: scale(1); 
+        text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 30px var(--primary); 
+    }
+    50% { 
+        transform: scale(1.05); 
+        text-shadow: 0 0 20px var(--primary), 0 0 40px var(--primary), 0 0 60px var(--primary); 
+    }
+}
+
+@keyframes logoSpin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+
+/* Button Animations */
+@keyframes buttonPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+    50% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+}
+
+@keyframes iconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* Modal Animations */
+@keyframes modalSlideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Piece Animations */
+@keyframes pieceFinish {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+@keyframes pieceMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(var(--move-x, 0), var(--move-y, 0)); }
+}
+
+/* Kick Animation */
+@keyframes kickerMove {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes kickedMove {
+    0% { transform: translateX(0); opacity: 1; }
+    50% { transform: translateX(-100px) rotate(360deg); opacity: 0.5; }
+    100% { transform: translateX(-200px) rotate(720deg); opacity: 0; }
+}
+
+@keyframes kickEffect {
+    0% { transform: scale(0); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.8; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+/* Win Animation */
+@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
+}
+
+@keyframes trophyShine {
+    0%, 100% { 
+        transform: scale(1); 
+        text-shadow: 0 0 30px var(--accent); 
+    }
+    50% { 
+        transform: scale(1.1); 
+        text-shadow: 0 0 50px var(--accent), 0 0 80px var(--accent); 
+    }
+}
+
+/* Path & Move Animations */
+@keyframes movePathFade {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.5); }
+}
+
+/* Particle Animations */
+@keyframes particleFloat {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Shake Animation for Errors */
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Toast Notification Animation */
+@keyframes toastSlideIn {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes toastSlideOut {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(100px); opacity: 0; }
+}
+
+/* Loading Animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
