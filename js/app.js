@@ -163,10 +163,15 @@ function finishMove(move) {
 }
 
 function continueGame() {
-    if (!game || modalOpen) return;
+    if (!game || modalOpen || isPaused()) return;
     if (game.winner !== null) {
         showGame();
         showWin();
+        return;
+    }
+    if (game.phase === 'no-move') {
+        advanceTurn(game);
+        continueGame();
         return;
     }
     showGame();
@@ -203,7 +208,7 @@ async function doRoll(isAI = false) {
         toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
         showGame();
         setTimeout(() => {
-            if (game && game.phase === 'no-move') {
+            if (game && game.phase === 'no-move' && !isPaused()) {
                 advanceTurn(game);
                 continueGame();
             }
