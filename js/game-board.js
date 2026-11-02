@@ -72,7 +72,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount) {
         pos = point(angle, TRACK_RADIUS);
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
-        pos = point(playerAngle(player.id, game.players.length), HOME_RADII[Math.min(3, laneIndex)]);
+        pos = point(playerAngle(player, game.players.length), HOME_RADII[Math.min(3, laneIndex)]);
     }
 
     const spread = (stackIndex - (stackCount - 1) / 2) * 9;
