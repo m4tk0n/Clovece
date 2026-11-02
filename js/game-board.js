@@ -8,7 +8,7 @@ import { getPiecePosition, getHomeLaneIndex } from './game-engine.js';
 const SIZE = 720;
 const CENTER = SIZE / 2;
 const TRACK_RADIUS = 245;
-const BASE_RADIUS = 318;
+const BASE_RADIUS = 300;
 const HOME_RADII = [202, 164, 126, 88];
 
 function point(angle, radius) {
@@ -33,8 +33,8 @@ function baseMarkup(game, player) {
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
-    markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="55" fill="' + color + '" fill-opacity=".13" stroke="' + color + '" stroke-opacity=".7" stroke-width="2"/>';
-    markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="47" fill="none" stroke="' + color + '" stroke-opacity=".3" stroke-dasharray="3 7"/>';
+    markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="' + color + '" fill-opacity=".13" stroke="' + color + '" stroke-opacity=".7" stroke-width="2"/>';
+    markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="' + color + '" stroke-opacity=".3" stroke-dasharray="3 7"/>';
     markup += svgText(center.x, center.y - 68, player.name, 12, '#f4f0e8');
 
     pieces.forEach(piece => {
