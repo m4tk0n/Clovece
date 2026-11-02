@@ -19,6 +19,9 @@ test('two to four players use the classic 52-space track and four corner starts'
 });
 
 test('five to eight players receive unique starts on the extended track', () => {
+    const five = createGame(1, 4);
+    assert.deepEqual(five.players.map(player => player.start), [0, 16, 24, 40, 48]);
+
     const game = createGame(2, 6);
     assert.equal(game.trackLength, 64);
     assert.deepEqual(game.players.map(player => player.start), [0, 8, 16, 24, 32, 40, 48, 56]);
