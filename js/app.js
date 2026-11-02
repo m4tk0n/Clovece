@@ -19,6 +19,10 @@ let settings = { aiSpeed: 'medium', animations: true };
 const $ = id => document.getElementById(id);
 const speedDelay = () => ({ fast: 450, medium: 950, slow: 1600 }[settings.aiSpeed] || 950);
 
+function isPaused() {
+    return !$('game-menu')?.classList.contains('hidden');
+}
+
 function toast(message) {
     const element = $('toast');
     const target = $('toast-message');
@@ -193,7 +197,7 @@ async function doRoll(isAI = false) {
 
     const result = rollDice(game);
     await animateDice(result.value);
-    if (!game || game.winner !== null) return;
+    if (!game || game.winner !== null || isPaused()) return;
 
     if (game.phase === 'no-move') {
         toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
@@ -221,12 +225,12 @@ async function doRoll(isAI = false) {
 
 function scheduleAI() {
     clearTimeout(aiTimer);
-    if (!game || game.winner !== null || modalOpen) return;
+    if (!game || game.winner !== null || modalOpen || isPaused()) return;
     const player = game.players[game.currentPlayer];
     if (!player || !player.isAI) return;
 
     aiTimer = setTimeout(() => {
-        if (!game || modalOpen || game.winner !== null) return;
+        if (!game || modalOpen || game.winner !== null || isPaused()) return;
         if (game.phase === 'roll') {
             doRoll(true);
         } else if (game.phase === 'move') {
@@ -290,8 +294,14 @@ export function initGame() {
         game = null;
         showScreen('main-menu');
     });
-    $('menu-btn')?.addEventListener('click', () => $('game-menu').classList.remove('hidden'));
-    $('resume-btn')?.addEventListener('click', () => $('game-menu').classList.add('hidden'));
+    $('menu-btn')?.addEventListener('click', () => {
+        clearTimeout(aiTimer);
+        $('game-menu').classList.remove('hidden');
+    });
+    $('resume-btn')?.addEventListener('click', () => {
+        $('game-menu').classList.add('hidden');
+        continueGame();
+    });
     $('restart-btn')?.addEventListener('click', restartGame);
     $('quit-btn')?.addEventListener('click', () => {
         clearTimeout(aiTimer);
