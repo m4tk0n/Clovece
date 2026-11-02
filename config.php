@@ -2,25 +2,51 @@
 /**
  * Člověče, nezlob se! - Configuration File
  * For wz.cz hosting
+ * 
+ * Sensitive data is loaded from .env file
  */
 
-// Database configuration
-define('DB_HOST', 'localhost');      // Usually 'localhost' for wz.cz
-define('DB_USER', 'username');        // Your MySQL username
-define('DB_PASS', 'password');        // Your MySQL password
-define('DB_NAME', 'clovece_game');    // Database name
+// Load environment variables from .env file
+if (file_exists(__DIR__ . '/.env')) {
+    $envLines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($envLines as $line) {
+        // Skip comments and empty lines
+        if (strpos(trim($line), '#') === 0) continue;
+        
+        // Parse key=value
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2) {
+            $key = trim($parts[0]);
+            $value = trim($parts[1]);
+            
+            // Remove quotes if present
+            if (preg_match('/^([\'\"])(.*)\1$/', $value, $matches)) {
+                $value = $matches[2];
+            }
+            
+            $_ENV[$key] = $value;
+            putenv($key . '=' . $value);
+        }
+    }
+}
 
-// Site configuration
-define('SITE_NAME', 'Člověče, nezlob se!');
-define('SITE_URL', 'https://tvujweb.wz.cz/clovece'); // Update with your URL
+// Database configuration (loaded from .env)
+define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_USER', $_ENV['DB_USER'] ?? 'username');
+define('DB_PASS', $_ENV['DB_PASS'] ?? 'password');
+define('DB_NAME', $_ENV['DB_NAME'] ?? 'clovece_game');
 
-// Game configuration
+// Site configuration (loaded from .env with defaults)
+define('SITE_NAME', $_ENV['SITE_NAME'] ?? 'Člověče, nezlob se!');
+define('SITE_URL', $_ENV['SITE_URL'] ?? 'https://tvujweb.wz.cz/clovece');
+
+// Game configuration (public settings)
 define('MIN_PLAYERS', 2);
 define('MAX_PLAYERS', 8);
 define('PIECE_COUNT', 4);
 define('DICE_SIDES', 6);
 
-// Player colors
+// Player colors (public settings)
 define('PLAYER_COLORS', [
     '#ff6b6b', // Red
     '#4ecdc4', // Teal
@@ -32,28 +58,32 @@ define('PLAYER_COLORS', [
     '#9999ff'  // Blue
 ]);
 
-// Player names
+// Player names (public settings)
 define('PLAYER_NAMES', [
     'Červený', 'Tyrkysový', 'Žlutý', 'Zelený',
     'Růžový', 'Fialový', 'Oranžový', 'Modrý'
 ]);
 
-// Session configuration
-define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
+// Session configuration (loaded from .env with defaults)
+define('SESSION_TIMEOUT', $_ENV['SESSION_TIMEOUT'] ?? 3600);
+define('CSRF_TOKEN_NAME', $_ENV['CSRF_TOKEN_NAME'] ?? 'clovece_csrf_token');
 
-// Security
-define('CSRF_TOKEN_NAME', 'clovece_csrf_token');
+// Error reporting (loaded from .env with defaults)
+$displayErrors = $_ENV['DISPLAY_ERRORS'] ?? '0';
+$errorReporting = $_ENV['ERROR_REPORTING'] ?? 'E_ALL';
 
-// Error reporting (disable in production)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+ini_set('display_errors', $displayErrors);
+ini_set('display_startup_errors', $displayErrors);
 
-// Start session
-session_start();
+if (defined('E_ALL')) {
+    error_reporting(constant($errorReporting));
+} else {
+    error_reporting(E_ALL);
+}
 
-// Set default timezone
-date_default_timezone_set('Europe/Prague');
+// Set default timezone (loaded from .env with defaults)
+$timezone = $_ENV['TIMEZONE'] ?? 'Europe/Prague';
+date_default_timezone_set($timezone);
 
 // Helper function to generate CSRF token
 function generateCsrfToken() {

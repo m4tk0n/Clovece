@@ -1,0 +1,38 @@
+# ============================================
+# Člověče, nezlob se! - Git Ignore
+# ============================================
+
+# Environment file (contains sensitive data)
+.env
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Cache
+*.cache
+/cache/
+
+# Sessions
+sessions/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Composer (if used)
+vendor/
+composer.lock
+
+# Node (if used)
+node_modules/
+package-lock.json
