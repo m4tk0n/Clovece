@@ -396,7 +396,27 @@ try {
     // Execute all SQL statements
     foreach ($sqlStatements as $sql) {
         try {
-            $db->exec($sql);
+            // Indexy mohou existovat z předchozího nedokončeného spuštění instalátoru.
+            // Před vytvořením ověříme jejich existenci, protože MySQL nepodporuje
+            // CREATE INDEX IF NOT EXISTS ve všech verzích používaných hostingy.
+            $indexExists = false;
+            if (preg_match('/^CREATE INDEX\\s+([^\\s]+)\\s+ON\\s+([^\\s(]+)/i', trim($sql), $indexMatch)) {
+                $indexName = trim($indexMatch[1], "`");
+                $tableName = trim($indexMatch[2], "`");
+                $indexCheck = $db->prepare(
+                    "SELECT 1 FROM information_schema.statistics
+                     WHERE table_schema = DATABASE()
+                       AND table_name = ?
+                       AND index_name = ?
+                     LIMIT 1"
+                );
+                $indexCheck->execute([$tableName, $indexName]);
+                $indexExists = (bool) $indexCheck->fetchColumn();
+            }
+
+            if (!$indexExists) {
+                $db->exec($sql);
+            }
             
             // Extract what was created for display
             if (preg_match('/CREATE TABLE.*?`([^`]+)`/', $sql, $m)) {
