@@ -118,15 +118,40 @@ function updateTurnControls() {
 function animateDice(value) {
     $('dice-value').textContent = value;
     const animation = $('dice-animation');
-    if (!animation || !settings.animations) return Promise.resolve();
+    const dice = $('dice-3d');
+    if (!animation || !dice || !settings.animations) return Promise.resolve();
+
+    // Natočení výsledné stěny dopředu: 1 přední, 2 pravá, 3 horní,
+    // 4 levá, 5 spodní, 6 zadní stěna krychle.
+    const finalRotation = {
+        1: [0, 0],
+        2: [0, -90],
+        3: [-90, 0],
+        4: [0, 90],
+        5: [90, 0],
+        6: [0, 180]
+    }[value] || [0, 0];
+
     animation.classList.remove('hidden');
+    animation.classList.remove('is-rolling');
+    dice.style.animation = 'none';
+    dice.style.transform = 'none';
+    dice.style.setProperty('--dice-end-x', finalRotation[0] + 'deg');
+    dice.style.setProperty('--dice-end-y', finalRotation[1] + 'deg');
+
+    // Vynutí nový začátek animace i při opakovaném hodu.
+    void dice.offsetWidth;
+    dice.style.animation = '';
     animation.classList.add('is-rolling');
     play('dice-sound');
+
     return new Promise(resolve => setTimeout(() => {
         animation.classList.remove('is-rolling');
+        dice.style.animation = 'none';
+        dice.style.transform = 'rotateX(' + finalRotation[0] + 'deg) rotateY(' + finalRotation[1] + 'deg)';
         animation.classList.add('hidden');
         resolve();
-    }, 650));
+    }, 1150));
 }
 
 function openKickModal(move) {
