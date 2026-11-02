@@ -429,7 +429,7 @@ try {
     
     if (empty($errors)) {
         echo "<h3>✅ Instalace úspěšná!</h3>";
-        echo "<div class='status status-success'>Všechny tabulky, procedury, view a indexy byly vytvořeny s prefixem <strong>" . TABLE_PREFIX . "</strong>.</div>";
+        echo "<div class='status status-success'>Všechny potřebné tabulky a indexy byly vytvořeny s prefixem <strong>" . TABLE_PREFIX . "</strong>.</div>";
     } else {
         echo "<h3>⚠️ Instalace dokončena s některými chybami</h3>";
         if (!empty($created)) {
