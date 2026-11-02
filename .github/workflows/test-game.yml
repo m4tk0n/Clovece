@@ -14,5 +14,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --experimental-default-type=module --check js/bootstrap.js
+          node --experimental-default-type=module --check js/app.js
+          node --experimental-default-type=module --check js/game-engine.js
+          node --experimental-default-type=module --check js/game-board.js
       - name: Test game rules
         run: node --experimental-default-type=module --test tests/game-engine.test.mjs
