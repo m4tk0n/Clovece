@@ -331,7 +331,6 @@ export function initGame() {
         updateSetup();
     });
     $('create-room-btn')?.addEventListener('click', () => {
-        toast('Online místnosti připravíme v další etapě. Teď si můžeš zahrát lokálně.');
         showScreen('player-selection');
         updateSetup();
     });
