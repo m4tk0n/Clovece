@@ -1,0 +1,30 @@
+<div id="lobby-screen" class="menu-screen hidden">
+        <div class="menu-bg">
+            <div class="menu-content">
+                <h2 class="glitch" data-text="LOBBY">LOBBY</h2>
+                
+                <div class="lobby-actions">
+                    <button id="create-room-btn-lobby" class="menu-btn pulse">
+                        <span>VYTVOŘIT NOVOU MÍSTNOST</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    
+                    <div class="join-room-form">
+                        <input type="text" id="room-code-input" placeholder="Kód místnosti" maxlength="10">
+                        <button id="join-room-btn-lobby" class="menu-btn">
+                            <span>PŘIPOJIT SE</span>
+                            <i class="fas fa-door-open"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <h3>Seznam místností</h3>
+                <div id="room-list" class="room-list"></div>
+                
+                <button id="back-from-lobby" class="menu-btn secondary">
+                    <span>ZPĚT</span>
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
