@@ -21,13 +21,16 @@ export function createGame(humanCount, aiCount, names = []) {
 
     const trackLength = total <= 4 ? 52 : 64;
     const classicSlots = total === 2 ? [0, 2] : total === 3 ? [0, 1, 2] : [0, 1, 2, 3];
+    const slots = total <= 4
+        ? classicSlots
+        : Array.from({ length: total }, (_, index) => Math.round(index * 8 / total));
     const players = Array.from({ length: total }, (_, index) => ({
         id: index,
-        slot: total <= 4 ? classicSlots[index] : index,
+        slot: slots[index],
         name: names[index] || (index < humanCount ? 'Hráč ' + (index + 1) : 'AI ' + (index - humanCount + 1)),
         color: PLAYER_COLORS[index],
         isAI: index >= humanCount,
-        start: total <= 4 ? classicSlots[index] * 13 : index * 8,
+        start: total <= 4 ? slots[index] * 13 : slots[index] * 8,
         finished: false
     }));
 
