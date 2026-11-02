@@ -1,0 +1,69 @@
+<div id="game-menu" class="modal hidden">
+        <div class="modal-content">
+            <h3>PAUZA</h3>
+            <button id="resume-btn" class="menu-btn">
+                <span>POKRAČOVAT</span>
+                <i class="fas fa-play"></i>
+            </button>
+            <button id="restart-btn" class="menu-btn">
+                <span>RESTART</span>
+                <i class="fas fa-redo"></i>
+            </button>
+            <button id="quit-btn" class="menu-btn secondary">
+                <span>OPUSTIT HRU</span>
+                <i class="fas fa-door-open"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Kick Animation Modal -->
+    <div id="kick-modal" class="modal hidden">
+        <div class="modal-content kick-content">
+            <div class="kick-animation">
+                <div class="kicker-piece" id="kicker-piece"></div>
+                <div class="kicked-piece" id="kicked-piece"></div>
+                <div class="kick-effect" id="kick-effect"></div>
+            </div>
+            <h3 id="kick-title">VYHOZENÍ!</h3>
+            <p id="kick-message">Hráč X vyhodil hráče Y!</p>
+            <button id="close-kick-btn" class="menu-btn">
+                <span>POKRAČOVAT</span>
+                <i class="fas fa-check"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="modal hidden">
+        <div class="modal-content win-content">
+            <div class="win-animation">
+                <div class="trophy">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="confetti" id="confetti"></div>
+            </div>
+            <h3 id="win-title">VÍTĚZSTVÍ!</h3>
+            <p id="win-message">Hráč <span id="winner-name">--</span> vyhrál!</p>
+            <button id="close-win-btn" class="menu-btn">
+                <span>ZPĚT DO MENU</span>
+                <i class="fas fa-home"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Dice Roll Animation -->
+    <div id="dice-animation" class="dice-animation hidden">
+        <div class="dice-3d" id="dice-3d">
+            <div class="side one"><span>1</span></div>
+            <div class="side two"><span>2</span></div>
+            <div class="side three"><span>3</span></div>
+            <div class="side four"><span>4</span></div>
+            <div class="side five"><span>5</span></div>
+            <div class="side six"><span>6</span></div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">
+        <span id="toast-message"></span>
+    </div>
