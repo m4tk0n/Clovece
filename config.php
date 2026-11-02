@@ -35,6 +35,7 @@ define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
 define('DB_USER', $_ENV['DB_USER'] ?? 'username');
 define('DB_PASS', $_ENV['DB_PASS'] ?? 'password');
 define('DB_NAME', $_ENV['DB_NAME'] ?? 'clovece_game');
+define('TABLE_PREFIX', $_ENV['TABLE_PREFIX'] ?? 'clovece_');
 
 // Site configuration (loaded from .env with defaults)
 define('SITE_NAME', $_ENV['SITE_NAME'] ?? 'Člověče, nezlob se!');
@@ -96,6 +97,11 @@ function generateCsrfToken() {
 // Helper function to validate CSRF token
 function validateCsrfToken($token) {
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
+}
+
+// Helper function to get table name with prefix
+function table($name) {
+    return TABLE_PREFIX . $name;
 }
 
 // Database connection function
