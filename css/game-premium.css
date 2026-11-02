@@ -457,3 +457,56 @@
     #dice-animation .dice-3d .side.five { transform: translateY(52px) rotateX(-90deg); }
     #dice-animation .dice-3d .side.six { transform: translateZ(-52px) rotateY(180deg); }
 }
+
+
+/* Real 3D dice roll: perspective, six cube faces and a multi-axis tumble */
+#dice-animation {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    perspective: 900px;
+    perspective-origin: 50% 45%;
+    background: rgba(3, 9, 8, .48);
+    pointer-events: none;
+}
+#dice-animation.hidden { display: none; }
+#dice-animation .dice-3d {
+    position: relative;
+    transform-style: preserve-3d;
+    transform-origin: center;
+    will-change: transform;
+}
+#dice-animation .dice-3d .side {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+#dice-animation.is-rolling .dice-3d {
+    animation: realDiceTumble 1.15s cubic-bezier(.12,.72,.18,1) forwards !important;
+}
+@keyframes realDiceTumble {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(.72);
+    }
+    18% {
+        transform: rotateX(210deg) rotateY(250deg) rotateZ(95deg) scale(1.08);
+    }
+    42% {
+        transform: rotateX(510deg) rotateY(610deg) rotateZ(210deg) scale(1);
+    }
+    72% {
+        transform: rotateX(680deg) rotateY(900deg) rotateZ(300deg) scale(1.04);
+    }
+    100% {
+        transform:
+            rotateX(calc(var(--dice-end-x, 0deg) + 720deg))
+            rotateY(calc(var(--dice-end-y, 0deg) + 1080deg))
+            rotateZ(360deg)
+            scale(1);
+    }
+}
