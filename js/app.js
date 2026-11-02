@@ -147,7 +147,7 @@ function finishMove(move) {
     showGame();
     if (move.captured) {
         openKickModal(move);
-        if (game.players[game.currentPlayer]?.isAI) {
+        if (game.players[move.playerId]?.isAI) {
             setTimeout(() => {
                 if (modalOpen) closeKickModal();
             }, 1900);
@@ -159,13 +159,13 @@ function finishMove(move) {
 }
 
 function continueGame() {
-    if (!game || game.winner !== null || modalOpen) return;
-    showGame();
-
+    if (!game || modalOpen) return;
     if (game.winner !== null) {
+        showGame();
         showWin();
         return;
     }
+    showGame();
 
     if (game.players[game.currentPlayer].isAI) {
         scheduleAI();
