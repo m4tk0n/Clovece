@@ -24,7 +24,7 @@ if (file_exists(__DIR__ . '/../.env')) {
                 $value = $matches[2];
             }
             
-            // WZ.cz may disable putenv(); this installer reads values from $_ENV.
+            // Instalátor používá přímo $_ENV a nezávisí na procesním prostředí hostingu.
             $_ENV[$key] = $value;
         }
     }
