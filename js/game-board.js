@@ -76,7 +76,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount) {
     }
 
     const spread = (stackIndex - (stackCount - 1) / 2) * 9;
-    const angle = playerAngle(player.id, game.players.length) + 90;
+    const angle = playerAngle(player, game.players.length) + 90;
     const radians = angle * Math.PI / 180;
     const x = pos.x + Math.cos(radians) * spread;
     const y = pos.y + Math.sin(radians) * spread;
