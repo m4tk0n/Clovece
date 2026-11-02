@@ -4,6 +4,7 @@
  */
 import { initNavigation } from './navigation.js';
 import { initAudio } from './audio.js';
+import { initGame } from './app.js';
 
 function startApp() {
     document.getElementById('loading-screen')?.classList.add('hidden');
@@ -11,6 +12,7 @@ function startApp() {
 
     initNavigation();
     initAudio();
+    initGame();
 }
 
 if (document.readyState === 'loading') {
