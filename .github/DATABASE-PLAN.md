@@ -97,7 +97,7 @@ Index `(game_id, id)`. Po vložení nové zprávy se v transakci odstraní star�
 
 Intervaly úloh a retenční lhůty budou nastavitelné v jednom konfiguračním souboru `/cron/config.php`, nikoli natvrdo v kódu jednotlivých úloh. Databáze bude uchovávat provozní stav (poslední spuštění, zámek a výsledek), ne vlastní nastavení. Díky tomu půjde například změnit mazání dokončených her ze 7 na 14 dní úpravou jediné hodnoty.
 
-Plánovač při načtení stránky provede pouze levkou kontrolu splatných úloh. Nárok na úlohu získá atomicky, aby ji souběžné požadavky nespustily dvakrát. Práce bude omezená počtem záznamů i časem. Pokud úloha není splatná, skončí bez dalších dotazů. Úlohy se spouští jen při návštěvnosti webu – bez návštěv se nic nevykonává.
+Plánovač při načtení stránky provede pouze lehkou kontrolu splatných úloh. Nárok na úlohu získá atomicky, aby ji souběžné požadavky nespustily dvakrát. Práce bude omezená počtem záznamů i časem. Pokud úloha není splatná, skončí bez dalších dotazů. Úlohy se spouští jen při návštěvnosti webu – bez návštěv se nic nevykonává.
 
 ## Ukládání stavu hry
 
