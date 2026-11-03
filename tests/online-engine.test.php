@@ -116,6 +116,13 @@ onlineEngineMovePiece($jump, 0);
 checkSame(2, $jump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku.');
 checkSame(1, $jump['pieces'][0]['pieces'][1]['steps'], 'Přeskočená vlastní figurka musí zůstat na místě.');
 
+$mainBlock = onlineEngineCreateState(testParticipants(2));
+$mainBlock['phase'] = 'move';
+$mainBlock['diceValue'] = 2;
+$mainBlock['pieces'][0]['pieces'][0]['steps'] = 0;
+$mainBlock['pieces'][0]['pieces'][1]['steps'] = 2;
+checkSame([1], onlineEngineValidMoves($mainBlock), 'Na obsazené políčko hlavní dráhy nesmí vstoupit druhá vlastní figurka.');
+
 $homeJump = onlineEngineCreateState(testParticipants(2));
 $homeJump['phase'] = 'move';
 $homeJump['diceValue'] = 2;
