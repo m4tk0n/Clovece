@@ -619,6 +619,49 @@ export async function initOnline() {
             await refreshGame();
         }
     });
+    $('create-transfer-code-btn')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        if (button.disabled) return;
+        button.disabled = true;
+        try {
+            const result = await api('create_transfer_code');
+            const output = $('transfer-code-output');
+            if (output) {
+                output.value = result.transfer_code;
+                output.focus();
+                output.select();
+            }
+            try {
+                await navigator.clipboard.writeText(result.transfer_code);
+                notify('Přenosový kód byl vytvořen a zkopírován. Platí 15 minut.');
+            } catch {
+                notify('Přenosový kód je připraven. Zkopíruj ho a zadej na druhém zařízení.');
+            }
+        } catch (error) {
+            notify('Kód se nepodařilo vytvořit: ' + error.message);
+        } finally {
+            button.disabled = false;
+        }
+    });
+    $('claim-transfer-code-btn')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        const input = $('transfer-code-input');
+        const code = input?.value.trim() || '';
+        if (!code) {
+            notify('Nejprve vlož přenosový kód.');
+            return;
+        }
+        button.disabled = true;
+        try {
+            await api('claim_transfer_code', { transfer_code: code });
+            notify('Identita byla převedena. Obnovuji aplikaci…');
+            window.setTimeout(() => window.location.reload(), 500);
+        } catch (error) {
+            notify('Přenos identity se nepodařil: ' + error.message);
+            button.disabled = false;
+        }
+    });
+
     $('copy-invite-btn')?.addEventListener('click', copyInvite);
     $('room-start-game-btn')?.addEventListener('click', async () => {
         if (!currentGameId) return;
