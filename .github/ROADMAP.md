@@ -234,3 +234,5 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 - [ ] Ověřit opětovné připojení, obnovu rozehrané hry a opravit nedostatky z praktického testování; automatické testy samy neověřují všechny produkční situace.
 
 Důležité: online místnosti a serverově ověřované tahy jsou napojené na rozhraní. Lokální hra zůstává beze změny. Před potvrzením funkčnosti je nutný test na skutečném hostingu ve dvou zařízeních.
+
+- [ ] Pravidlo tří pokusů o šestku při všech čtyřech figurkách v základně; po vyhození poslední nasazené figurky se výhoda obnovuje.
