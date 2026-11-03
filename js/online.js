@@ -97,19 +97,54 @@ function renderChat(messages, participants) {
     container.scrollTop = container.scrollHeight;
 }
 
-function renderGameChat(messages, participants) {
+function renderGameChat(messages, participants, moves = []) {
     const container = $('chat-messages');
     if (!container) return;
 
     const names = new Map(participants.map(player => [Number(player.id), player.display_name]));
+    const entries = [
+        ...messages.map(item => ({ ...item, kind: 'chat', timestamp: Date.parse(item.created_at) || 0 })),
+        ...moves.map(item => ({ ...item, kind: 'event', timestamp: Date.parse(item.created_at) || 0 }))
+    ];
+
+    entries.sort((a, b) => a.timestamp - b.timestamp || Number(a.id) - Number(b.id));
     container.replaceChildren();
-    messages.forEach(message => {
+
+    entries.forEach(item => {
         const line = document.createElement('div');
-        line.className = 'game-chat-message';
+        line.className = item.kind === 'chat' ? 'game-chat-message' : 'game-chat-event';
         const sender = document.createElement('strong');
-        sender.textContent = (names.get(Number(message.participant_id)) || 'Hráč') + ': ';
+        const name = names.get(Number(item.participant_id)) || 'Hra';
         const body = document.createElement('span');
-        body.textContent = message.message;
+
+        if (item.kind === 'chat') {
+            sender.textContent = name + ': ';
+            body.textContent = item.message;
+        } else {
+            let action = {};
+            try {
+                action = JSON.parse(item.action_json || '{}');
+            } catch {
+                action = {};
+            }
+
+            sender.textContent = name + ' · ';
+            if (item.action_type === 'start') {
+                body.textContent = 'hra začala';
+            } else if (item.action_type === 'roll') {
+                body.textContent = 'hodil kostkou: ' + (action.value || '?');
+            } else if (item.action_type === 'move') {
+                const parts = ['posunul figurku ' + (Number(action.pieceId) + 1)];
+                if (action.captured?.playerName) parts.push('vyhodil hráče ' + action.captured.playerName);
+                if (action.finishedNow) parts.push('dostal figurku do domečku');
+                body.textContent = parts.join(', ');
+            } else if (item.action_type === 'pass_turn') {
+                body.textContent = 'přeskočil tah';
+            } else {
+                body.textContent = 'provedl herní akci';
+            }
+        }
+
         line.append(sender, body);
         container.appendChild(line);
     });
@@ -158,7 +193,7 @@ function renderOnlineGame(data) {
     }
 
     $('restart-btn')?.classList.add('hidden');
-    renderGameChat(data.chat || [], data.participants || []);
+    renderGameChat(data.chat || [], data.participants || [], data.moves || []);
 
     const winModal = $('win-modal');
     if (onlineState.winner !== null && winModal) {
