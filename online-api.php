@@ -46,7 +46,7 @@ function onlineDb(): PDO
 
 function onlineDeviceCookiePath(): string
 {
-    $directory = str_replace('\\\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
+    $directory = str_replace(chr(92), '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
     return rtrim($directory, '/') . '/';
 }
 
