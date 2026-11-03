@@ -1013,6 +1013,7 @@ try {
 
             $game = onlineGameAccess($db, $gameId, $identityId);
             onlineProcessAiTurns($db, $gameId);
+            $game = onlineGameAccess($db, $gameId, $identityId);
             $stmt = $db->prepare(
                 'SELECT id, player_index, player_type, display_name, color, is_ready, joined_at, last_seen_at
                  FROM ' . onlineTable('game_participants') . '
