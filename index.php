@@ -365,8 +365,8 @@ $ver = date('Ymd-His');
                         </div>
                         <div class="setup-control">
                             <label for="ai-players">AI SOUPEŘI</label>
-                            <div class="setup-number"><strong id="ai-players-value">3</strong><span>POČET BOTŮ</span></div>
-                            <input type="range" id="ai-players" min="0" max="7" value="3" class="slider">
+                            <div class="setup-number"><strong id="ai-players-value">1</strong><span>POČET BOTŮ</span></div>
+                            <input type="range" id="ai-players" min="0" max="7" value="1" class="slider">
                         </div>
                     </div>
                     <div class="setup-summary">
