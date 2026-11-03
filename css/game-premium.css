@@ -755,25 +755,37 @@
 }
 
 
-/* Ovládání hlasitosti přímo v herním panelu */
-#game-screen .game-audio-control {
+/* Ovládání zvuku uvnitř hamburgerového menu */
+#game-menu .menu-audio-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    margin: 8px 0 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(201, 164, 93, .35);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, .18);
+    color: inherit;
+    font-size: 14px;
+}
+#game-menu .game-audio-control {
+    display: flex;
+    align-items: center;
+    gap: 9px;
     flex: 0 0 auto;
 }
-#game-screen .game-audio-control .audio-toggle {
-    min-width: 34px;
-    width: 34px;
-    padding: 5px;
+#game-menu .audio-toggle {
+    width: 38px;
+    min-width: 38px;
+    min-height: 36px;
+    padding: 6px;
 }
-#game-screen .game-audio-control .audio-toggle i {
-    font-size: 15px;
-}
-#game-screen .game-volume {
+#game-menu .audio-toggle i { font-size: 17px; }
+#game-menu .game-volume {
     display: block;
-    width: 76px;
+    width: 104px;
     height: 24px;
     margin: 0;
     accent-color: #c9a45d;
@@ -781,17 +793,6 @@
     touch-action: pan-x;
 }
 @media (max-width: 600px) {
-    #game-screen .game-header { grid-template-columns: minmax(0,1fr) auto; }
-    #game-screen .game-controls { gap: 4px; }
-    #game-screen .game-audio-control { gap: 2px; }
-    #game-screen .game-audio-control .audio-toggle {
-        min-width: 30px;
-        width: 30px;
-        min-height: 32px;
-        padding: 4px;
-    }
-    #game-screen .game-volume { width: 58px; height: 22px; }
-}
-@media (max-width: 370px) {
-    #game-screen .game-volume { width: 46px; }
+    #game-menu .menu-audio-row { gap: 8px; padding: 10px; }
+    #game-menu .game-volume { width: 86px; }
 }
