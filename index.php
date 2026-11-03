@@ -369,9 +369,6 @@ $ver = date('Ymd-His');
                             <input type="range" id="ai-players" min="0" max="7" value="1" class="slider">
                         </div>
                     </div>
-                    <div class="setup-summary">
-                        <strong id="setup-total">2 hráči</strong>
-                    </div>
                     <div class="board-size-control">
                         <span class="board-size-label">VELIKOST DESKY</span>
                         <div class="board-size-options" id="board-size-options" role="group" aria-label="Velikost hrací desky">
