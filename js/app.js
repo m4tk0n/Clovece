@@ -131,7 +131,24 @@ function renderChat() {
 function addChatEntry(sender, text) {
     const message = String(text || '').trim().slice(0, 240);
     if (!message) return;
-    chatHistory.push({ sender: String(sender || 'Hra'), text: message });
+    chatHistory.push({ sender: String(sender || 'Hra'), text: message, type: 'chat' });
+    renderChat();
+}
+
+function addGameLogEntry(sender, text) {
+    const message = String(text || '').trim();
+    if (!message) return;
+
+    const playerName = String(sender || 'Hra');
+    const lastEntry = chatHistory[chatHistory.length - 1];
+
+    // Herní události stejného hráče spojujeme, ale chatová zpráva řádek vždy přeruší.
+    if (lastEntry && lastEntry.type === 'game' && lastEntry.sender === playerName) {
+        lastEntry.text += ', ' + message;
+    } else {
+        chatHistory.push({ sender: playerName, text: message, type: 'game' });
+    }
+
     renderChat();
 }
 
@@ -248,7 +265,7 @@ function finishMove(move) {
     const logText = ['hodil ' + move.diceValue];
     if (move.captured) logText.push('vyhodil ' + move.captured.playerName);
     if (move.finishedNow) logText.push('dostal figurku do domečku');
-    addChatEntry(move.playerName, logText.join(', '));
+    addGameLogEntry(move.playerName, logText.join(', '));
 
     showGame();
     if (move.captured) {
@@ -307,7 +324,7 @@ async function doRoll(isAI = false) {
     if (!game || game.winner !== null || isPaused()) return;
 
     if (game.phase === 'no-move') {
-        addChatEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', nemá platný tah');
+        addGameLogEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', nemá platný tah');
         toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
         showGame();
         setTimeout(() => {
