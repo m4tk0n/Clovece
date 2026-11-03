@@ -35,7 +35,22 @@ define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
 define('DB_USER', $_ENV['DB_USER'] ?? 'username');
 define('DB_PASS', $_ENV['DB_PASS'] ?? 'password');
 define('DB_NAME', $_ENV['DB_NAME'] ?? 'clovece_game');
-define('TABLE_PREFIX', $_ENV['TABLE_PREFIX'] ?? 'clovece_');
+if (!array_key_exists('TABLE_PREFIX', $_ENV)) {
+    throw new RuntimeException('V souboru .env chybí povinná položka TABLE_PREFIX.');
+}
+
+if (
+    $_ENV['TABLE_PREFIX'] !== ''
+    && !preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $_ENV['TABLE_PREFIX'])
+) {
+    throw new RuntimeException('TABLE_PREFIX v .env obsahuje nepovolené znaky.');
+}
+
+if (strlen($_ENV['TABLE_PREFIX'] . 'fk_participant_identity') > 64) {
+    throw new RuntimeException('TABLE_PREFIX v .env je příliš dlouhý.');
+}
+
+define('TABLE_PREFIX', $_ENV['TABLE_PREFIX']);
 
 // Site configuration (loaded from .env with defaults)
 define('SITE_NAME', $_ENV['SITE_NAME'] ?? 'Člověče, nezlob se!');
