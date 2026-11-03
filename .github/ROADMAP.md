@@ -217,7 +217,6 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 8 | Vizuální umístění startovního pole na kruhové desce na pozici 0 + 1 | Upraveno podle upřesnění; čeká na ověření na webu |
 | 9 | Výběr velikosti desky 40/48/80 v menu lokální hry | Implementováno ve větvi `feature/board-size-selector`; čeká na CI a nasazení |
 | 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; automatické kontroly a FTP deploy úspěšné; čeká na vizuální ověření |
-| 11 | Změna orientace kruhové desky 40/48: pozice domečků a cílových drah po obvodu v rozestupech odpovídajících čtyřem, respektive šesti slotům | Implementováno; čeká na vizuální ověření |
 
 ## Potvrzená pravidla hry
 
