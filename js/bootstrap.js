@@ -4,7 +4,7 @@
  */
 import { initNavigation } from './navigation.js';
 import { initAudio } from './audio.js';
-import { initGame } from './app.js';
+import { initGame } from './app.js?v=20261103-1';
 import { initOnline } from './online.js';
 
 function startApp() {
