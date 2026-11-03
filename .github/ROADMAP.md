@@ -262,3 +262,12 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 
 - [x] Přesunout tlačítka velikosti desky 40/48/80 na místo souhrnného řádku s počtem hráčů.
 - [x] Zachovat sestavu u stolu včetně editace jmen a barev; výslovně zajistit viditelnost seznamu hráčů.
+
+
+## Záznam opravy rozmístění domečků – 2026-11-04
+
+- [x] U kruhové desky 40 umístit čtyři startovní domečky vedle sebe do jedné řady nad okruhem.
+- [x] U kruhové desky 48 umístit šest startovních domečků vedle sebe do jedné řady nad okruhem.
+- [x] Cílové dráhy orientovat z horní řady směrem dovnitř k okruhu; prázdné pozice zůstávají neutrální.
+- [x] Zachovat původní kruhové rozmístění u desky 80 a neměnit herní logiku.
+- [ ] Vizuálně ověřit obě varianty na živém webu.
