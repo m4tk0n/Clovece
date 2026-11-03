@@ -118,11 +118,11 @@ export function renderBoard(container, game) {
 
     const bases = game.players.map(player => baseMarkup(game, player, validMoves)).join('');
     const boardPieces = game.players.map(player => {
-        const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps < game.trackLength + 4);
+        const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 4);
         return active.map(piece => {
             let stackIndex = 0;
             let stackCount = 1;
-            if (piece.steps < game.trackLength) {
+            if (piece.steps <= game.trackLength) {
                 const position = getPiecePosition(game, player.id, piece);
                 const all = game.pieces.flatMap(group => group.pieces.map((item, index) => ({
                     playerId: group === game.pieces[player.id] ? player.id : game.pieces.indexOf(group),
