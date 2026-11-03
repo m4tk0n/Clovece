@@ -94,7 +94,7 @@
     box-shadow: 0 10px 26px rgba(134,96,43,.3), inset 0 1px rgba(255,255,255,.25);
 }
 #main-menu .menu-buttons #play-btn i { color: #fff2d2; }
-#main-menu .menu-buttons #join-room-btn { opacity: .65; }
+#main-menu .menu-buttons #join-room-btn { opacity: 1; cursor: pointer; }
 #main-menu .auth-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
