@@ -38,7 +38,7 @@ function onlineEngineCreateState(array $participants): array
             'slot' => $slot,
             'name' => (string) $participant['display_name'],
             'color' => (string) $participant['color'],
-            'isAI' => false,
+            'isAI' => (($participant['player_type'] ?? 'human') === 'ai'),
             'start' => $start,
             'finished' => false,
         ];
@@ -275,4 +275,39 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     $game['lastMove'] = $move;
 
     return $move;
+}
+
+
+function onlineEngineChooseAIMove(array $game): ?int
+{
+    $valid = onlineEngineValidMoves($game);
+    if ($valid === []) return null;
+    $playerId = (int) $game['currentPlayer'];
+    $player = $game['players'][$playerId];
+    $trackLength = (int) $game['trackLength'];
+    $bestPiece = null;
+    $bestScore = PHP_INT_MIN;
+    foreach ($valid as $pieceId) {
+        $piece = $game['pieces'][$playerId]['pieces'][$pieceId];
+        $nextSteps = (int) $piece['steps'] < 0 ? 0 : (int) $piece['steps'] + (int) $game['diceValue'];
+        $destination = $nextSteps < $trackLength ? (((int) $player['start']) + $nextSteps) % $trackLength : null;
+        $score = $nextSteps;
+        if ((int) $piece['steps'] < 0) $score += 18;
+        if ($nextSteps === $trackLength + 4) $score += 1000;
+        if ($destination !== null) {
+            foreach ($game['pieces'] as $enemyId => $group) {
+                if ((int) $enemyId === $playerId) continue;
+                foreach ($group['pieces'] as $enemyPiece) {
+                    $enemySteps = (int) $enemyPiece['steps'];
+                    if ($enemySteps >= 0 && $enemySteps < $trackLength
+                        && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) $score += 90;
+                }
+            }
+        }
+        if ($score > $bestScore) {
+            $bestScore = $score;
+            $bestPiece = (int) $pieceId;
+        }
+    }
+    return $bestPiece;
 }
