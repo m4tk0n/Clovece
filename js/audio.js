@@ -43,12 +43,23 @@ export function initAudio() {
 
 export function setSoundEffectsEnabled(enabled) {
     soundEffectsEnabled = Boolean(enabled);
+
+    // Při vypnutí efektů zastavíme i zvuk, který právě hraje.
+    if (!soundEffectsEnabled) {
+        document.querySelectorAll('audio').forEach(audio => {
+            audio.pause();
+            audio.currentTime = 0;
+        });
+    }
 }
 
 export function playSound(id) {
     if (!soundEffectsEnabled) return;
     const audio = document.getElementById(id);
     if (!audio) return;
+
+    // Každý efekt respektuje aktuální celkovou hlasitost i ztlumení.
+    audio.volume = masterMuted ? 0 : masterVolume;
 
     audio.play().catch(error => {
         console.warn(`Zvuk ${id} se nepodařilo přehrát:`, error);
