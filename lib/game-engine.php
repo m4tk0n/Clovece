@@ -85,10 +85,6 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
     $trackLength = (int) $game['trackLength'];
     $maxSteps = $trackLength + 4;
     $playerPieces = $game['pieces'][$playerId]['pieces'];
-    $safeSquares = array_map(
-        static fn(array $player): int => (int) $player['start'],
-        $game['players']
-    );
     $valid = [];
 
     foreach ($playerPieces as $piece) {
@@ -137,7 +133,14 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
                 }
             }
 
-            if ($enemyAtTarget && in_array($destination, $safeSquares, true)) {
+            $safeSquareOwner = null;
+            foreach ($game['players'] as $safePlayerId => $safePlayer) {
+                if ((int) $safePlayer['start'] === $destination) {
+                    $safeSquareOwner = (int) $safePlayerId;
+                    break;
+                }
+            }
+            if ($enemyAtTarget && $safeSquareOwner !== null && $safeSquareOwner !== $playerId) {
                 continue;
             }
         }
@@ -204,12 +207,16 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
 
     if ($nextSteps < (int) $game['trackLength']) {
         $destination = (((int) $player['start']) + $nextSteps) % (int) $game['trackLength'];
-        $safeSquares = array_map(
-            static fn(array $item): int => (int) $item['start'],
-            $game['players']
-        );
+        $safeSquareOwner = null;
+        foreach ($game['players'] as $safePlayerId => $safePlayer) {
+            if ((int) $safePlayer['start'] === $destination) {
+                $safeSquareOwner = (int) $safePlayerId;
+                break;
+            }
+        }
 
-        if (!in_array($destination, $safeSquares, true)) {
+        // Vlastní startovní pole není bezpečné pro soupeřovu figurku.
+        if ($safeSquareOwner === null || $safeSquareOwner === $playerId) {
             foreach ($game['pieces'] as $enemyId => &$group) {
                 if ((int) $enemyId === $playerId) {
                     continue;
