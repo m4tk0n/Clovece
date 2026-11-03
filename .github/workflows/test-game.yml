@@ -22,3 +22,18 @@ jobs:
           node --experimental-default-type=module --check js/game-board.js
       - name: Test game rules
         run: node --experimental-default-type=module --test tests/game-engine.test.mjs
+
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+      - name: Check PHP syntax
+        run: |
+          php -l config.php
+          php -l install/install.php
+          php -l online-api.php
