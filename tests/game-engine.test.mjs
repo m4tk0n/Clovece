@@ -159,6 +159,7 @@ test('the full circuit includes the start square before entering the home lane',
     assert.equal(getPiecePosition(game, 0, piece), game.players[0].start);
 
     // Only the next step enters the first home-lane square.
+    game.currentPlayer = 0;
     game.phase = 'move';
     game.diceValue = 1;
     assert.deepEqual(getValidMoves(game), [0]);
