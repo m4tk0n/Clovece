@@ -19,11 +19,23 @@ export function showScreen(name) {
     const id = screenIds[name];
     if (!id) return;
 
-    document.querySelectorAll('.menu-screen, .game-screen').forEach(screen => {
-        screen.classList.add('hidden');
-    });
+    const target = document.getElementById(id);
+    if (!target) return;
 
-    document.getElementById(id)?.classList.remove('hidden');
+    const screens = document.querySelectorAll('.menu-screen, .game-screen');
+    const alreadyActive = !target.classList.contains('hidden') &&
+        [...screens].every(screen =>
+            screen === target || screen.classList.contains('hidden')
+        );
+
+    // Polling může showScreen() volat opakovaně. Aktivní obrazovku
+    // v takovém případě vůbec neskrýváme ani znovu nezobrazujeme.
+    if (alreadyActive) return;
+
+    screens.forEach(screen => {
+        if (screen !== target) screen.classList.add('hidden');
+    });
+    target.classList.remove('hidden');
 }
 
 window.showScreen = showScreen;
