@@ -22,13 +22,17 @@ function point(angle, radius) {
 function playerAngle(player, total, trackLength) {
     // U kruhových desek začíná geometrie nahoře. Domečky tak leží
     // rovnoměrně po vnějším obvodu: 4 pozice u desky 40, 6 u desky 48.
-    return -90 + player.start * 360 / trackLength;
+    const startAngle = trackLength === 40 || trackLength === 48 ? -90 : (total <= 4 ? -135 : -90);
+    return startAngle + player.start * 360 / trackLength;
 }
 
 function trackAngle(index, game) {
     // Startovní pole je vizuálně posunuté o jedno místo; základní orientace
     // kruhové dráhy je nahoře a odpovídá rozmístění domečků po obvodu.
-    return -90 + index * 360 / game.trackLength;
+    const startAngle = game.trackLength === 40 || game.trackLength === 48
+        ? -90
+        : (game.players.length <= 4 ? -135 : -90);
+    return startAngle + index * 360 / game.trackLength;
 }
 
 function routeAngle(player, game) {
@@ -147,7 +151,7 @@ export function renderBoard(container, game) {
         const player = playersBySlot.get(slot);
         const angle = player
             ? playerAngle(player, total, game.trackLength)
-            : -90 + slot * 360 / slotCount;
+            : (game.trackLength === 40 || game.trackLength === 48 ? -90 : (total <= 4 ? -135 : -90)) + slot * 360 / slotCount;
         const color = player?.color || '#c6a96b';
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
@@ -159,7 +163,10 @@ export function renderBoard(container, game) {
     const bases = Array.from({ length: slotCount }, (_, slot) => {
         const player = playersBySlot.get(slot);
         if (player) return baseMarkup(game, player, validMoves);
-        const angle = -90 + slot * 360 / slotCount;
+        const startAngle = game.trackLength === 40 || game.trackLength === 48
+            ? -90
+            : (total <= 4 ? -135 : -90);
+        const angle = startAngle + slot * 360 / slotCount;
         const center = point(angle, BASE_RADIUS);
         return '<g class="base-zone base-zone-empty">' +
             '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="#c6a96b" fill-opacity=".035" stroke="#c6a96b" stroke-opacity=".32" stroke-width="2"/>' +
