@@ -140,13 +140,15 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 
 ### Jména a barvy hráčů (lokální i online)
 
-- [ ] Každý účastník online místnosti si může sám nastavit nebo změnit své zobrazované jméno; změna se synchronizuje všem hráčům. Hráč nesmí měnit jména ostatních.
-- [ ] Při vytváření lokální i online hry umožnit každému hráči vybrat si jednu z osmi výrazných a dobře rozlišitelných barev.
-- [ ] Nabídnout také náhodné rozdělení barev; každému hráči přiřadit jedinečnou barvu.
-- [ ] Zabránit výběru již obsazené barvy v rámci jedné hry/místnosti.
-- [ ] U online hry ukládat barvu na serveru k účastníkovi místnosti a synchronizovat ji všem klientům; zachovat ji při obnovení a opětovném připojení.
-- [ ] Použít společnou paletu osmi barev pro lokální i online režim a ověřit jejich čitelnost na herní ploše i figurkách.
-- [ ] Přidat regresní testy výběru, náhodného rozdělení, unikátnosti a synchronizace barev.
+- [x] Každý účastník online místnosti si může sám nastavit nebo změnit své zobrazované jméno; změna se synchronizuje všem hráčům. Hráč nesmí měnit jména ostatních.
+- [x] Při vytváření lokální hry umožnit každému hráči vybrat si jednu z osmi výrazných a dobře rozlišitelných barev.
+- [x] V online místnosti umožnit každému hráči vybrat si vlastní barvu před zahájením hry.
+- [x] Nabídnout náhodné přidělení barev v lokální hře a náhodný výběr volné barvy v online místnosti.
+- [x] Zabránit duplicitním barvám v lokální hře i online místnosti; server online volbu kontroluje pod zámkem místnosti.
+- [x] U online hry ukládat barvu na serveru k účastníkovi místnosti a synchronizovat ji všem klientům; po zahájení hry se barvy stanou součástí stavu hry.
+- [x] Použít společnou paletu osmi barev pro lokální i online režim; u žlutých figurek použít tmavé číslování pro lepší kontrast.
+- [x] Přidat regresní testy výběru barev a kontroly jedinečnosti v lokálním herním enginu.
+- [ ] Prakticky otestovat změnu jména a výběr barev mezi více zařízeními v produkční místnosti.
 
 ### Alternativní vzhled hrací plochy
 
@@ -189,6 +191,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
 | 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo |
 | 4 | Rozstřel při zahájení lokální i online hry + regresní testy | Implementováno a nasazeno |
+| 5 | Vlastní jméno online hráče, výběr a náhodné přidělení osmi barev pro lokální i online hru | Implementováno; čeká na praktický multiplayer test |
 
 ## Potvrzená pravidla hry
 
