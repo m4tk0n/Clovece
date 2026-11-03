@@ -118,31 +118,6 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
                 continue;
             }
 
-            $enemyAtTarget = false;
-            foreach ($game['pieces'] as $enemyId => $group) {
-                if ((int) $enemyId === $playerId) {
-                    continue;
-                }
-                foreach ($group['pieces'] as $enemyPiece) {
-                    $enemySteps = (int) $enemyPiece['steps'];
-                    if ($enemySteps >= 0 && $enemySteps < $trackLength
-                        && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) {
-                        $enemyAtTarget = true;
-                        break 2;
-                    }
-                }
-            }
-
-            $safeSquareOwner = null;
-            foreach ($game['players'] as $safePlayerId => $safePlayer) {
-                if ((int) $safePlayer['start'] === $destination) {
-                    $safeSquareOwner = (int) $safePlayerId;
-                    break;
-                }
-            }
-            if ($enemyAtTarget && $safeSquareOwner !== null && $safeSquareOwner !== $playerId) {
-                continue;
-            }
         }
 
         $valid[] = $pieceId;
@@ -207,37 +182,27 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
 
     if ($nextSteps < (int) $game['trackLength']) {
         $destination = (((int) $player['start']) + $nextSteps) % (int) $game['trackLength'];
-        $safeSquareOwner = null;
-        foreach ($game['players'] as $safePlayerId => $safePlayer) {
-            if ((int) $safePlayer['start'] === $destination) {
-                $safeSquareOwner = (int) $safePlayerId;
-                break;
+        // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
+        foreach ($game['pieces'] as $enemyId => &$group) {
+            if ((int) $enemyId === $playerId) {
+                continue;
             }
-        }
-
-        // Vlastní startovní pole není bezpečné pro soupeřovu figurku.
-        if ($safeSquareOwner === null || $safeSquareOwner === $playerId) {
-            foreach ($game['pieces'] as $enemyId => &$group) {
-                if ((int) $enemyId === $playerId) {
-                    continue;
+            foreach ($group['pieces'] as &$enemyPiece) {
+                $enemySteps = (int) $enemyPiece['steps'];
+                if ($enemySteps >= 0 && $enemySteps < (int) $game['trackLength']
+                    && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) {
+                    $captured = [
+                        'playerId' => (int) $enemyId,
+                        'pieceId' => (int) $enemyPiece['id'],
+                        'playerName' => (string) $game['players'][$enemyId]['name'],
+                        'color' => (string) $game['players'][$enemyId]['color'],
+                    ];
+                    $enemyPiece['steps'] = -1;
                 }
-                foreach ($group['pieces'] as &$enemyPiece) {
-                    $enemySteps = (int) $enemyPiece['steps'];
-                    if ($enemySteps >= 0 && $enemySteps < (int) $game['trackLength']
-                        && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) {
-                        $captured = [
-                            'playerId' => (int) $enemyId,
-                            'pieceId' => (int) $enemyPiece['id'],
-                            'playerName' => (string) $game['players'][$enemyId]['name'],
-                            'color' => (string) $game['players'][$enemyId]['color'],
-                        ];
-                        $enemyPiece['steps'] = -1;
-                    }
-                }
-                unset($enemyPiece);
             }
-            unset($group);
+            unset($enemyPiece);
         }
+        unset($group);
     }
 
     $piece['steps'] = $nextSteps;
