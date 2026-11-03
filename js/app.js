@@ -443,6 +443,12 @@ async function doRoll(isAI = false) {
     await animateDice(result.value);
     if (!game || game.winner !== null || isPaused()) return;
 
+    if (result.retrying) {
+        addGameLogEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', bez šestky (pokus ' + result.attempt + '/3)');
+        continueGame();
+        return;
+    }
+
     if (game.phase === 'no-move') {
         addGameLogEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', nemá platný tah');
         toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
