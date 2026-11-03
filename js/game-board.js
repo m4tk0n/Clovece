@@ -64,7 +64,7 @@ function baseMarkup(game, player, validMoves) {
 function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     const color = player.color;
     const maxSteps = game.trackLength + 4;
-    if (piece.steps < 0 || piece.steps === maxSteps) return '';
+    if (piece.steps < 0) return '';
 
     let pos;
     if (piece.steps <= game.trackLength) {
@@ -79,8 +79,16 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     const spread = (stackIndex - (stackCount - 1) / 2) * 9;
     const angle = playerAngle(player, game.players.length, game.trackLength) + 90;
     const radians = angle * Math.PI / 180;
-    const x = pos.x + Math.cos(radians) * spread;
-    const y = pos.y + Math.sin(radians) * spread;
+    let x = pos.x + Math.cos(radians) * spread;
+    let y = pos.y + Math.sin(radians) * spread;
+
+    // Čtyři dokončené figurky zůstávají viditelné v cílovém poli.
+    if (piece.steps === maxSteps) {
+        const finishedOffsets = [[-6, -6], [6, -6], [-6, 6], [6, 6]];
+        const offset = finishedOffsets[stackIndex] || [0, 0];
+        x += offset[0];
+        y += offset[1];
+    }
     const selectable = player.id === game.currentPlayer && validMoves.has(piece.id);
     return '<g class="board-piece ' + (selectable ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">' +
         '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 5) + '" r="14"/>' +
@@ -139,6 +147,10 @@ export function renderBoard(container, game) {
                     getPiecePosition(game, item.playerId, item.piece) === position);
                 stackIndex = all.findIndex(item => item.playerId === player.id && item.piece.id === piece.id);
                 stackCount = all.length;
+            } else if (piece.steps === game.trackLength + 4) {
+                const finished = game.pieces[player.id].pieces.filter(item => item.steps === game.trackLength + 4);
+                stackIndex = finished.findIndex(item => item.id === piece.id);
+                stackCount = finished.length;
             }
             return pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves);
         }).join('');
