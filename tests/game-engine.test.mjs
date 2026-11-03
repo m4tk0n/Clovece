@@ -87,9 +87,21 @@ test('starting player is decided by a dice-off and only tied leaders reroll', ()
 
 test('a piece can leave its base only after rolling six', () => {
     const blocked = createGame(1, 1);
-    const five = rollDice(blocked, 5);
+    const firstFive = rollDice(blocked, 5);
+    assert.equal(firstFive.retrying, true);
+    assert.equal(firstFive.attempt, 1);
+    assert.equal(blocked.phase, 'roll');
+
+    const secondFive = rollDice(blocked, 5);
+    assert.equal(secondFive.retrying, true);
+    assert.equal(secondFive.attempt, 2);
+    assert.equal(blocked.phase, 'roll');
+
+    const thirdFive = rollDice(blocked, 5);
+    assert.equal(thirdFive.retrying, false);
+    assert.equal(thirdFive.attempt, 3);
     assert.equal(blocked.phase, 'no-move');
-    assert.deepEqual(five.validMoves, []);
+    assert.deepEqual(thirdFive.validMoves, []);
 
     const ready = createGame(1, 1);
     const six = rollDice(ready, 6);
