@@ -19,9 +19,9 @@ function point(angle, radius) {
     };
 }
 
-function playerAngle(player, total) {
-    const slot = player.slot ?? player.id;
-    return total <= 4 ? -135 + slot * 90 : -90 + slot * 45;
+function playerAngle(player, total, trackLength) {
+    const startAngle = total <= 4 ? -135 : -90;
+    return startAngle + player.start * 360 / trackLength;
 }
 
 function trackAngle(index, game) {
@@ -33,7 +33,7 @@ function svgText(x, y, value, size, fill) {
 }
 
 function baseMarkup(game, player, validMoves) {
-    const angle = playerAngle(player, game.players.length);
+    const angle = playerAngle(player, game.players.length, game.trackLength);
     const center = point(angle, BASE_RADIUS);
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
@@ -73,11 +73,11 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
         pos = point(angle, TRACK_RADIUS);
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
-        pos = point(playerAngle(player, game.players.length), HOME_RADII[Math.min(3, laneIndex)]);
+        pos = point(playerAngle(player, game.players.length, game.trackLength), HOME_RADII[Math.min(3, laneIndex)]);
     }
 
     const spread = (stackIndex - (stackCount - 1) / 2) * 9;
-    const angle = playerAngle(player, game.players.length) + 90;
+    const angle = playerAngle(player, game.players.length, game.trackLength) + 90;
     const radians = angle * Math.PI / 180;
     const x = pos.x + Math.cos(radians) * spread;
     const y = pos.y + Math.sin(radians) * spread;
