@@ -685,3 +685,54 @@
         width: 100%;
     }
 }
+
+
+/* Výběr velikosti hrací desky při zakládání lokální hry. */
+.menu-screen:not(#main-menu) .board-size-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin: 14px 0 8px;
+}
+.menu-screen:not(#main-menu) .board-size-label {
+    color: var(--table-gold, #c9a45d);
+    font: 700 10px/1.4 "Press Start 2P", monospace;
+    letter-spacing: .04em;
+    text-align: center;
+}
+.menu-screen:not(#main-menu) .board-size-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    width: min(100%, 420px);
+}
+.menu-screen:not(#main-menu) .board-size-btn {
+    min-height: 46px;
+    border: 1px solid rgba(201, 164, 93, .48);
+    border-radius: 10px;
+    background: rgba(7, 18, 15, .72);
+    color: #eee5d1;
+    font: 700 19px/1 "Bangers", Impact, sans-serif;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.menu-screen:not(#main-menu) .board-size-btn.is-active {
+    border-color: #e4bd70;
+    background: linear-gradient(145deg, rgba(125, 91, 39, .9), rgba(67, 49, 26, .95));
+    color: #fff6df;
+    box-shadow: inset 0 0 0 1px rgba(255, 225, 163, .2), 0 0 0 2px rgba(201, 164, 93, .18);
+}
+.menu-screen:not(#main-menu) .board-size-btn:disabled {
+    opacity: .32;
+    cursor: not-allowed;
+}
+.menu-screen:not(#main-menu) .board-size-btn:focus-visible {
+    outline: 2px solid #f3d28f;
+    outline-offset: 3px;
+}
+@media (max-width: 600px) {
+    .menu-screen:not(#main-menu) .board-size-control { margin-top: 10px; }
+    .menu-screen:not(#main-menu) .board-size-btn { min-height: 42px; }
+}
