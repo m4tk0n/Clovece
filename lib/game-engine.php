@@ -105,7 +105,7 @@ function onlineEngineDetermineStartingPlayer(array &$game, ?callable $rollFn = n
 function onlineEnginePiecePosition(array $game, int $playerId, array $piece): ?int
 {
     $steps = (int) $piece['steps'];
-    if ($steps < 0 || $steps >= (int) $game['trackLength']) {
+    if ($steps < 0 || $steps > (int) $game['trackLength']) {
         return null;
     }
     return (((int) $game['players'][$playerId]['start']) + $steps) % (int) $game['trackLength'];
@@ -135,7 +135,7 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
             continue;
         }
 
-        if ($nextSteps < $trackLength) {
+        if ($nextSteps <= $trackLength) {
             $destination = (((int) $game['players'][$playerId]['start']) + $nextSteps) % $trackLength;
             $ownBlock = false;
 
@@ -144,7 +144,7 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
                     continue;
                 }
                 $otherSteps = (int) $other['steps'];
-                if ($otherSteps >= 0 && $otherSteps < $trackLength
+                if ($otherSteps >= 0 && $otherSteps <= $trackLength
                     && onlineEnginePiecePosition($game, $playerId, $other) === $destination) {
                     $ownBlock = true;
                     break;
@@ -216,7 +216,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     $nextSteps = $fromSteps === -1 ? 0 : $fromSteps + $diceValue;
     $captured = null;
 
-    if ($nextSteps < (int) $game['trackLength']) {
+    if ($nextSteps <= (int) $game['trackLength']) {
         $destination = (((int) $player['start']) + $nextSteps) % (int) $game['trackLength'];
         // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
         foreach ($game['pieces'] as $enemyId => &$group) {
@@ -225,7 +225,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
             }
             foreach ($group['pieces'] as &$enemyPiece) {
                 $enemySteps = (int) $enemyPiece['steps'];
-                if ($enemySteps >= 0 && $enemySteps < (int) $game['trackLength']
+                if ($enemySteps >= 0 && $enemySteps <= (int) $game['trackLength']
                     && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) {
                     $captured = [
                         'playerId' => (int) $enemyId,
@@ -290,7 +290,7 @@ function onlineEngineChooseAIMove(array $game): ?int
     foreach ($valid as $pieceId) {
         $piece = $game['pieces'][$playerId]['pieces'][$pieceId];
         $nextSteps = (int) $piece['steps'] < 0 ? 0 : (int) $piece['steps'] + (int) $game['diceValue'];
-        $destination = $nextSteps < $trackLength ? (((int) $player['start']) + $nextSteps) % $trackLength : null;
+        $destination = $nextSteps <= $trackLength ? (((int) $player['start']) + $nextSteps) % $trackLength : null;
         $score = $nextSteps;
         if ((int) $piece['steps'] < 0) $score += 18;
         if ($nextSteps === $trackLength + 4) $score += 1000;
@@ -299,7 +299,7 @@ function onlineEngineChooseAIMove(array $game): ?int
                 if ((int) $enemyId === $playerId) continue;
                 foreach ($group['pieces'] as $enemyPiece) {
                     $enemySteps = (int) $enemyPiece['steps'];
-                    if ($enemySteps >= 0 && $enemySteps < $trackLength
+                    if ($enemySteps >= 0 && $enemySteps <= $trackLength
                         && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) $score += 90;
                 }
             }
