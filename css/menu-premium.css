@@ -197,3 +197,52 @@
     #main-menu .menu-buttons .menu-btn { min-height: 43px; padding-top: 9px; padding-bottom: 9px; }
     #main-menu .credits { margin-top: 12px; }
 }
+
+
+/* Obnovení vlastních online her v lobby */
+.my-games-list {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    margin: 10px 0 22px;
+}
+.my-game-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 10px;
+    background: rgba(10,15,28,.72);
+    text-align: left;
+}
+.my-game-details {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+.my-game-details strong {
+    overflow-wrap: anywhere;
+    color: #fff;
+}
+.my-game-details span,
+.my-games-empty {
+    color: rgba(255,255,255,.72);
+    font-size: .88rem;
+}
+.my-game-resume {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 112px;
+    padding: 9px 12px;
+    font-size: .78rem;
+}
+.my-game-resume:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+@media (max-width: 480px) {
+    .my-game-item { align-items: flex-start; flex-direction: column; }
+    .my-game-resume { width: 100%; }
+}
