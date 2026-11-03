@@ -18,11 +18,32 @@ $ver = date('Ymd-His');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Člověče, nezlob se! | Online Ludo Game</title>
-    <link rel="stylesheet" href="styles.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/variables.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/reset.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/animations.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/layout.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/components.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/board.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/modals.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/toast.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/responsive.css?v=<?= $ver ?>">
     <link rel="stylesheet" href="css/game-premium.css?v=<?= $ver ?>">
     <link rel="stylesheet" href="css/menu-premium.css?v=<?= $ver ?>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rubik+Glitch&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "/js/app.js": "/js/app.js?v=<?= $ver ?>",
+            "/js/audio.js": "/js/audio.js?v=<?= $ver ?>",
+            "/js/game-board.js": "/js/game-board.js?v=<?= $ver ?>",
+            "/js/game-engine.js": "/js/game-engine.js?v=<?= $ver ?>",
+            "/js/lazy-load.js": "/js/lazy-load.js?v=<?= $ver ?>",
+            "/js/navigation.js": "/js/navigation.js?v=<?= $ver ?>",
+            "/js/online.js": "/js/online.js?v=<?= $ver ?>"
+        }
+    }
+    </script>
 </head>
 <body>
     <!-- Loading Screen -->
