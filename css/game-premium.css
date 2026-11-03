@@ -153,7 +153,47 @@
     letter-spacing:.12em;
 }
 .board-topline .board-kicker { color:var(--table-gold); }
-.board-topline .board-mode { text-align:right; font-size:8px; }
+.board-appearance {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-left:auto;
+    letter-spacing:0;
+}
+.board-appearance-label {
+    margin-right:4px;
+    color:#aeb9ac;
+    font-size:8px;
+}
+.board-appearance-option {
+    min-height:30px;
+    padding:6px 9px;
+    border:1px solid rgba(198,169,107,.38);
+    border-radius:8px;
+    background:rgba(255,255,255,.035);
+    color:#aeb9ac;
+    font:700 8px/1.2 "Press Start 2P",monospace;
+    letter-spacing:0;
+    opacity:1;
+}
+.board-appearance-option.is-active {
+    border-color:var(--table-gold);
+    background:rgba(198,169,107,.18);
+    color:var(--table-gold);
+}
+.board-appearance-option.is-unavailable {
+    border-style:dashed;
+    color:#758178;
+    cursor:not-allowed;
+}
+@media (max-width:520px) {
+    .board-topline { align-items:flex-start; }
+    .board-appearance { gap:4px; }
+    .board-appearance-option { min-height:28px; padding:5px 6px; font-size:7px; }
+    .board-appearance-label { display:none; }
+}
 .premium-board {
     display:block;
     width:100%;
