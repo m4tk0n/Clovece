@@ -176,6 +176,27 @@ function onlineGameAccess(PDO $db, int $gameId, int $identityId): array
     return $result;
 }
 
+function onlineStartingRollLogData(array $state): array
+{
+    $rounds = [];
+    foreach (($state['startRolls'] ?? []) as $round) {
+        if ($round === []) continue;
+        $rounds[] = array_map(static function (array $roll) use ($state): array {
+            $playerId = (int) $roll['playerId'];
+            return $roll + ['playerName' => (string) ($state['players'][$playerId]['name'] ?? 'Hráč')];
+        }, $round);
+    }
+
+    $winnerId = $state['startWinner'] ?? null;
+    return [
+        'players' => count($state['players'] ?? []),
+        'rounds' => $rounds,
+        'inProgress' => ($state['phase'] ?? '') === 'start-roll',
+        'startingPlayerId' => $winnerId,
+        'startingPlayerName' => $winnerId === null ? null : ($state['players'][$winnerId]['name'] ?? null),
+    ];
+}
+
 function onlineProcessAiTurns(PDO $db, int $gameId): void
 {
     for ($step = 0; $step < 12; $step++) {
@@ -190,14 +211,17 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
             }
             $state = json_decode($game['state_json'], true, 512, JSON_THROW_ON_ERROR);
             $playerIndex = (int) $state['currentPlayer'];
-            $stmt = $db->prepare('SELECT id, player_type FROM ' . onlineTable('game_participants') . ' WHERE game_id = ? AND player_index = ? AND left_at IS NULL LIMIT 1');
+            $stmt = $db->prepare('SELECT id, player_index, player_type FROM ' . onlineTable('game_participants') . ' WHERE game_id = ? AND player_index = ? AND left_at IS NULL LIMIT 1');
             $stmt->execute([$gameId, $playerIndex]);
             $participant = $stmt->fetch();
             if (!$participant || $participant['player_type'] !== 'ai') {
                 $db->commit();
                 return;
             }
-            if ($state['phase'] === 'roll') {
+            if ($state['phase'] === 'start-roll') {
+                $actionType = 'start_roll';
+                $actionResult = onlineEngineRecordStartingRoll($state, (int) $participant['player_index']);
+            } elseif ($state['phase'] === 'roll') {
                 $actionType = 'roll';
                 $actionResult = onlineEngineRollDice($state);
             } elseif ($state['phase'] === 'move') {
@@ -218,8 +242,13 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
             $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
             $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET state_json = ?, state_version = ?, current_turn = ?, status = ?, last_activity_at = NOW(), finished_at = IF(? = \'finished\', NOW(), finished_at) WHERE id = ?')
                 ->execute([json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $newVersion, (int) $state['currentPlayer'], $newStatus, $newStatus, $gameId]);
-            $db->prepare('INSERT INTO ' . onlineTable('game_moves') . ' (game_id, participant_id, state_version, request_id, action_type, action_json) VALUES (?, ?, ?, ?, ?, ?)')
-                ->execute([$gameId, (int) $participant['id'], $newVersion, onlineUuid(), $actionType, json_encode($actionResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+            if ($actionType === 'start_roll') {
+                $db->prepare('UPDATE ' . onlineTable('game_moves') . ' SET state_version = ?, action_json = ? WHERE game_id = ? AND action_type = \'start\' ORDER BY id DESC LIMIT 1')
+                    ->execute([$newVersion, json_encode(onlineStartingRollLogData($state), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $gameId]);
+            } else {
+                $db->prepare('INSERT INTO ' . onlineTable('game_moves') . ' (game_id, participant_id, state_version, request_id, action_type, action_json) VALUES (?, ?, ?, ?, ?, ?)')
+                    ->execute([$gameId, (int) $participant['id'], $newVersion, onlineUuid(), $actionType, json_encode($actionResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+            }
             $db->commit();
             if ($newStatus === 'finished') return;
         } catch (Throwable $e) {
@@ -814,17 +843,9 @@ try {
                 }
                 unset($participant);
 
+                // Hra začíná skutečným rozstřelem. Živí hráči házejí ručně;
+                // AI případně provede svůj hod ve chvíli, kdy na ni přijde řada.
                 $state = onlineEngineCreateState($participants);
-                $startResult = onlineEngineDetermineStartingPlayer($state);
-                $startRounds = array_map(
-                    static fn(array $round): array => array_map(
-                        static fn(array $roll): array => $roll + [
-                            'playerName' => (string) $state['players'][$roll['playerId']]['name'],
-                        ],
-                        $round
-                    ),
-                    $startResult['rounds']
-                );
                 $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 $requestId = onlineUuid();
 
@@ -852,12 +873,7 @@ try {
                     $gameId,
                     $creatorParticipantId,
                     $requestId,
-                    json_encode([
-                        'players' => count($participants),
-                        'rounds' => $startRounds,
-                        'startingPlayerId' => $startResult['playerId'],
-                        'startingPlayerName' => $state['players'][$startResult['playerId']]['name'],
-                    ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                    json_encode(onlineStartingRollLogData($state), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
                 ]);
 
                 $db->commit();
@@ -888,7 +904,7 @@ try {
             if (!is_string($requestId) || !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i', $requestId)) {
                 onlineFail('Neplatné ID požadavku.');
             }
-            if (!in_array($actionType, ['roll', 'move', 'pass_turn'], true)) {
+            if (!in_array($actionType, ['start_roll', 'roll', 'move', 'pass_turn'], true)) {
                 onlineFail('Neznámý typ herní akce.');
             }
 
@@ -950,7 +966,15 @@ try {
                 }
 
                 $actionResult = [];
-                if ($actionType === 'roll') {
+                if ($actionType === 'start_roll') {
+                    if (($state['phase'] ?? '') !== 'start-roll') {
+                        onlineFail('Rozstřel již skončil.', 409);
+                    }
+                    $actionResult = onlineEngineRecordStartingRoll($state, (int) $participant['player_index']);
+                } elseif ($actionType === 'roll') {
+                    if (($state['phase'] ?? '') !== 'roll') {
+                        onlineFail('Nejprve musí být dokončen rozstřel.', 409);
+                    }
                     $actionResult = onlineEngineRollDice($state);
                 } elseif ($actionType === 'move') {
                     $pieceId = filter_var($_POST['piece_id'] ?? -1, FILTER_VALIDATE_INT);
@@ -986,18 +1010,32 @@ try {
                     $gameId,
                 ]);
 
-                $db->prepare(
-                    'INSERT INTO ' . onlineTable('game_moves') . '
-                     (game_id, participant_id, state_version, request_id, action_type, action_json)
-                     VALUES (?, ?, ?, ?, ?, ?)'
-                )->execute([
-                    $gameId,
-                    $participant['id'],
-                    $newVersion,
-                    $requestId,
-                    $actionType,
-                    $actionJson,
-                ]);
+                if ($actionType === 'start_roll') {
+                    // Průběžný rozstřel upravuje jediný startovní záznam v logu.
+                    $db->prepare(
+                        'UPDATE ' . onlineTable('game_moves') . '
+                         SET state_version = ?, action_json = ?
+                         WHERE game_id = ? AND action_type = \'start\'
+                         ORDER BY id DESC LIMIT 1'
+                    )->execute([
+                        $newVersion,
+                        json_encode(onlineStartingRollLogData($state), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+                        $gameId,
+                    ]);
+                } else {
+                    $db->prepare(
+                        'INSERT INTO ' . onlineTable('game_moves') . '
+                         (game_id, participant_id, state_version, request_id, action_type, action_json)
+                         VALUES (?, ?, ?, ?, ?, ?)'
+                    )->execute([
+                        $gameId,
+                        $participant['id'],
+                        $newVersion,
+                        $requestId,
+                        $actionType,
+                        $actionJson,
+                    ]);
+                }
 
                 $db->commit();
             } catch (Throwable $e) {
