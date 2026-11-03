@@ -99,14 +99,44 @@ function renderPlayers() {
     const panel = $('players-panel');
     if (!panel || !game) return;
     panel.innerHTML = game.players.map((player, index) => {
-        const pieces = game.pieces[index].pieces;
-        const finished = pieces.filter(piece => piece.steps === game.trackLength + 4).length;
-        return '<div class="premium-player-card ' + (index === game.currentPlayer ? 'is-active' : '') + '" style="--player-color:' + player.color + '">' +
-            '<span class="player-card-orb">' + (player.isAI ? 'AI' : index + 1) + '</span>' +
-            '<span class="player-card-copy"><strong>' + player.name + '</strong><small>' + (player.isAI ? 'UMĚLÁ INTELIGENCE' : 'ŽIVÝ HRÁČ') + '</small></span>' +
-            '<span class="player-card-progress">' + finished + '<small>/4</small></span>' +
+        const finished = game.pieces[index].pieces.filter(
+            piece => piece.steps === game.trackLength + 4
+        ).length;
+        return '<div class="board-player-stat" style="--player-color:' + player.color + '" title="' +
+            escapeHtml(player.name) + '">' +
+            '<span class="board-player-dot"></span>' +
+            '<strong>' + finished + '/4</strong>' +
         '</div>';
     }).join('');
+}
+
+const chatHistory = [];
+
+function renderChat() {
+    const messages = $('chat-messages');
+    if (!messages) return;
+    messages.innerHTML = '';
+    chatHistory.slice(-40).forEach(item => {
+        const line = document.createElement('div');
+        line.className = 'game-chat-message';
+        const sender = document.createElement('strong');
+        sender.textContent = item.sender + ': ';
+        const body = document.createElement('span');
+        body.textContent = item.text;
+        line.append(sender, body);
+        messages.appendChild(line);
+    });
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function sendChatMessage(text) {
+    const message = String(text || '').trim().slice(0, 240);
+    if (!message || !game) return;
+    chatHistory.push({
+        sender: game.players[game.currentPlayer].name,
+        text: message
+    });
+    renderChat();
 }
 
 function updateTurnControls() {
@@ -345,6 +375,8 @@ function startGame() {
         return;
     }
     clearTimeout(aiTimer);
+    chatHistory.length = 0;
+    renderChat();
     modalOpen = false;
     $('win-modal').classList.add('hidden');
     $('kick-modal').classList.add('hidden');
@@ -396,6 +428,14 @@ export function initGame() {
     });
     syncAudioControls();
     $('game-container')?.addEventListener('click', onBoardClick);
+    $('chat-form')?.addEventListener('submit', event => {
+        event.preventDefault();
+        const input = $('chat-input');
+        if (!input) return;
+        sendChatMessage(input.value);
+        input.value = '';
+        input.focus();
+    });
     $('close-kick-btn')?.addEventListener('click', closeKickModal);
     $('close-win-btn')?.addEventListener('click', () => {
         $('win-modal').classList.add('hidden');
