@@ -157,10 +157,12 @@ export function renderBoard(container, game) {
                 svgText(360, 373, 'NEZLOB SE', 11, '#aab9aa') +
                 boardPieces +
             '</svg>' +
+            '<div class="board-player-stats">' +
+                '<div class="players-panel" id="players-panel" aria-label="Stav figurek hráčů"></div>' +
+            '</div>' +
             '<div class="board-corner-info">' +
                 '<div class="board-turn-count"><span>POČET TAHŮ</span><strong>' + game.turnNumber + '</strong></div>' +
                 '<div class="board-current-player" style="--player-color:' + active.color + '"><span>NA ŘADĚ</span><strong>' + active.name + '</strong></div>' +
-                '<div class="players-panel" id="players-panel" aria-label="Stav figurek hráčů"></div>' +
             '</div>' +
         '</div>';
 }
