@@ -155,7 +155,7 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 
 ### Alternativní vzhled hrací plochy
 
-- [x] Na stávající kruhové desce graficky posunout celý okruh o jedno políčko proti směru pohybu; startovní pole tak neleží v ose cílové chodby. Logické indexy, pravidla a pohyb figurek zůstávají beze změny.
+- [x] Na stávající kruhové desce umístit startovní pole na vizuální pozici 0 + 1. Posun se týká pouze vykreslení; logické indexy, pravidla a pohyb figurek zůstávají beze změny. Čeká na vizuální ověření na webu.
 - [ ] Přidat volbu vzhledu hrací plochy: současná kulatá, klasická hranatá, prostorová 3D a bojová 3D varianta.
 - [ ] Oddělit vykreslování jednotlivých vzhledů od herní logiky; pravidla, pozice a synchronizace zůstanou společné.
 - [ ] Umožnit každému hráči zvolit si vlastní vzhled i v multiplayeru, aniž by se měnil pohled ostatních hráčů.
@@ -198,7 +198,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 5 | Vlastní jméno online hráče, výběr a náhodné přidělení osmi barev pro lokální i online hru | Implementováno; čeká na praktický multiplayer test |
 | 6 | Online AI hráči a povinné minimum dvou lidských zařízení | Implementováno; automatické testy a FTP deploy úspěšné, čeká na praktický test |
 | 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; PHP lint, JS syntaxe, testy enginu a FTP deploy úspěšné; čeká na praktický test více zařízení |
-| 8 | Vizuální posun okruhu stávající kruhové desky o jedno pole proti směru pohybu | Implementováno ve větvi; čeká na automatické testy a vizuální kontrolu uživatelem |
+| 8 | Vizuální umístění startovního pole na kruhové desce na pozici 0 + 1 | Upraveno podle upřesnění; čeká na ověření na webu |
 
 ## Potvrzená pravidla hry
 
