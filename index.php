@@ -370,8 +370,15 @@ $ver = date('Ymd-His');
                         </div>
                     </div>
                     <div class="setup-summary">
-                        <strong id="setup-total">4 hráči</strong>
-                        <span id="setup-board-type">Klasická čtyřbarevná aréna</span>
+                        <strong id="setup-total">2 hráči</strong>
+                    </div>
+                    <div class="board-size-control">
+                        <span class="board-size-label">VELIKOST DESKY</span>
+                        <div class="board-size-options" id="board-size-options" role="group" aria-label="Velikost hrací desky">
+                            <button type="button" class="board-size-btn is-active" data-board-size="40" aria-pressed="true">40</button>
+                            <button type="button" class="board-size-btn" data-board-size="48" aria-pressed="false">48</button>
+                            <button type="button" class="board-size-btn" data-board-size="80" aria-pressed="false">80</button>
+                        </div>
                     </div>
                     <div class="player-preview" id="player-preview">
                         <h3>SESTAVA U STOLU</h3>
