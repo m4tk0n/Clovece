@@ -21,7 +21,8 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 ## Online multiplayer – plán
 
 Online režim je implementovaný v základní podobě a probíhá ověřování na hostingu:
-- anonymní identita zařízení a obnova přes pozvánkový odkaz
+- anonymní identita zařízení a opětovné připojení na stejném zařízení
+- pozvánkový odkaz pro připojení do čekající místnosti
 - vytváření místností a připojování dalších hráčů
 - synchronizace stavu hry přes PHP API a MySQL
 - serverové házení kostkou a ověřování tahů
