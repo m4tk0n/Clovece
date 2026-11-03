@@ -43,7 +43,7 @@ Tyto body jsou výsledkem čtení repozitáře; databáze na produkčním hostin
 - [x] Sepsat zjištěné nesoulady a rizika.
 - [ ] Ověřit PHP verzi a dostupnost PDO MySQL na WZ.cz.
 - [ ] Ověřit MySQL/MariaDB verzi a oprávnění databázového uživatele.
-- [ ] Ověřit, zda hosting umožňuje pravidelné úlohy (cron); úklid musí mít i variantu bez cronu.
+- [x] Potvrzeno: hosting nemá systémový cron. Použijeme interní plánovač spouštěný při načtení stránky.
 - [ ] Rozhodnout způsob synchronizace mezi zařízeními podle možností hostingu.
 - [ ] Navrhnout databázové změny tak, aby šly bezpečně spustit nad existující databází bez mazání současných dat.
 
@@ -91,7 +91,16 @@ Tyto body jsou výsledkem čtení repozitáře; databáze na produkčním hostin
 - [ ] Nechat dlouho neaktivní hru obnovitelnou po rozumnou dobu.
 - [ ] Nastavit pravidla automatického mazání podle stáří a stavu hry.
 - [ ] Při mazání hry odstranit její chat, tahy, účastníky a další závislá data.
-- [ ] Zajistit úklid i v případě, že hosting nepodporuje cron (např. bezpečně dávkovaný úklid při běžném API požadavku).
+- [ ] Vytvořit interní plánovač v adresáři `/cron/`, který při požadavku pouze lehce zkontroluje termíny jednotlivých úloh.
+- [ ] Každá úloha bude mít vlastní interval a čas posledního spuštění; pokud ještě není splatná, plánovač ihned skončí.
+- [ ] Zabránit souběžnému spuštění stejné úlohy pomocí databázového zámku nebo bezpečného atomického nároku.
+- [ ] Spouštět pouze splatné úlohy, po malých dávkách a s limitem práce na jeden požadavek, aby se nezatěžoval hosting ani nezdržovalo načtení stránky.
+- [ ] Zajistit, aby plánovač nešel spouštět jako veřejný samostatný endpoint bez kontroly; bude volán interně aplikací.
+- [ ] Počítat s tím, že úlohy se spustí až při další návštěvě webu; při nulovém provozu neběží na pozadí.
+
+**Plánovač bez systémového cronu:**
+
+Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky zavolá velmi lehký interní plánovač. Ten pouze zkontroluje evidenci úloh (poslední spuštění a interval). Pokud žádná úloha není splatná, okamžitě skončí. Splatné úlohy se spouštějí jednotlivě, s ochranou proti souběhu a omezeným rozsahem práce. Uživatel nemusí nic nastavovat. Nevýhodou je, že bez návštěvnosti webu se úlohy nespustí; nejde o skutečný běh na pozadí.
 
 **Pracovní návrh retenčních lhůt:** neaktivní hry po 30 dnech, dokončené hry po 7 dnech. Před implementací ještě potvrdíme, zda tyto lhůty vyhovují.
 
@@ -130,7 +139,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 
 ## Pracovní pořadí nejbližších updateů
 
-1. **Update 1 – Ověření hostingu a databázových předpokladů.** Bez změny herního kódu a bez zásahu do produkční databáze.
+1. **Update 1 – Ověření hostingu a databázových předpokladů.** PHP 8.3 a MySQL 8.0 byly uvedeny jako cílové verze; skutečnou dostupnost PDO MySQL a oprávnění databáze ještě ověříme. Systémový cron není k dispozici, proto použijeme interní plánovač. Bez změny herního kódu a bez zásahu do produkční databáze.
 2. Update 2 – Návrh cílového datového modelu a migračního postupu.
 3. Update 3 – První samostatná, bezpečná databázová migrace.
 4. Další updaty budou následovat až po ověření předchozího kroku.
@@ -140,3 +149,5 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | Update | Změna | Stav |
 |---|---|---|
 | 0 | Kontrola současného projektu a sepsání roadmapy | Hotovo |
+
+| 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
