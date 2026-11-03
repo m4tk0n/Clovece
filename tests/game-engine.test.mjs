@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
     createGame,
+    determineStartingPlayer,
     rollDice,
     getValidMoves,
     getForcedMove,
@@ -37,6 +38,33 @@ test('five to eight players receive unique starts on the extended track', () => 
     assert.deepEqual(game.players.map(player => player.start), [0, 8, 16, 24, 32, 40, 48, 56]);
     assert.equal(new Set(game.players.map(player => player.start)).size, 8);
     assert.ok(game.pieces.every(group => group.pieces.length === 4));
+});
+
+test('starting player is decided by a dice-off and only tied leaders reroll', () => {
+    const game = createGame(2, 2);
+    const values = [6, 2, 6, 1, 3, 4];
+    const seen = [];
+    const result = determineStartingPlayer(game, playerId => {
+        seen.push(playerId);
+        return values.shift();
+    });
+
+    assert.deepEqual(seen, [0, 1, 2, 3, 0, 2]);
+    assert.deepEqual(result.rounds, [
+        [
+            { playerId: 0, value: 6 },
+            { playerId: 1, value: 2 },
+            { playerId: 2, value: 6 },
+            { playerId: 3, value: 1 }
+        ],
+        [
+            { playerId: 0, value: 3 },
+            { playerId: 2, value: 4 }
+        ]
+    ]);
+    assert.equal(result.playerId, 2);
+    assert.equal(game.currentPlayer, 2);
+    assert.deepEqual(game.players.map(player => player.id), [0, 1, 2, 3]);
 });
 
 test('a piece can leave its base only after rolling six', () => {

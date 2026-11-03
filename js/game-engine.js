@@ -40,6 +40,7 @@ export function createGame(humanCount, aiCount, names = []) {
         players,
         trackLength,
         currentPlayer: 0,
+        startRolls: [],
         diceValue: 0,
         phase: 'roll',
         turnNumber: 1,
@@ -53,6 +54,32 @@ export function createGame(humanCount, aiCount, names = []) {
             }))
         }))
     };
+}
+
+/**
+ * Určí začínajícího hráče rozstřelem. Pořadí hráčů se nemění;
+ * currentPlayer pouze ukazuje na vítěze, další tahy pokračují po směru hodin.
+ */
+export function determineStartingPlayer(game, rollFn = () => Math.floor(Math.random() * 6) + 1) {
+    let candidates = game.players.map(player => player.id);
+    const rounds = [];
+
+    while (candidates.length > 1) {
+        const rolls = candidates.map(playerId => {
+            const value = Number(rollFn(playerId, rounds.length));
+            if (!Number.isInteger(value) || value < 1 || value > 6) {
+                throw new Error('Hod rozstřelu musí být číslo od 1 do 6.');
+            }
+            return { playerId, value };
+        });
+        rounds.push(rolls);
+        const highest = Math.max(...rolls.map(roll => roll.value));
+        candidates = rolls.filter(roll => roll.value === highest).map(roll => roll.playerId);
+    }
+
+    game.currentPlayer = candidates[0];
+    game.startRolls = rounds;
+    return { playerId: candidates[0], rounds };
 }
 
 export function getPiecePosition(game, playerId, piece) {

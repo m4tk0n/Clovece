@@ -3,7 +3,7 @@
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
 import {
-    createGame, rollDice, getValidMoves, getForcedMove, movePiece,
+    createGame, determineStartingPlayer, rollDice, getValidMoves, getForcedMove, movePiece,
     advanceTurn, chooseAIMove
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
@@ -400,6 +400,7 @@ function startGame() {
             return input.dataset.nameKey.startsWith('ai:') ? 'AI ' + number : 'Hráč ' + number;
         });
         game = createGame(humanCount, aiCount, names);
+        determineStartingPlayer(game);
     } catch (error) {
         toast(error.message);
         return;
@@ -407,6 +408,14 @@ function startGame() {
     clearTimeout(aiTimer);
     chatHistory.length = 0;
     renderChat();
+    game.startRolls.forEach((round, index) => {
+        const results = round.map(roll =>
+            game.players[roll.playerId].name + ' hodil ' + roll.value
+        ).join(' · ');
+        addGameLogEntry('Rozstřel', 'Kolo ' + (index + 1) + ': ' + results);
+    });
+    addGameLogEntry('Hra', game.players[game.currentPlayer].name + ' vyhrává rozstřel a začíná.');
+    toast(game.players[game.currentPlayer].name + ' začíná hru.');
     modalOpen = false;
     $('win-modal').classList.add('hidden');
     $('kick-modal').classList.add('hidden');

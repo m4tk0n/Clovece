@@ -133,7 +133,15 @@ function renderGameChat(messages, participants, moves = []) {
 
             sender.textContent = name + ' · ';
             if (item.action_type === 'start') {
-                body.textContent = 'hra začala';
+                const rounds = Array.isArray(action.rounds) ? action.rounds : [];
+                const summary = rounds.map((round, index) =>
+                    'kolo ' + (index + 1) + ': ' + round.map(roll =>
+                        (roll.playerName || ('Hráč ' + (Number(roll.playerId) + 1))) + ' ' + roll.value
+                    ).join(', ')
+                ).join('; ');
+                body.textContent = summary
+                    ? 'rozstřel – ' + summary + '. ' + (action.startingPlayerName || 'Vítěz') + ' začíná.'
+                    : 'hra začala';
             } else if (item.action_type === 'roll') {
                 body.textContent = 'hodil kostkou: ' + (action.value || '?');
             } else if (item.action_type === 'move') {

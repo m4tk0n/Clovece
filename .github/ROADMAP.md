@@ -158,7 +158,8 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
 | 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
-| 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo – implementace zůstává otevřená |
+| 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo |
+| 4 | Rozstřel při zahájení lokální i online hry + regresní testy | Implementováno – čeká na CI a FTP deploy |
 
 ## Potvrzená pravidla hry
 
@@ -170,7 +171,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 - Rozstřel se opakuje, dokud nezůstane jediný vítěz.
 - Vítěz rozstřelu začíná hru. Ostatní hráči pokračují v dosavadním pořadí po směru hodinových ručiček; jejich vzájemné pořadí se nemění.
 - Pravidlo platí pro lokální i online hru.
-- [ ] Implementovat rozstřel a jeho opakování při shodě v lokální i online hře; doplnit regresní testy. Zatím jde o potvrzené pravidlo a položku k implementaci, nikoli o hotovou funkci.
+- [x] Implementovat serverově generovaný rozstřel pro lokální i online hru; při shodě házejí znovu pouze hráči s nejvyšším výsledkem. Vítěz začne, původní pořadí hráčů zůstává zachováno.
 
 ---
 

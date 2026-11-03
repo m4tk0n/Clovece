@@ -27,6 +27,21 @@ function testParticipants(int $count): array
     return $players;
 }
 
+$tiebreak = onlineEngineCreateState(testParticipants(4));
+$tiebreakValues = [6, 2, 6, 1, 3, 4];
+$tiebreakSeen = [];
+$tiebreakResult = onlineEngineDetermineStartingPlayer(
+    $tiebreak,
+    static function (int $playerId, int $round) use (&$tiebreakValues, &$tiebreakSeen): int {
+        $tiebreakSeen[] = $playerId;
+        return array_shift($tiebreakValues);
+    }
+);
+checkSame([0, 1, 2, 3, 0, 2], $tiebreakSeen, 'Při shodě smějí znovu házet pouze hráči s nejvyšším výsledkem.');
+checkSame(2, $tiebreakResult['playerId'], 'Vítězem rozstřelu musí být hráč s nejvyšším rozhodujícím hodem.');
+checkSame(2, $tiebreak['currentPlayer'], 'První tah musí dostat vítěz rozstřelu.');
+checkSame([0, 1, 2, 3], array_column($tiebreak['players'], 'id'), 'Rozstřel nesmí měnit pořadí hráčů.');
+
 $two = onlineEngineCreateState(testParticipants(2));
 checkSame(52, $two['trackLength'], 'Dva hráči musí mít 52 polí.');
 checkSame([0, 26], array_column($two['players'], 'start'), 'Startovní pole pro dva hráče nesouhlasí.');

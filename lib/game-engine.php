@@ -57,6 +57,7 @@ function onlineEngineCreateState(array $participants): array
         'players' => $players,
         'trackLength' => $trackLength,
         'currentPlayer' => 0,
+        'startRolls' => [],
         'diceValue' => 0,
         'phase' => 'roll',
         'turnNumber' => 1,
@@ -64,6 +65,41 @@ function onlineEngineCreateState(array $participants): array
         'lastMove' => null,
         'pieces' => $pieces,
     ];
+}
+
+/**
+ * Serverový rozstřel. Pořadí hráčů zůstává zachováno, začíná pouze vítěz.
+ *
+ * @param callable|null $rollFn Testovací generátor hodů; v produkci random_int().
+ */
+function onlineEngineDetermineStartingPlayer(array &$game, ?callable $rollFn = null): array
+{
+    $rollFn ??= static fn(): int => random_int(1, 6);
+    $candidates = array_keys($game['players']);
+    $rounds = [];
+
+    while (count($candidates) > 1) {
+        $rolls = [];
+        foreach ($candidates as $playerId) {
+            $value = (int) $rollFn($playerId, count($rounds));
+            if ($value < 1 || $value > 6) {
+                throw new InvalidArgumentException('Hod rozstřelu musí být číslo od 1 do 6.');
+            }
+            $rolls[] = ['playerId' => (int) $playerId, 'value' => $value];
+        }
+
+        $rounds[] = $rolls;
+        $highest = max(array_column($rolls, 'value'));
+        $candidates = array_values(array_map(
+            static fn(array $roll): int => (int) $roll['playerId'],
+            array_filter($rolls, static fn(array $roll): bool => (int) $roll['value'] === $highest)
+        ));
+    }
+
+    $game['currentPlayer'] = $candidates[0];
+    $game['startRolls'] = $rounds;
+
+    return ['playerId' => $candidates[0], 'rounds' => $rounds];
 }
 
 function onlineEnginePiecePosition(array $game, int $playerId, array $piece): ?int

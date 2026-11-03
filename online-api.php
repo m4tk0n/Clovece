@@ -430,6 +430,16 @@ try {
                 }
 
                 $state = onlineEngineCreateState($participants);
+                $startResult = onlineEngineDetermineStartingPlayer($state);
+                $startRounds = array_map(
+                    static fn(array $round): array => array_map(
+                        static fn(array $roll): array => $roll + [
+                            'playerName' => (string) $state['players'][$roll['playerId']]['name'],
+                        ],
+                        $round
+                    ),
+                    $startResult['rounds']
+                );
                 $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 $requestId = onlineUuid();
 
@@ -457,7 +467,12 @@ try {
                     $gameId,
                     $creatorParticipantId,
                     $requestId,
-                    json_encode(['players' => count($participants)], JSON_THROW_ON_ERROR),
+                    json_encode([
+                        'players' => count($participants),
+                        'rounds' => $startRounds,
+                        'startingPlayerId' => $startResult['playerId'],
+                        'startingPlayerName' => $state['players'][$startResult['playerId']]['name'],
+                    ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
                 ]);
 
                 $db->commit();
