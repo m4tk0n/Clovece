@@ -206,6 +206,92 @@ try {
     $db = onlineDb();
 
     switch ($action) {
+        case 'create_transfer_code': {
+            $transferCode = onlineRandomToken(32);
+            $db->beginTransaction();
+            try {
+                $db->prepare(
+                    'UPDATE ' . onlineTable('player_devices') . '
+                     SET revoked_at = NOW()
+                     WHERE identity_id = ? AND device_label = \'transfer\' AND revoked_at IS NULL'
+                )->execute([$identityId]);
+                $db->prepare(
+                    'INSERT INTO ' . onlineTable('player_devices') . '
+                     (identity_id, token_hash, device_label, last_seen_at)
+                     VALUES (?, ?, \'transfer\', NOW())'
+                )->execute([$identityId, hash('sha256', $transferCode)]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+            onlineRespond([
+                'success' => true,
+                'transfer_code' => $transferCode,
+                'expires_in' => 900,
+            ]);
+        }
+
+        case 'claim_transfer_code': {
+            $transferCode = $_POST['transfer_code'] ?? '';
+            if (!is_string($transferCode) || !preg_match('/^[A-Za-z0-9_-]{40,60}$/', $transferCode)) {
+                onlineFail('Přenosový kód není platný.');
+            }
+            $deviceToken = $_COOKIE['clovece_device'] ?? '';
+            if (!is_string($deviceToken) || !preg_match('/^[A-Za-z0-9_-]{40,60}$/', $deviceToken)) {
+                onlineFail('Toto zařízení nemá platnou identitu. Obnov stránku.', 401);
+            }
+
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT id, identity_id FROM ' . onlineTable('player_devices') . '
+                     WHERE token_hash = ? AND device_label = \'transfer\'
+                       AND revoked_at IS NULL
+                       AND created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+                     LIMIT 1 FOR UPDATE'
+                );
+                $stmt->execute([hash('sha256', $transferCode)]);
+                $transfer = $stmt->fetch();
+                if (!$transfer) {
+                    onlineFail('Kód vypršel nebo už byl použit. Vygeneruj nový kód.');
+                }
+
+                $stmt = $db->prepare(
+                    'UPDATE ' . onlineTable('player_devices') . '
+                     SET identity_id = ?, last_seen_at = NOW()
+                     WHERE token_hash = ? AND device_label IS NULL AND revoked_at IS NULL'
+                );
+                $stmt->execute([(int) $transfer['identity_id'], hash('sha256', $deviceToken)]);
+                if ($stmt->rowCount() !== 1) {
+                    onlineFail('Identitu tohoto zařízení se nepodařilo převést.', 409);
+                }
+
+                $db->prepare(
+                    'UPDATE ' . onlineTable('player_devices') . '
+                     SET revoked_at = NOW() WHERE id = ?'
+                )->execute([(int) $transfer['id']]);
+                $db->prepare(
+                    'UPDATE ' . onlineTable('player_identities') . '
+                     SET last_seen_at = NOW() WHERE id = ?'
+                )->execute([(int) $transfer['identity_id']]);
+                $stmt = $db->prepare(
+                    'SELECT display_name FROM ' . onlineTable('player_identities') . ' WHERE id = ? LIMIT 1'
+                );
+                $stmt->execute([(int) $transfer['identity_id']]);
+                $displayName = (string) $stmt->fetchColumn();
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+
+            onlineRespond([
+                'success' => true,
+                'display_name' => $displayName,
+            ]);
+        }
+
         case 'list_my_games': {
             $stmt = $db->prepare(
                 'SELECT g.id, g.public_id, g.status, g.player_limit, g.last_activity_at,
