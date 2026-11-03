@@ -289,9 +289,8 @@ try {
                 $invite = $stmt->fetch();
 
                 if (!$invite || $invite['revoked_at'] !== null
-                    || ($invite['expires_at'] !== null && strtotime($invite['expires_at']) < time())
-                    || $invite['status'] !== 'waiting') {
-                    onlineFail('Pozvánka vypršela nebo hra již nepřijímá hráče.', 404);
+                    || ($invite['expires_at'] !== null && strtotime($invite['expires_at']) < time())) {
+                    onlineFail('Pozvánka vypršela nebo byla odvolána.', 404);
                 }
 
                 $gameId = (int) $invite['game_id'];
@@ -308,6 +307,9 @@ try {
                     $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET left_at = NULL, last_seen_at = NOW() WHERE id = ?')
                         ->execute([$participantId]);
                 } else {
+                    if ($invite['status'] !== 'waiting') {
+                        onlineFail('Hra již nepřijímá nové hráče.', 409);
+                    }
                     if ((int) $invite['uses_count'] >= (int) $invite['uses_limit']) {
                         onlineFail('Tato pozvánka již byla použita maximální početkrát.', 409);
                     }
