@@ -638,6 +638,14 @@ try {
             $stmt->execute([$gameId]);
             $chat = array_reverse($stmt->fetchAll());
 
+            $stmt = $db->prepare(
+                'SELECT id, participant_id, state_version, action_type, action_json, created_at
+                 FROM ' . onlineTable('game_moves') . '
+                 WHERE game_id = ? ORDER BY id DESC LIMIT 30'
+            );
+            $stmt->execute([$gameId]);
+            $moves = array_reverse($stmt->fetchAll());
+
             $state = $game['state_json'] !== null ? json_decode($game['state_json'], true) : null;
             onlineRespond([
                 'success' => true,
@@ -653,6 +661,7 @@ try {
                 ],
                 'participants' => $participants,
                 'chat' => $chat,
+                'moves' => $moves,
                 'current_participant_id' => (int) $game['participant_id'],
                 'current_player_index' => (int) $game['player_index'],
                 'is_creator' => (int) $game['created_by_identity_id'] === $identityId,
