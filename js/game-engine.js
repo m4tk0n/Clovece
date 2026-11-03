@@ -30,7 +30,7 @@ export function createGame(humanCount, aiCount, names = []) {
         name: names[index] || (index < humanCount ? 'Hráč ' + (index + 1) : 'AI ' + (index - humanCount + 1)),
         color: PLAYER_COLORS[index],
         isAI: index >= humanCount,
-        start: total <= 4 ? slots[index] * 13 : slots[index] * 8,
+        start: total <= 4 ? slots[index] * 13 : Math.round(index * trackLength / total),
         finished: false
     }));
 
