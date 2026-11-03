@@ -401,14 +401,7 @@ $ver = date('Ymd-His');
                 <h2 class="glitch" data-text="NASTAVENÍ">NASTAVENÍ</h2>
                 <div class="settings-container">
                     <div class="setting-item">
-                        <label>Hudba</label>
-                        <div class="toggle-switch">
-                            <input type="checkbox" id="music-toggle" checked>
-                            <span class="slider-round"></span>
-                        </div>
-                    </div>
-                    <div class="setting-item">
-                        <label>Zvukové efekty</label>
+                        <label for="sfx-toggle">Zvukové efekty</label>
                         <div class="toggle-switch">
                             <input type="checkbox" id="sfx-toggle" checked>
                             <span class="slider-round"></span>
@@ -610,7 +603,6 @@ $ver = date('Ymd-His');
     <audio id="kick-sound" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3" preload="none"></audio>
     <audio id="win-sound" src="https://assets.mixkit.co/active_storage/sfx/284/284-preview.mp3" preload="none"></audio>
     <audio id="move-sound" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="none"></audio>
-    <audio id="background-music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop preload="none"></audio>
 
     <!-- JavaScript -->
     <script type="module" src="js/bootstrap.js?v=<?= $ver ?>"></script>
