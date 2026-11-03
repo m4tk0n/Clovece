@@ -18,6 +18,13 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
 
+## Nastavení aplikace
+
+- Nastavení zvukových efektů zůstává dostupné na samostatné stránce Nastavení i v herní obrazovce přes hamburger menu → Nastavení zvuku.
+- Obě místa musí používat společnou implementaci v `js/audio.js` (zejména `setSoundEffectsEnabled()`), nikoliv dvě nezávislé logiky.
+- Změna nastavení zvuku se musí projevit jednotně v celé aplikaci.
+- Hudba na pozadí se nepoužívá; nastavení se týká zvukových efektů.
+
 ## Online multiplayer – plán
 
 Online režim je implementovaný v základní podobě a probíhá ověřování na hostingu:
