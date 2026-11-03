@@ -213,6 +213,101 @@ try {
             onlineRespond(['success' => true, 'display_name' => $name]);
         }
 
+        case 'rename_participant': {
+            $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
+            if (!$gameId || $gameId < 1) {
+                onlineFail('Chybí identifikátor hry.');
+            }
+            $name = onlineCleanName($_POST['display_name'] ?? '');
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT id, status, state_json FROM ' . onlineTable('online_games') . ' WHERE id = ? FOR UPDATE'
+                );
+                $stmt->execute([$gameId]);
+                $gameRow = $stmt->fetch();
+                if (!$gameRow) onlineFail('Místnost nebyla nalezena.', 404);
+
+                $stmt = $db->prepare(
+                    'SELECT id, player_index FROM ' . onlineTable('game_participants') . '
+                     WHERE game_id = ? AND identity_id = ? AND left_at IS NULL LIMIT 1'
+                );
+                $stmt->execute([$gameId, $identityId]);
+                $participant = $stmt->fetch();
+                if (!$participant) onlineFail('Nejsi aktivním hráčem této místnosti.', 403);
+
+                $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET display_name = ? WHERE id = ?')
+                    ->execute([$name, $participant['id']]);
+                $db->prepare('UPDATE ' . onlineTable('player_identities') . ' SET display_name = ?, last_seen_at = NOW() WHERE id = ?')
+                    ->execute([$name, $identityId]);
+
+                if ($gameRow['state_json'] !== null) {
+                    $state = json_decode($gameRow['state_json'], true, 512, JSON_THROW_ON_ERROR);
+                    $playerIndex = (int) $participant['player_index'];
+                    if (isset($state['players'][$playerIndex])) {
+                        $state['players'][$playerIndex]['name'] = $name;
+                        $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                        $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET state_json = ?, last_activity_at = NOW() WHERE id = ?')
+                            ->execute([$stateJson, $gameId]);
+                    }
+                } else {
+                    $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET last_activity_at = NOW() WHERE id = ?')
+                        ->execute([$gameId]);
+                }
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+            onlineRespond(['success' => true, 'display_name' => $name]);
+        }
+
+        case 'set_color': {
+            $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
+            $color = $_POST['color'] ?? '';
+            $allowedColors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
+            if (!$gameId || $gameId < 1 || !is_string($color) || !in_array($color, $allowedColors, true)) {
+                onlineFail('Neplatná barva nebo identifikátor místnosti.');
+            }
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT id, status FROM ' . onlineTable('online_games') . ' WHERE id = ? FOR UPDATE'
+                );
+                $stmt->execute([$gameId]);
+                $gameRow = $stmt->fetch();
+                if (!$gameRow) onlineFail('Místnost nebyla nalezena.', 404);
+                if ($gameRow['status'] !== 'waiting') {
+                    onlineFail('Barvu lze změnit pouze před zahájením hry.', 409);
+                }
+
+                $stmt = $db->prepare(
+                    'SELECT id FROM ' . onlineTable('game_participants') . '
+                     WHERE game_id = ? AND identity_id = ? AND left_at IS NULL LIMIT 1'
+                );
+                $stmt->execute([$gameId, $identityId]);
+                $participant = $stmt->fetch();
+                if (!$participant) onlineFail('Nejsi aktivním hráčem této místnosti.', 403);
+
+                $stmt = $db->prepare(
+                    'SELECT id FROM ' . onlineTable('game_participants') . '
+                     WHERE game_id = ? AND left_at IS NULL AND color = ? AND id <> ? LIMIT 1'
+                );
+                $stmt->execute([$gameId, $color, $participant['id']]);
+                if ($stmt->fetch()) onlineFail('Tuto barvu už má vybranou jiný hráč.', 409);
+
+                $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET color = ? WHERE id = ?')
+                    ->execute([$color, $participant['id']]);
+                $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET last_activity_at = NOW() WHERE id = ?')
+                    ->execute([$gameId]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+            onlineRespond(['success' => true, 'color' => $color]);
+        }
+
         case 'create_game': {
             $playerLimit = filter_var($_POST['player_limit'] ?? 4, FILTER_VALIDATE_INT);
             if ($playerLimit === false || $playerLimit < 2 || $playerLimit > 8) {
@@ -234,7 +329,7 @@ try {
                 $stmt->execute([$publicId, $identityId, $playerLimit, $boardType]);
                 $gameId = (int) $db->lastInsertId();
 
-                $colors = ['#f05b62', '#36c9c1', '#f4c84a', '#67c98b', '#e77ab4', '#9b83e8', '#e99555', '#6c9de8'];
+                $colors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
                 $stmt = $db->prepare(
                     'INSERT INTO ' . onlineTable('game_participants') . '
                      (game_id, identity_id, player_index, player_type, display_name, color, is_ready)
