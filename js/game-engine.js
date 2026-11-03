@@ -4,8 +4,8 @@
  */
 
 export const PLAYER_COLORS = [
-    '#f05b62', '#36c9c1', '#f4c84a', '#67c98b',
-    '#e77ab4', '#9b83e8', '#e99555', '#6c9de8'
+    '#E53935', '#1E88E5', '#43A047', '#F9A825',
+    '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'
 ];
 
 export const PLAYER_NAMES = [
@@ -13,7 +13,7 @@ export const PLAYER_NAMES = [
     'Růže', 'Ametyst', 'Měď', 'Safír'
 ];
 
-export function createGame(humanCount, aiCount, names = []) {
+export function createGame(humanCount, aiCount, names = [], colors = []) {
     const total = humanCount + aiCount;
     if (total < 2 || total > 8 || humanCount < 1 || aiCount < 0) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
@@ -28,7 +28,7 @@ export function createGame(humanCount, aiCount, names = []) {
         id: index,
         slot: slots[index],
         name: names[index] || (index < humanCount ? 'Hráč ' + (index + 1) : 'AI ' + (index - humanCount + 1)),
-        color: PLAYER_COLORS[index],
+        color: PLAYER_COLORS.includes(colors[index]) ? colors[index] : PLAYER_COLORS[index],
         isAI: index >= humanCount,
         start: total === 3 || total >= 5
             ? Math.round(index * trackLength / total)
