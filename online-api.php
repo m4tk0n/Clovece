@@ -192,6 +192,9 @@ function onlineStartingRollLogData(array $state): array
         'players' => count($state['players'] ?? []),
         'rounds' => $rounds,
         'inProgress' => ($state['phase'] ?? '') === 'start-roll',
+        'currentPlayerName' => ($state['phase'] ?? '') === 'start-roll'
+            ? ($state['players'][(int) $state['currentPlayer']]['name'] ?? null)
+            : null,
         'startingPlayerId' => $winnerId,
         'startingPlayerName' => $winnerId === null ? null : ($state['players'][$winnerId]['name'] ?? null),
     ];
