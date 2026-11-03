@@ -170,6 +170,7 @@ test('the full circuit includes the start square before entering the home lane',
     // A move crossing the start counts it as a normal track square:
     // step 51 -> own start (52) -> first home-lane square (53).
     piece.steps = game.trackLength - 1;
+    game.currentPlayer = 0;
     game.phase = 'move';
     game.diceValue = 2;
     assert.deepEqual(getValidMoves(game), [0]);
