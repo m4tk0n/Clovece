@@ -40,6 +40,18 @@ test('five to eight players receive unique starts on the extended track', () => 
     assert.ok(game.pieces.every(group => group.pieces.length === 4));
 });
 
+test('players can receive individually selected unique colors from the shared palette', () => {
+    const selected = ['#D81B60', '#E53935', '#00ACC1', '#F9A825'];
+    const game = createGame(2, 2, [], selected);
+
+    assert.deepEqual(game.players.map(player => player.color), selected);
+    assert.equal(new Set(game.players.map(player => player.color)).size, 4);
+
+    const fallback = createGame(1, 1, [], ['not-a-color', '#1E88E5']);
+    assert.equal(fallback.players[0].color, '#E53935');
+    assert.equal(fallback.players[1].color, '#1E88E5');
+});
+
 test('starting player is decided by a dice-off and only tied leaders reroll', () => {
     const game = createGame(2, 2);
     const values = [6, 2, 6, 1, 3, 4];
