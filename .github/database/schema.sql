@@ -73,6 +73,29 @@ CREATE TABLE clovece_online_games (
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Globální nastavení hry i případná nastavení konkrétní místnosti.
+-- Hodnoty jsou textové, aby zůstaly zachovány i případné budoucí typy nastavení.
+CREATE TABLE clovece_game_settings (
+    setting_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    room_id BIGINT UNSIGNED NULL,
+    setting_key VARCHAR(100) NOT NULL,
+    setting_value TEXT NULL,
+    scope_id BIGINT UNSIGNED GENERATED ALWAYS AS (COALESCE(room_id, 0)) STORED,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (setting_id),
+    UNIQUE KEY uq_game_setting_scope (scope_id, setting_key),
+    KEY idx_game_setting_room (room_id),
+    CONSTRAINT fk_game_setting_room
+        FOREIGN KEY (room_id) REFERENCES clovece_online_games (id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Převzatá globální nastavení ze staré tabulky game_settings.
+INSERT INTO clovece_game_settings (room_id, setting_key, setting_value) VALUES
+    (NULL, 'site_name', 'Člověče, nezlob se!'),
+    (NULL, 'max_players', '8'),
+    (NULL, 'default_board', '4');
+
 CREATE TABLE clovece_game_participants (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     game_id BIGINT UNSIGNED NOT NULL,
