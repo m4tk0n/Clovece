@@ -42,6 +42,29 @@ checkSame(2, $tiebreakResult['playerId'], 'Vítězem rozstřelu musí být hrá�
 checkSame(2, $tiebreak['currentPlayer'], 'První tah musí dostat vítěz rozstřelu.');
 checkSame([0, 1, 2, 3], array_column($tiebreak['players'], 'id'), 'Rozstřel nesmí měnit pořadí hráčů.');
 
+$manual = onlineEngineCreateState(testParticipants(3));
+checkSame('start-roll', $manual['phase'], 'Online hra musí začít čekáním na ruční rozstřel.');
+checkSame([0, 1, 2], $manual['startCandidates'], 'Do prvního kola rozstřelu musí vstoupit všichni hráči.');
+$manualValues = [6, 2, 6, 5, 4];
+$manualSequence = [];
+$manualRoll = static function (int $playerId, int $round) use (&$manualValues, &$manualSequence): int {
+    $manualSequence[] = [$playerId, $round];
+    return array_shift($manualValues);
+};
+$r1 = onlineEngineRecordStartingRoll($manual, 0, $manualRoll);
+checkSame(false, $r1['roundComplete'], 'Kolo se nesmí uzavřít před hodem všech kandidátů.');
+checkSame(1, $manual['currentPlayer'], 'Po prvním hodu musí následovat další hráč.');
+onlineEngineRecordStartingRoll($manual, 1, $manualRoll);
+onlineEngineRecordStartingRoll($manual, 2, $manualRoll);
+checkSame([0, 2], $manual['startCandidates'], 'Při remíze smějí pokračovat pouze hráči s nejvyšším hodem.');
+checkSame(0, $manual['currentPlayer'], 'Rozstřel po remíze musí začít prvním remizujícím hráčem.');
+onlineEngineRecordStartingRoll($manual, 0, $manualRoll);
+$finalRoll = onlineEngineRecordStartingRoll($manual, 2, $manualRoll);
+checkSame(true, $finalRoll['finished'], 'Rozstřel musí skončit po jednoznačném výsledku.');
+checkSame('roll', $manual['phase'], 'Po rozstřelu musí začít běžná hra.');
+checkSame(0, $manual['currentPlayer'], 'Začínat musí vítěz ručního rozstřelu.');
+checkSame([[0, 0], [1, 0], [2, 0], [0, 1], [2, 1]], $manualSequence, 'Ruční rozstřel nesmí házet za hráče automaticky ani zapojit hráče bez remízy.');
+
 $two = onlineEngineCreateState(testParticipants(2));
 checkSame(52, $two['trackLength'], 'Dva hráči musí mít 52 polí.');
 checkSame([0, 26], array_column($two['players'], 'start'), 'Startovní pole pro dva hráče nesouhlasí.');
