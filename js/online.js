@@ -160,9 +160,10 @@ function renderGameChat(messages, participants, moves = []) {
                         (roll.playerName || ('Hráč ' + (Number(roll.playerId) + 1))) + ' ' + roll.value
                     ).join(', ')
                 ).join('; ');
-                body.textContent = summary
-                    ? 'rozstřel – ' + summary + '. ' + (action.startingPlayerName || 'Vítěz') + ' začíná.'
-                    : 'hra začala';
+                body.textContent = 'Rozstřel: ' + (summary || 'čeká se na první hod')
+                    + (action.inProgress
+                        ? ' · čeká se na hod hráče ' + (action.currentPlayerName || '…')
+                        : '. ' + (action.startingPlayerName || 'Vítěz') + ' začíná.');
             } else if (item.action_type === 'roll') {
                 body.textContent = 'hodil kostkou: ' + (action.value || '?');
             } else if (item.action_type === 'move') {
@@ -230,7 +231,9 @@ function renderOnlineGame(data) {
     $('dice-value').textContent = onlineState.diceValue || '—';
 
     let status = 'Čeká se na tah.';
-    if (onlineState.phase === 'roll') {
+    if (onlineState.phase === 'start-roll') {
+        status = ownTurn ? 'Rozstřel: jsi na řadě. Hoď kostkou.' : 'Rozstřel: hází ' + player.name + '.';
+    } else if (onlineState.phase === 'roll') {
         status = ownTurn ? 'Jsi na tahu. Hoď kostkou.' : 'Na tahu je ' + player.name + '.';
     } else if (onlineState.phase === 'move') {
         status = ownTurn ? 'Vyber figurku, kterou chceš posunout.' : player.name + ' vybírá figurku.';
@@ -242,8 +245,13 @@ function renderOnlineGame(data) {
     $('game-status').textContent = status;
 
     const rollButton = $('roll-dice-btn');
-    rollButton?.classList.toggle('hidden', !ownTurn || onlineState.phase !== 'roll');
-    if (rollButton) rollButton.disabled = !ownTurn || onlineState.phase !== 'roll';
+    const canRoll = ownTurn && ['start-roll', 'roll'].includes(onlineState.phase);
+    rollButton?.classList.toggle('hidden', !canRoll);
+    if (rollButton) {
+        rollButton.disabled = !canRoll;
+        const label = rollButton.querySelector('span');
+        if (label) label.textContent = onlineState.phase === 'start-roll' ? 'HODIT ROZSTŘEL' : 'HODIT';
+    }
 
     const passButton = $('end-turn-btn');
     passButton?.classList.toggle('hidden', !ownTurn || onlineState.phase !== 'no-move');
@@ -732,7 +740,8 @@ export async function initOnline() {
         }
     });
     $('roll-dice-btn')?.addEventListener('click', () => {
-        if (onlineMode) void sendGameAction('roll');
+        if (!onlineMode) return;
+        void sendGameAction(onlineState?.phase === 'start-roll' ? 'start_roll' : 'roll');
     });
     $('end-turn-btn')?.addEventListener('click', () => {
         if (onlineMode) void sendGameAction('pass_turn');
