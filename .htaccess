@@ -1,0 +1,2 @@
+# Prefer the PHP entry point so the internal pseudo-CRON runs on page visits.
+DirectoryIndex index.php index.html
