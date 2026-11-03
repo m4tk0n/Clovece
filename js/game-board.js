@@ -25,10 +25,9 @@ function playerAngle(player, total, trackLength) {
 }
 
 function trackAngle(index, game) {
-    // Klasická kruhová deska: startovní pole a celá dráha jsou
-    // vykresleny o jedno políčko vlevo oproti původnímu umístění.
-    // Jde pouze o vizuální posun; logické indexy a pravidla se nemění.
-    const classicOffset = game.players.length <= 4 ? 0 : 0;
+    // Oproti původnímu vykreslení (+1) je kruhová dráha posunutá
+    // o jedno políčko doleva. Herní indexy a pravidla se nemění.
+    const classicOffset = 0;
     return (game.players.length <= 4 ? -135 : -90) +
         (index + classicOffset) * 360 / game.trackLength;
 }
