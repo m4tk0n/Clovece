@@ -260,6 +260,7 @@ async function openGame(gameId, inviteUrl = '') {
 }
 
 async function savePlayerName() {
+    await bootstrapPromise;
     const name = $('online-player-name')?.value.trim();
     if (name) await api('set_name', { display_name: name });
 }
