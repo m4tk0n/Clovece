@@ -81,7 +81,8 @@ Tyto body jsou výsledkem čtení repozitáře; databáze na produkčním hostin
 - [ ] Zabránit dvojitému tahu a souběžným konfliktům.
 - [ ] Synchronizovat chat a herní události.
 - [ ] Ošetřit odpojení hráče, obnovení spojení a čekání na jeho tah.
-- [ ] Otestovat hru na několika skutečných zařízeních.
+- [x] Základní multiplayer vyzkoušen uživatelem na více skutečných zařízeních.
+- [ ] Otestovat opětovné připojení, návrat do rozehrané hry a konkrétní nedostatky zjištěné při praktickém hraní.
 
 ## Fáze 4 – Životní cyklus a úklid databáze
 
@@ -127,6 +128,24 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 
 ## Fáze 7 – Pozdější rozšíření
 
+### Volitelná pravidla při vytváření hry
+
+- [ ] Při zakládání nové hry nabídnout výběr pravidel; výchozí nastavení zachová současná pravidla.
+- [ ] První volitelné pravidlo: pokud hráč nemá na herním plánu žádnou nasazenou figurku, má až tři hody, aby získal šestku.
+- [ ] Pokud hráč během těchto pokusů hodí šestku, může nasadit figurku podle běžných pravidel; pokud šestku nezíská ani na třetí pokus, jeho tah končí.
+- [ ] Ukládat zvolená pravidla ke konkrétní místnosti/hře a po zahájení hry je uzamknout.
+- [ ] Pravidla musí vyhodnocovat server a musí být stejná pro všechny hráče v multiplayeru.
+- [ ] V rozhraní zobrazit hráčům, jaká pravidla jsou pro danou hru aktivní.
+- [ ] Připravit návrh tak, aby šlo později přidávat další volitelné varianty bez přepisování herního enginu.
+
+### Alternativní vzhled hrací plochy
+
+- [ ] Přidat volbu vzhledu hrací plochy: současná kulatá, klasická hranatá, prostorová 3D a bojová 3D varianta.
+- [ ] Oddělit vykreslování jednotlivých vzhledů od herní logiky; pravidla, pozice a synchronizace zůstanou společné.
+- [ ] Umožnit každému hráči zvolit si vlastní vzhled i v multiplayeru, aniž by se měnil pohled ostatních hráčů.
+- [ ] Uložit preferovaný vzhled hráče pro další návštěvy.
+- [ ] Realizovat nejprve hranatou variantu; obě 3D varianty plánovat jako samostatné grafické etapy.
+
 - [ ] Web Push oznámení při tahu (nejprve hráči, který je na tahu).
 - [ ] Volba oznámení pouze mně / všem / vypnuto.
 - [ ] Oznámení o konci hry a dalších důležitých událostech.
@@ -159,7 +178,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
 | 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
 | 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo |
-| 4 | Rozstřel při zahájení lokální i online hry + regresní testy | Implementováno – čeká na CI a FTP deploy |
+| 4 | Rozstřel při zahájení lokální i online hry + regresní testy | Implementováno a nasazeno |
 
 ## Potvrzená pravidla hry
 
@@ -186,6 +205,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 - [x] PHP lint 8.3 a dosavadní JS syntaktické kontroly i testy herního enginu prošly v GitHub Actions.
 - [x] Napojit frontend na bootstrap identity a online lobby; přidat vytvoření místnosti, pozvánkový odkaz, připojení a chat.
 - [ ] Doplnit nabídku pokračování/ukončení rozehrané hry po návratu na web a bezpečný přenos identity na jiné zařízení.
-- [ ] Ověřit API na skutečném WZ hostingu a dvou zařízeních; automatické testy ověřují PHP/JS syntaxi a pravidla enginu, nikoli připojení k produkční databázi.
+- [x] Základní multiplayer byl uživatelem vyzkoušen na více zařízeních.
+- [ ] Ověřit opětovné připojení, obnovu rozehrané hry a opravit nedostatky z praktického testování; automatické testy samy neověřují všechny produkční situace.
 
 Důležité: online místnosti a serverově ověřované tahy jsou napojené na rozhraní. Lokální hra zůstává beze změny. Před potvrzením funkčnosti je nutný test na skutečném hostingu ve dvou zařízeních.
