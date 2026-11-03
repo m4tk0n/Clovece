@@ -1014,12 +1014,20 @@
 }
 #game-screen .game-footer {
     box-sizing: border-box;
+    display: block;
+    flex: 0 0 auto;
     width: 100%;
+    min-width: 0;
     max-width: none;
     margin: 4px 0 0;
+    padding: 0;
 }
 #game-screen .game-chat {
+    display: flex;
     box-sizing: border-box;
+    flex: 0 0 100%;
     width: 100%;
+    min-width: 0;
     max-width: none;
+    margin: 0;
 }
