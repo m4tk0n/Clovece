@@ -746,8 +746,18 @@ try {
                 $stmt->execute([$gameId]);
                 $participants = $stmt->fetchAll();
 
+                $humanIdentityIds = [];
+                foreach ($participants as $participant) {
+                    if (($participant['player_type'] ?? 'human') === 'human'
+                        && $participant['identity_id'] !== null) {
+                        $humanIdentityIds[(int) $participant['identity_id']] = true;
+                    }
+                }
+                if (count($humanIdentityIds) < 2) {
+                    onlineFail('Online hru mohou spustit pouze alespoň dva lidé na různých zařízeních. Počítač se počítá jako další hráč, ne jako náhrada druhého člověka.', 409);
+                }
                 if (count($participants) < 2) {
-                    onlineFail('Ke spuštění hry jsou potřeba alespoň dva hráči.', 409);
+                    onlineFail('Ke spuštění hry jsou potřeba alespoň dva účastníci.', 409);
                 }
                 if (count($participants) > (int) $gameRow['player_limit']) {
                     onlineFail('Počet hráčů překračuje limit místnosti.', 409);
@@ -1015,7 +1025,7 @@ try {
             onlineProcessAiTurns($db, $gameId);
             $game = onlineGameAccess($db, $gameId, $identityId);
             $stmt = $db->prepare(
-                'SELECT id, player_index, player_type, display_name, color, is_ready, joined_at, last_seen_at
+                'SELECT id, identity_id, player_index, player_type, display_name, color, is_ready, joined_at, last_seen_at
                  FROM ' . onlineTable('game_participants') . '
                  WHERE game_id = ? AND left_at IS NULL ORDER BY player_index'
             );
@@ -1051,7 +1061,14 @@ try {
                     'state_version' => (int) $game['state_version'],
                     'current_turn' => $game['current_turn'] === null ? null : (int) $game['current_turn'],
                 ],
-                'participants' => $participants,
+                'participants' => array_map(static function (array $participant): array {
+                    unset($participant['identity_id']);
+                    return $participant;
+                }, $participants),
+                'human_count' => count(array_unique(array_filter(
+                    array_column($participants, 'identity_id'),
+                    static fn($id): bool => $id !== null
+                ))),
                 'chat' => $chat,
                 'moves' => $moves,
                 'current_participant_id' => (int) $game['participant_id'],
