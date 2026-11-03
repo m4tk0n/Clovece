@@ -3,7 +3,7 @@
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
 import {
-    createGame, determineStartingPlayer, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
+    createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
