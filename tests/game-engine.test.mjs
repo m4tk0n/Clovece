@@ -50,6 +50,10 @@ test('players can receive individually selected unique colors from the shared pa
     const fallback = createGame(1, 1, [], ['not-a-color', '#1E88E5']);
     assert.equal(fallback.players[0].color, '#E53935');
     assert.equal(fallback.players[1].color, '#1E88E5');
+
+    const duplicate = createGame(2, 1, [], ['#E53935', '#E53935', '#00ACC1']);
+    assert.equal(new Set(duplicate.players.map(player => player.color)).size, 3);
+    assert.deepEqual(duplicate.players.map(player => player.color), ['#E53935', '#1E88E5', '#00ACC1']);
 });
 
 test('starting player is decided by a dice-off and only tied leaders reroll', () => {
