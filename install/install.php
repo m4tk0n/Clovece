@@ -248,6 +248,8 @@ try {
     }
 
     $executed = 0;
+    $statementNumber = 0;
+    $failedStatement = null;
     $tables = [];
 
     foreach ($statements as $statement) {
@@ -256,8 +258,11 @@ try {
             continue;
         }
 
+        $statementNumber++;
+        $failedStatement = $statement;
         $db->exec($statement);
         $executed++;
+        $failedStatement = null;
 
         if (preg_match('/CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+([A-Za-z0-9_]+)/i', $statement, $match)) {
             $tables[] = $match[1];
@@ -279,9 +284,18 @@ try {
     );
 } catch (Throwable $e) {
     http_response_code(500);
+    $diagnostics = '';
+    if (isset($failedStatement) && is_string($failedStatement) && $failedStatement !== '') {
+        $diagnostics = '<h3>Selhal SQL příkaz č. ' . (string) ($statementNumber ?? 0) . ':</h3>'
+            . '<pre style="white-space:pre-wrap;overflow-wrap:anywhere;background:#172033;padding:12px;border-radius:8px;color:#ffd2d2">'
+            . h(substr($failedStatement, 0, 5000))
+            . '</pre>';
+    }
+
     renderPage(
         $config,
-        '<div class="status err"><strong>Instalace nebyla dokončena.</strong><br>' . h($e->getMessage()) . '</div>
-         <p class="note">Část tabulek mohla být vytvořena před vznikem chyby. Po opravě příčiny lze instalaci spustit znovu; schéma používá CREATE TABLE IF NOT EXISTS.</p>'
+        '<div class="status err"><strong>Instalace nebyla dokončena.</strong><br>' . h($e->getMessage()) . '</div>'
+        . $diagnostics
+        . '<p class="note">Část tabulek mohla být vytvořena před vznikem chyby. Před opakováním instalace nejprve odstraň příčinu. Instalátor žádné tabulky nemaže.</p>'
     );
 }
