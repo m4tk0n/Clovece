@@ -149,6 +149,9 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 - [x] Použít společnou paletu osmi barev pro lokální i online režim; u žlutých figurek použít tmavé číslování pro lepší kontrast.
 - [x] Přidat regresní testy výběru barev a kontroly jedinečnosti v lokálním herním enginu.
 - [ ] Prakticky otestovat změnu jména a výběr barev mezi více zařízeními v produkční místnosti.
+- [x] Přidat AI hráče do online čekající místnosti; AI provádí tahy serverově.
+- [x] Vyžadovat pro spuštění online hry alespoň dvě různé lidské identity/zařízení; AI se počítá pouze jako další hráč.
+- [ ] Prakticky otestovat online hru se dvěma lidmi a alespoň jedním AI hráčem.
 
 ### Alternativní vzhled hrací plochy
 
@@ -192,6 +195,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo |
 | 4 | Rozstřel při zahájení lokální i online hry + regresní testy | Implementováno a nasazeno |
 | 5 | Vlastní jméno online hráče, výběr a náhodné přidělení osmi barev pro lokální i online hru | Implementováno; čeká na praktický multiplayer test |
+| 6 | Online AI hráči a povinné minimum dvou lidských zařízení | Implementováno; automatické testy a FTP deploy úspěšné, čeká na praktický test |
 
 ## Potvrzená pravidla hry
 
