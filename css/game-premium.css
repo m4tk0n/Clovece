@@ -987,3 +987,33 @@
     #game-screen .board-corner-info,
     #game-screen .board-player-stats { padding:4px 6px; }
 }
+
+
+/* Jednotné odsazení všech tří herních částí od okraje displeje. */
+#game-screen:not(.hidden) {
+    box-sizing: border-box;
+    padding: 2px;
+}
+#game-screen .game-header {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    margin: 0 0 4px;
+}
+#game-screen .game-container {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+}
+#game-screen .game-footer {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    margin: 4px 0 0;
+}
+#game-screen .game-chat {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+}
