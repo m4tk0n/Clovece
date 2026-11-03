@@ -275,8 +275,9 @@ function renderGame(data) {
             const name = document.createElement('span');
             name.textContent = player.display_name;
             const type = document.createElement('small');
-            const ownerLabel = Number(player.id) === Number(data.current_participant_id) ? 'TY' : 'HRÁČ';
-            type.textContent = player.color === 'random' ? ownerLabel + ' · NÁHODNÁ' : ownerLabel;
+            const ownerLabel = player.player_type === 'ai' ? 'POČÍTAČ'
+                : (Number(player.id) === Number(data.current_participant_id) ? 'TY' : 'HRÁČ');
+            type.textContent = player.color === 'random' && player.player_type !== 'ai' ? ownerLabel + ' · NÁHODNÁ' : ownerLabel;
             row.append(dot, name, type);
             list.appendChild(row);
         });
@@ -318,6 +319,7 @@ function renderGame(data) {
     $('random-room-color-btn')?.classList.toggle('hidden', game.status !== 'waiting');
 
     $('ready-btn')?.classList.add('hidden');
+    $('add-ai-player-btn')?.classList.toggle('hidden', !data.is_creator || participants.length >= Number(game.player_limit) || game.status !== 'waiting');
     $('room-start-game-btn')?.classList.toggle(
         'hidden',
         !data.is_creator || participants.length < 2 || game.status !== 'waiting'
@@ -662,6 +664,20 @@ export async function initOnline() {
         }
     });
 
+    $('add-ai-player-btn')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        if (!currentGameId || button.disabled) return;
+        button.disabled = true;
+        try {
+            const result = await api('add_ai_player', { game_id: String(currentGameId) });
+            notify(result.display_name + ' byl přidán do místnosti.');
+            await refreshGame();
+        } catch (error) {
+            notify('AI hráče se nepodařilo přidat: ' + error.message);
+        } finally {
+            button.disabled = false;
+        }
+    });
     $('copy-invite-btn')?.addEventListener('click', copyInvite);
     $('room-start-game-btn')?.addEventListener('click', async () => {
         if (!currentGameId) return;
