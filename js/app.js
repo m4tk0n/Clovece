@@ -162,6 +162,22 @@ function renderPlayers() {
 }
 
 const chatHistory = [];
+let startLogEntry = null;
+
+function updateStartLog() {
+    if (!game || !startLogEntry) return;
+    const rounds = (game.startRolls || []).filter(round => round.length > 0);
+    const summary = rounds.map((round, index) =>
+        'kolo ' + (index + 1) + ': ' + round.map(roll =>
+            game.players[roll.playerId].name + ' ' + roll.value
+        ).join(', ')
+    ).join('; ');
+    startLogEntry.text = 'Rozstřel: ' + (summary || 'čeká se na první hod')
+        + (game.phase === 'start-roll'
+            ? ' · čeká se na hod hráče ' + game.players[game.currentPlayer].name
+            : '. ' + game.players[game.startWinner].name + ' začíná.');
+    renderChat();
+}
 
 function renderChat() {
     const messages = $('chat-messages');
@@ -216,16 +232,21 @@ function updateTurnControls() {
     $('current-player-name').textContent = player.name;
     $('current-player-display').style.setProperty('--player-color', player.color);
     $('dice-value').textContent = game.diceValue || '—';
-    $('game-status').textContent = game.phase === 'move'
-        ? (isHuman ? 'Vyber figurku, kterou chceš posunout.' : 'AI vybírá svůj tah…')
-        : game.phase === 'no-move'
-            ? 'Žádný možný tah.'
-            : game.phase === 'finished'
-                ? 'Hra skončila.'
-                : (isHuman ? 'Hoď kostkou a hraj.' : 'AI hází kostkou…');
+    $('game-status').textContent = game.phase === 'start-roll'
+        ? (isHuman ? 'Rozstřel: hoď kostkou, až přijdeš na řadu.' : 'AI hází v rozstřelu…')
+        : game.phase === 'move'
+            ? (isHuman ? 'Vyber figurku, kterou chceš posunout.' : 'AI vybírá svůj tah…')
+            : game.phase === 'no-move'
+                ? 'Žádný možný tah.'
+                : game.phase === 'finished'
+                    ? 'Hra skončila.'
+                    : (isHuman ? 'Hoď kostkou a hraj.' : 'AI hází kostkou…');
 
-    $('roll-dice-btn').classList.toggle('hidden', !isHuman || game.phase !== 'roll');
-    $('roll-dice-btn').disabled = !isHuman || game.phase !== 'roll';
+    const canRoll = isHuman && ['start-roll', 'roll'].includes(game.phase);
+    $('roll-dice-btn').classList.toggle('hidden', !canRoll);
+    $('roll-dice-btn').disabled = !canRoll;
+    const rollLabel = $('roll-dice-btn').querySelector('span');
+    if (rollLabel) rollLabel.textContent = game.phase === 'start-roll' ? 'HODIT ROZSTŘEL' : 'HODIT';
     $('end-turn-btn').classList.add('hidden');
 }
 
@@ -367,8 +388,55 @@ function showWin() {
     }
 }
 
+async function doStartingRoll(isAI = false) {
+    if (!game || game.phase !== 'start-roll' || modalOpen) return;
+    const playerId = game.currentPlayer;
+    const player = game.players[playerId];
+    if (!isAI && player.isAI) return;
+
+    const value = Math.floor(Math.random() * 6) + 1;
+    game.diceValue = value;
+    await animateDice(value);
+    if (!game || game.phase !== 'start-roll' || game.currentPlayer !== playerId || isPaused()) return;
+
+    const roundIndex = game.startRolls.length - 1;
+    game.startRolls[roundIndex].push({ playerId, value });
+
+    const candidates = game.startCandidates;
+    const round = game.startRolls[roundIndex];
+    if (round.length < candidates.length) {
+        game.currentPlayer = candidates[round.length];
+    } else {
+        const highest = Math.max(...round.map(roll => roll.value));
+        const winners = round.filter(roll => roll.value === highest).map(roll => roll.playerId);
+        if (winners.length === 1) {
+            game.startWinner = winners[0];
+            game.startCandidates = [];
+            game.currentPlayer = winners[0];
+            game.phase = 'roll';
+        } else {
+            game.startCandidates = winners;
+            game.startRolls.push([]);
+            game.currentPlayer = winners[0];
+        }
+    }
+
+    updateStartLog();
+    showGame();
+    if (game.phase === 'roll') {
+        toast(game.players[game.currentPlayer].name + ' začíná hru.');
+        return;
+    }
+    continueGame();
+}
+
 async function doRoll(isAI = false) {
-    if (!game || game.phase !== 'roll' || modalOpen) return;
+    if (!game || modalOpen) return;
+    if (game.phase === 'start-roll') {
+        await doStartingRoll(isAI);
+        return;
+    }
+    if (game.phase !== 'roll') return;
     if (!isAI && game.players[game.currentPlayer].isAI) return;
 
     const result = rollDice(game);
@@ -414,7 +482,7 @@ function scheduleAI() {
 
     aiTimer = setTimeout(() => {
         if (!game || modalOpen || game.winner !== null || isPaused()) return;
-        if (game.phase === 'roll') {
+        if (game.phase === 'start-roll' || game.phase === 'roll') {
             doRoll(true);
         } else if (game.phase === 'move') {
             const selected = chooseAIMove(game);
@@ -455,7 +523,11 @@ function startGame() {
             select.value === 'random' ? select.dataset.resolvedColor : select.value
         );
         game = createGame(humanCount, aiCount, names, colors);
-        determineStartingPlayer(game);
+        game.phase = 'start-roll';
+        game.currentPlayer = 0;
+        game.startCandidates = game.players.map(player => player.id);
+        game.startRolls = [[]];
+        game.startWinner = null;
     } catch (error) {
         toast(error.message);
         return;
@@ -463,14 +535,9 @@ function startGame() {
     clearTimeout(aiTimer);
     chatHistory.length = 0;
     renderChat();
-    game.startRolls.forEach((round, index) => {
-        const results = round.map(roll =>
-            game.players[roll.playerId].name + ' hodil ' + roll.value
-        ).join(' · ');
-        addGameLogEntry('Rozstřel', 'Kolo ' + (index + 1) + ': ' + results);
-    });
-    addGameLogEntry('Hra', game.players[game.currentPlayer].name + ' vyhrává rozstřel a začíná.');
-    toast(game.players[game.currentPlayer].name + ' začíná hru.');
+    startLogEntry = { sender: 'Rozstřel', text: 'Čeká se na první hod.', type: 'game' };
+    chatHistory.push(startLogEntry);
+    updateStartLog();
     modalOpen = false;
     $('win-modal').classList.add('hidden');
     $('kick-modal').classList.add('hidden');
