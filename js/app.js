@@ -119,7 +119,7 @@ function updateSetup() {
                 'aria-label="Jméno ' + (player.isAI ? 'AI ' : 'hráče ') + player.number + '" ' +
                 'data-name-key="' + player.key + '" value="' + escapeHtml(player.name) + '">' +
             '<label class="preview-color-label">' +
-                '<select class="preview-player-color" data-color-key="' + player.key + '" aria-label="Barva hráče ' + escapeHtml(player.name) + '">' +
+                '<select class="preview-player-color" data-color-key="' + player.key + '" data-resolved-color="' + player.displayColor + '" aria-label="Barva hráče ' + escapeHtml(player.name) + '">' +
                     '<option value="random"' + (player.selectedColor === 'random' ? ' selected' : '') + '>Náhodná</option>' +
                     availableColors.map(color => '<option value="' + color.value + '"' +
                         (color.value === player.selectedColor ? ' selected' : '') + '>' + color.label + '</option>').join('') +
@@ -429,7 +429,6 @@ function onBoardClick(event) {
 }
 
 function startGame() {
-    updateSetup();
     try {
         const names = Array.from($('preview-players').querySelectorAll('[data-name-key]'), input => {
             const name = input.value.trim().slice(0, 20);
@@ -437,11 +436,10 @@ function startGame() {
             const number = input.dataset.nameKey.split(':')[1];
             return input.dataset.nameKey.startsWith('ai:') ? 'AI ' + number : 'Hráč ' + number;
         });
-        const selectedColors = Array.from($('preview-players').querySelectorAll('[data-color-key]'), select => select.value);
-        const fixedColors = new Set(selectedColors.filter(color => color !== 'random'));
-        const randomColors = shuffleColors(PLAYER_COLORS.filter(color => !fixedColors.has(color)));
-        let randomColorIndex = 0;
-        const colors = selectedColors.map(color => color === 'random' ? randomColors[randomColorIndex++] : color);
+        // Náhodné barvy jsou už v náhledu vylosované. Do hry použijeme přesně ty zobrazené.
+        const colors = Array.from($('preview-players').querySelectorAll('[data-color-key]'), select =>
+            select.value === 'random' ? select.dataset.resolvedColor : select.value
+        );
         game = createGame(humanCount, aiCount, names, colors);
         determineStartingPlayer(game);
     } catch (error) {
