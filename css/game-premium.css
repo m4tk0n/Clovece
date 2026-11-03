@@ -310,7 +310,7 @@
 }
 #game-screen .premium-board-shell {
     box-sizing:border-box; display:flex; flex-direction:column;
-    width:100%; height:100%; min-height:0; padding:6px; border-radius:16px;
+    width:100%; height:100%; min-height:0; padding:3px; border-radius:16px;
 }
 #game-screen .board-topline,#game-screen .board-bottomline {
     flex:0 0 auto; padding:2px 5px 5px; font-size:7px; letter-spacing:.07em;
@@ -340,6 +340,7 @@
     #game-screen .game-status { flex-basis:100%; font-size:9px; }
     #game-screen .game-btn { min-height:32px; padding:5px 8px; font-size:10px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 142px)); }
+    #game-screen .premium-board-shell { padding:1px; }
     #game-screen .players-panel { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
     #game-screen .premium-player-card { min-height:30px; padding:4px 7px; }
     #game-screen .player-card-copy strong { font-size:10px; }
