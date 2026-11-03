@@ -623,3 +623,11 @@
         transform: none;
     }
 }
+
+
+/* Zabrání automatickému posouvání při překreslování náhledu hráčů.
+   updateSetup() při pohybu posuvníků obnovuje obsah #preview-players;
+   scroll anchoring prohlížeče pak jinak mění scrollTop celé obrazovky. */
+#player-selection {
+    overflow-anchor: none;
+}
