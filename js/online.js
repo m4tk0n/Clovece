@@ -12,8 +12,11 @@ let currentGameId = null;
 let currentInviteUrl = '';
 let pollTimer = null;
 let pollInFlight = false;
+let bootstrapPromise = Promise.resolve();
 
 async function api(action, values = {}) {
+    await bootstrapPromise;
+    if (!csrfToken) throw new Error('Online identita není připravená. Obnov stránku.');
     const body = new URLSearchParams({ action, ...values });
     if (csrfToken) body.set('csrf_token', csrfToken);
 
@@ -271,7 +274,7 @@ export async function initOnline() {
     window.joinRoom = joinRoom;
     document.addEventListener('visibilitychange', schedulePoll);
 
-    try {
+    bootstrapPromise = (async () => {
         const response = await fetch(API_URL + '?action=bootstrap', {
             credentials: 'same-origin',
             cache: 'no-store'
@@ -281,7 +284,12 @@ export async function initOnline() {
             throw new Error(data.error || 'Nepodařilo se připravit anonymní identitu.');
         }
         csrfToken = data.csrf_token || '';
+        if (!csrfToken) throw new Error('Server neposlal bezpečnostní token.');
+        return data;
+    })();
 
+    try {
+        await bootstrapPromise;
         const invite = new URLSearchParams(window.location.search).get('invite');
         if (invite) {
             showScreen('lobby');
