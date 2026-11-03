@@ -92,13 +92,13 @@ export function determineStartingPlayer(game, rollFn = () => Math.floor(Math.ran
 }
 
 export function getPiecePosition(game, playerId, piece) {
-    if (piece.steps < 0 || piece.steps >= game.trackLength) return null;
+    if (piece.steps < 0 || piece.steps > game.trackLength) return null;
     return (game.players[playerId].start + piece.steps) % game.trackLength;
 }
 
 export function getHomeLaneIndex(game, piece) {
-    if (piece.steps < game.trackLength) return -1;
-    return piece.steps - game.trackLength;
+    if (piece.steps <= game.trackLength) return -1;
+    return piece.steps - game.trackLength - 1;
 }
 
 export function getValidMoves(game, playerId = game.currentPlayer) {
@@ -114,11 +114,11 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
         if (nextSteps > maxSteps) return;
 
-        if (nextSteps < game.trackLength) {
+        if (nextSteps <= game.trackLength) {
             const destination = (game.players[playerId].start + nextSteps) % game.trackLength;
             const ownBlock = playerPieces.some(other =>
                 other.id !== piece.id && other.steps >= 0 &&
-                other.steps < game.trackLength &&
+                other.steps <= game.trackLength &&
                 getPiecePosition(game, playerId, other) === destination
             );
             if (ownBlock) return;
@@ -172,7 +172,7 @@ export function movePiece(game, pieceId) {
         game.pieces.forEach((group, enemyId) => {
             if (enemyId === playerId) return;
             group.pieces.forEach(enemyPiece => {
-                if (enemyPiece.steps >= 0 && enemyPiece.steps < game.trackLength &&
+                if (enemyPiece.steps >= 0 && enemyPiece.steps <= game.trackLength &&
                     getPiecePosition(game, enemyId, enemyPiece) === destination) {
                     captured = {
                         playerId: enemyId,
@@ -234,7 +234,7 @@ export function chooseAIMove(game) {
     const candidates = valid.map(pieceId => {
         const piece = game.pieces[playerId].pieces[pieceId];
         const next = piece.steps < 0 ? 0 : piece.steps + game.diceValue;
-        const destination = next < game.trackLength
+        const destination = next <= game.trackLength
             ? (game.players[playerId].start + next) % game.trackLength
             : null;
         let score = next;
@@ -245,7 +245,7 @@ export function chooseAIMove(game) {
             game.pieces.forEach((group, enemyId) => {
                 if (enemyId === playerId) return;
                 group.pieces.forEach(enemy => {
-                    if (enemy.steps >= 0 && enemy.steps < game.trackLength &&
+                    if (enemy.steps >= 0 && enemy.steps <= game.trackLength &&
                         getPiecePosition(game, enemyId, enemy) === destination) score += 90;
                 });
             });
