@@ -335,9 +335,9 @@ function startGame() {
     try {
         const names = Array.from($('preview-players').querySelectorAll('[data-name-key]'), input => {
             const name = input.value.trim().slice(0, 20);
-            return name || input.dataset.nameKey.startsWith('ai:')
-                ? (name || input.dataset.nameKey.replace(':', ' '))
-                : 'Hráč ' + input.dataset.nameKey.split(':')[1];
+            if (name) return name;
+            const number = input.dataset.nameKey.split(':')[1];
+            return input.dataset.nameKey.startsWith('ai:') ? 'AI ' + number : 'Hráč ' + number;
         });
         game = createGame(humanCount, aiCount, names);
     } catch (error) {
