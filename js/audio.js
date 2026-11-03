@@ -5,6 +5,7 @@
 let audioInitialized = false;
 let masterVolume = 0.7;
 let masterMuted = false;
+let soundEffectsEnabled = true;
 
 function applyMasterAudioState() {
     document.querySelectorAll('audio').forEach(audio => {
@@ -40,7 +41,12 @@ export function initAudio() {
     applyMasterAudioState();
 }
 
+export function setSoundEffectsEnabled(enabled) {
+    soundEffectsEnabled = Boolean(enabled);
+}
+
 export function playSound(id) {
+    if (!soundEffectsEnabled) return;
     const audio = document.getElementById(id);
     if (!audio) return;
 
