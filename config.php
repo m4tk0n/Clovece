@@ -25,7 +25,6 @@ if (file_exists(__DIR__ . '/.env')) {
             }
             
             $_ENV[$key] = $value;
-            putenv($key . '=' . $value);
         }
     }
 }
