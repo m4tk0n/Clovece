@@ -144,6 +144,12 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 3. Update 3 – První samostatná, bezpečná databázová migrace.
 4. Další updaty budou následovat až po ověření předchozího kroku.
 
+## Rozhodnutí uživatele
+
+- Retenční lhůty 30 dní pro neaktivní a 7 dní pro dokončené hry jsou přijatelné; budou nastavitelné v `/cron/config.php`.
+- Chat a herní události se v rozhraní zobrazí společně v jednom časovém proudu, ale v databázi se budou ukládat odděleně.
+- Datový model bude připraven na AI hráče. První online verzi doporučujeme spustit s živými hráči; AI doplníme po stabilizaci multiplayeru.
+
 ## Záznam provedených updateů
 
 | Update | Změna | Stav |
@@ -151,4 +157,4 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 0 | Kontrola současného projektu a sepsání roadmapy | Hotovo |
 
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
-| 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Připraveno k připomínkám |
+| 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
