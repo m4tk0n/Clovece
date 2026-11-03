@@ -402,17 +402,17 @@ $ver = date('Ymd-His');
                 <div class="settings-container">
                     <div class="setting-item">
                         <label for="sfx-toggle">Zvukové efekty</label>
-                        <div class="toggle-switch">
+                        <label class="toggle-switch">
                             <input type="checkbox" id="sfx-toggle" checked>
                             <span class="slider-round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="setting-item">
                         <label>Animace</label>
-                        <div class="toggle-switch">
+                        <label class="toggle-switch">
                             <input type="checkbox" id="animations-toggle" checked>
                             <span class="slider-round"></span>
-                        </div>
+                        </label>
                     </div>
                     <div class="setting-item">
                         <label>Rychlost AI</label>
