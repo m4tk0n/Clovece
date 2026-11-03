@@ -138,6 +138,16 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 - [ ] V rozhraní zobrazit hráčům, jaká pravidla jsou pro danou hru aktivní.
 - [ ] Připravit návrh tak, aby šlo později přidávat další volitelné varianty bez přepisování herního enginu.
 
+### Jména a barvy hráčů (lokální i online)
+
+- [ ] Každý účastník online místnosti si může sám nastavit nebo změnit své zobrazované jméno; změna se synchronizuje všem hráčům. Hráč nesmí měnit jména ostatních.
+- [ ] Při vytváření lokální i online hry umožnit každému hráči vybrat si jednu z osmi výrazných a dobře rozlišitelných barev.
+- [ ] Nabídnout také náhodné rozdělení barev; každému hráči přiřadit jedinečnou barvu.
+- [ ] Zabránit výběru již obsazené barvy v rámci jedné hry/místnosti.
+- [ ] U online hry ukládat barvu na serveru k účastníkovi místnosti a synchronizovat ji všem klientům; zachovat ji při obnovení a opětovném připojení.
+- [ ] Použít společnou paletu osmi barev pro lokální i online režim a ověřit jejich čitelnost na herní ploše i figurkách.
+- [ ] Přidat regresní testy výběru, náhodného rozdělení, unikátnosti a synchronizace barev.
+
 ### Alternativní vzhled hrací plochy
 
 - [ ] Přidat volbu vzhledu hrací plochy: současná kulatá, klasická hranatá, prostorová 3D a bojová 3D varianta.
