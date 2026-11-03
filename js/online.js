@@ -322,7 +322,7 @@ function renderGame(data) {
     $('add-ai-player-btn')?.classList.toggle('hidden', !data.is_creator || participants.length >= Number(game.player_limit) || game.status !== 'waiting');
     $('room-start-game-btn')?.classList.toggle(
         'hidden',
-        !data.is_creator || participants.length < 2 || game.status !== 'waiting'
+        !data.is_creator || Number(data.human_count || 0) < 2 || participants.length < 2 || game.status !== 'waiting'
     );
     renderChat(data.chat || [], participants);
 }
