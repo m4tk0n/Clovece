@@ -425,6 +425,9 @@ async function doStartingRoll(isAI = false) {
     showGame();
     if (game.phase === 'roll') {
         toast(game.players[game.currentPlayer].name + ' začíná hru.');
+        // Pokud rozstřel vyhrála AI, musí se po přechodu do běžné hry
+        // naplánovat její první hod. Bez continueGame() by hra zůstala stát.
+        continueGame();
         return;
     }
     continueGame();
