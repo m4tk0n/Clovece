@@ -6,7 +6,9 @@ import {
     rollDice,
     getValidMoves,
     getForcedMove,
-    movePiece
+    movePiece,
+    getPiecePosition,
+    getHomeLaneIndex
 } from '../js/game-engine.js';
 
 test('two to four players use the classic 52-space track and four corner starts', () => {
@@ -139,6 +141,30 @@ test('an occupied opponent start square is an ordinary square and can be capture
     assert.equal(move.captured.playerId, 1);
     assert.equal(game.pieces[1].pieces[0].steps, -1);
     assert.equal(game.pieces[0].pieces[0].steps, 26);
+});
+
+test('the full circuit includes the start square before entering the home lane', () => {
+    const game = createGame(1, 1);
+    const piece = game.pieces[0].pieces[0];
+
+    // After deployment, the piece is on its own start square (step 0).
+    // One full circuit later it must return to that same square (step 52).
+    piece.steps = game.trackLength - 1;
+    game.phase = 'move';
+    game.diceValue = 1;
+    assert.deepEqual(getValidMoves(game), [0]);
+    movePiece(game, 0);
+    assert.equal(piece.steps, game.trackLength);
+    assert.equal(getHomeLaneIndex(game, piece), -1);
+    assert.equal(getPiecePosition(game, 0, piece), game.players[0].start);
+
+    // Only the next step enters the first home-lane square.
+    game.phase = 'move';
+    game.diceValue = 1;
+    assert.deepEqual(getValidMoves(game), [0]);
+    movePiece(game, 0);
+    assert.equal(piece.steps, game.trackLength + 1);
+    assert.equal(getHomeLaneIndex(game, piece), 0);
 });
 
 test('a player wins only by bringing all four pieces exactly home', () => {
