@@ -207,6 +207,22 @@
                     </div>
                 </div>
                 
+                <section class="identity-transfer">
+                    <h3>Přenos identity na jiné zařízení</h3>
+                    <p>Na původním zařízení vytvoř kód. Na novém zařízení ho zadej zde. Platí 15 minut a lze ho použít pouze jednou.</p>
+                    <button id="create-transfer-code-btn" type="button" class="menu-btn secondary">
+                        <span>VYTVOŘIT PŘENOSOVÝ KÓD</span>
+                        <i class="fas fa-key"></i>
+                    </button>
+                    <input id="transfer-code-output" type="text" readonly autocomplete="off" placeholder="Zde se zobrazí přenosový kód">
+                    <label for="transfer-code-input">Kód z druhého zařízení</label>
+                    <input id="transfer-code-input" type="text" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Vlož přenosový kód">
+                    <button id="claim-transfer-code-btn" type="button" class="menu-btn">
+                        <span>PŘEVÉST IDENTITU NA TOTO ZAŘÍZENÍ</span>
+                        <i class="fas fa-right-left"></i>
+                    </button>
+                </section>
+
                 <h3>Moje hry</h3>
                 <div id="my-games-list" class="my-games-list">
                     <p class="my-games-empty">Načítám tvoje hry…</p>
