@@ -166,7 +166,7 @@ export function movePiece(game, pieceId) {
     const nextSteps = fromSteps === -1 ? 0 : fromSteps + diceValue;
     let captured = null;
 
-    if (nextSteps < game.trackLength) {
+    if (nextSteps <= game.trackLength) {
         const destination = (player.start + nextSteps) % game.trackLength;
         // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
         game.pieces.forEach((group, enemyId) => {
