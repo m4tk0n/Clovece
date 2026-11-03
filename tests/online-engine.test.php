@@ -140,17 +140,28 @@ $homeBlock['pieces'][0]['pieces'][1]['steps'] = $homeBlock['trackLength'] + 2;
 checkSame([1], onlineEngineValidMoves($homeBlock), 'Na obsazené políčko domácího sloupce nesmí vstoupit druhá vlastní figurka.');
 
 $finish = onlineEngineCreateState(testParticipants(2));
-$max = $finish['trackLength'] + 4;
-foreach ($finish['pieces'][0]['pieces'] as &$piece) {
-    $piece['steps'] = $max;
-}
-unset($piece);
-$finish['pieces'][0]['pieces'][0]['steps'] = $max - 1;
+$laneStart = $finish['trackLength'] + 1;
+$finish['pieces'][0]['pieces'][0]['steps'] = $laneStart;
+$finish['pieces'][0]['pieces'][1]['steps'] = $laneStart + 1;
+$finish['pieces'][0]['pieces'][2]['steps'] = $laneStart + 2;
+$finish['pieces'][0]['pieces'][3]['steps'] = $finish['trackLength'];
 $finish['phase'] = 'move';
-$finish['diceValue'] = 1;
-checkSame([0], onlineEngineValidMoves($finish), 'Přesný dojezd do cíle musí být povolen.');
-onlineEngineMovePiece($finish, 0);
-checkSame(0, $finish['winner'], 'Hráč musí vyhrát po dojezdu poslední figurky.');
+$finish['diceValue'] = 4;
+checkSame([3], onlineEngineValidMoves($finish), 'Přesný dojezd na poslední volné cílové políčko musí být povolen.');
+onlineEngineMovePiece($finish, 3);
+checkSame(
+    [$laneStart, $laneStart + 1, $laneStart + 2, $laneStart + 3],
+    array_column($finish['pieces'][0]['pieces'], 'steps'),
+    'Čtyři figurky musí obsadit čtyři různá cílová políčka.'
+);
+checkSame(0, $finish['winner'], 'Hráč musí vyhrát po obsazení všech čtyř cílových políček.');
 checkSame('finished', $finish['phase'], 'Stav hry musí být finished.');
+
+$lastHomeBlocked = onlineEngineCreateState(testParticipants(2));
+$lastHomeBlocked['pieces'][0]['pieces'][0]['steps'] = $lastHomeBlocked['trackLength'] + 3;
+$lastHomeBlocked['pieces'][0]['pieces'][1]['steps'] = $lastHomeBlocked['trackLength'] + 4;
+$lastHomeBlocked['phase'] = 'move';
+$lastHomeBlocked['diceValue'] = 1;
+checkSame([], onlineEngineValidMoves($lastHomeBlocked), 'Na obsazené poslední cílové políčko nesmí vstoupit druhá vlastní figurka.');
 
 echo "PHP online game engine tests: OK\n";
