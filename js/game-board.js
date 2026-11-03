@@ -140,10 +140,6 @@ export function renderBoard(container, game) {
                     getPiecePosition(game, item.playerId, item.piece) === position);
                 stackIndex = all.findIndex(item => item.playerId === player.id && item.piece.id === piece.id);
                 stackCount = all.length;
-            } else if (piece.steps === game.trackLength + 4) {
-                const finished = game.pieces[player.id].pieces.filter(item => item.steps === game.trackLength + 4);
-                stackIndex = finished.findIndex(item => item.id === piece.id);
-                stackCount = finished.length;
             }
             return pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves);
         }).join('');
