@@ -51,6 +51,7 @@ export function createGame(humanCount, aiCount, names = [], colors = []) {
         currentPlayer: 0,
         startRolls: [],
         diceValue: 0,
+        baseRollAttempts: 0,
         phase: 'roll',
         turnNumber: 1,
         winner: null,
@@ -145,14 +146,28 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     }
 
     game.diceValue = Math.max(1, Math.min(6, Number(value) || 1));
-    game.phase = 'move';
+    const playerPieces = game.pieces[game.currentPlayer].pieces;
+    const allAtBase = playerPieces.every(piece => piece.steps === -1);
 
-    const moves = getValidMoves(game);
-    if (!moves.length) {
-        game.phase = 'no-move';
+    if (allAtBase && game.diceValue !== 6) {
+        game.baseRollAttempts = (game.baseRollAttempts || 0) + 1;
+        const retrying = game.baseRollAttempts < 3;
+        game.phase = retrying ? 'roll' : 'no-move';
+        return {
+            value: game.diceValue,
+            validMoves: [],
+            retrying,
+            attempt: game.baseRollAttempts,
+            maxAttempts: 3
+        };
     }
 
-    return { value: game.diceValue, validMoves: moves };
+    game.baseRollAttempts = 0;
+    game.phase = 'move';
+    const moves = getValidMoves(game);
+    if (!moves.length) game.phase = 'no-move';
+
+    return { value: game.diceValue, validMoves: moves, retrying: false };
 }
 
 export function movePiece(game, pieceId) {
@@ -203,6 +218,7 @@ export function movePiece(game, pieceId) {
         game.winner = playerId;
         game.phase = 'finished';
     } else if (diceValue === 6 && !finishedNow) {
+        game.baseRollAttempts = 0;
         game.phase = 'roll';
     } else {
         advanceTurn(game);
@@ -229,6 +245,7 @@ export function advanceTurn(game) {
     }
     game.currentPlayer = next;
     game.diceValue = 0;
+    game.baseRollAttempts = 0;
     game.phase = 'roll';
     game.turnNumber++;
 }
