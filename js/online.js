@@ -271,11 +271,12 @@ function renderGame(data) {
             row.className = 'participant-item';
             const dot = document.createElement('span');
             dot.className = 'participant-color';
-            dot.style.backgroundColor = player.color;
+            dot.style.backgroundColor = player.color === 'random' ? '#778196' : player.color;
             const name = document.createElement('span');
             name.textContent = player.display_name;
             const type = document.createElement('small');
-            type.textContent = Number(player.id) === Number(data.current_participant_id) ? 'TY' : 'HRÁČ';
+            const ownerLabel = Number(player.id) === Number(data.current_participant_id) ? 'TY' : 'HRÁČ';
+            type.textContent = player.color === 'random' ? ownerLabel + ' · NÁHODNÁ' : ownerLabel;
             row.append(dot, name, type);
             list.appendChild(row);
         });
@@ -296,6 +297,12 @@ function renderGame(data) {
             .map(player => player.color));
         if (document.activeElement !== colorSelect) {
             colorSelect.replaceChildren();
+            const randomOption = document.createElement('option');
+            randomOption.value = 'random';
+            randomOption.textContent = 'Náhodná';
+            randomOption.selected = ownParticipant.color === 'random';
+            colorSelect.appendChild(randomOption);
+
             ["#E53935","#1E88E5","#43A047","#F9A825","#FB8C00","#8E24AA","#00ACC1","#D81B60"].forEach((color, index) => {
                 const option = document.createElement('option');
                 option.value = color;
@@ -518,16 +525,10 @@ export async function initOnline() {
     $('random-room-color-btn')?.addEventListener('click', async () => {
         const select = $('room-player-color');
         if (!currentGameId || !select) return;
-        const available = Array.from(select.options).filter(option => !option.disabled);
-        if (!available.length) {
-            notify('Pro tebe už nezbývá volná barva.');
-            return;
-        }
-        const choice = available[Math.floor(Math.random() * available.length)];
         try {
             await api('set_color', {
                 game_id: String(currentGameId),
-                color: choice.value
+                color: 'random'
             });
             await refreshGame();
         } catch (error) {
