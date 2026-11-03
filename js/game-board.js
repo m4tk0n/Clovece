@@ -76,7 +76,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
         pos = point(playerAngle(player, game.players.length, game.trackLength), HOME_RADII[Math.min(3, laneIndex)]);
     }
 
-    const spread = (stackIndex - (stackCount - 1) / 2) * 9;
+    const spread = piece.steps === maxSteps ? 0 : (stackIndex - (stackCount - 1) / 2) * 9;
     const angle = playerAngle(player, game.players.length, game.trackLength) + 90;
     const radians = angle * Math.PI / 180;
     let x = pos.x + Math.cos(radians) * spread;
