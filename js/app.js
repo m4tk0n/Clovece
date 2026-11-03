@@ -91,7 +91,6 @@ function updateSetup() {
     const total = humanCount + aiCount;
     $('human-players-value').textContent = humanCount;
     $('ai-players-value').textContent = aiCount;
-    $('setup-total').textContent = total + ' ' + (total === 1 ? 'hráč' : total < 5 ? 'hráči' : 'hráčů');
 
     const availableBoardSizes = getAvailableBoardSizes(total);
     if (!availableBoardSizes.includes(selectedBoardSize)) {
