@@ -821,9 +821,24 @@
 
 /* Board corner HUD: turn count, active player and compact colored progress. */
 #game-screen .premium-board-shell { position:relative; }
-#game-screen .board-corner-info {
+#game-screen .board-player-stats {
     position:absolute;
     left:12px;
+    bottom:12px;
+    z-index:3;
+    width:min(112px,22%);
+    box-sizing:border-box;
+    padding:7px 9px;
+    border:1px solid rgba(198,169,107,.32);
+    border-radius:10px;
+    background:rgba(7,15,13,.78);
+    box-shadow:0 5px 18px rgba(0,0,0,.28);
+    backdrop-filter:blur(5px);
+    pointer-events:none;
+}
+#game-screen .board-corner-info {
+    position:absolute;
+    right:12px;
     bottom:12px;
     z-index:3;
     width:min(176px,30%);
@@ -867,25 +882,17 @@
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:4px 9px;
-    margin-top:7px;
+    margin:0;
 }
 #game-screen .board-player-stat {
     display:flex;
     align-items:center;
-    gap:5px;
+    justify-content:center;
     min-width:0;
-    color:#f3eddf;
-    font:700 10px/1.2 "Bangers",Impact,sans-serif;
+    color:var(--player-color);
+    font:700 12px/1.2 "Bangers",Impact,sans-serif;
 }
-#game-screen .board-player-dot {
-    flex:0 0 8px;
-    width:8px;
-    height:8px;
-    border-radius:50%;
-    background:var(--player-color);
-    box-shadow:0 0 6px color-mix(in srgb,var(--player-color),transparent 35%);
-}
-#game-screen .board-player-stat strong { color:var(--player-color); font-size:12px; }
+#game-screen .board-player-stat strong { color:var(--player-color); font-size:13px; }
 
 /* Bottom chat panel replaces the old full-width player cards. */
 #game-screen .game-footer {
@@ -948,10 +955,17 @@
     padding:4px 10px;
 }
 @media(max-width:600px) {
-    #game-screen .board-corner-info {
+    #game-screen .board-player-stats {
         left:5px;
         bottom:5px;
-        width:min(142px,31%);
+        width:min(82px,22%);
+        padding:5px 6px;
+        border-radius:7px;
+    }
+    #game-screen .board-corner-info {
+        right:5px;
+        bottom:5px;
+        width:min(142px,34%);
         padding:5px 6px;
         border-radius:7px;
     }
@@ -960,8 +974,7 @@
     #game-screen .board-turn-count strong { font-size:14px; }
     #game-screen .board-current-player strong { font-size:8px; }
     #game-screen .players-panel { gap:3px 6px; margin-top:5px; }
-    #game-screen .board-player-stat { gap:3px; font-size:9px; }
-    #game-screen .board-player-dot { flex-basis:6px; width:6px; height:6px; }
+    #game-screen .board-player-stat { font-size:10px; }
     #game-screen .board-player-stat strong { font-size:10px; }
     #game-screen .game-chat { min-height:66px; max-height:94px; padding:5px 7px; }
     #game-screen .game-chat .chat-messages { max-height:30px; font-size:9px; }
@@ -970,5 +983,6 @@
     #game-screen .game-chat { min-height:58px; max-height:76px; padding:4px 7px; }
     #game-screen .game-chat h4 { margin-bottom:2px; }
     #game-screen .game-chat .chat-messages { max-height:20px; min-height:14px; }
-    #game-screen .board-corner-info { padding:4px 6px; }
+    #game-screen .board-corner-info,
+    #game-screen .board-player-stats { padding:4px 6px; }
 }
