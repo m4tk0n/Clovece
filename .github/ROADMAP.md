@@ -164,10 +164,12 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 - [x] Databázové schéma install/schema.sql je v repozitáři a uživatel potvrdil vytvoření tabulek v MySQL 8.0.46.
 - [x] Přidán samostatný endpoint online-api.php; původní api.php zůstává nedotčený, protože používá starý registrační datový model.
 - [x] Základ endpointu: anonymní identita zařízení, HttpOnly cookie s náhodným tokenem (v DB pouze SHA-256 hash), CSRF ochrana, změna jména, založení čekající hry, pozvánka, připojení přes pozvánku, načtení hry, chat s limitem 30 zpráv a opuštění hry.
+- [x] Přidán serverový PHP engine odpovídající JavaScriptovým pravidlům; kostku hází server a tahy ověřuje v transakci se zámkem hry, očekávanou verzí stavu a jedinečným ID požadavku.
+- [x] Frontend umí místnost spustit, vykreslit online stav, posílat hody/tahy/přeskočení tahu, synchronizovat pollingem a zobrazit chat společně s posledními herními událostmi.
 - [x] Do GitHub Actions přidána kontrola syntaxe PHP 8.3.
 - [x] PHP lint 8.3 a dosavadní JS syntaktické kontroly i testy herního enginu prošly v GitHub Actions.
 - [x] Napojit frontend na bootstrap identity a online lobby; přidat vytvoření místnosti, pozvánkový odkaz, připojení a chat.
-- [ ] Doplnit serverovou implementaci herních pravidel a bezpečné tahy; do té doby endpoint záměrně nepřijímá herní tahy a nová hra zůstává ve stavu waiting.
-- [ ] Ověřit API na skutečném WZ hostingu a dvou zařízeních; samotné API zatím nebylo voláno proti produkční databázi z automatického testu.
+- [ ] Doplnit nabídku pokračování/ukončení rozehrané hry po návratu na web a bezpečný přenos identity na jiné zařízení.
+- [ ] Ověřit API na skutečném WZ hostingu a dvou zařízeních; automatické testy ověřují PHP/JS syntaxi a pravidla enginu, nikoli připojení k produkční databázi.
 
-Důležité: přidání online-api.php samo o sobě ještě nezapíná online režim v rozhraní. Lokální hra zůstává beze změny.
+Důležité: online místnosti a serverově ověřované tahy jsou napojené na rozhraní. Lokální hra zůstává beze změny. Před potvrzením funkčnosti je nutný test na skutečném hostingu ve dvou zařízeních.
