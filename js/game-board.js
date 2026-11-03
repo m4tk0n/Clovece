@@ -47,8 +47,6 @@ function baseMarkup(game, player, validMoves) {
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
-    markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="' + color + '" fill-opacity=".13" stroke="' + color + '" stroke-opacity=".7" stroke-width="2"/>';
-    markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="' + color + '" stroke-opacity=".3" stroke-dasharray="3 7"/>';
     const labelAngle = (angle + 90) * Math.PI / 180;
     markup += svgText(center.x + Math.cos(labelAngle) * 55, center.y + Math.sin(labelAngle) * 55, player.name, 10, '#f4f0e8');
 
@@ -161,10 +159,7 @@ export function renderBoard(container, game) {
         if (player) return baseMarkup(game, player, validMoves);
         const angle = (total <= 4 ? -135 : -90) + slot * 360 / slotCount;
         const center = point(angle, BASE_RADIUS);
-        return '<g class="base-zone base-zone-empty">' +
-            '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="#c6a96b" fill-opacity=".035" stroke="#c6a96b" stroke-opacity=".32" stroke-width="2"/>' +
-            '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="#c6a96b" stroke-opacity=".2" stroke-dasharray="3 7"/>' +
-            '</g>';
+        return '<g class="base-zone base-zone-empty"></g>';
     }).join('');
     const boardPieces = game.players.map(player => {
         const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 4);
