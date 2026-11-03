@@ -1,0 +1,142 @@
+# Roadmapa – Člověče, nezlob se!
+
+Průběžný plán vývoje online multiplayeru a souvisejících funkcí.
+
+## Pravidla práce
+
+- Pracujeme přímo ve větvi `main`.
+- Před každou změnou načteme aktuální verzi dotčených souborů z GitHubu.
+- Jeden update znamená jednu malou, samostatnou a ověřitelnou změnu.
+- Každý update má vlastní commit. Push do `main` automaticky spustí testy a FTP nasazení na WZ.cz.
+- Po každém updatu ověříme výsledek; další změnu nezačneme, dokud nebude předchozí zkontrolovaná.
+- Zachováváme funkční lokální hru. Žádné hromadné přepisování.
+- Dokumentace je v `.github/`, kterou FTP workflow vylučuje z nasazení na web.
+
+## Aktuální výchozí stav
+
+- [x] Prohlédnuta struktura projektu a hlavní herní moduly.
+- [x] Ověřeno, že současná hra je lokální (více hráčů se střídá na jednom zařízení).
+- [x] Ověřeno, že herní pravidla jsou oddělena v `js/game-engine.js` a mají automatické testy.
+- [x] Ověřeno, že existuje starší `api.php` a databázový instalátor `install/install.php`.
+- [x] Ověřeno, že push do `main` spouští FTP deploy do `/clovece/` a testy.
+- [x] Zjištěny zásadní nesoulady staršího API a databázového návrhu s požadovaným anonymním multiplayerem.
+- [ ] Ověřit skutečné možnosti a verze PHP/MySQL na WZ.cz a oprávnění databázového uživatele.
+- [ ] Dokončit návrh nové databázové struktury a bezpečných migrací.
+
+### Zjištění z první kontroly
+
+1. Současný frontend hraje lokálně a stav hry se zatím neukládá na server.
+2. Starší API vyžaduje při vytvoření místnosti přihlášeného uživatele, což odporuje záměru začít bez registrace.
+3. Tabulky `game_rooms` a `room_participants` mají povinné vazby na registrované hráče; anonymní zakladatel a účastník proto nejsou v současném schématu správně podporováni.
+4. Instalátor vytváří tabulky s prefixem z `.env`, ale starší API používá v SQL dotazech názvy tabulek bez tohoto prefixu. Je nutné sjednotit přístup k tabulkám.
+5. Tabulka `game_settings` má povinný `setting_key`, zatímco starší API se ji pokouší inicializovat pouze pomocí `room_id`. Tento nesoulad je potřeba opravit v rámci samostatného updatu.
+6. Starší API ukládá tahy a figurky v jiném datovém modelu, než používá současný JavaScript engine. Před napojením je nutné navrhnout jednoznačný formát serializovaného stavu hry.
+7. Pro synchronizaci budeme počítat s variantou kompatibilní se sdíleným PHP hostingem (pravděpodobně pravidelné dotazování API). WebSockety nebudeme předpokládat, dokud se nepotvrdí jejich podpora na WZ.cz.
+
+Tyto body jsou výsledkem čtení repozitáře; databáze na produkčním hostingu nebyla měněna ani testována.
+
+---
+
+## Fáze 0 – Příprava a ověření hostingu
+
+- [x] Prohlédnout současný frontend, herní engine, API, instalátor a workflow.
+- [x] Sepsat zjištěné nesoulady a rizika.
+- [ ] Ověřit PHP verzi a dostupnost PDO MySQL na WZ.cz.
+- [ ] Ověřit MySQL/MariaDB verzi a oprávnění databázového uživatele.
+- [ ] Ověřit, zda hosting umožňuje pravidelné úlohy (cron); úklid musí mít i variantu bez cronu.
+- [ ] Rozhodnout způsob synchronizace mezi zařízeními podle možností hostingu.
+- [ ] Navrhnout databázové změny tak, aby šly bezpečně spustit nad existující databází bez mazání současných dat.
+
+**Výstup fáze:** potvrzené technické limity hostingu a konkrétní návrh databáze/API. Zatím bez zásahu do herního rozhraní.
+
+## Fáze 1 – Databázový základ
+
+- [ ] Navrhnout tabulku her a její stavy.
+- [ ] Navrhnout anonymní identitu hráče a identitu jednotlivých zařízení.
+- [ ] Navrhnout účast hráčů v konkrétní hře bez povinného účtu.
+- [ ] Navrhnout bezpečné pozvánkové tokeny pro připojení přes odkaz.
+- [ ] Ukládat kompletní aktuální stav hry tak, aby šel obnovit po zavření prohlížeče.
+- [ ] Navrhnout ukládání tahů a herních událostí.
+- [ ] Navrhnout chat; po každé zprávě uložit záznam a ponechat maximálně 30 posledních položek na hru.
+- [ ] Přidat indexy a vazby pro bezpečné mazání souvisejících dat.
+- [ ] Připravit verzované, opakovatelné databázové migrace.
+- [ ] Otestovat migraci na testovacích datech; nemažou se existující tabulky ani data.
+
+## Fáze 2 – Anonymní hráč a obnova hry
+
+- [ ] Vytvořit anonymní identifikátor hráče bez registrace.
+- [ ] Bezpečně propojit identitu s prohlížečem/zařízením.
+- [ ] Umožnit najít rozehranou hru po návratu na stránku.
+- [ ] Nabídnout pokračování, založení nové hry nebo ukončení stávající.
+- [ ] Umožnit návrat na jiném zařízení přes pozvánkový odkaz.
+- [ ] Ošetřit ztrátu cookie nebo lokálních dat a vysvětlit hráči možnosti obnovy.
+
+## Fáze 3 – Multiplayer mezi zařízeními
+
+- [ ] Vytvořit online místnost bez nutnosti registrace.
+- [ ] Vygenerovat bezpečný odkaz pro pozvání dalších hráčů.
+- [ ] Umožnit připojení a opětovné připojení ke hře.
+- [ ] Synchronizovat herní stav mezi zařízeními.
+- [ ] Ověřovat každý tah na serveru; klient nesmí být autoritou nad výsledkem.
+- [ ] Zabránit dvojitému tahu a souběžným konfliktům.
+- [ ] Synchronizovat chat a herní události.
+- [ ] Ošetřit odpojení hráče, obnovení spojení a čekání na jeho tah.
+- [ ] Otestovat hru na několika skutečných zařízeních.
+
+## Fáze 4 – Životní cyklus a úklid databáze
+
+- [ ] Ukládat čas poslední skutečné aktivity hry.
+- [ ] Rozlišovat čekající, probíhající, pozastavené, dokončené a opuštěné hry.
+- [ ] Neoznačovat hru za mrtvou podle počtu hodů kostkou.
+- [ ] Nechat dlouho neaktivní hru obnovitelnou po rozumnou dobu.
+- [ ] Nastavit pravidla automatického mazání podle stáří a stavu hry.
+- [ ] Při mazání hry odstranit její chat, tahy, účastníky a další závislá data.
+- [ ] Zajistit úklid i v případě, že hosting nepodporuje cron (např. bezpečně dávkovaný úklid při běžném API požadavku).
+
+**Pracovní návrh retenčních lhůt:** neaktivní hry po 30 dnech, dokončené hry po 7 dnech. Před implementací ještě potvrdíme, zda tyto lhůty vyhovují.
+
+## Fáze 5 – Uživatelské rozhraní a nastavení
+
+- [ ] Nabídka pokračování existující hry.
+- [ ] Vytvoření nové online hry.
+- [ ] Připojení přes pozvánkový odkaz.
+- [ ] Zobrazení hráčů a jejich připojení.
+- [ ] Možnost opustit hru bez ukončení celé hry.
+- [ ] Nastavení hry a individuálních preferencí hráče.
+- [ ] Jasné zobrazení čekání na tah soupeře a stavu spojení.
+
+## Fáze 6 – Testování a zabezpečení
+
+- [ ] Testy ukládání a obnovy kompletního stavu hry.
+- [ ] Testy přístupových tokenů a oprávnění účastníků.
+- [ ] Testy neplatných, opakovaných a souběžných tahů.
+- [ ] Testy více zařízení a různých prohlížečů.
+- [ ] Testy výpadku internetu a opětovného připojení.
+- [ ] Testy limitu 30 zpráv.
+- [ ] Testy automatického mazání a cizích vazeb v databázi.
+- [ ] Ověřit, že lokální režim hry zůstává funkční.
+
+## Fáze 7 – Pozdější rozšíření
+
+- [ ] Web Push oznámení při tahu (nejprve hráči, který je na tahu).
+- [ ] Volba oznámení pouze mně / všem / vypnuto.
+- [ ] Oznámení o konci hry a dalších důležitých událostech.
+- [ ] Volitelné uživatelské účty a propojení anonymního hráče s účtem.
+- [ ] Statistiky a dlouhodobá historie hráčů.
+
+Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po stabilním multiplayeru.
+
+---
+
+## Pracovní pořadí nejbližších updateů
+
+1. **Update 1 – Ověření hostingu a databázových předpokladů.** Bez změny herního kódu a bez zásahu do produkční databáze.
+2. Update 2 – Návrh cílového datového modelu a migračního postupu.
+3. Update 3 – První samostatná, bezpečná databázová migrace.
+4. Další updaty budou následovat až po ověření předchozího kroku.
+
+## Záznam provedených updateů
+
+| Update | Změna | Stav |
+|---|---|---|
+| 0 | Kontrola současného projektu a sepsání roadmapy | Hotovo |
