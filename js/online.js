@@ -82,7 +82,15 @@ function renderChat(messages, participants) {
         Number(player.id),
         player.display_name
     ]));
+    const renderKey = JSON.stringify({
+        messages,
+        names: [...names.entries()]
+    });
+    if (container.dataset.renderKey === renderKey) return;
 
+    const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 24;
+    const previousScrollTop = container.scrollTop;
+    container.dataset.renderKey = renderKey;
     container.replaceChildren();
     messages.forEach(message => {
         const line = document.createElement('div');
@@ -97,7 +105,11 @@ function renderChat(messages, participants) {
         line.append(sender, body);
         container.appendChild(line);
     });
-    container.scrollTop = container.scrollHeight;
+    if (wasAtBottom) {
+        container.scrollTop = container.scrollHeight;
+    } else {
+        container.scrollTop = previousScrollTop;
+    }
 }
 
 function renderGameChat(messages, participants, moves = []) {
@@ -111,6 +123,15 @@ function renderGameChat(messages, participants, moves = []) {
     ];
 
     entries.sort((a, b) => a.timestamp - b.timestamp || Number(a.id) - Number(b.id));
+    const renderKey = JSON.stringify({
+        entries,
+        names: [...names.entries()]
+    });
+    if (container.dataset.renderKey === renderKey) return;
+
+    const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 24;
+    const previousScrollTop = container.scrollTop;
+    container.dataset.renderKey = renderKey;
     container.replaceChildren();
 
     entries.forEach(item => {
@@ -159,7 +180,11 @@ function renderGameChat(messages, participants, moves = []) {
         line.append(sender, body);
         container.appendChild(line);
     });
-    container.scrollTop = container.scrollHeight;
+    if (wasAtBottom) {
+        container.scrollTop = container.scrollHeight;
+    } else {
+        container.scrollTop = previousScrollTop;
+    }
 }
 
 function renderOnlineGame(data) {
@@ -265,8 +290,16 @@ function renderGame(data) {
 
     const list = $('participant-list');
     if (list) {
-        list.replaceChildren();
-        participants.forEach(player => {
+        const participantKey = JSON.stringify(participants.map(player => ({
+            id: player.id,
+            display_name: player.display_name,
+            color: player.color,
+            player_type: player.player_type
+        })));
+        if (list.dataset.renderKey !== participantKey) {
+            list.dataset.renderKey = participantKey;
+            list.replaceChildren();
+            participants.forEach(player => {
             const row = document.createElement('div');
             row.className = 'participant-item';
             const dot = document.createElement('span');
@@ -280,7 +313,8 @@ function renderGame(data) {
             type.textContent = player.color === 'random' && player.player_type !== 'ai' ? ownerLabel + ' · NÁHODNÁ' : ownerLabel;
             row.append(dot, name, type);
             list.appendChild(row);
-        });
+            });
+        }
     }
 
     const ownParticipant = participants.find(player =>
@@ -296,7 +330,12 @@ function renderGame(data) {
         const usedByOthers = new Set(participants
             .filter(player => Number(player.id) !== Number(data.current_participant_id))
             .map(player => player.color));
-        if (document.activeElement !== colorSelect) {
+        const colorKey = JSON.stringify({
+            ownColor: ownParticipant.color,
+            usedByOthers: [...usedByOthers].sort()
+        });
+        if (document.activeElement !== colorSelect && colorSelect.dataset.renderKey !== colorKey) {
+            colorSelect.dataset.renderKey = colorKey;
             colorSelect.replaceChildren();
             const randomOption = document.createElement('option');
             randomOption.value = 'random';
