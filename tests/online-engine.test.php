@@ -59,7 +59,7 @@ $spawnCapture = onlineEngineCreateState(testParticipants(2));
 $spawnCapture['phase'] = 'move';
 $spawnCapture['diceValue'] = 6;
 $spawnCapture['pieces'][1]['pieces'][0]['steps'] = 26; // Soupeř stojí na startovním poli hráče 1.
-checkSame([0], onlineEngineValidMoves($spawnCapture), 'Nasazení na vlastní startovní pole musí být povoleno i při obsazení soupeřem.');
+checkSame([0, 1, 2, 3], onlineEngineValidMoves($spawnCapture), 'Nasazení na vlastní startovní pole musí být povoleno i při obsazení soupeřem.');
 $spawnMove = onlineEngineMovePiece($spawnCapture, 0);
 checkSame(1, $spawnMove['captured']['playerId'], 'Nasazením na vlastní startovní pole se musí vyhodit soupeř.');
 checkSame(-1, $spawnCapture['pieces'][1]['pieces'][0]['steps'], 'Vyhozená figurka ze startovního pole se musí vrátit domů.');
