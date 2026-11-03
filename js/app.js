@@ -451,6 +451,24 @@ export function initGame() {
         syncAudioControls();
     });
     syncAudioControls();
+
+    // Kliknutím na výpis jej rozbalíme; kliknutí mimo něj jej opět sbalí.
+    const chat = document.querySelector('#game-screen .game-chat');
+    const chatMessages = $('chat-messages');
+    if (chat && chatMessages) {
+        chat.classList.remove('is-expanded');
+        chatMessages.setAttribute('aria-expanded', 'false');
+        document.addEventListener('click', event => {
+            if (chatMessages.contains(event.target)) {
+                const expanded = chat.classList.toggle('is-expanded');
+                chatMessages.setAttribute('aria-expanded', String(expanded));
+            } else if (chat.classList.contains('is-expanded')) {
+                chat.classList.remove('is-expanded');
+                chatMessages.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
     $('game-container')?.addEventListener('click', onBoardClick);
     $('chat-form')?.addEventListener('submit', event => {
         event.preventDefault();
