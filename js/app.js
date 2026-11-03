@@ -12,7 +12,7 @@ import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
 
 let game = null;
 let humanCount = 1;
-let aiCount = 3;
+let aiCount = 1;
 let aiTimer = null;
 let modalOpen = false;
 let settings = { aiSpeed: 'medium', animations: true };
