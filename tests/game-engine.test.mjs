@@ -8,7 +8,8 @@ import {
     getForcedMove,
     movePiece,
     getPiecePosition,
-    getHomeLaneIndex
+    getHomeLaneIndex,
+    getAvailableBoardSizes
 } from '../js/game-engine.js';
 
 test('two to four players use the classic 52-space track and four corner starts', () => {
@@ -40,6 +41,38 @@ test('five to eight players receive unique starts on the extended track', () => 
     assert.deepEqual(game.players.map(player => player.start), [0, 8, 16, 24, 32, 40, 48, 56]);
     assert.equal(new Set(game.players.map(player => player.start)).size, 8);
     assert.ok(game.pieces.every(group => group.pieces.length === 4));
+});
+
+test('new board sizes use fixed slot geometry and preserve empty positions', () => {
+    assert.deepEqual(getAvailableBoardSizes(2), [40, 48, 80]);
+    assert.deepEqual(getAvailableBoardSizes(4), [40, 48, 80]);
+    assert.deepEqual(getAvailableBoardSizes(5), [48, 80]);
+    assert.deepEqual(getAvailableBoardSizes(6), [48, 80]);
+    assert.deepEqual(getAvailableBoardSizes(7), [80]);
+    assert.deepEqual(getAvailableBoardSizes(8), [80]);
+
+    const board40 = createGame(2, 0, [], [], 40);
+    assert.equal(board40.trackLength, 40);
+    assert.equal(board40.slotCount, 4);
+    assert.deepEqual(board40.players.map(player => player.slot), [0, 2]);
+    assert.deepEqual(board40.players.map(player => player.start), [0, 20]);
+
+    const board48 = createGame(5, 0, [], [], 48);
+    assert.equal(board48.trackLength, 48);
+    assert.equal(board48.slotCount, 6);
+    assert.deepEqual(board48.players.map(player => player.slot), [0, 1, 2, 4, 5]);
+    assert.deepEqual(board48.players.map(player => player.start), [0, 8, 16, 32, 40]);
+
+    const board80 = createGame(7, 0, [], [], 80);
+    assert.equal(board80.trackLength, 80);
+    assert.equal(board80.slotCount, 8);
+    assert.deepEqual(board80.players.map(player => player.slot), [0, 1, 2, 3, 5, 6, 7]);
+    assert.deepEqual(board80.players.map(player => player.start), [0, 10, 20, 30, 50, 60, 70]);
+});
+
+test('new board sizes reject unsupported player counts', () => {
+    assert.throws(() => createGame(5, 0, [], [], 40), /není pro tento počet hráčů dostupná/);
+    assert.throws(() => createGame(2, 0, [], [], 99), /není pro tento počet hráčů dostupná/);
 });
 
 test('players can receive individually selected unique colors from the shared palette', () => {
