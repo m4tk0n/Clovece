@@ -61,7 +61,7 @@
                         <i class="fas fa-plus"></i>
                     </button>
                     <button id="join-room-btn" class="menu-btn">
-                        <span>ONLINE HRANÍ – PŘIPRAVUJEME</span>
+                        <span>ONLINE HRANÍ</span>
                         <i class="fas fa-door-open"></i>
                     </button>
                     <button id="settings-btn" class="menu-btn">
@@ -181,13 +181,23 @@
                 <h2 class="glitch" data-text="LOBBY">LOBBY</h2>
                 
                 <div class="lobby-actions">
+                    <label for="online-player-limit">Počet hráčů v místnosti</label>
+                    <select id="online-player-limit" class="color-select">
+                        <option value="2">2 hráči</option>
+                        <option value="3">3 hráči</option>
+                        <option value="4" selected>4 hráči</option>
+                        <option value="5">5 hráčů</option>
+                        <option value="6">6 hráčů</option>
+                        <option value="7">7 hráčů</option>
+                        <option value="8">8 hráčů</option>
+                    </select>
                     <button id="create-room-btn-lobby" class="menu-btn pulse">
                         <span>VYTVOŘIT NOVOU MÍSTNOST</span>
                         <i class="fas fa-plus"></i>
                     </button>
                     
                     <div class="join-room-form">
-                        <input type="text" id="room-code-input" placeholder="Kód místnosti" maxlength="10">
+                        <input type="text" id="room-code-input" placeholder="Vlož pozvánkový odkaz" maxlength="300">
                         <button id="join-room-btn-lobby" class="menu-btn">
                             <span>PŘIPOJIT SE</span>
                             <i class="fas fa-door-open"></i>
@@ -214,8 +224,13 @@
                 
                 <div id="room-info" class="room-info">
                     <div class="room-code-display">
-                        Kód místnosti: <span id="room-code-display" class="highlight"></span>
+                        Pozvánka: <span id="room-code-display" class="highlight"></span>
                     </div>
+                    <input id="room-invite-url" type="url" readonly aria-label="Pozvánkový odkaz">
+                    <button id="copy-invite-btn" type="button" class="menu-btn secondary">
+                        <span>ZKOPÍROVAT POZVÁNKU</span>
+                        <i class="fas fa-copy"></i>
+                    </button>
                     <div class="room-status">
                         Status: <span id="room-status-display">Čeká</span>
                     </div>
@@ -245,7 +260,7 @@
                     <h4>Chat</h4>
                     <div id="room-chat-messages" class="chat-messages"></div>
                     <form id="room-chat-form" class="chat-form">
-                        <input type="text" id="room-chat-input" placeholder="Napište zprávu..." maxlength="240" autocomplete="off">
+                        <input type="text" id="room-chat-input" placeholder="Napište zprávu..." maxlength="1000" autocomplete="off">
                         <button type="submit" class="menu-btn small">
                             <i class="fas fa-paper-plane"></i>
                         </button>
