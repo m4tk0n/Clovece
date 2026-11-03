@@ -158,3 +158,16 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
 | 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
+
+## Aktuální stav implementace (2026-11-03)
+
+- [x] Databázové schéma install/schema.sql je v repozitáři a uživatel potvrdil vytvoření tabulek v MySQL 8.0.46.
+- [x] Přidán samostatný endpoint online-api.php; původní api.php zůstává nedotčený, protože používá starý registrační datový model.
+- [x] Základ endpointu: anonymní identita zařízení, HttpOnly cookie s náhodným tokenem (v DB pouze SHA-256 hash), CSRF ochrana, změna jména, založení čekající hry, pozvánka, připojení přes pozvánku, načtení hry, chat s limitem 30 zpráv a opuštění hry.
+- [x] Do GitHub Actions přidána kontrola syntaxe PHP 8.3.
+- [ ] Ověřit výsledek prvního běhu PHP lint a dosavadních JS testů.
+- [ ] Napojit frontend na bootstrap identity a online lobby.
+- [ ] Doplnit serverovou implementaci herních pravidel a bezpečné tahy; do té doby endpoint záměrně nepřijímá herní tahy a nová hra zůstává ve stavu waiting.
+- [ ] Ověřit API na skutečném WZ hostingu a dvou zařízeních.
+
+Důležité: přidání online-api.php samo o sobě ještě nezapíná online režim v rozhraní. Lokální hra zůstává beze změny.
