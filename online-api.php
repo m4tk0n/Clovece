@@ -206,6 +206,87 @@ try {
     $db = onlineDb();
 
     switch ($action) {
+        case 'list_my_games': {
+            $stmt = $db->prepare(
+                'SELECT g.id, g.public_id, g.status, g.player_limit, g.last_activity_at,
+                        (SELECT COUNT(*) FROM ' . onlineTable('game_participants') . ' active
+                         WHERE active.game_id = g.id AND active.left_at IS NULL) AS participant_count
+                 FROM ' . onlineTable('online_games') . ' g
+                 JOIN ' . onlineTable('game_participants') . ' mine ON mine.game_id = g.id
+                 WHERE mine.identity_id = ? AND g.status IN (\'waiting\', \'active\', \'finished\')
+                 ORDER BY g.last_activity_at DESC, g.id DESC'
+            );
+            $stmt->execute([$identityId]);
+            $games = $stmt->fetchAll();
+            foreach ($games as &$game) {
+                $game['id'] = (int) $game['id'];
+                $game['player_limit'] = (int) $game['player_limit'];
+                $game['participant_count'] = (int) $game['participant_count'];
+            }
+            unset($game);
+            onlineRespond(['success' => true, 'games' => $games]);
+        }
+
+        case 'resume_game': {
+            $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
+            if (!$gameId || $gameId < 1) {
+                onlineFail('Chybí identifikátor hry.');
+            }
+
+            $inviteUrl = '';
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT g.id, g.status, g.player_limit, g.created_by_identity_id, p.id AS participant_id
+                     FROM ' . onlineTable('online_games') . ' g
+                     JOIN ' . onlineTable('game_participants') . ' p ON p.game_id = g.id
+                     WHERE g.id = ? AND p.identity_id = ? LIMIT 1 FOR UPDATE'
+                );
+                $stmt->execute([$gameId, $identityId]);
+                $game = $stmt->fetch();
+                if (!$game || !in_array($game['status'], ['waiting', 'active'], true)) {
+                    onlineFail('Tuto hru už nelze obnovit.', 404);
+                }
+
+                $db->prepare(
+                    'UPDATE ' . onlineTable('game_participants') . '
+                     SET left_at = NULL, last_seen_at = NOW() WHERE id = ?'
+                )->execute([$game['participant_id']]);
+
+                // Pozvánkový token nelze z databáze obnovit (ukládá se pouze hash).
+                // Tvůrci čekající místnosti proto vystavíme nový odkaz.
+                if ($game['status'] === 'waiting'
+                    && (int) $game['created_by_identity_id'] === $identityId) {
+                    $inviteToken = onlineRandomToken(32);
+                    $db->prepare(
+                        'UPDATE ' . onlineTable('game_invites') . '
+                         SET revoked_at = NOW() WHERE game_id = ? AND revoked_at IS NULL'
+                    )->execute([$gameId]);
+                    $db->prepare(
+                        'INSERT INTO ' . onlineTable('game_invites') . '
+                         (game_id, created_by_identity_id, token_hash, uses_limit, expires_at)
+                         VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))'
+                    )->execute([
+                        $gameId,
+                        $identityId,
+                        hash('sha256', $inviteToken),
+                        (int) $game['player_limit'] - 1,
+                    ]);
+                    $inviteUrl = rtrim(onlineDeviceCookiePath(), '/') . '/?invite=' . rawurlencode($inviteToken);
+                }
+
+                $db->prepare(
+                    'UPDATE ' . onlineTable('online_games') . ' SET last_activity_at = NOW() WHERE id = ?'
+                )->execute([$gameId]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+
+            onlineRespond(['success' => true, 'game_id' => (int) $gameId, 'invite_url' => $inviteUrl]);
+        }
+
         case 'set_name': {
             $name = onlineCleanName($_POST['display_name'] ?? '');
             $db->prepare('UPDATE ' . onlineTable('player_identities') . ' SET display_name = ?, last_seen_at = NOW() WHERE id = ?')
