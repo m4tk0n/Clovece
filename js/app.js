@@ -511,6 +511,9 @@ export function initGame() {
         showScreen('main-menu');
     });
 
+    // Online navigace je navázaná v hlavním inicializátoru, nezávisle na API bootstrapu.
+    $('join-room-btn')?.addEventListener('click', () => showScreen('lobby'));
+
     $('play-btn')?.addEventListener('click', () => {
         showScreen('player-selection');
         updateSetup();
