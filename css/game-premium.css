@@ -1109,8 +1109,7 @@
 }
 
 
-/* Chat se při delším logu zvětší směrem nahoru; vstup zůstává dole.
-   Výška výpisu odpovídá přibližně dvaceti řádkům. */
+/* Výpis chatu se kliknutím rozbalí nahoru; kliknutí mimo něj jej sbalí. */
 #game-screen .game-footer {
     position: relative;
     z-index: 99;
@@ -1122,14 +1121,22 @@
     max-height: none;
 }
 #game-screen .game-chat .chat-messages {
-    flex: 0 0 270px;
+    flex: 0 0 42px;
+    height: 42px;
+    min-height: 42px;
+    max-height: 42px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    cursor: pointer;
+}
+#game-screen .game-chat.is-expanded .chat-messages {
+    flex-basis: 270px;
     height: 270px;
     min-height: 270px;
     max-height: 270px;
-    overflow-y: auto;
 }
 @media (max-width: 600px) {
-    #game-screen .game-chat .chat-messages {
+    #game-screen .game-chat.is-expanded .chat-messages {
         flex-basis: 243px;
         height: 243px;
         min-height: 243px;
