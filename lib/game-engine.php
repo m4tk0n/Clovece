@@ -256,13 +256,16 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     $finishedNow = $nextSteps === $maxSteps;
     // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     $playerFinished = true;
+    $homeSteps = [];
     foreach ($game['pieces'][$playerId]['pieces'] as $item) {
         $itemSteps = (int) $item['steps'];
         if ($itemSteps <= (int) $game['trackLength'] || $itemSteps > $maxSteps) {
             $playerFinished = false;
             break;
         }
+        $homeSteps[] = $itemSteps;
     }
+    $playerFinished = $playerFinished && count(array_unique($homeSteps)) === 4;
 
     if ($playerFinished) {
         $game['players'][$playerId]['finished'] = true;
