@@ -156,7 +156,7 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 ### Alternativní vzhled hrací plochy
 
 - [x] Na stávající kruhové desce umístit startovní pole na vizuální pozici 0 + 1. Posun se týká pouze vykreslení; logické indexy, pravidla a pohyb figurek zůstávají beze změny. Čeká na vizuální ověření na webu.
-- [ ] Přidat volbu vzhledu hrací plochy: současná kulatá, klasická hranatá, prostorová 3D a bojová 3D varianta.
+- [x] Přidat do herní desky vizuální přepínač vzhledu; zatím je aktivní kulatá varianta a hranatá je označena jako připravovaná.
 - [ ] Oddělit vykreslování jednotlivých vzhledů od herní logiky; pravidla, pozice a synchronizace zůstanou společné.
 - [ ] Umožnit každému hráči zvolit si vlastní vzhled i v multiplayeru, aniž by se měnil pohled ostatních hráčů.
 - [ ] Uložit preferovaný vzhled hráče pro další návštěvy.
