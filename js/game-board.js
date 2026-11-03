@@ -20,15 +20,15 @@ function point(angle, radius) {
 }
 
 function playerAngle(player, total, trackLength) {
-    const startAngle = total <= 4 ? -135 : -90;
-    return startAngle + player.start * 360 / trackLength;
+    // U kruhových desek začíná geometrie nahoře. Domečky tak leží
+    // rovnoměrně po vnějším obvodu: 4 pozice u desky 40, 6 u desky 48.
+    return -90 + player.start * 360 / trackLength;
 }
 
 function trackAngle(index, game) {
-    // Geometrie běžných polí zůstává pevná. Opačný posun startu se řeší
-    // samostatně pouze u startovních značek a figurek.
-    return (game.players.length <= 4 ? -135 : -90) +
-        index * 360 / game.trackLength;
+    // Startovní pole je vizuálně posunuté o jedno místo; základní orientace
+    // kruhové dráhy je nahoře a odpovídá rozmístění domečků po obvodu.
+    return -90 + index * 360 / game.trackLength;
 }
 
 function routeAngle(player, game) {
@@ -147,7 +147,7 @@ export function renderBoard(container, game) {
         const player = playersBySlot.get(slot);
         const angle = player
             ? playerAngle(player, total, game.trackLength)
-            : (total <= 4 ? -135 : -90) + slot * 360 / slotCount;
+            : -90 + slot * 360 / slotCount;
         const color = player?.color || '#c6a96b';
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
@@ -159,7 +159,7 @@ export function renderBoard(container, game) {
     const bases = Array.from({ length: slotCount }, (_, slot) => {
         const player = playersBySlot.get(slot);
         if (player) return baseMarkup(game, player, validMoves);
-        const angle = (total <= 4 ? -135 : -90) + slot * 360 / slotCount;
+        const angle = -90 + slot * 360 / slotCount;
         const center = point(angle, BASE_RADIUS);
         return '<g class="base-zone base-zone-empty">' +
             '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="#c6a96b" fill-opacity=".035" stroke="#c6a96b" stroke-opacity=".32" stroke-width="2"/>' +
