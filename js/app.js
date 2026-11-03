@@ -119,10 +119,6 @@ function updateTurnControls() {
 let diceCurrentX = 0;
 let diceCurrentY = 0;
 
-// Úhly poslední dokončené polohy kostky (bez počátečního náklonu).
-let diceCurrentX = 0;
-let diceCurrentY = 0;
-
 function animateDice(value) {
     const diceValue = Math.max(1, Math.min(6, Number(value) || 1));
     $('dice-value').textContent = diceValue;
