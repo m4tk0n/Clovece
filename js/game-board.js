@@ -162,7 +162,7 @@ export function renderBoard(container, game) {
     const active = game.players[game.currentPlayer];
     container.innerHTML =
         '<div class="premium-board-shell">' +
-            '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span><span class="board-mode">' + (total <= 4 ? 'KLASICKÁ ARÉNA · 4 BARVY' : 'OSMISMĚRNÁ ARÉNA · ' + total + ' HRÁČŮ') + '</span></div>' +
+            '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span><div class="board-appearance" role="group" aria-label="Vzhled hrací desky"><span class="board-appearance-label">DESKA</span><button class="board-appearance-option is-active" type="button" aria-pressed="true" disabled>KULATÁ</button><button class="board-appearance-option is-unavailable" type="button" aria-pressed="false" disabled title="Klasická hranatá deska bude doplněna později">HRANATÁ</button></div></div>' +
             '<svg class="premium-board" viewBox="0 0 720 720" role="img" aria-label="Hrací plán pro ' + total + ' hráčů">' +
                 '<defs>' +
                     '<radialGradient id="boardBg"><stop offset="0" stop-color="#34423f"/><stop offset=".68" stop-color="#182522"/><stop offset="1" stop-color="#0c1413"/></radialGradient>' +
