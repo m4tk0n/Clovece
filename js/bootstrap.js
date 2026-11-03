@@ -5,7 +5,7 @@
 import { initNavigation } from './navigation.js';
 import { initAudio } from './audio.js';
 import { initGame } from './app.js?v=20261103-1';
-import { initOnline } from './online.js';
+import { initOnline } from './online.js?v=20261103-2';
 
 function startApp() {
     document.getElementById('loading-screen')?.classList.add('hidden');
