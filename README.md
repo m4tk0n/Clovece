@@ -35,7 +35,7 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 
 ## Struktura
 
-- index.html – obrazovky aplikace
+- index.php – vstupní bod, pseudo-CRON a obrazovky aplikace
 - js/game-engine.js – pravidla a stav hry
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
 - js/app.js – ovládání hry a AI
