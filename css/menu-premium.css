@@ -633,3 +633,18 @@
 .menu-screen * {
     overflow-anchor: none;
 }
+
+
+/* Oprava samovolného návratu rolování:
+   Flex kontejner nesmí centrovat obsah, který je vyšší než viewport.
+   Při vertikálním přetečení pak prohlížeč může posouvat začátek obsahu
+   mimo dosažitelnou oblast nebo přepočítávat scroll pozici.
+   Auto okraje zachovají vycentrování krátkých obrazovek, ale dlouhé
+   obrazovky začnou vždy nahoře. */
+.menu-screen {
+    align-items: flex-start !important;
+}
+
+.menu-screen > .menu-bg {
+    margin-block: auto;
+}
