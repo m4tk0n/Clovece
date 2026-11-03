@@ -96,6 +96,7 @@ function renderGame(data) {
     $('room-code-display')?.replaceChildren(
         document.createTextNode(currentInviteUrl || game.public_id)
     );
+    if ($('room-invite-url')) $('room-invite-url').value = currentInviteUrl;
 
     const status = game.status === 'waiting'
         ? 'Čeká na hráče'
