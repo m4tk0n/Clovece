@@ -196,7 +196,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 4 | Původní automatický rozstřel při zahájení hry | Nahrazen ručním rozstřelem (Update 7) |
 | 5 | Vlastní jméno online hráče, výběr a náhodné přidělení osmi barev pro lokální i online hru | Implementováno; čeká na praktický multiplayer test |
 | 6 | Online AI hráči a povinné minimum dvou lidských zařízení | Implementováno; automatické testy a FTP deploy úspěšné, čeká na praktický test |
-| 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; čeká na automatické testy a praktický test více zařízení |
+| 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; PHP lint, JS syntaxe, testy enginu a FTP deploy úspěšné; čeká na praktický test více zařízení |
 
 ## Potvrzená pravidla hry
 
