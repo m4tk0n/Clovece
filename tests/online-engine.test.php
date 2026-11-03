@@ -70,7 +70,10 @@ $safe['phase'] = 'move';
 $safe['diceValue'] = 1;
 $safe['pieces'][0]['pieces'][0]['steps'] = 25;
 $safe['pieces'][1]['pieces'][0]['steps'] = 0;
-checkSame([], onlineEngineValidMoves($safe), 'Na obsazené bezpečné pole nelze vstoupit.');
+checkSame([0], onlineEngineValidMoves($safe), 'Na obsazené startovní pole soupeře musí být možné vstoupit.');
+$safeMove = onlineEngineMovePiece($safe, 0);
+checkSame(1, $safeMove['captured']['playerId'], 'Na startovním poli soupeře se musí dát vyhodit jeho figurka.');
+checkSame(-1, $safe['pieces'][1]['pieces'][0]['steps'], 'Vyhozená figurka ze startovního pole soupeře se musí vrátit domů.');
 
 $finish = onlineEngineCreateState(testParticipants(2));
 $max = $finish['trackLength'] + 4;
