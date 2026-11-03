@@ -30,7 +30,7 @@ async function startApp() {
         console.error('Nepodařilo se inicializovat aplikaci:', error);
         const loadingText = document.querySelector('#loading-screen p');
         if (loadingText) {
-            loadingText.textContent = 'Hru se nepodařilo načíst. Obnovte stránku.';
+            loadingText.textContent = 'Hru se nepodařilo načíst: ' + (error?.message || 'neznámá chyba');
         }
     }
 }
