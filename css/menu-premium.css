@@ -648,3 +648,19 @@
 .menu-screen > .menu-bg {
     margin-block: auto;
 }
+
+
+/* Stabilní scroll všech menu obrazovek.
+   Dlouhý obsah začíná vždy nahoře; krátký zůstává vertikálně vycentrovaný.
+   Herní obrazovka není tímto pravidlem dotčena. */
+.menu-screen {
+    align-items: flex-start !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    overflow-anchor: none;
+    scroll-behavior: auto;
+}
+.menu-screen > .menu-bg {
+    margin: auto !important;
+}
