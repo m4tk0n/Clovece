@@ -4,6 +4,7 @@
  */
 import { showScreen } from './navigation.js';
 import { renderBoard } from './game-board.js';
+import { animateDice } from './app.js';
 
 const $ = id => document.getElementById(id);
 const API_URL = 'online-api.php';
@@ -153,6 +154,15 @@ function renderGameChat(messages, participants, moves = []) {
 
 function renderOnlineGame(data) {
     const game = data.game;
+    const previousState = onlineState;
+    const previousVersion = onlineStateVersion;
+    const hasNewRoll = Boolean(
+        previousState &&
+        Number(game.state_version) > previousVersion &&
+        previousState.phase === 'roll' &&
+        ['move', 'no-move'].includes(game.state.phase)
+    );
+
     onlineState = game.state;
     onlineStateVersion = Number(game.state_version);
     currentPlayerIndex = Number(data.current_player_index);
@@ -161,6 +171,11 @@ function renderOnlineGame(data) {
     if (!onlineState) return;
     showScreen('game');
     renderBoard($('game-container'), onlineState);
+
+    // Animaci a zvuk spustíme pouze při přechodu po novém online hodu.
+    if (hasNewRoll && onlineState.diceValue) {
+        void animateDice(onlineState.diceValue);
+    }
 
     const player = onlineState.players[onlineState.currentPlayer];
     const ownTurn = currentPlayerIndex === Number(onlineState.currentPlayer);
