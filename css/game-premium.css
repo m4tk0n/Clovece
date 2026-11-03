@@ -1129,15 +1129,36 @@
     overflow-y: auto;
     cursor: pointer;
 }
+/* Rozbalený seznam je absolutní překryv – nemění výšku footeru ani desky. */
+#game-screen .game-chat.is-expanded::before {
+    content: "";
+    display: block;
+    flex: 0 0 42px;
+    height: 42px;
+}
 #game-screen .game-chat.is-expanded .chat-messages {
-    flex-basis: 270px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 35px;
+    z-index: 100;
+    box-sizing: border-box;
+    flex: none;
+    width: auto;
     height: 270px;
     min-height: 270px;
     max-height: 270px;
+    padding: 5px 4px 1px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid rgba(198,169,107,.4);
+    border-radius: 9px;
+    background: rgba(8,16,14,.98);
+    box-shadow: 0 8px 24px rgba(0,0,0,.55);
 }
 @media (max-width: 600px) {
     #game-screen .game-chat.is-expanded .chat-messages {
-        flex-basis: 243px;
+        bottom: 32px;
         height: 243px;
         min-height: 243px;
         max-height: 243px;
