@@ -117,16 +117,19 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         // Vlastní figurku lze přeskočit, ale nelze skončit na jejím políčku.
         // Kontrola hlavní dráhy používá skutečnou pozici po oběhnutí okruhu;
         // v domácím sloupci se porovnává přímo počet kroků.
-        const ownBlock = playerPieces.some(other => {
-            if (other.id === piece.id || other.steps < 0) return false;
-            if (nextSteps <= game.trackLength) {
-                return other.steps <= game.trackLength &&
-                    getPiecePosition(game, playerId, other) ===
-                    (game.players[playerId].start + nextSteps) % game.trackLength;
-            }
-            return other.steps === nextSteps;
-        });
-        if (ownBlock) return;
+        // Cílové pole je společná cílová oblast; více dokončených figurek se zde počítá.
+        if (nextSteps !== maxSteps) {
+            const ownBlock = playerPieces.some(other => {
+                if (other.id === piece.id || other.steps < 0) return false;
+                if (nextSteps <= game.trackLength) {
+                    return other.steps <= game.trackLength &&
+                        getPiecePosition(game, playerId, other) ===
+                        (game.players[playerId].start + nextSteps) % game.trackLength;
+                }
+                return other.steps === nextSteps;
+            });
+            if (ownBlock) return;
+        }
 
         valid.push(piece.id);
     });
