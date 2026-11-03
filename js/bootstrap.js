@@ -1,24 +1,42 @@
 /**
  * Hlavní vstup aplikace.
- * Všechny obrazovky jsou už v index.html; žádné HTML se nestahuje za běhu.
+ * Verzi předáváme všem hlavním modulům, aby prohlížeč nepoužil staré kopie.
  */
-import { initNavigation } from './navigation.js';
-import { initAudio } from './audio.js';
-import { initGame } from './app.js?v=20261103-1';
-import { initOnline } from './online.js?v=20261103-3';
+const appVersion = new URL(import.meta.url).searchParams.get('v') || Date.now();
+const loadModule = path => import(`${path}?v=${encodeURIComponent(appVersion)}`);
 
-function startApp() {
-    document.getElementById('loading-screen')?.classList.add('hidden');
-    document.getElementById('main-menu')?.classList.remove('hidden');
+async function startApp() {
+    try {
+        const [
+            { initNavigation },
+            { initAudio },
+            { initGame },
+            { initOnline }
+        ] = await Promise.all([
+            loadModule('./navigation.js'),
+            loadModule('./audio.js'),
+            loadModule('./app.js'),
+            loadModule('./online.js')
+        ]);
 
-    void initOnline();
-    initNavigation();
-    initAudio();
-    initGame();
+        document.getElementById('loading-screen')?.classList.add('hidden');
+        document.getElementById('main-menu')?.classList.remove('hidden');
+
+        void initOnline();
+        initNavigation();
+        initAudio();
+        initGame();
+    } catch (error) {
+        console.error('Nepodařilo se inicializovat aplikaci:', error);
+        const loadingText = document.querySelector('#loading-screen p');
+        if (loadingText) {
+            loadingText.textContent = 'Hru se nepodařilo načíst. Obnovte stránku.';
+        }
+    }
 }
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startApp, { once: true });
+    document.addEventListener('DOMContentLoaded', () => void startApp(), { once: true });
 } else {
-    startApp();
+    void startApp();
 }
