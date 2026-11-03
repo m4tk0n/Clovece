@@ -130,7 +130,8 @@ export function movePiece(game, pieceId) {
     const player = game.players[playerId];
     const piece = game.pieces[playerId].pieces[Number(pieceId)];
     const fromSteps = piece.steps;
-    const nextSteps = fromSteps === -1 ? 0 : fromSteps + game.diceValue;
+    const diceValue = game.diceValue;
+    const nextSteps = fromSteps === -1 ? 0 : fromSteps + diceValue;
     let captured = null;
 
     if (nextSteps < game.trackLength) {
@@ -165,7 +166,7 @@ export function movePiece(game, pieceId) {
         player.finished = true;
         game.winner = playerId;
         game.phase = 'finished';
-    } else if (game.diceValue === 6 && !finishedNow) {
+    } else if (diceValue === 6 && !finishedNow) {
         game.phase = 'roll';
     } else {
         advanceTurn(game);
@@ -177,7 +178,7 @@ export function movePiece(game, pieceId) {
         pieceId: piece.id,
         captured,
         finishedNow,
-        diceValue: game.diceValue
+        diceValue
     };
 
     return game.lastMove;
