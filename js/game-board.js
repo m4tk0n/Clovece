@@ -54,7 +54,7 @@ function baseMarkup(game, player, validMoves) {
         markup += '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 4) + '" r="13"/>';
         markup += '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="12" fill="' + color + '"/>';
         markup += '<circle cx="' + (x - 3) + '" cy="' + (y - 4) + '" r="3.5" fill="#fff" fill-opacity=".65"/>';
-        markup += svgText(x, y + 1, piece.id + 1, 9, '#fff');
+        markup += svgText(x, y + 1, piece.id + 1, 9, color === '#F9A825' ? '#17211f' : '#fff');
         markup += '</g>';
     });
     markup += '</g>';
@@ -86,7 +86,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
         '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 5) + '" r="14"/>' +
         '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="13" fill="' + color + '"/>' +
         '<circle cx="' + (x - 3.5) + '" cy="' + (y - 4) + '" r="4" fill="#fff" fill-opacity=".68"/>' +
-        svgText(x, y + 1, piece.id + 1, 10, '#fff') +
+        svgText(x, y + 1, piece.id + 1, 10, color === '#F9A825' ? '#17211f' : '#fff') +
         '</g>';
 }
 
