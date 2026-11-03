@@ -135,36 +135,33 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
             continue;
         }
 
-        // Vlastní figurku lze přeskočit, ale nelze skončit na jejím políčku.
-        // Na hlavní dráze porovnáváme pozici po oběhnutí okruhu,
-        // v domácím sloupci přímo počet kroků.
-        // Cílové pole je společná cílová oblast; více dokončených figurek se zde počítá.
-        if ($nextSteps !== $maxSteps) {
-            $ownBlock = false;
-            foreach ($playerPieces as $other) {
-                if ((int) $other['id'] === $pieceId) {
-                    continue;
-                }
-                $otherSteps = (int) $other['steps'];
-                if ($otherSteps < 0) {
-                    continue;
-                }
+        // Vlastní figurku lze přeskočit, ale nelze skončit na žádném jejím políčku.
+        // Startovní pole je posledním polem hlavního okruhu (trackLength);
+        // až následující krok vstupuje na první ze čtyř samostatných cílových polí.
+        $ownBlock = false;
+        foreach ($playerPieces as $other) {
+            if ((int) $other['id'] === $pieceId) {
+                continue;
+            }
+            $otherSteps = (int) $other['steps'];
+            if ($otherSteps < 0) {
+                continue;
+            }
 
-                if ($nextSteps <= $trackLength) {
-                    if ($otherSteps <= $trackLength
-                        && onlineEnginePiecePosition($game, $playerId, $other)
-                            === ((((int) $game['players'][$playerId]['start']) + $nextSteps) % $trackLength)) {
-                        $ownBlock = true;
-                        break;
-                    }
-                } elseif ($otherSteps === $nextSteps) {
+            if ($nextSteps <= $trackLength) {
+                if ($otherSteps <= $trackLength
+                    && onlineEnginePiecePosition($game, $playerId, $other)
+                        === ((((int) $game['players'][$playerId]['start']) + $nextSteps) % $trackLength)) {
                     $ownBlock = true;
                     break;
                 }
+            } elseif ($otherSteps === $nextSteps) {
+                $ownBlock = true;
+                break;
             }
-            if ($ownBlock) {
-                continue;
-            }
+        }
+        if ($ownBlock) {
+            continue;
         }
 
         $valid[] = $pieceId;
