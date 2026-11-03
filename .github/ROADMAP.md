@@ -153,6 +153,21 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 - [x] Vyžadovat pro spuštění online hry alespoň dvě různé lidské identity/zařízení; AI se počítá pouze jako další hráč.
 - [ ] Prakticky otestovat online hru se dvěma lidmi a alespoň jedním AI hráčem.
 
+### Velikosti a geometrie hracích desek
+
+- [ ] Oddělit logickou velikost hlavního okruhu od grafického vzhledu desky.
+- [ ] Podporovat tři pevné velikosti hlavního okruhu: 40, 48 a 80 polí.
+- [ ] Počet polí počítat podle pravidla (Start + X) × Y:
+  - 40 polí = (1 + 9) × 4; čtyři možné hráčské pozice.
+  - 48 polí = (1 + 7) × 6; šest možných hráčských pozic.
+  - 80 polí = (1 + 9) × 8; osm možných hráčských pozic.
+- [ ] Startovní domečky jsou mimo hlavní okruh. Neobsazené hráčské pozice zůstávají prázdné; jejich startovní pole i domečky se přesto zachovají v geometrii desky.
+- [ ] Dostupnost velikostí podle počtu hráčů: 2–4 hráči: 40/48/80; 5–6 hráčů: 48/80; 7–8 hráčů: pouze 80.
+- [ ] Herní engine musí pracovat s vybranou délkou okruhu nezávisle na rendereru; stejná pravidla platí pro lokální i online hru.
+- [ ] Zachovat čtyři cílová pole v domečku a současnou správnou logiku startovního pole a vstupu do domečku.
+- [ ] Grafické varianty nabídnou pouze podporované kombinace: kulatá deska pro 40 a 48 polí; hranatá deska pro 40, 48 a 80 polí. Další vzhledy se doplní samostatně.
+- [ ] Vybranou velikost a vzhled uložit do nastavení konkrétní hry; v online hře musí být shodná logická velikost pro všechny účastníky.
+
 ### Alternativní vzhled hrací plochy
 
 - [x] Na stávající kruhové desce umístit startovní pole na vizuální pozici 0 + 1. Posun se týká pouze vykreslení; logické indexy, pravidla a pohyb figurek zůstávají beze změny. Čeká na vizuální ověření na webu.
