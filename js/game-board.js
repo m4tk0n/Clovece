@@ -25,11 +25,16 @@ function playerAngle(player, total, trackLength) {
 }
 
 function trackAngle(index, game) {
-    // Oproti původnímu vykreslení (+1) je kruhová dráha posunutá
-    // o jedno políčko doleva. Herní indexy a pravidla se nemění.
-    const classicOffset = 0;
+    // Geometrie běžných polí zůstává pevná. Posun startu se řeší
+    // samostatně pouze u startovních značek a figurek.
     return (game.players.length <= 4 ? -135 : -90) +
-        (index + classicOffset) * 360 / game.trackLength;
+        index * 360 / game.trackLength;
+}
+
+function routeAngle(player, game) {
+    // Startovní pole je o jedno místo vlevo; základny zůstávají na místě.
+    const shiftedStart = (player.start - 1 + game.trackLength) % game.trackLength;
+    return trackAngle(shiftedStart, game);
 }
 
 function svgText(x, y, value, size, fill) {
@@ -73,7 +78,8 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     let pos;
     if (piece.steps <= game.trackLength) {
         const trackIndex = getPiecePosition(game, player.id, piece);
-        const angle = trackAngle(trackIndex, game);
+        const visualIndex = (trackIndex - 1 + game.trackLength) % game.trackLength;
+        const angle = trackAngle(visualIndex, game);
         pos = point(angle, TRACK_RADIUS);
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
@@ -110,7 +116,9 @@ export function renderBoard(container, game) {
     for (let i = 0; i < game.trackLength; i++) {
         const angle = trackAngle(i, game);
         const p = point(angle, TRACK_RADIUS);
-        const startPlayer = game.players.find(player => player.start === i);
+        const startPlayer = game.players.find(player =>
+            (player.start - 1 + game.trackLength) % game.trackLength === i
+        );
         track.push(
             '<g class="track-space ' + (startPlayer ? 'track-start' : '') + '">' +
             '<circle cx="' + p.x + '" cy="' + p.y + '" r="13" fill="' + (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' + (startPlayer ? '.95' : '.12') + '" stroke="' + (startPlayer ? startPlayer.color : '#fff') + '" stroke-opacity="' + (startPlayer ? '.9' : '.22') + '" stroke-width="1.4"/>' +
@@ -120,7 +128,7 @@ export function renderBoard(container, game) {
     }
 
     const homeLanes = game.players.map(player => {
-        const angle = playerAngle(player, total, game.trackLength);
+        const angle = routeAngle(player, game);
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
             return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="' + player.color + '" fill-opacity=".28" stroke="' + player.color + '" stroke-opacity=".85" stroke-width="1.5"/>';
