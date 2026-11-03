@@ -25,15 +25,15 @@ function playerAngle(player, total, trackLength) {
 }
 
 function trackAngle(index, game) {
-    // Geometrie běžných polí zůstává pevná. Posun startu se řeší
+    // Geometrie běžných polí zůstává pevná. Opačný posun startu se řeší
     // samostatně pouze u startovních značek a figurek.
     return (game.players.length <= 4 ? -135 : -90) +
         index * 360 / game.trackLength;
 }
 
 function routeAngle(player, game) {
-    // Startovní pole je o jedno místo vlevo; základny zůstávají na místě.
-    const shiftedStart = (player.start - 1 + game.trackLength) % game.trackLength;
+    // Startovní pole je o jedno místo vpravo; základny zůstávají na místě.
+    const shiftedStart = (player.start + 1 + game.trackLength) % game.trackLength;
     return trackAngle(shiftedStart, game);
 }
 
@@ -78,7 +78,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     let pos;
     if (piece.steps <= game.trackLength) {
         const trackIndex = getPiecePosition(game, player.id, piece);
-        const visualIndex = (trackIndex - 1 + game.trackLength) % game.trackLength;
+        const visualIndex = (trackIndex + 1 + game.trackLength) % game.trackLength;
         const angle = trackAngle(visualIndex, game);
         pos = point(angle, TRACK_RADIUS);
     } else {
@@ -117,7 +117,7 @@ export function renderBoard(container, game) {
         const angle = trackAngle(i, game);
         const p = point(angle, TRACK_RADIUS);
         const startPlayer = game.players.find(player =>
-            (player.start - 1 + game.trackLength) % game.trackLength === i
+            (player.start + 1 + game.trackLength) % game.trackLength === i
         );
         track.push(
             '<g class="track-space ' + (startPlayer ? 'track-start' : '') + '">' +
