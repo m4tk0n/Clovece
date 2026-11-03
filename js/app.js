@@ -3,7 +3,7 @@
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
 import {
-    createGame, rollDice, getValidMoves, movePiece,
+    createGame, rollDice, getValidMoves, getForcedMove, movePiece,
     advanceTurn, chooseAIMove
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
@@ -333,6 +333,12 @@ async function doRoll(isAI = false) {
                 continueGame();
             }
         }, isAI ? 350 : 650);
+        return;
+    }
+
+    const forcedMove = getForcedMove(game);
+    if (forcedMove !== null) {
+        finishMove(movePiece(game, forcedMove));
         return;
     }
 
