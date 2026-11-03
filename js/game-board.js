@@ -128,7 +128,9 @@ export function renderBoard(container, game) {
     }
 
     const homeLanes = game.players.map(player => {
-        const angle = routeAngle(player, game);
+        // Cílový domeček zůstává v původní ose základny;
+        // startovní pole na okruhu je samostatně posunuté o jedno místo.
+        const angle = playerAngle(player, total, game.trackLength);
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
             return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="' + player.color + '" fill-opacity=".28" stroke="' + player.color + '" stroke-opacity=".85" stroke-width="1.5"/>';
