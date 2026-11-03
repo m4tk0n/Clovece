@@ -162,6 +162,7 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
   - 48 polí = (1 + 7) × 6; šest možných hráčských pozic.
   - 80 polí = (1 + 9) × 8; osm možných hráčských pozic.
 - [ ] Startovní domečky jsou mimo hlavní okruh. Neobsazené hráčské pozice zůstávají prázdné; jejich startovní pole i domečky se přesto zachovají v geometrii desky.
+- [x] Vykreslit všechny pevné pozice desky včetně prázdných domečků, čtyř cílových polí a startovního pole; prázdná pozice nemá jméno, barvu hráče ani figurky.
 - [ ] Dostupnost velikostí podle počtu hráčů: 2–4 hráči: 40/48/80; 5–6 hráčů: 48/80; 7–8 hráčů: pouze 80.
 - [ ] Herní engine musí pracovat s vybranou délkou okruhu nezávisle na rendereru; stejná pravidla platí pro lokální i online hru.
 - [ ] Zachovat čtyři cílová pole v domečku a současnou správnou logiku startovního pole a vstupu do domečku.
@@ -216,6 +217,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; PHP lint, JS syntaxe, testy enginu a FTP deploy úspěšné; čeká na praktický test více zařízení |
 | 8 | Vizuální umístění startovního pole na kruhové desce na pozici 0 + 1 | Upraveno podle upřesnění; čeká na ověření na webu |
 | 9 | Výběr velikosti desky 40/48/80 v menu lokální hry | Implementováno ve větvi `feature/board-size-selector`; čeká na CI a nasazení |
+| 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; čeká na automatické kontroly a vizuální ověření |
 
 ## Potvrzená pravidla hry
 
