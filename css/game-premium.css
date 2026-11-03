@@ -1204,3 +1204,28 @@
         max-height: 243px;
     }
 }
+
+
+/* Player setup: keep the roster visible below the board-size selector. */
+#player-selection .player-preview {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    visibility: visible;
+    opacity: 1;
+}
+#player-selection .preview-players {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    gap: 10px;
+    width: 100%;
+    min-height: 1px;
+    visibility: visible;
+    opacity: 1;
+}
+#player-selection .preview-player {
+    min-width: 0;
+}
+#player-selection #random-player-colors-btn {
+    margin-top: 14px;
+}
