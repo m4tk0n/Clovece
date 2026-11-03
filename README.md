@@ -13,7 +13,7 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 - 5–8 hráčů: rozšířená osmisměrná aréna a 64 políček
 - Každý hráč má vlastní start, domeček a 4 figurky
 - Vyvedení figurky při hodu 6
-- Vyhazování soupeřů, bezpečná startovní pole a přesný dojezd do cíle
+- Vyhazování soupeřů i na startovních polích, čtyři samostatná cílová políčka a přesný dojezd
 - Automatické tahy AI
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
