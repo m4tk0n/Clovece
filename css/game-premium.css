@@ -1032,24 +1032,23 @@
     margin: 0;
 }
 
-/* Všechny tři herní bloky mají stejnou šířku, navíc +2 px. */
+/* Stejná šířka horního bloku, prostřední plochy i chatu.
+   Rozšíření se provádí na úrovni jejich společného rodiče – game-screen
+   už má 2px vnitřní okraj, proto posun o 1px na každou stranu. */
 #game-screen .game-header,
 #game-screen .game-container,
 #game-screen .game-chat {
+    box-sizing: border-box;
     width: calc(100% + 2px);
+    max-width: none;
     margin-left: -1px;
     margin-right: 0;
 }
 
-/* Rozšíření skutečného rámečku hrací plochy (nejen jeho kontejneru). */
-#game-screen .game-container {
-    width: 100% !important;
-    max-width: none !important;
-}
+/* Vnitřní rámeček vyplní rozšířený prostřední kontejner. */
 #game-screen .game-container > .premium-board-shell {
-    box-sizing: border-box !important;
-    width: calc(100% + 2px) !important;
-    max-width: none !important;
-    margin-left: -1px !important;
-    margin-right: 0 !important;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    margin: 0;
 }
