@@ -796,3 +796,24 @@
     #game-menu .menu-audio-row { gap: 8px; padding: 10px; }
     #game-menu .game-volume { width: 86px; }
 }
+
+
+/* Editable player and AI names in the game setup */
+.preview-player-name {
+    min-width: 0;
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid color-mix(in srgb,var(--player-color),transparent 45%);
+    border-radius: 7px;
+    background: rgba(5,12,11,.48);
+    color: #f4f0e8;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    outline: none;
+}
+.preview-player-name:focus {
+    border-color: var(--player-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb,var(--player-color),transparent 72%);
+}
+.preview-player-name::placeholder { color: #a6b1a7; }
