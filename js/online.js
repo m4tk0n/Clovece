@@ -248,10 +248,7 @@ async function leaveRoom() {
 export async function initOnline() {
     $('join-room-btn')?.addEventListener('click', () => showScreen('lobby'));
     $('create-room-btn-lobby')?.addEventListener('click', createRoom);
-    $('join-room-btn-lobby')?.addEventListener('click', event => {
-        event.preventDefault();
-        joinRoom($('room-code-input')?.value);
-    });
+    // Tlačítko pro připojení obsluhuje navigation.js přes window.joinRoom().
     $('copy-invite-btn')?.addEventListener('click', copyInvite);
     $('leave-room-btn')?.addEventListener('click', leaveRoom);
 
