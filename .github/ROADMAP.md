@@ -165,9 +165,9 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 - [x] Přidán samostatný endpoint online-api.php; původní api.php zůstává nedotčený, protože používá starý registrační datový model.
 - [x] Základ endpointu: anonymní identita zařízení, HttpOnly cookie s náhodným tokenem (v DB pouze SHA-256 hash), CSRF ochrana, změna jména, založení čekající hry, pozvánka, připojení přes pozvánku, načtení hry, chat s limitem 30 zpráv a opuštění hry.
 - [x] Do GitHub Actions přidána kontrola syntaxe PHP 8.3.
-- [ ] Ověřit výsledek prvního běhu PHP lint a dosavadních JS testů.
-- [ ] Napojit frontend na bootstrap identity a online lobby.
+- [x] PHP lint 8.3 a dosavadní JS syntaktické kontroly i testy herního enginu prošly v GitHub Actions.
+- [x] Napojit frontend na bootstrap identity a online lobby; přidat vytvoření místnosti, pozvánkový odkaz, připojení a chat.
 - [ ] Doplnit serverovou implementaci herních pravidel a bezpečné tahy; do té doby endpoint záměrně nepřijímá herní tahy a nová hra zůstává ve stavu waiting.
-- [ ] Ověřit API na skutečném WZ hostingu a dvou zařízeních.
+- [ ] Ověřit API na skutečném WZ hostingu a dvou zařízeních; samotné API zatím nebylo voláno proti produkční databázi z automatického testu.
 
 Důležité: přidání online-api.php samo o sobě ještě nezapíná online režim v rozhraní. Lokální hra zůstává beze změny.
