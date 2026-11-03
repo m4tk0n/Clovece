@@ -366,6 +366,77 @@ async function openGame(gameId, inviteUrl = '') {
     await refreshGame();
 }
 
+
+function renderMyGames(games) {
+    const container = $('my-games-list');
+    if (!container) return;
+
+    container.replaceChildren();
+    if (!games.length) {
+        const empty = document.createElement('p');
+        empty.className = 'my-games-empty';
+        empty.textContent = 'Zatím tu nemáš žádné čekající místnosti ani rozehrané hry.';
+        container.appendChild(empty);
+        return;
+    }
+
+    games.forEach(game => {
+        const row = document.createElement('div');
+        row.className = 'my-game-item';
+
+        const details = document.createElement('div');
+        details.className = 'my-game-details';
+
+        const name = document.createElement('strong');
+        name.textContent = 'Místnost ' + game.public_id;
+        const meta = document.createElement('span');
+        const status = game.status === 'waiting' ? 'Čeká na hráče'
+            : game.status === 'active' ? 'Rozehraná hra' : 'Dokončeno';
+        meta.textContent = status + ' · ' + game.participant_count + '/' + game.player_limit + ' hráčů';
+        details.append(name, meta);
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'menu-btn small my-game-resume';
+        button.dataset.gameId = String(game.id);
+        button.textContent = game.status === 'finished' ? 'DOKONČENO' : 'POKRAČOVAT';
+        button.disabled = game.status === 'finished';
+
+        row.append(details, button);
+        container.appendChild(row);
+    });
+}
+
+async function loadMyGames() {
+    const container = $('my-games-list');
+    if (!container) return;
+    try {
+        const result = await api('list_my_games');
+        renderMyGames(result.games || []);
+    } catch (error) {
+        container.textContent = 'Seznam her se nepodařilo načíst: ' + error.message;
+    }
+}
+
+async function resumeMyGame(gameId, button) {
+    if (button) button.disabled = true;
+    try {
+        const result = await api('resume_game', { game_id: String(gameId) });
+        const inviteUrl = result.invite_url
+            ? new URL(result.invite_url, window.location.href).toString()
+            : '';
+        const url = new URL(window.location.href);
+        url.searchParams.delete('invite');
+        history.replaceState({}, '', url);
+        await openGame(result.game_id, inviteUrl);
+    } catch (error) {
+        notify(error.message);
+        await loadMyGames();
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
 async function savePlayerName() {
     await bootstrapPromise;
     const name = $('online-player-name')?.value.trim();
@@ -473,12 +544,24 @@ async function leaveRoom() {
         onlineMode = false;
         stopPolling();
         showScreen('lobby');
+        await loadMyGames();
     } catch (error) {
         notify(error.message);
     }
 }
 
 export async function initOnline() {
+    $('my-games-list')?.addEventListener('click', event => {
+        const button = event.target.closest?.('[data-game-id]');
+        if (!button || button.disabled) return;
+        void resumeMyGame(button.dataset.gameId, button);
+    });
+    document.addEventListener('click', event => {
+        if (event.target.closest?.('#back-from-room, #back-from-lobby')) {
+            window.setTimeout(() => void loadMyGames(), 0);
+        }
+    });
+
     // Delegované navázání: funguje i při změně vnitřní struktury tlačítka.
     document.addEventListener('click', event => {
         const button = event.target.closest?.('#create-room-btn-lobby');
@@ -624,6 +707,7 @@ export async function initOnline() {
 
     try {
         await bootstrapPromise;
+        await loadMyGames();
         const invite = new URLSearchParams(window.location.search).get('invite');
         if (invite) {
             showScreen('lobby');
