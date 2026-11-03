@@ -71,18 +71,19 @@ function updateSetup() {
     $('setup-board-type').textContent = total <= 4
         ? 'Klasická čtyřbarevná aréna'
         : 'Rozšířená osmisměrná aréna';
-    $('setup-board-note').textContent = total <= 4
-        ? 'Čtyři základny, čtyři domácí dráhy.'
-        : 'Každý hráč má vlastní barevný domeček a domácí dráhu.';
     const usedColors = new Set();
     $('preview-players').innerHTML = Array.from({ length: total }, (_, index) => {
         const isAI = index >= humanCount;
         const number = isAI ? index - humanCount + 1 : index + 1;
         const key = (isAI ? 'ai:' : 'human:') + number;
         const requestedColor = customPlayerColors.get(key);
-        const color = PLAYER_COLORS.includes(requestedColor) && !usedColors.has(requestedColor)
+        let color = PLAYER_COLORS.includes(requestedColor) && !usedColors.has(requestedColor)
             ? requestedColor
-            : PLAYER_COLORS.find(candidate => !usedColors.has(candidate));
+            : null;
+        if (!color) {
+            const availableColors = PLAYER_COLORS.filter(candidate => !usedColors.has(candidate));
+            color = availableColors[Math.floor(Math.random() * availableColors.length)];
+        }
         usedColors.add(color);
         customPlayerColors.set(key, color);
         const defaultName = (isAI ? 'AI ' : 'Hráč ') + number;
@@ -92,11 +93,10 @@ function updateSetup() {
             '<input class="preview-player-name" type="text" maxlength="20" autocomplete="off" ' +
                 'aria-label="Jméno ' + (isAI ? 'AI ' : 'hráče ') + number + '" ' +
                 'data-name-key="' + key + '" value="' + escapeHtml(name) + '">' +
-            '<label class="preview-color-label">Barva' +
-                '<select class="preview-player-color" data-color-key="' + key + '" aria-label="Barva ' + escapeHtml(name) + '">' +
+            '<label class="preview-color-label">' +
+                '<select class="preview-player-color" data-color-key="' + key + '" aria-label="Barva hráče ' + escapeHtml(name) + '">' +
                     PLAYER_COLORS.map((value, colorIndex) => '<option value="' + value + '"' + (value === color ? ' selected' : '') + '>' + PLAYER_COLOR_LABELS[colorIndex] + '</option>').join('') +
-                '</select></label>' +
-            '<small>' + (isAI ? 'UMĚLÁ INTELIGENCE' : 'ŽIVÝ HRÁČ') + '</small></div>';
+                '</select></label></div>';
     }).join('');
 }
 
