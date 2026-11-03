@@ -20,11 +20,15 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 
 ## Online multiplayer – plán
 
-Online hraní na více zařízeních zatím není zapojené. Další etapa bude zahrnovat:
-- vytváření a připojování do místností
-- synchronizaci stavu hry přes PHP API a MySQL
-- bezpečné ověřování tahů na serveru
-- chat a opětovné připojení po výpadku spojení
+Online režim je implementovaný v základní podobě a probíhá ověřování na hostingu:
+- anonymní identita zařízení a obnova přes pozvánkový odkaz
+- vytváření místností a připojování dalších hráčů
+- synchronizace stavu hry přes PHP API a MySQL
+- serverové házení kostkou a ověřování tahů
+- chat a společný časový proud chatu a herních událostí
+- pravidelné dotazování API; WebSockety nejsou vyžadovány
+
+Před nasazením pro běžné hraní je nutné dokončit test na WZ.cz ve dvou samostatných zařízeních.
 
 Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné později připojit serverový herní engine bez přepisování celé hry.
 
@@ -35,7 +39,8 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
 - js/app.js – ovládání hry a AI
 - css/game-premium.css – vzhled herního plánu a rozhraní
-- api.php – připravené PHP API pro budoucí online funkce
+- online-api.php – anonymní online API a serverově ověřované herní tahy
+- api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
 - install/install.php – instalace databázových tabulek
 
 ## Instalace a nasazení
