@@ -2,10 +2,10 @@
 -- Verze schématu: 1
 --
 -- Určeno pro MySQL 8.0 / InnoDB.
--- Před spuštěním:
---   1. Zkontroluj TABLE_PREFIX v souboru .env.
---   2. Pokud není "clovece_", nahraď v tomto souboru všechny výskyty "clovece_".
---   3. Tento soubor NEOBSAHUJE DROP TABLE. Staré tabulky smaž ručně až po záloze.
+-- Jde o SQL šablonu. PHP instalační skript musí nahradit {DB_PREFIX}
+-- hodnotou TABLE_PREFIX načtenou ze souboru .env.
+-- SQL se nesmí spouštět přímo s nevyplněným tokenem.
+-- Tento soubor NEOBSAHUJE DROP TABLE. Staré tabulky nemaž bez zálohy.
 --
 -- Toto schéma je cílový základ nového online API. Stávající staré api.php
 -- zatím s tímto schématem není kompatibilní. Lokální hra se tímto SQL nemění.
@@ -13,14 +13,14 @@
 SET NAMES utf8mb4;
 SET time_zone = '+00:00';
 
-CREATE TABLE clovece_schema_migrations (
+CREATE TABLE {DB_PREFIX}schema_migrations (
     version INT UNSIGNED NOT NULL,
     name VARCHAR(120) NOT NULL,
     applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_player_identities (
+CREATE TABLE {DB_PREFIX}player_identities (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     identity_type ENUM('anonymous', 'account') NOT NULL DEFAULT 'anonymous',
     display_name VARCHAR(50) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE clovece_player_identities (
     KEY idx_identity_last_seen (last_seen_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_player_devices (
+CREATE TABLE {DB_PREFIX}player_devices (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     identity_id BIGINT UNSIGNED NOT NULL,
     token_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -43,11 +43,11 @@ CREATE TABLE clovece_player_devices (
     KEY idx_device_identity (identity_id),
     KEY idx_device_active (identity_id, revoked_at),
     CONSTRAINT fk_device_identity
-        FOREIGN KEY (identity_id) REFERENCES clovece_player_identities (id)
+        FOREIGN KEY (identity_id) REFERENCES {DB_PREFIX}player_identities (id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_online_games (
+CREATE TABLE {DB_PREFIX}online_games (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     public_id CHAR(22) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     created_by_identity_id BIGINT UNSIGNED NULL,
@@ -69,13 +69,13 @@ CREATE TABLE clovece_online_games (
     KEY idx_online_game_delete_after (delete_after),
     KEY idx_online_game_creator (created_by_identity_id),
     CONSTRAINT fk_online_game_creator
-        FOREIGN KEY (created_by_identity_id) REFERENCES clovece_player_identities (id)
+        FOREIGN KEY (created_by_identity_id) REFERENCES {DB_PREFIX}player_identities (id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Globální nastavení hry i případná nastavení konkrétní místnosti.
 -- Hodnoty jsou textové, aby zůstaly zachovány i případné budoucí typy nastavení.
-CREATE TABLE clovece_game_settings (
+CREATE TABLE {DB_PREFIX}game_settings (
     setting_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     room_id BIGINT UNSIGNED NULL,
     setting_key VARCHAR(100) NOT NULL,
@@ -86,17 +86,17 @@ CREATE TABLE clovece_game_settings (
     UNIQUE KEY uq_game_setting_scope (scope_id, setting_key),
     KEY idx_game_setting_room (room_id),
     CONSTRAINT fk_game_setting_room
-        FOREIGN KEY (room_id) REFERENCES clovece_online_games (id)
+        FOREIGN KEY (room_id) REFERENCES {DB_PREFIX}online_games (id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Převzatá globální nastavení ze staré tabulky game_settings.
-INSERT INTO clovece_game_settings (room_id, setting_key, setting_value) VALUES
+INSERT INTO {DB_PREFIX}game_settings (room_id, setting_key, setting_value) VALUES
     (NULL, 'site_name', 'Člověče, nezlob se!'),
     (NULL, 'max_players', '8'),
     (NULL, 'default_board', '4');
 
-CREATE TABLE clovece_game_participants (
+CREATE TABLE {DB_PREFIX}game_participants (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     game_id BIGINT UNSIGNED NOT NULL,
     identity_id BIGINT UNSIGNED NULL,
@@ -114,14 +114,14 @@ CREATE TABLE clovece_game_participants (
     KEY idx_participant_identity (identity_id),
     KEY idx_participant_game_presence (game_id, left_at),
     CONSTRAINT fk_participant_game
-        FOREIGN KEY (game_id) REFERENCES clovece_online_games (id)
+        FOREIGN KEY (game_id) REFERENCES {DB_PREFIX}online_games (id)
         ON DELETE CASCADE,
     CONSTRAINT fk_participant_identity
-        FOREIGN KEY (identity_id) REFERENCES clovece_player_identities (id)
+        FOREIGN KEY (identity_id) REFERENCES {DB_PREFIX}player_identities (id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_game_invites (
+CREATE TABLE {DB_PREFIX}game_invites (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     game_id BIGINT UNSIGNED NOT NULL,
     created_by_identity_id BIGINT UNSIGNED NULL,
@@ -136,14 +136,14 @@ CREATE TABLE clovece_game_invites (
     KEY idx_invite_game (game_id),
     KEY idx_invite_expiry (expires_at, revoked_at),
     CONSTRAINT fk_invite_game
-        FOREIGN KEY (game_id) REFERENCES clovece_online_games (id)
+        FOREIGN KEY (game_id) REFERENCES {DB_PREFIX}online_games (id)
         ON DELETE CASCADE,
     CONSTRAINT fk_invite_creator
-        FOREIGN KEY (created_by_identity_id) REFERENCES clovece_player_identities (id)
+        FOREIGN KEY (created_by_identity_id) REFERENCES {DB_PREFIX}player_identities (id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_game_moves (
+CREATE TABLE {DB_PREFIX}game_moves (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     game_id BIGINT UNSIGNED NOT NULL,
     participant_id BIGINT UNSIGNED NULL,
@@ -158,14 +158,14 @@ CREATE TABLE clovece_game_moves (
     KEY idx_move_game_created (game_id, created_at, id),
     KEY idx_move_participant (participant_id),
     CONSTRAINT fk_move_game
-        FOREIGN KEY (game_id) REFERENCES clovece_online_games (id)
+        FOREIGN KEY (game_id) REFERENCES {DB_PREFIX}online_games (id)
         ON DELETE CASCADE,
     CONSTRAINT fk_move_participant
-        FOREIGN KEY (participant_id) REFERENCES clovece_game_participants (id)
+        FOREIGN KEY (participant_id) REFERENCES {DB_PREFIX}game_participants (id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_game_chat (
+CREATE TABLE {DB_PREFIX}game_chat (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     game_id BIGINT UNSIGNED NOT NULL,
     participant_id BIGINT UNSIGNED NULL,
@@ -175,14 +175,14 @@ CREATE TABLE clovece_game_chat (
     KEY idx_chat_game_id (game_id, id),
     KEY idx_chat_participant (participant_id),
     CONSTRAINT fk_chat_game
-        FOREIGN KEY (game_id) REFERENCES clovece_online_games (id)
+        FOREIGN KEY (game_id) REFERENCES {DB_PREFIX}online_games (id)
         ON DELETE CASCADE,
     CONSTRAINT fk_chat_participant
-        FOREIGN KEY (participant_id) REFERENCES clovece_game_participants (id)
+        FOREIGN KEY (participant_id) REFERENCES {DB_PREFIX}game_participants (id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE clovece_cron_tasks (
+CREATE TABLE {DB_PREFIX}cron_tasks (
     task_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     last_started_at TIMESTAMP NULL DEFAULT NULL,
     last_finished_at TIMESTAMP NULL DEFAULT NULL,
@@ -196,5 +196,5 @@ CREATE TABLE clovece_cron_tasks (
     KEY idx_cron_lock (locked_until)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO clovece_schema_migrations (version, name)
+INSERT INTO {DB_PREFIX}schema_migrations (version, name)
 VALUES (1, 'initial_online_multiplayer_schema');
