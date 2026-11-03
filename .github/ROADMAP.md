@@ -167,6 +167,7 @@ Hosting nemá systémový cron. Proto aplikace při běžném načtení stránky
 - [ ] Zachovat čtyři cílová pole v domečku a současnou správnou logiku startovního pole a vstupu do domečku.
 - [ ] Grafické varianty nabídnou pouze podporované kombinace: kulatá deska pro 40 a 48 polí; hranatá deska pro 40, 48 a 80 polí. Další vzhledy se doplní samostatně.
 - [ ] Vybranou velikost a vzhled uložit do nastavení konkrétní hry; v online hře musí být shodná logická velikost pro všechny účastníky.
+- [x] V lokálním menu vytvoření hry nabídnout tři tlačítka 40/48/80; vždy je vybraná právě jedna velikost a nedostupné varianty se podle počtu hráčů deaktivují. Vybranou velikost předat do lokálního herního enginu.
 
 ### Alternativní vzhled hrací plochy
 
@@ -214,6 +215,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 6 | Online AI hráči a povinné minimum dvou lidských zařízení | Implementováno; automatické testy a FTP deploy úspěšné, čeká na praktický test |
 | 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; PHP lint, JS syntaxe, testy enginu a FTP deploy úspěšné; čeká na praktický test více zařízení |
 | 8 | Vizuální umístění startovního pole na kruhové desce na pozici 0 + 1 | Upraveno podle upřesnění; čeká na ověření na webu |
+| 9 | Výběr velikosti desky 40/48/80 v menu lokální hry | Implementováno ve větvi `feature/board-size-selector`; čeká na CI a nasazení |
 
 ## Potvrzená pravidla hry
 
