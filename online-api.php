@@ -154,7 +154,8 @@ function onlineCleanName(mixed $value): string
 function onlineGameAccess(PDO $db, int $gameId, int $identityId): array
 {
     $stmt = $db->prepare(
-        'SELECT g.id, g.public_id, g.status, g.player_limit, g.board_type,\n                g.created_by_identity_id,
+        'SELECT g.id, g.public_id, g.status, g.player_limit, g.board_type,
+                g.created_by_identity_id,
                 g.state_json, g.state_version, g.current_turn, g.created_at,
                 g.last_activity_at, p.id AS participant_id, p.player_index,
                 p.display_name
