@@ -196,7 +196,7 @@ function renderOnlineGame(data) {
         previousState &&
         Number(game.state_version) > previousVersion &&
         previousState.phase === 'roll' &&
-        ['move', 'no-move'].includes(game.state.phase)
+        ['move', 'no-move', 'roll'].includes(game.state.phase)
     );
 
     onlineState = game.state;
@@ -234,7 +234,9 @@ function renderOnlineGame(data) {
     if (onlineState.phase === 'start-roll') {
         status = ownTurn ? 'Rozstřel: jsi na řadě. Hoď kostkou.' : 'Rozstřel: hází ' + player.name + '.';
     } else if (onlineState.phase === 'roll') {
-        status = ownTurn ? 'Jsi na tahu. Hoď kostkou.' : 'Na tahu je ' + player.name + '.';
+        const pieces = onlineState.pieces?.[onlineState.currentPlayer]?.pieces || [];
+        const retry = pieces.length === 4 && pieces.every(piece => Number(piece.steps) === -1) && Number(onlineState.baseRollAttempts) > 0;
+        status = ownTurn ? 'Jsi na tahu. Hoď kostkou' + (retry ? ' (pokus ' + (Number(onlineState.baseRollAttempts) + 1) + '/3 o šestku)' : '') + '.' : 'Na tahu je ' + player.name + '.';
     } else if (onlineState.phase === 'move') {
         status = ownTurn ? 'Vyber figurku, kterou chceš posunout.' : player.name + ' vybírá figurku.';
     } else if (onlineState.phase === 'no-move') {
