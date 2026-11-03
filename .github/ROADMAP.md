@@ -21,7 +21,7 @@ Průběžný plán vývoje online multiplayeru a souvisejících funkcí.
 - [x] Ověřeno, že push do `main` spouští FTP deploy do `/clovece/` a testy.
 - [x] Zjištěny zásadní nesoulady staršího API a databázového návrhu s požadovaným anonymním multiplayerem.
 - [ ] Ověřit skutečné možnosti a verze PHP/MySQL na WZ.cz a oprávnění databázového uživatele.
-- [ ] Dokončit návrh nové databázové struktury a bezpečných migrací.
+- [x] Připravit návrh cílové databázové struktury a migračního postupu (pracovní návrh k potvrzení).
 
 ### Zjištění z první kontroly
 
@@ -140,7 +140,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 ## Pracovní pořadí nejbližších updateů
 
 1. **Update 1 – Ověření hostingu a databázových předpokladů.** PHP 8.3 a MySQL 8.0 byly uvedeny jako cílové verze; skutečnou dostupnost PDO MySQL a oprávnění databáze ještě ověříme. Systémový cron není k dispozici, proto použijeme interní plánovač. Bez změny herního kódu a bez zásahu do produkční databáze.
-2. Update 2 – Návrh cílového datového modelu a migračního postupu.
+2. Update 2 – Návrh cílového datového modelu a migračního postupu. Pracovní návrh je v `.github/DATABASE-PLAN.md`; před SQL migrací se potvrdí otevřené body.
 3. Update 3 – První samostatná, bezpečná databázová migrace.
 4. Další updaty budou následovat až po ověření předchozího kroku.
 
@@ -151,3 +151,4 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 0 | Kontrola současného projektu a sepsání roadmapy | Hotovo |
 
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
+| 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Připraveno k připomínkám |
