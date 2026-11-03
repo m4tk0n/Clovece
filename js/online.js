@@ -335,9 +335,19 @@ async function joinRoom(value) {
     }
 }
 
-async function createRoom() {
+async function createRoom(button = $('create-room-btn-lobby')) {
+    if (button?.dataset.creating === '1') return;
+
     const select = $('online-player-limit');
     const playerLimit = Number(select?.value || 4);
+    const label = button?.querySelector('span');
+    const originalLabel = label?.textContent || 'VYTVOŘIT NOVOU MÍSTNOST';
+
+    if (button) {
+        button.dataset.creating = '1';
+        button.disabled = true;
+        if (label) label.textContent = 'VYTVÁŘÍM MÍSTNOST…';
+    }
 
     try {
         await savePlayerName();
@@ -346,7 +356,14 @@ async function createRoom() {
         await openGame(result.game_id, inviteUrl);
         notify('Místnost byla vytvořena. Zkopíruj pozvánku a pošli ji ostatním hráčům.');
     } catch (error) {
-        notify(error.message);
+        console.error('Vytvoření online místnosti selhalo:', error);
+        notify('Místnost se nepodařilo vytvořit: ' + error.message);
+    } finally {
+        if (button) {
+            button.disabled = false;
+            delete button.dataset.creating;
+        }
+        if (label) label.textContent = originalLabel;
     }
 }
 
@@ -390,7 +407,13 @@ async function leaveRoom() {
 }
 
 export async function initOnline() {
-    $('create-room-btn-lobby')?.addEventListener('click', createRoom);
+    // Delegované navázání: funguje i při změně vnitřní struktury tlačítka.
+    document.addEventListener('click', event => {
+        const button = event.target.closest?.('#create-room-btn-lobby');
+        if (!button) return;
+        event.preventDefault();
+        void createRoom(button);
+    }, true);
     // Tlačítko pro připojení obsluhuje navigation.js přes window.joinRoom().
     $('copy-invite-btn')?.addEventListener('click', copyInvite);
     $('room-start-game-btn')?.addEventListener('click', async () => {
