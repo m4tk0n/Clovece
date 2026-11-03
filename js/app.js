@@ -3,7 +3,7 @@
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
 import {
-    createGame, determineStartingPlayer, rollDice, getValidMoves, getForcedMove, movePiece,
+    createGame, determineStartingPlayer, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
@@ -17,6 +17,8 @@ let aiTimer = null;
 let modalOpen = false;
 let settings = { aiSpeed: 'medium', animations: true };
 const customPlayerNames = new Map();
+const customPlayerColors = new Map();
+const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
 
 function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, char => ({
@@ -73,7 +75,7 @@ function updateSetup() {
         ? 'Čtyři základny, čtyři domácí dráhy.'
         : 'Každý hráč má vlastní barevný domeček a domácí dráhu.';
     $('preview-players').innerHTML = Array.from({ length: total }, (_, index) => {
-        const color = ['#f05b62','#36c9c1','#f4c84a','#67c98b','#e77ab4','#9b83e8','#e99555','#6c9de8'][index];
+        const color = customPlayerColors.get((index < humanCount ? 'human:' + (index + 1) : 'ai:' + (index - humanCount + 1))) || PLAYER_COLORS[index];
         const isAI = index >= humanCount;
         const number = isAI ? index - humanCount + 1 : index + 1;
         const key = (isAI ? 'ai:' : 'human:') + number;
@@ -84,6 +86,10 @@ function updateSetup() {
             '<input class="preview-player-name" type="text" maxlength="20" autocomplete="off" ' +
                 'aria-label="Jméno ' + (isAI ? 'AI ' : 'hráče ') + number + '" ' +
                 'data-name-key="' + key + '" value="' + escapeHtml(name) + '">' +
+            '<label class="preview-color-label">Barva' +
+                '<select class="preview-player-color" data-color-key="' + key + '" aria-label="Barva ' + escapeHtml(name) + '">' +
+                    PLAYER_COLORS.map((value, colorIndex) => '<option value="' + value + '"' + (value === color ? ' selected' : '') + '>' + PLAYER_COLOR_LABELS[colorIndex] + '</option>').join('') +
+                '</select></label>' +
             '<small>' + (isAI ? 'UMĚLÁ INTELIGENCE' : 'ŽIVÝ HRÁČ') + '</small></div>';
     }).join('');
 }
@@ -399,7 +405,8 @@ function startGame() {
             const number = input.dataset.nameKey.split(':')[1];
             return input.dataset.nameKey.startsWith('ai:') ? 'AI ' + number : 'Hráč ' + number;
         });
-        game = createGame(humanCount, aiCount, names);
+        const colors = Array.from($('preview-players').querySelectorAll('[data-color-key]'), select => select.value);
+        game = createGame(humanCount, aiCount, names, colors);
         determineStartingPlayer(game);
     } catch (error) {
         toast(error.message);
@@ -436,6 +443,24 @@ export function initGame() {
         const input = event.target.closest('[data-name-key]');
         if (!input) return;
         customPlayerNames.set(input.dataset.nameKey, input.value.trim());
+    });
+    $('preview-players')?.addEventListener('change', event => {
+        const select = event.target.closest('[data-color-key]');
+        if (!select) return;
+        customPlayerColors.set(select.dataset.colorKey, select.value);
+    });
+    $('random-player-colors-btn')?.addEventListener('click', () => {
+        const shuffled = [...PLAYER_COLORS].sort(() => Math.random() - 0.5);
+        const preview = $('preview-players');
+        preview?.querySelectorAll('[data-color-key]').forEach((select, index) => {
+            select.value = shuffled[index];
+            customPlayerColors.set(select.dataset.colorKey, select.value);
+            const orb = select.closest('.preview-player')?.querySelector('.preview-player-orb');
+            if (orb) orb.style.backgroundColor = select.value;
+        });
+        preview?.querySelectorAll('.preview-player').forEach((card, index) => {
+            card.style.setProperty('--player-color', shuffled[index]);
+        });
     });
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
