@@ -193,21 +193,26 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
 | 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
 | 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo |
-| 4 | Rozstřel při zahájení lokální i online hry + regresní testy | Implementováno a nasazeno |
+| 4 | Původní automatický rozstřel při zahájení hry | Nahrazen ručním rozstřelem (Update 7) |
 | 5 | Vlastní jméno online hráče, výběr a náhodné přidělení osmi barev pro lokální i online hru | Implementováno; čeká na praktický multiplayer test |
 | 6 | Online AI hráči a povinné minimum dvou lidských zařízení | Implementováno; automatické testy a FTP deploy úspěšné, čeká na praktický test |
+| 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; čeká na automatické testy a praktický test více zařízení |
 
 ## Potvrzená pravidla hry
 
 ### Určení začínajícího hráče
 
 - Na začátku každé nové hry proběhne rozstřel hodem kostkou.
-- Všichni hráči hodí kostkou; začíná hráč s nejvyšším hodem.
+- Každý živý hráč hází ručně kliknutím na kostku, až na něj přijde řada; server pouze vygeneruje a ověří výsledek vyžádaného hodu.
+- V lokální hře hází živí hráči ručně; počítačoví soupeři házejí automaticky jako AI.
+- V online hře házejí živí hráči ručně; online AI hází automaticky pouze tehdy, když je na řadě.
 - Pokud dosáhne nejvyššího výsledku více hráčů, házejí znovu pouze tito hráči.
 - Rozstřel se opakuje, dokud nezůstane jediný vítěz.
 - Vítěz rozstřelu začíná hru. Ostatní hráči pokračují v dosavadním pořadí po směru hodinových ručiček; jejich vzájemné pořadí se nemění.
+- Průběh celého rozstřelu se v herním logu zobrazuje a ukládá jako jediný průběžně aktualizovaný řádek; jednotlivé hody nevytvářejí samostatné řádky.
+- Server odmítne hod hráče, který není právě na řadě, opakovaný hod i běžný tah před dokončením rozstřelu.
 - Pravidlo platí pro lokální i online hru.
-- [x] Implementovat serverově generovaný rozstřel pro lokální i online hru; při shodě házejí znovu pouze hráči s nejvyšším výsledkem. Vítěz začne, původní pořadí hráčů zůstává zachováno.
+- [x] Implementovat ruční rozstřel živých hráčů v lokální i online hře; AI hází automaticky. Při shodě házejí znovu pouze hráči s nejvyšším výsledkem. Vítěz začne a původní pořadí hráčů zůstává zachováno.
 
 ---
 
@@ -216,7 +221,10 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 - [x] Databázové schéma install/schema.sql je v repozitáři a uživatel potvrdil vytvoření tabulek v MySQL 8.0.46.
 - [x] Přidán samostatný endpoint online-api.php; původní api.php zůstává nedotčený, protože používá starý registrační datový model.
 - [x] Základ endpointu: anonymní identita zařízení, HttpOnly cookie s náhodným tokenem (v DB pouze SHA-256 hash), CSRF ochrana, změna jména, založení čekající hry, pozvánka, připojení přes pozvánku, načtení hry, chat s limitem 30 zpráv a opuštění hry.
-- [x] Přidán serverový PHP engine odpovídající JavaScriptovým pravidlům; kostku hází server a tahy ověřuje v transakci se zámkem hry, očekávanou verzí stavu a jedinečným ID požadavku.
+- [x] Přidán serverový PHP engine odpovídající JavaScriptovým pravidlům; běžné online hody generuje server a tahy ověřuje v transakci se zámkem hry, očekávanou verzí stavu a jedinečným ID požadavku.
+- [x] Rozstřel online hry začíná ve fázi `start-roll`; živý hráč jej spouští kliknutím, server kontroluje pořadí a výsledek hodu. AI hází automaticky pouze při svém tahu.
+- [x] Online rozstřel používá jediný záznam `start` v `game_moves`; jeho obsah se po každém hodu aktualizuje, takže v herním logu zůstává jeden řádek.
+- [x] Lokální hra používá stejné pořadí ručních hodů živých hráčů a automatických hodů AI; průběh rozstřelu se průběžně přepisuje v jediném řádku logu.
 - [x] Frontend umí místnost spustit, vykreslit online stav, posílat hody/tahy/přeskočení tahu, synchronizovat pollingem a zobrazit chat společně s posledními herními událostmi.
 - [x] Do GitHub Actions přidána kontrola syntaxe PHP 8.3.
 - [x] PHP lint 8.3 a dosavadní JS syntaktické kontroly i testy herního enginu prošly v GitHub Actions.
