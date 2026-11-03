@@ -8,6 +8,7 @@ import {
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
 import { showScreen } from './navigation.js';
+import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
 
 let game = null;
 let humanCount = 1;
@@ -344,6 +345,32 @@ export function initGame() {
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
     $('roll-dice-btn')?.addEventListener('click', () => doRoll(false));
+
+    const audioToggle = $('game-audio-toggle');
+    const volumeSlider = $('game-volume');
+
+    const syncAudioControls = () => {
+        const state = getAudioState();
+        if (volumeSlider) volumeSlider.value = String(Math.round(state.volume * 100));
+        if (audioToggle) {
+            const icon = audioToggle.querySelector('i');
+            const isAudible = !state.muted && state.volume > 0;
+            if (icon) icon.className = isAudible ? 'fas fa-volume-high' : 'fas fa-volume-xmark';
+            audioToggle.setAttribute('aria-pressed', String(isAudible));
+            audioToggle.setAttribute('aria-label', isAudible ? 'Vypnout zvuk' : 'Zapnout zvuk');
+            audioToggle.title = isAudible ? 'Vypnout zvuk' : 'Zapnout zvuk';
+        }
+    };
+
+    audioToggle?.addEventListener('click', () => {
+        toggleMasterMute();
+        syncAudioControls();
+    });
+    volumeSlider?.addEventListener('input', event => {
+        setMasterVolume(Number(event.target.value) / 100);
+        syncAudioControls();
+    });
+    syncAudioControls();
     $('game-container')?.addEventListener('click', onBoardClick);
     $('close-kick-btn')?.addEventListener('click', closeKickModal);
     $('close-win-btn')?.addEventListener('click', () => {
