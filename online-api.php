@@ -10,8 +10,11 @@ declare(strict_types=1);
  */
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    $requestIsHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
     ini_set('session.use_strict_mode', '1');
     ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_secure', $requestIsHttps ? '1' : '0');
     ini_set('session.cookie_samesite', 'Lax');
     session_start();
 }
@@ -708,6 +711,27 @@ try {
                 // V čekající místnosti lze bezpečně uvolnit místo; žádné tahy ještě neexistují.
                 $db->prepare('DELETE FROM ' . onlineTable('game_participants') . ' WHERE id = ?')
                     ->execute([$game['participant_id']]);
+
+                if ((int) $game['created_by_identity_id'] === $identityId) {
+                    $stmt = $db->prepare(
+                        'SELECT identity_id FROM ' . onlineTable('game_participants') . '
+                         WHERE game_id = ? AND left_at IS NULL ORDER BY player_index LIMIT 1'
+                    );
+                    $stmt->execute([$gameId]);
+                    $nextCreatorId = $stmt->fetchColumn();
+                    if ($nextCreatorId !== false) {
+                        $db->prepare(
+                            'UPDATE ' . onlineTable('online_games') . '
+                             SET created_by_identity_id = ? WHERE id = ?'
+                        )->execute([$nextCreatorId, $gameId]);
+                    } else {
+                        $db->prepare(
+                            'UPDATE ' . onlineTable('online_games') . '
+                             SET status = \'abandoned\', created_by_identity_id = NULL
+                             WHERE id = ?'
+                        )->execute([$gameId]);
+                    }
+                }
             } else {
                 $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET left_at = NOW() WHERE id = ?')
                     ->execute([$game['participant_id']]);
