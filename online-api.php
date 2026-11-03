@@ -17,6 +17,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/lib/game-engine.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
@@ -48,6 +49,13 @@ function onlineDeviceCookiePath(): string
 {
     $directory = str_replace(chr(92), '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/'));
     return rtrim($directory, '/') . '/';
+}
+
+function onlineUuid(): string
+{
+    $hex = bin2hex(random_bytes(16));
+    return substr($hex, 0, 8) . '-' . substr($hex, 8, 4) . '-'
+        . substr($hex, 12, 4) . '-' . substr($hex, 16, 4) . '-' . substr($hex, 20, 12);
 }
 
 function onlineRandomToken(int $bytes = 32): string
@@ -146,7 +154,7 @@ function onlineCleanName(mixed $value): string
 function onlineGameAccess(PDO $db, int $gameId, int $identityId): array
 {
     $stmt = $db->prepare(
-        'SELECT g.id, g.public_id, g.status, g.player_limit, g.board_type,
+        'SELECT g.id, g.public_id, g.status, g.player_limit, g.board_type,\n                g.created_by_identity_id,
                 g.state_json, g.state_version, g.current_turn, g.created_at,
                 g.last_activity_at, p.id AS participant_id, p.player_index,
                 p.display_name
@@ -352,6 +360,243 @@ try {
             ]);
         }
 
+
+        case 'start_game': {
+            $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
+            if (!$gameId || $gameId < 1) {
+                onlineFail('Chybí identifikátor hry.');
+            }
+
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT id, status, player_limit, created_by_identity_id
+                     FROM ' . onlineTable('online_games') . ' WHERE id = ? FOR UPDATE'
+                );
+                $stmt->execute([$gameId]);
+                $gameRow = $stmt->fetch();
+
+                if (!$gameRow || (int) $gameRow['created_by_identity_id'] !== $identityId) {
+                    onlineFail('Hru může spustit pouze její zakladatel.', 403);
+                }
+                if ($gameRow['status'] !== 'waiting') {
+                    onlineFail('Tato hra již není ve stavu čekání.', 409);
+                }
+
+                $stmt = $db->prepare(
+                    'SELECT id, player_index, display_name, color
+                     FROM ' . onlineTable('game_participants') . '
+                     WHERE game_id = ? AND left_at IS NULL ORDER BY player_index'
+                );
+                $stmt->execute([$gameId]);
+                $participants = $stmt->fetchAll();
+
+                if (count($participants) < 2) {
+                    onlineFail('Ke spuštění hry jsou potřeba alespoň dva hráči.', 409);
+                }
+                if (count($participants) > (int) $gameRow['player_limit']) {
+                    onlineFail('Počet hráčů překračuje limit místnosti.', 409);
+                }
+
+                foreach ($participants as $index => $participant) {
+                    if ((int) $participant['player_index'] !== $index) {
+                        $db->prepare(
+                            'UPDATE ' . onlineTable('game_participants') . '
+                             SET player_index = ? WHERE id = ?'
+                        )->execute([$index, $participant['id']]);
+                        $participants[$index]['player_index'] = $index;
+                    }
+                }
+
+                $state = onlineEngineCreateState($participants);
+                $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                $requestId = onlineUuid();
+
+                $db->prepare(
+                    'UPDATE ' . onlineTable('online_games') . '
+                     SET status = \'active\', state_json = ?, state_schema_version = 1,
+                         state_version = 1, current_turn = 0, started_at = NOW(),
+                         last_activity_at = NOW()
+                     WHERE id = ?'
+                )->execute([$stateJson, $gameId]);
+
+                $creatorParticipantId = null;
+                foreach ($participants as $participant) {
+                    if ((int) $participant['id'] === (int) $db->query(
+                        'SELECT id FROM ' . onlineTable('game_participants') . '
+                         WHERE game_id = ' . (int) $gameId . ' AND identity_id = ' . $identityId . ' LIMIT 1'
+                    )->fetchColumn()) {
+                        $creatorParticipantId = (int) $participant['id'];
+                        break;
+                    }
+                }
+
+                $db->prepare(
+                    'INSERT INTO ' . onlineTable('game_moves') . '
+                     (game_id, participant_id, state_version, request_id, action_type, action_json)
+                     VALUES (?, ?, 1, ?, \'start\', ?)'
+                )->execute([
+                    $gameId,
+                    $creatorParticipantId,
+                    $requestId,
+                    json_encode(['players' => count($participants)], JSON_THROW_ON_ERROR),
+                ]);
+
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
+                throw $e;
+            }
+
+            onlineRespond([
+                'success' => true,
+                'game_id' => $gameId,
+                'state' => $state,
+                'state_version' => 1,
+            ]);
+        }
+
+        case 'game_action': {
+            $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
+            $expectedVersion = filter_var($_POST['expected_version'] ?? -1, FILTER_VALIDATE_INT);
+            $requestId = $_POST['request_id'] ?? '';
+            $actionType = $_POST['action_type'] ?? '';
+
+            if (!$gameId || $gameId < 1 || $expectedVersion === false || $expectedVersion < 0) {
+                onlineFail('Chybí nebo je neplatná verze hry.');
+            }
+            if (!is_string($requestId) || !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i', $requestId)) {
+                onlineFail('Neplatné ID požadavku.');
+            }
+            if (!in_array($actionType, ['roll', 'move', 'pass_turn'], true)) {
+                onlineFail('Neznámý typ herní akce.');
+            }
+
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT id, status, state_json, state_version
+                     FROM ' . onlineTable('online_games') . ' WHERE id = ? FOR UPDATE'
+                );
+                $stmt->execute([$gameId]);
+                $gameRow = $stmt->fetch();
+                if (!$gameRow || $gameRow['state_json'] === null) {
+                    onlineFail('Hra nebyla nalezena nebo ještě nebyla spuštěna.', 404);
+                }
+                if ($gameRow['status'] !== 'active') {
+                    onlineFail('Hra právě nepřijímá tahy.', 409);
+                }
+
+                $stmt = $db->prepare(
+                    'SELECT id, player_index FROM ' . onlineTable('game_participants') . '
+                     WHERE game_id = ? AND identity_id = ? AND left_at IS NULL LIMIT 1'
+                );
+                $stmt->execute([$gameId, $identityId]);
+                $participant = $stmt->fetch();
+                if (!$participant) {
+                    onlineFail('Nejsi aktivním hráčem této hry.', 403);
+                }
+
+                $state = json_decode($gameRow['state_json'], true, 512, JSON_THROW_ON_ERROR);
+                $currentVersion = (int) $gameRow['state_version'];
+
+                $stmt = $db->prepare(
+                    'SELECT id FROM ' . onlineTable('game_moves') . '
+                     WHERE game_id = ? AND request_id = ? LIMIT 1'
+                );
+                $stmt->execute([$gameId, $requestId]);
+                if ($stmt->fetch()) {
+                    $db->commit();
+                    onlineRespond([
+                        'success' => true,
+                        'duplicate' => true,
+                        'state' => $state,
+                        'state_version' => $currentVersion,
+                    ]);
+                }
+
+                if ($expectedVersion !== $currentVersion) {
+                    $db->rollBack();
+                    onlineRespond([
+                        'success' => false,
+                        'error' => 'Stav hry se mezitím změnil. Načítám aktuální stav.',
+                        'state' => $state,
+                        'state_version' => $currentVersion,
+                    ], 409);
+                }
+
+                if ((int) $participant['player_index'] !== (int) $state['currentPlayer']) {
+                    onlineFail('Nyní je na tahu jiný hráč.', 409);
+                }
+
+                $actionResult = [];
+                if ($actionType === 'roll') {
+                    $actionResult = onlineEngineRollDice($state);
+                } elseif ($actionType === 'move') {
+                    $pieceId = filter_var($_POST['piece_id'] ?? -1, FILTER_VALIDATE_INT);
+                    if ($pieceId === false || $pieceId < 0 || $pieceId > 3) {
+                        onlineFail('Neplatná figurka.');
+                    }
+                    $actionResult = onlineEngineMovePiece($state, $pieceId);
+                } else {
+                    if (($state['phase'] ?? '') !== 'no-move') {
+                        onlineFail('Tah nelze přeskočit, protože hráč má možný tah.');
+                    }
+                    onlineEngineAdvanceTurn($state);
+                    $actionResult = ['passed' => true];
+                }
+
+                $newVersion = $currentVersion + 1;
+                $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
+                $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                $actionJson = json_encode($actionResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+                $db->prepare(
+                    'UPDATE ' . onlineTable('online_games') . '
+                     SET state_json = ?, state_version = ?, current_turn = ?,
+                         status = ?, last_activity_at = NOW(),
+                         finished_at = IF(? = \'finished\', NOW(), finished_at)
+                     WHERE id = ?'
+                )->execute([
+                    $stateJson,
+                    $newVersion,
+                    (int) $state['currentPlayer'],
+                    $newStatus,
+                    $newStatus,
+                    $gameId,
+                ]);
+
+                $db->prepare(
+                    'INSERT INTO ' . onlineTable('game_moves') . '
+                     (game_id, participant_id, state_version, request_id, action_type, action_json)
+                     VALUES (?, ?, ?, ?, ?, ?)'
+                )->execute([
+                    $gameId,
+                    $participant['id'],
+                    $newVersion,
+                    $requestId,
+                    $actionType,
+                    $actionJson,
+                ]);
+
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
+                throw $e;
+            }
+
+            onlineRespond([
+                'success' => true,
+                'state' => $state,
+                'state_version' => $newVersion,
+                'action_result' => $actionResult,
+            ]);
+        }
+
         case 'get_game': {
             $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
             if (!$gameId || $gameId < 1) {
@@ -391,6 +636,8 @@ try {
                 'participants' => $participants,
                 'chat' => $chat,
                 'current_participant_id' => (int) $game['participant_id'],
+                'current_player_index' => (int) $game['player_index'],
+                'is_creator' => (int) $game['created_by_identity_id'] === $identityId,
             ]);
         }
 
