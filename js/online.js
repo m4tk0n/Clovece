@@ -5,6 +5,7 @@
 import { showScreen } from './navigation.js';
 import { renderBoard } from './game-board.js';
 import { animateDice } from './app.js';
+import { getForcedMove } from './game-engine.js';
 
 const $ = id => document.getElementById(id);
 const API_URL = 'online-api.php';
@@ -17,6 +18,7 @@ let pollInFlight = false;
 let bootstrapPromise = Promise.resolve();
 let onlineState = null;
 let onlineStateVersion = 0;
+let autoMoveVersion = -1;
 let currentPlayerIndex = -1;
 let onlineMode = false;
 
@@ -173,8 +175,19 @@ function renderOnlineGame(data) {
     renderBoard($('game-container'), onlineState);
 
     // Animaci a zvuk spustíme pouze při přechodu po novém online hodu.
+    const forcedMove = hasNewRoll && currentPlayerIndex === Number(onlineState.currentPlayer)
+        ? getForcedMove(onlineState)
+        : null;
     if (hasNewRoll && onlineState.diceValue) {
-        void animateDice(onlineState.diceValue);
+        const rollVersion = onlineStateVersion;
+        void animateDice(onlineState.diceValue).then(() => {
+            if (forcedMove !== null && autoMoveVersion !== rollVersion) {
+                autoMoveVersion = rollVersion;
+                if (onlineStateVersion === rollVersion && onlineState?.phase === 'move') {
+                    void sendGameAction('move', forcedMove);
+                }
+            }
+        });
     }
 
     const player = onlineState.players[onlineState.currentPlayer];
