@@ -193,9 +193,10 @@ export function movePiece(game, pieceId) {
     const maxSteps = game.trackLength + 4;
     const finishedNow = piece.steps === maxSteps;
     // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
-    const playerFinished = game.pieces[playerId].pieces.every(
-        item => item.steps > game.trackLength && item.steps <= maxSteps
-    );
+    const homeSteps = game.pieces[playerId].pieces.map(item => item.steps);
+    const playerFinished = homeSteps.every(
+        steps => steps > game.trackLength && steps <= maxSteps
+    ) && new Set(homeSteps).size === 4;
 
     if (playerFinished) {
         player.finished = true;
