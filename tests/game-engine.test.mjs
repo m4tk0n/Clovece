@@ -12,6 +12,9 @@ test('two to four players use the classic 52-space track and four corner starts'
     assert.equal(two.trackLength, 52);
     assert.deepEqual(two.players.map(player => player.start), [0, 26]);
 
+    const three = createGame(1, 2);
+    assert.deepEqual(three.players.map(player => player.start), [0, 17, 35]);
+
     const four = createGame(2, 2);
     assert.equal(four.trackLength, 52);
     assert.deepEqual(four.players.map(player => player.start), [0, 13, 26, 39]);
