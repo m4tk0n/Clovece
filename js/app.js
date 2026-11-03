@@ -447,19 +447,30 @@ export function initGame() {
     $('preview-players')?.addEventListener('change', event => {
         const select = event.target.closest('[data-color-key]');
         if (!select) return;
+        const preview = $('preview-players');
+        const duplicate = Array.from(preview.querySelectorAll('[data-color-key]')).some(other =>
+            other !== select && other.value === select.value
+        );
+        if (duplicate) {
+            const previous = customPlayerColors.get(select.dataset.colorKey);
+            select.value = previous || PLAYER_COLORS[0];
+            toast('Tuto barvu už má vybraný jiný hráč.');
+            return;
+        }
         customPlayerColors.set(select.dataset.colorKey, select.value);
+        select.closest('.preview-player')?.style.setProperty('--player-color', select.value);
     });
     $('random-player-colors-btn')?.addEventListener('click', () => {
-        const shuffled = [...PLAYER_COLORS].sort(() => Math.random() - 0.5);
+        const shuffled = [...PLAYER_COLORS];
+        for (let index = shuffled.length - 1; index > 0; index--) {
+            const swapIndex = Math.floor(Math.random() * (index + 1));
+            [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+        }
         const preview = $('preview-players');
         preview?.querySelectorAll('[data-color-key]').forEach((select, index) => {
             select.value = shuffled[index];
             customPlayerColors.set(select.dataset.colorKey, select.value);
-            const orb = select.closest('.preview-player')?.querySelector('.preview-player-orb');
-            if (orb) orb.style.backgroundColor = select.value;
-        });
-        preview?.querySelectorAll('.preview-player').forEach((card, index) => {
-            card.style.setProperty('--player-color', shuffled[index]);
+            select.closest('.preview-player')?.style.setProperty('--player-color', select.value);
         });
     });
     $('start-game-btn')?.addEventListener('click', startGame);
