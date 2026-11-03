@@ -1031,3 +1031,12 @@
     max-width: none;
     margin: 0;
 }
+
+/* Všechny tři herní bloky mají stejnou šířku, navíc +2 px. */
+#game-screen .game-header,
+#game-screen .game-container,
+#game-screen .game-chat {
+    width: calc(100% + 2px);
+    margin-left: -1px;
+    margin-right: 0;
+}
