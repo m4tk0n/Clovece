@@ -82,13 +82,6 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     let x = pos.x + Math.cos(radians) * spread;
     let y = pos.y + Math.sin(radians) * spread;
 
-    // Čtyři dokončené figurky zůstávají viditelné v cílovém poli.
-    if (piece.steps === maxSteps) {
-        const finishedOffsets = [[-6, -6], [6, -6], [-6, 6], [6, 6]];
-        const offset = finishedOffsets[stackIndex] || [0, 0];
-        x += offset[0];
-        y += offset[1];
-    }
     const selectable = player.id === game.currentPlayer && validMoves.has(piece.id);
     return '<g class="board-piece ' + (selectable ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">' +
         '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 5) + '" r="14"/>' +
