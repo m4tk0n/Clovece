@@ -384,7 +384,7 @@ try {
                 }
 
                 $stmt = $db->prepare(
-                    'SELECT id, player_index, display_name, color
+                    'SELECT id, identity_id, player_index, display_name, color
                      FROM ' . onlineTable('game_participants') . '
                      WHERE game_id = ? AND left_at IS NULL ORDER BY player_index'
                 );
@@ -398,14 +398,19 @@ try {
                     onlineFail('Počet hráčů překračuje limit místnosti.', 409);
                 }
 
+                // Dvoufázové přečíslování zabrání kolizi unikátního indexu.
+                $db->prepare(
+                    'UPDATE ' . onlineTable('game_participants') . '
+                     SET player_index = player_index + 100
+                     WHERE game_id = ? AND left_at IS NULL'
+                )->execute([$gameId]);
+
                 foreach ($participants as $index => $participant) {
-                    if ((int) $participant['player_index'] !== $index) {
-                        $db->prepare(
-                            'UPDATE ' . onlineTable('game_participants') . '
-                             SET player_index = ? WHERE id = ?'
-                        )->execute([$index, $participant['id']]);
-                        $participants[$index]['player_index'] = $index;
-                    }
+                    $db->prepare(
+                        'UPDATE ' . onlineTable('game_participants') . '
+                         SET player_index = ? WHERE id = ?'
+                    )->execute([$index, $participant['id']]);
+                    $participants[$index]['player_index'] = $index;
                 }
 
                 $state = onlineEngineCreateState($participants);
@@ -422,10 +427,7 @@ try {
 
                 $creatorParticipantId = null;
                 foreach ($participants as $participant) {
-                    if ((int) $participant['id'] === (int) $db->query(
-                        'SELECT id FROM ' . onlineTable('game_participants') . '
-                         WHERE game_id = ' . (int) $gameId . ' AND identity_id = ' . $identityId . ' LIMIT 1'
-                    )->fetchColumn()) {
+                    if ((int) $participant['identity_id'] === $identityId) {
                         $creatorParticipantId = (int) $participant['id'];
                         break;
                     }
@@ -691,8 +693,14 @@ try {
                 onlineFail('Chybí identifikátor hry.');
             }
             $game = onlineGameAccess($db, $gameId, $identityId);
-            $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET left_at = NOW() WHERE id = ?')
-                ->execute([$game['participant_id']]);
+            if ($game['status'] === 'waiting') {
+                // V čekající místnosti lze bezpečně uvolnit místo; žádné tahy ještě neexistují.
+                $db->prepare('DELETE FROM ' . onlineTable('game_participants') . ' WHERE id = ?')
+                    ->execute([$game['participant_id']]);
+            } else {
+                $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET left_at = NOW() WHERE id = ?')
+                    ->execute([$game['participant_id']]);
+            }
             $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET last_activity_at = NOW() WHERE id = ?')
                 ->execute([$gameId]);
             onlineRespond(['success' => true]);
