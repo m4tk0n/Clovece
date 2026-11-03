@@ -372,7 +372,6 @@ $ver = date('Ymd-His');
                     <div class="setup-summary">
                         <strong id="setup-total">4 hráči</strong>
                         <span id="setup-board-type">Klasická čtyřbarevná aréna</span>
-                        <span class="setup-board-note" id="setup-board-note">Čtyři základny, čtyři domácí dráhy.</span>
                     </div>
                     <div class="player-preview" id="player-preview">
                         <h3>SESTAVA U STOLU</h3>
