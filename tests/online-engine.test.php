@@ -82,6 +82,39 @@ checkSame([0, 13, 26, 38, 51], array_column($five['players'], 'start'), 'Startov
 $eight = onlineEngineCreateState(testParticipants(8));
 checkSame([0, 8, 16, 24, 32, 40, 48, 56], array_column($eight['players'], 'start'), 'Startovní pole pro osm hráčů nesouhlasí.');
 
+checkSame([40, 48, 80], onlineEngineAvailableBoardSizes(2), 'Dva hráči musí mít dostupné všechny velikosti.');
+checkSame([40, 48, 80], onlineEngineAvailableBoardSizes(4), 'Čtyři hráči musí mít dostupné všechny velikosti.');
+checkSame([48, 80], onlineEngineAvailableBoardSizes(5), 'Pět hráčů nesmí mít dostupnou desku se 40 poli.');
+checkSame([48, 80], onlineEngineAvailableBoardSizes(6), 'Šest hráčů musí mít dostupné desky 48 a 80 polí.');
+checkSame([80], onlineEngineAvailableBoardSizes(7), 'Sedm hráčů musí mít dostupnou pouze desku s 80 poli.');
+checkSame([80], onlineEngineAvailableBoardSizes(8), 'Osm hráčů musí mít dostupnou pouze desku s 80 poli.');
+
+$board40 = onlineEngineCreateState(testParticipants(2), 40);
+checkSame(40, $board40['trackLength'], 'Deska 40 musí mít přesně 40 polí.');
+checkSame(4, $board40['slotCount'], 'Deska 40 musí zachovat čtyři pozice.');
+checkSame([0, 2], array_column($board40['players'], 'slot'), 'Dva hráči musí být na protilehlých pozicích čtyřmístné desky.');
+checkSame([0, 20], array_column($board40['players'], 'start'), 'Starty na desce 40 nesouhlasí.');
+
+$board48 = onlineEngineCreateState(testParticipants(5), 48);
+checkSame(48, $board48['trackLength'], 'Deska 48 musí mít přesně 48 polí.');
+checkSame(6, $board48['slotCount'], 'Deska 48 musí zachovat šest pozic.');
+checkSame([0, 1, 2, 4, 5], array_column($board48['players'], 'slot'), 'Pět hráčů musí ponechat jednu pozici prázdnou.');
+checkSame([0, 8, 16, 32, 40], array_column($board48['players'], 'start'), 'Starty na desce 48 nesouhlasí.');
+
+$board80 = onlineEngineCreateState(testParticipants(7), 80);
+checkSame(80, $board80['trackLength'], 'Deska 80 musí mít přesně 80 polí.');
+checkSame(8, $board80['slotCount'], 'Deska 80 musí zachovat osm pozic.');
+checkSame([0, 1, 2, 3, 5, 6, 7], array_column($board80['players'], 'slot'), 'Sedm hráčů musí ponechat jednu pozici prázdnou.');
+checkSame([0, 10, 20, 30, 50, 60, 70], array_column($board80['players'], 'start'), 'Starty na desce 80 nesouhlasí.');
+
+$invalidBoard = false;
+try {
+    onlineEngineCreateState(testParticipants(5), 40);
+} catch (InvalidArgumentException) {
+    $invalidBoard = true;
+}
+checkSame(true, $invalidBoard, 'Server musí odmítnout nepodporovanou velikost pro počet hráčů.');
+
 $capture = onlineEngineCreateState(testParticipants(2));
 $capture['phase'] = 'move';
 $capture['diceValue'] = 1;
