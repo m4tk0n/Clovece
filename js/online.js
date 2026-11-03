@@ -281,6 +281,35 @@ function renderGame(data) {
         });
     }
 
+    const ownParticipant = participants.find(player =>
+        Number(player.id) === Number(data.current_participant_id)
+    );
+    const nameInput = $('room-player-name');
+    if (nameInput && document.activeElement !== nameInput && ownParticipant) {
+        nameInput.value = ownParticipant.display_name;
+    }
+
+    const colorSelect = $('room-player-color');
+    if (colorSelect && ownParticipant) {
+        const usedByOthers = new Set(participants
+            .filter(player => Number(player.id) !== Number(data.current_participant_id))
+            .map(player => player.color));
+        if (document.activeElement !== colorSelect) {
+            colorSelect.replaceChildren();
+            ["#E53935","#1E88E5","#43A047","#F9A825","#FB8C00","#8E24AA","#00ACC1","#D81B60"].forEach((color, index) => {
+                const option = document.createElement('option');
+                option.value = color;
+                option.textContent = ["Červená","Modrá","Zelená","Žlutá","Oranžová","Fialová","Tyrkysová","Růžová"][index];
+                option.disabled = usedByOthers.has(color);
+                option.selected = color === ownParticipant.color;
+                colorSelect.appendChild(option);
+            });
+        }
+        colorSelect.disabled = game.status !== 'waiting';
+    }
+    $('room-player-settings')?.classList.toggle('hidden', !ownParticipant);
+    $('random-room-color-btn')?.classList.toggle('hidden', game.status !== 'waiting');
+
     $('ready-btn')?.classList.add('hidden');
     $('room-start-game-btn')?.classList.toggle(
         'hidden',
@@ -451,6 +480,61 @@ export async function initOnline() {
         void createRoom(button);
     }, true);
     // Tlačítko pro připojení obsluhuje navigation.js přes window.joinRoom().
+    $('room-player-settings')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!currentGameId) return;
+        const name = $('room-player-name')?.value.trim();
+        if (!name) {
+            notify('Zadej zobrazované jméno.');
+            return;
+        }
+        try {
+            const result = await api('rename_participant', {
+                game_id: String(currentGameId),
+                display_name: name
+            });
+            const identityName = $('online-player-name');
+            if (identityName) identityName.value = result.display_name;
+            await refreshGame();
+            notify('Tvoje jméno bylo změněno.');
+        } catch (error) {
+            notify(error.message);
+            await refreshGame();
+        }
+    });
+    $('room-player-color')?.addEventListener('change', async event => {
+        if (!currentGameId) return;
+        try {
+            await api('set_color', {
+                game_id: String(currentGameId),
+                color: event.target.value
+            });
+            await refreshGame();
+        } catch (error) {
+            notify(error.message);
+            await refreshGame();
+        }
+    });
+    $('random-room-color-btn')?.addEventListener('click', async () => {
+        const select = $('room-player-color');
+        if (!currentGameId || !select) return;
+        const available = Array.from(select.options).filter(option => !option.disabled);
+        if (!available.length) {
+            notify('Pro tebe už nezbývá volná barva.');
+            return;
+        }
+        const choice = available[Math.floor(Math.random() * available.length)];
+        try {
+            await api('set_color', {
+                game_id: String(currentGameId),
+                color: choice.value
+            });
+            await refreshGame();
+        } catch (error) {
+            notify(error.message);
+            await refreshGame();
+        }
+    });
     $('copy-invite-btn')?.addEventListener('click', copyInvite);
     $('room-start-game-btn')?.addEventListener('click', async () => {
         if (!currentGameId) return;
