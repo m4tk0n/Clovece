@@ -290,7 +290,7 @@
 #game-screen:not(.hidden) {
     box-sizing: border-box; width:100%; height:100vh; height:100dvh;
     min-height:0; overflow:hidden; display:flex; flex-direction:column;
-    gap:0; padding:7px clamp(7px,1.5vw,18px);
+    gap:0; padding:7px 2px;
 }
 #game-screen .game-header {
     flex:0 0 auto; width:100%; display:grid;
@@ -330,7 +330,7 @@
 #game-screen .player-card-progress small { font-size:9px; }
 
 @media (max-width:600px) {
-    #game-screen:not(.hidden) { padding:5px; }
+    #game-screen:not(.hidden) { padding:5px 1px; }
     #game-screen .game-header {
         grid-template-columns:minmax(0,1fr) auto; gap:5px;
         padding:6px 7px; margin-bottom:4px;
