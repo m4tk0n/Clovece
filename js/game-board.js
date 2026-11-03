@@ -67,7 +67,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     if (piece.steps < 0 || piece.steps === maxSteps) return '';
 
     let pos;
-    if (piece.steps < game.trackLength) {
+    if (piece.steps <= game.trackLength) {
         const trackIndex = getPiecePosition(game, player.id, piece);
         const angle = trackAngle(trackIndex, game);
         pos = point(angle, TRACK_RADIUS);
@@ -128,7 +128,7 @@ export function renderBoard(container, game) {
                     playerId: group === game.pieces[player.id] ? player.id : game.pieces.indexOf(group),
                     piece: item,
                     index
-                }))).filter(item => item.piece.steps >= 0 && item.piece.steps < game.trackLength &&
+                }))).filter(item => item.piece.steps >= 0 && item.piece.steps <= game.trackLength &&
                     getPiecePosition(game, item.playerId, item.piece) === position);
                 stackIndex = all.findIndex(item => item.playerId === player.id && item.piece.id === piece.id);
                 stackCount = all.length;
