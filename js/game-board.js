@@ -92,6 +92,13 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
 
 export function renderBoard(container, game) {
     if (!container || !game) return;
+
+    // Při online pollingu přichází stejný stav opakovaně. SVG překreslíme
+    // pouze tehdy, když se skutečně změnil herní stav.
+    const renderKey = JSON.stringify(game);
+    if (container.dataset.renderKey === renderKey) return;
+    container.dataset.renderKey = renderKey;
+
     const total = game.players.length;
     const validMoves = new Set(getValidMoves(game));
     const track = [];
