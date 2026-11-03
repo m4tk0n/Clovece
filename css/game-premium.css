@@ -1055,7 +1055,12 @@
 }
 
 
-/* Jemné zašlé hrany mezi plochami kostky – původní slonovinový povrch zůstává. */
-#dice-animation .face {
-    border: 1px solid #b5a583;
-}
+/* Hrany kostky: zachovat původní barvu ploch a odstranit tmavé spáry
+   nepatrným překrytím jednotlivých stěn. */
+#dice-animation .face { border: 0; }
+#dice-animation .f1 { transform: rotateY(0deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
+#dice-animation .f6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
+#dice-animation .f2 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
+#dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
+#dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
+#dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
