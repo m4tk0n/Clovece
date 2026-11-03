@@ -45,7 +45,8 @@ try {
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false]
     );
 
-    $table = '"' . $prefix . 'cron_tasks"';
+    $quote = chr(96); // znak backtick pro bezpečné názvy tabulek MySQL
+    $table = $quote . $prefix . 'cron_tasks' . $quote;
 
     // Hlavní throttling: nejvýše jeden průchod úlohami za 5 minut.
     $pdo->prepare("INSERT IGNORE INTO {$table} (task_key, next_run_at, is_enabled) VALUES ('__main__', NOW(), 1)")->execute();
@@ -61,8 +62,8 @@ try {
 
     $pdo->exec("UPDATE {$table} SET locked_until = DATE_ADD(NOW(), INTERVAL 4 MINUTE) WHERE task_key = '__main__'");
 
-    $games = '"' . $prefix . 'online_games"';
-    $invites = '"' . $prefix . 'game_invites"';
+    $games = $quote . $prefix . 'online_games' . $quote;
+    $invites = $quote . $prefix . 'game_invites' . $quote;
 
     $tasks = [
         'cleanup_games' => [
