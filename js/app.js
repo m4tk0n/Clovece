@@ -521,11 +521,6 @@ export function initGame() {
     });
     $('settings-btn')?.addEventListener('click', () => showScreen('settings'));
     $('rules-btn')?.addEventListener('click', () => showScreen('rules'));
-    $('join-room-btn')?.addEventListener('click', () => toast('Online připojení bude doplněno v další etapě.'));
-    $('create-room-btn-lobby')?.addEventListener('click', () => {
-        showScreen('player-selection');
-        updateSetup();
-    });
 
     updateSetup();
 }
