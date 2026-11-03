@@ -176,7 +176,7 @@ function renderGame(data) {
     const game = data.game;
     const participants = data.participants || [];
 
-    if (game.status === 'active' && game.state) {
+    if (['active', 'finished'].includes(game.status) && game.state) {
         renderOnlineGame(data);
         return;
     }
