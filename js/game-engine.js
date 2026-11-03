@@ -69,7 +69,6 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
     if (game.phase !== 'move' || playerId !== game.currentPlayer) return [];
     const playerPieces = game.pieces[playerId].pieces;
     const maxSteps = game.trackLength + 4;
-    const safeSquares = new Set(game.players.map(player => player.start));
     const valid = [];
 
     playerPieces.forEach(piece => {
@@ -95,7 +94,8 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
                     getPiecePosition(game, enemyId, other) === destination
                 );
             });
-            if (enemyAtTarget && safeSquares.has(destination)) return;
+            const safeSquareOwner = game.players.findIndex(player => player.start === destination);
+            if (enemyAtTarget && safeSquareOwner !== -1 && safeSquareOwner !== playerId) return;
         }
 
         valid.push(piece.id);
@@ -136,9 +136,10 @@ export function movePiece(game, pieceId) {
 
     if (nextSteps < game.trackLength) {
         const destination = (player.start + nextSteps) % game.trackLength;
-        const safeSquares = new Set(game.players.map(item => item.start));
+        const safeSquareOwner = game.players.findIndex(item => item.start === destination);
 
-        if (!safeSquares.has(destination)) {
+        // Vlastní startovní pole není bezpečné pro soupeřovu figurku.
+        if (safeSquareOwner === -1 || safeSquareOwner === playerId) {
             game.pieces.forEach((group, enemyId) => {
                 if (enemyId === playerId) return;
                 group.pieces.forEach(enemyPiece => {
