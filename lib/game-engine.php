@@ -229,22 +229,47 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
     return $valid;
 }
 
-function onlineEngineRollDice(array &$game): array
+function onlineEngineRollDice(array &$game, ?callable $rollFn = null): array
 {
     if (($game['phase'] ?? '') !== 'roll' || ($game['winner'] ?? null) !== null) {
         throw new DomainException('Nyní nelze házet kostkou.');
     }
 
-    $value = random_int(1, 6);
+    $rollFn ??= static fn(): int => random_int(1, 6);
+    $value = (int) $rollFn();
+    if ($value < 1 || $value > 6) {
+        throw new InvalidArgumentException('Hod kostkou musí být číslo od 1 do 6.');
+    }
     $game['diceValue'] = $value;
-    $game['phase'] = 'move';
-    $moves = onlineEngineValidMoves($game);
 
-    if ($moves === []) {
-        $game['phase'] = 'no-move';
+    $playerId = (int) $game['currentPlayer'];
+    $allAtBase = true;
+    foreach ($game['pieces'][$playerId]['pieces'] as $piece) {
+        if ((int) $piece['steps'] !== -1) {
+            $allAtBase = false;
+            break;
+        }
     }
 
-    return ['value' => $value, 'validMoves' => $moves];
+    if ($allAtBase && $value !== 6) {
+        $game['baseRollAttempts'] = (int) ($game['baseRollAttempts'] ?? 0) + 1;
+        $retrying = $game['baseRollAttempts'] < 3;
+        $game['phase'] = $retrying ? 'roll' : 'no-move';
+        return [
+            'value' => $value,
+            'validMoves' => [],
+            'retrying' => $retrying,
+            'attempt' => $game['baseRollAttempts'],
+            'maxAttempts' => 3,
+        ];
+    }
+
+    $game['baseRollAttempts'] = 0;
+    $game['phase'] = 'move';
+    $moves = onlineEngineValidMoves($game);
+    if ($moves === []) $game['phase'] = 'no-move';
+
+    return ['value' => $value, 'validMoves' => $moves, 'retrying' => false];
 }
 
 function onlineEngineAdvanceTurn(array &$game): void
