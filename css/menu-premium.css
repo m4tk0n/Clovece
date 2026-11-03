@@ -662,5 +662,5 @@
     scroll-behavior: auto;
 }
 .menu-screen > .menu-bg {
-    margin: auto !important;
+    margin: 0 auto !important;
 }
