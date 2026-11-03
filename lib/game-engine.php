@@ -289,6 +289,7 @@ function onlineEngineAdvanceTurn(array &$game): void
 
     $game['currentPlayer'] = $next;
     $game['diceValue'] = 0;
+    $game['baseRollAttempts'] = 0;
     $game['phase'] = 'roll';
     $game['turnNumber'] = (int) $game['turnNumber'] + 1;
 }
@@ -356,6 +357,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
         $game['winner'] = $playerId;
         $game['phase'] = 'finished';
     } elseif ($diceValue === 6 && !$finishedNow) {
+        $game['baseRollAttempts'] = 0;
         $game['phase'] = 'roll';
     } else {
         onlineEngineAdvanceTurn($game);
