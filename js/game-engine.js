@@ -19,6 +19,15 @@ export function createGame(humanCount, aiCount, names = [], colors = []) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
     }
 
+    const assignedColors = [];
+    for (let index = 0; index < total; index++) {
+        const requested = colors[index];
+        const color = PLAYER_COLORS.includes(requested) && !assignedColors.includes(requested)
+            ? requested
+            : PLAYER_COLORS.find(candidate => !assignedColors.includes(candidate));
+        assignedColors.push(color || PLAYER_COLORS[index]);
+    }
+
     const trackLength = total <= 4 ? 52 : 64;
     const classicSlots = total === 2 ? [0, 2] : total === 3 ? [0, 1, 2] : [0, 1, 2, 3];
     const slots = total <= 4
@@ -28,7 +37,7 @@ export function createGame(humanCount, aiCount, names = [], colors = []) {
         id: index,
         slot: slots[index],
         name: names[index] || (index < humanCount ? 'Hráč ' + (index + 1) : 'AI ' + (index - humanCount + 1)),
-        color: PLAYER_COLORS.includes(colors[index]) ? colors[index] : PLAYER_COLORS[index],
+        color: assignedColors[index],
         isAI: index >= humanCount,
         start: total === 3 || total >= 5
             ? Math.round(index * trackLength / total)
