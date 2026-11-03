@@ -87,15 +87,6 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
             );
             if (ownBlock) return;
 
-            const enemyAtTarget = game.pieces.some((group, enemyId) => {
-                if (enemyId === playerId) return false;
-                return group.pieces.some(other =>
-                    other.steps >= 0 && other.steps < game.trackLength &&
-                    getPiecePosition(game, enemyId, other) === destination
-                );
-            });
-            const safeSquareOwner = game.players.findIndex(player => player.start === destination);
-            if (enemyAtTarget && safeSquareOwner !== -1 && safeSquareOwner !== playerId) return;
         }
 
         valid.push(piece.id);
@@ -136,26 +127,22 @@ export function movePiece(game, pieceId) {
 
     if (nextSteps < game.trackLength) {
         const destination = (player.start + nextSteps) % game.trackLength;
-        const safeSquareOwner = game.players.findIndex(item => item.start === destination);
-
-        // Vlastní startovní pole není bezpečné pro soupeřovu figurku.
-        if (safeSquareOwner === -1 || safeSquareOwner === playerId) {
-            game.pieces.forEach((group, enemyId) => {
-                if (enemyId === playerId) return;
-                group.pieces.forEach(enemyPiece => {
-                    if (enemyPiece.steps >= 0 && enemyPiece.steps < game.trackLength &&
-                        getPiecePosition(game, enemyId, enemyPiece) === destination) {
-                        captured = {
-                            playerId: enemyId,
-                            pieceId: enemyPiece.id,
-                            playerName: game.players[enemyId].name,
-                            color: game.players[enemyId].color
-                        };
-                        enemyPiece.steps = -1;
-                    }
-                });
+        // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
+        game.pieces.forEach((group, enemyId) => {
+            if (enemyId === playerId) return;
+            group.pieces.forEach(enemyPiece => {
+                if (enemyPiece.steps >= 0 && enemyPiece.steps < game.trackLength &&
+                    getPiecePosition(game, enemyId, enemyPiece) === destination) {
+                    captured = {
+                        playerId: enemyId,
+                        pieceId: enemyPiece.id,
+                        playerName: game.players[enemyId].name,
+                        color: game.players[enemyId].color
+                    };
+                    enemyPiece.steps = -1;
+                }
             });
-        }
+        });
     }
 
     piece.steps = nextSteps;
