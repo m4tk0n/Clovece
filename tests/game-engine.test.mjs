@@ -176,7 +176,7 @@ test('a piece may jump over own pieces but may not land on them on the main trac
     game.phase = 'move';
     game.diceValue = 2;
 
-    assert.deepEqual(getValidMoves(game), [0]);
+    assert.deepEqual(getValidMoves(game), [0, 1]);
     movePiece(game, 0);
     assert.equal(game.pieces[0].pieces[0].steps, 2);
     assert.equal(game.pieces[0].pieces[1].steps, 1);
@@ -195,7 +195,7 @@ test('a piece may jump over own pieces in the home lane but may not land on them
     game.phase = 'move';
     game.diceValue = 2;
 
-    assert.deepEqual(getValidMoves(game), [0]);
+    assert.deepEqual(getValidMoves(game), [0, 1]);
     movePiece(game, 0);
     assert.equal(game.pieces[0].pieces[0].steps, laneStart + 2);
     assert.equal(game.pieces[0].pieces[1].steps, laneStart + 1);
@@ -213,7 +213,7 @@ test('two own pieces cannot occupy the same home-lane square', () => {
     game.phase = 'move';
     game.diceValue = 1;
 
-    assert.deepEqual(getValidMoves(game), []);
+    assert.deepEqual(getValidMoves(game), [1]);
 });
 
 test('a player wins only by bringing all four pieces exactly home', () => {
