@@ -625,9 +625,11 @@
 }
 
 
-/* Zabrání automatickému posouvání při překreslování náhledu hráčů.
-   updateSetup() při pohybu posuvníků obnovuje obsah #preview-players;
-   scroll anchoring prohlížeče pak jinak mění scrollTop celé obrazovky. */
-#player-selection {
+/* Žádná pomocná/menu obrazovka se nesmí sama posouvat zpět.
+   Vypnutí scroll anchoringu na obrazovce i jejích potomcích zabrání
+   prohlížeči měnit pozici při překreslení obsahu nebo změně výšky prvků.
+   Herní obrazovky se toto pravidlo netýká. */
+.menu-screen,
+.menu-screen * {
     overflow-anchor: none;
 }
