@@ -240,6 +240,20 @@
                 
                 <h3>Hráči</h3>
                 <div id="participant-list" class="participant-list"></div>
+                <form id="room-player-settings" class="room-actions hidden">
+                    <label for="room-player-name">Tvoje zobrazované jméno</label>
+                    <input id="room-player-name" type="text" maxlength="50" autocomplete="nickname" required>
+                    <button type="submit" class="menu-btn secondary">
+                        <span>ZMĚNIT JMÉNO</span>
+                        <i class="fas fa-user-pen"></i>
+                    </button>
+                    <label for="room-player-color">Tvoje barva figurek</label>
+                    <select id="room-player-color" class="color-select"></select>
+                    <button id="random-room-color-btn" type="button" class="menu-btn secondary">
+                        <span>NÁHODNÁ BARVA</span>
+                        <i class="fas fa-shuffle"></i>
+                    </button>
+                </form>
                 
                 <div class="room-actions">
                     <button id="ready-btn" class="menu-btn">
