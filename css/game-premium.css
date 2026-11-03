@@ -1068,18 +1068,17 @@
 
 /* Chat a herní log sdílejí jeden seznam zpráv; nadpis se nezobrazuje. */
 #game-screen .game-chat h4 { display: none; }
-#game-screen .game-chat .chat-form {
-    order: 1;
-    margin-top: 0;
-}
 #game-screen .game-chat .chat-messages {
-    order: 2;
+    order: 0;
     flex: 1 1 auto;
     min-height: 30px;
     max-height: none;
+    padding-top: 5px;
+    padding-bottom: 1px;
+}
+#game-screen .game-chat .chat-form {
+    order: 0;
     margin-top: 1px;
-    padding-top: 0;
-    padding-bottom: 5px;
 }
 @media(max-width:600px) {
     #game-screen .game-chat .chat-messages { max-height: none; min-height: 26px; }
