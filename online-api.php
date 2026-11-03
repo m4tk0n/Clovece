@@ -176,6 +176,59 @@ function onlineGameAccess(PDO $db, int $gameId, int $identityId): array
     return $result;
 }
 
+function onlineProcessAiTurns(PDO $db, int $gameId): void
+{
+    for ($step = 0; $step < 12; $step++) {
+        $db->beginTransaction();
+        try {
+            $stmt = $db->prepare('SELECT status, state_json, state_version FROM ' . onlineTable('online_games') . ' WHERE id = ? FOR UPDATE');
+            $stmt->execute([$gameId]);
+            $game = $stmt->fetch();
+            if (!$game || $game['status'] !== 'active' || $game['state_json'] === null) {
+                $db->commit();
+                return;
+            }
+            $state = json_decode($game['state_json'], true, 512, JSON_THROW_ON_ERROR);
+            $playerIndex = (int) $state['currentPlayer'];
+            $stmt = $db->prepare('SELECT id, player_type FROM ' . onlineTable('game_participants') . ' WHERE game_id = ? AND player_index = ? AND left_at IS NULL LIMIT 1');
+            $stmt->execute([$gameId, $playerIndex]);
+            $participant = $stmt->fetch();
+            if (!$participant || $participant['player_type'] !== 'ai') {
+                $db->commit();
+                return;
+            }
+            if ($state['phase'] === 'roll') {
+                $actionType = 'roll';
+                $actionResult = onlineEngineRollDice($state);
+            } elseif ($state['phase'] === 'move') {
+                $actionType = 'move';
+                $pieceId = onlineEngineChooseAIMove($state);
+                if ($pieceId === null) throw new RuntimeException('AI nemá dostupný platný tah.');
+                $actionResult = onlineEngineMovePiece($state, $pieceId);
+                $actionResult['pieceId'] = $pieceId;
+            } elseif ($state['phase'] === 'no-move') {
+                $actionType = 'pass_turn';
+                onlineEngineAdvanceTurn($state);
+                $actionResult = ['passed' => true];
+            } else {
+                $db->commit();
+                return;
+            }
+            $newVersion = (int) $game['state_version'] + 1;
+            $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
+            $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET state_json = ?, state_version = ?, current_turn = ?, status = ?, last_activity_at = NOW(), finished_at = IF(? = \'finished\', NOW(), finished_at) WHERE id = ?')
+                ->execute([json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $newVersion, (int) $state['currentPlayer'], $newStatus, $newStatus, $gameId]);
+            $db->prepare('INSERT INTO ' . onlineTable('game_moves') . ' (game_id, participant_id, state_version, request_id, action_type, action_json) VALUES (?, ?, ?, ?, ?, ?)')
+                ->execute([$gameId, (int) $participant['id'], $newVersion, onlineUuid(), $actionType, json_encode($actionResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
+            $db->commit();
+            if ($newStatus === 'finished') return;
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $e;
+        }
+    }
+}
+
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
@@ -630,6 +683,39 @@ try {
         }
 
 
+        case 'add_ai_player': {
+            $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
+            if (!$gameId || $gameId < 1) onlineFail('Chybí identifikátor místnosti.');
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare('SELECT id, status, player_limit, created_by_identity_id FROM ' . onlineTable('online_games') . ' WHERE id = ? FOR UPDATE');
+                $stmt->execute([$gameId]);
+                $gameRow = $stmt->fetch();
+                if (!$gameRow) onlineFail('Místnost nebyla nalezena.', 404);
+                if ((int) $gameRow['created_by_identity_id'] !== $identityId) onlineFail('Počítačové hráče může přidávat pouze zakladatel.', 403);
+                if ($gameRow['status'] !== 'waiting') onlineFail('Počítačového hráče lze přidat pouze před zahájením hry.', 409);
+                $stmt = $db->prepare('SELECT player_index, player_type FROM ' . onlineTable('game_participants') . ' WHERE game_id = ? AND left_at IS NULL');
+                $stmt->execute([$gameId]);
+                $participants = $stmt->fetchAll();
+                if (count($participants) >= (int) $gameRow['player_limit']) onlineFail('Místnost už je plná.', 409);
+                $usedIndexes = array_map(static fn(array $p): int => (int) $p['player_index'], $participants);
+                $playerIndex = 0;
+                while (in_array($playerIndex, $usedIndexes, true)) $playerIndex++;
+                if ($playerIndex >= (int) $gameRow['player_limit']) onlineFail('V místnosti už není volné místo.', 409);
+                $aiNumber = 1;
+                foreach ($participants as $participant) if ($participant['player_type'] === 'ai') $aiNumber++;
+                $name = 'Počítač ' . $aiNumber;
+                $db->prepare('INSERT INTO ' . onlineTable('game_participants') . ' (game_id, identity_id, player_index, player_type, display_name, color, is_ready, last_seen_at) VALUES (?, NULL, ?, \'ai\', ?, \'random\', 1, NOW())')
+                    ->execute([$gameId, $playerIndex, $name]);
+                $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET last_activity_at = NOW() WHERE id = ?')->execute([$gameId]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+            onlineRespond(['success' => true, 'display_name' => $name, 'player_index' => $playerIndex]);
+        }
+
         case 'start_game': {
             $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
             if (!$gameId || $gameId < 1) {
@@ -926,6 +1012,7 @@ try {
             }
 
             $game = onlineGameAccess($db, $gameId, $identityId);
+            onlineProcessAiTurns($db, $gameId);
             $stmt = $db->prepare(
                 'SELECT id, player_index, player_type, display_name, color, is_ready, joined_at, last_seen_at
                  FROM ' . onlineTable('game_participants') . '
