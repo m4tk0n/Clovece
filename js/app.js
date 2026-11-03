@@ -4,7 +4,7 @@
  */
 import {
     createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
-    advanceTurn, chooseAIMove
+    advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
 import { showScreen } from './navigation.js';
@@ -13,6 +13,7 @@ import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnable
 let game = null;
 let humanCount = 1;
 let aiCount = 1;
+let selectedBoardSize = 40;
 let aiTimer = null;
 let modalOpen = false;
 function loadSettings() {
@@ -91,9 +92,18 @@ function updateSetup() {
     $('human-players-value').textContent = humanCount;
     $('ai-players-value').textContent = aiCount;
     $('setup-total').textContent = total + ' ' + (total === 1 ? 'hráč' : total < 5 ? 'hráči' : 'hráčů');
-    $('setup-board-type').textContent = total <= 4
-        ? 'Klasická čtyřbarevná aréna'
-        : 'Rozšířená osmisměrná aréna';
+
+    const availableBoardSizes = getAvailableBoardSizes(total);
+    if (!availableBoardSizes.includes(selectedBoardSize)) {
+        selectedBoardSize = availableBoardSizes[0] || 40;
+    }
+    $('board-size-options')?.querySelectorAll('[data-board-size]').forEach(button => {
+        const size = Number(button.dataset.boardSize);
+        const active = size === selectedBoardSize;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+        button.disabled = !availableBoardSizes.includes(size);
+    });
 
     const players = Array.from({ length: total }, (_, index) => {
         const isAI = index >= humanCount;
@@ -531,7 +541,7 @@ function startGame() {
         const colors = Array.from($('preview-players').querySelectorAll('[data-color-key]'), select =>
             select.value === 'random' ? select.dataset.resolvedColor : select.value
         );
-        game = createGame(humanCount, aiCount, names, colors);
+        game = createGame(humanCount, aiCount, names, colors, selectedBoardSize);
         game.phase = 'start-roll';
         game.currentPlayer = 0;
         game.startCandidates = game.players.map(player => player.id);
@@ -563,6 +573,12 @@ function restartGame() {
 export function initGame() {
     $('human-players')?.addEventListener('input', updateSetup);
     $('ai-players')?.addEventListener('input', updateSetup);
+    $('board-size-options')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-board-size]');
+        if (!button || button.disabled) return;
+        selectedBoardSize = Number(button.dataset.boardSize);
+        updateSetup();
+    });
     $('preview-players')?.addEventListener('input', event => {
         const input = event.target.closest('[data-name-key]');
         if (!input) return;
