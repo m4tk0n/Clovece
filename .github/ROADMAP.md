@@ -266,8 +266,8 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 
 ## Záznam opravy rozmístění domečků – 2026-11-04
 
-- [x] U kruhové desky 40 umístit čtyři startovní domečky vedle sebe do jedné řady nad okruhem.
-- [x] U kruhové desky 48 umístit šest startovních domečků vedle sebe do jedné řady nad okruhem.
-- [x] Cílové dráhy orientovat z horní řady směrem dovnitř k okruhu; prázdné pozice zůstávají neutrální.
-- [x] Zachovat původní kruhové rozmístění u desky 80 a neměnit herní logiku.
+- [x] U kruhové desky 40 umístit čtyři startovní domečky jednotlivě vně obvodu dráhy, každý radiálně nad vlastním startovním polem.
+- [x] U kruhové desky 48 umístit šest startovních domečků stejným způsobem.
+- [x] Zachovat pořadí pozic po směru hodinových ručiček; cílové dráhy směřují od domečků dovnitř.
+- [x] Prázdné pozice zůstávají neutrální a deska 80 zůstává beze změny.
 - [ ] Vizuálně ověřit obě varianty na živém webu.
