@@ -216,18 +216,33 @@ test('two own pieces cannot occupy the same home-lane square', () => {
     assert.deepEqual(getValidMoves(game), [1]);
 });
 
-test('a player wins only by bringing all four pieces exactly home', () => {
+test('a player wins when all four pieces occupy the four distinct home-lane squares', () => {
     const game = createGame(1, 1);
-    const finish = game.trackLength + 4;
-    game.pieces[0].pieces.forEach(piece => { piece.steps = finish; });
-    game.pieces[0].pieces[0].steps = finish - 1;
+    const laneStart = game.trackLength + 1;
+    game.pieces[0].pieces[0].steps = laneStart;
+    game.pieces[0].pieces[1].steps = laneStart + 1;
+    game.pieces[0].pieces[2].steps = laneStart + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength;
+    game.phase = 'move';
+    game.diceValue = 4;
+
+    assert.deepEqual(getValidMoves(game), [3]);
+    movePiece(game, 3);
+    assert.deepEqual(game.pieces[0].pieces.map(piece => piece.steps), [
+        laneStart, laneStart + 1, laneStart + 2, laneStart + 3
+    ]);
+    assert.equal(game.winner, 0);
+    assert.equal(game.phase, 'finished');
+});
+
+test('the fourth home-lane square cannot be shared by two own pieces', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = game.trackLength + 3;
+    game.pieces[0].pieces[1].steps = game.trackLength + 4;
     game.phase = 'move';
     game.diceValue = 1;
 
-    assert.deepEqual(getValidMoves(game), [0]);
-    movePiece(game, 0);
-    assert.equal(game.winner, 0);
-    assert.equal(game.phase, 'finished');
+    assert.deepEqual(getValidMoves(game), []);
 });
 
 test('a piece cannot overshoot the final home space', () => {
