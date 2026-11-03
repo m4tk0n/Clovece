@@ -210,3 +210,13 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
 }
+
+
+/* Globální vypnutí pohybových efektů podle nastavení hry. */
+html.animations-disabled *,
+html.animations-disabled *::before,
+html.animations-disabled *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
