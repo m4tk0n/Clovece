@@ -16,6 +16,13 @@ let aiCount = 3;
 let aiTimer = null;
 let modalOpen = false;
 let settings = { aiSpeed: 'medium', animations: true };
+const customPlayerNames = new Map();
+
+function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+}
 
 const $ = id => document.getElementById(id);
 const speedDelay = () => ({ fast: 450, medium: 950, slow: 1600 }[settings.aiSpeed] || 950);
@@ -68,10 +75,16 @@ function updateSetup() {
     $('preview-players').innerHTML = Array.from({ length: total }, (_, index) => {
         const color = ['#f05b62','#36c9c1','#f4c84a','#67c98b','#e77ab4','#9b83e8','#e99555','#6c9de8'][index];
         const isAI = index >= humanCount;
+        const number = isAI ? index - humanCount + 1 : index + 1;
+        const key = (isAI ? 'ai:' : 'human:') + number;
+        const defaultName = (isAI ? 'AI ' : 'Hráč ') + number;
+        const name = customPlayerNames.get(key) || defaultName;
         return '<div class="preview-player" style="--player-color:' + color + '">' +
-            '<span class="preview-player-orb">' + (isAI ? 'AI' : (index + 1)) + '</span>' +
-            '<span>' + (isAI ? 'Umělá inteligence' : 'Člověk ' + (index + 1)) + '</span>' +
-            '<small>' + (isAI ? 'BOT' : 'ŽIVÝ HRÁČ') + '</small></div>';
+            '<span class="preview-player-orb">' + (isAI ? 'AI' : number) + '</span>' +
+            '<input class="preview-player-name" type="text" maxlength="20" autocomplete="off" ' +
+                'aria-label="Jméno ' + (isAI ? 'AI ' : 'hráče ') + number + '" ' +
+                'data-name-key="' + key + '" value="' + escapeHtml(name) + '">' +
+            '<small>' + (isAI ? 'UMĚLÁ INTELIGENCE' : 'ŽIVÝ HRÁČ') + '</small></div>';
     }).join('');
 }
 
@@ -320,7 +333,13 @@ function onBoardClick(event) {
 function startGame() {
     updateSetup();
     try {
-        game = createGame(humanCount, aiCount);
+        const names = Array.from($('preview-players').querySelectorAll('[data-name-key]'), input => {
+            const name = input.value.trim().slice(0, 20);
+            return name || input.dataset.nameKey.startsWith('ai:')
+                ? (name || input.dataset.nameKey.replace(':', ' '))
+                : 'Hráč ' + input.dataset.nameKey.split(':')[1];
+        });
+        game = createGame(humanCount, aiCount, names);
     } catch (error) {
         toast(error.message);
         return;
@@ -342,6 +361,11 @@ function restartGame() {
 export function initGame() {
     $('human-players')?.addEventListener('input', updateSetup);
     $('ai-players')?.addEventListener('input', updateSetup);
+    $('preview-players')?.addEventListener('input', event => {
+        const input = event.target.closest('[data-name-key]');
+        if (!input) return;
+        customPlayerNames.set(input.dataset.nameKey, input.value.trim());
+    });
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
     $('roll-dice-btn')?.addEventListener('click', () => doRoll(false));
