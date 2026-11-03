@@ -739,7 +739,7 @@ try {
                 }
 
                 $stmt = $db->prepare(
-                    'SELECT id, identity_id, player_index, display_name, color
+                    'SELECT id, identity_id, player_index, player_type, display_name, color
                      FROM ' . onlineTable('game_participants') . '
                      WHERE game_id = ? AND left_at IS NULL ORDER BY player_index'
                 );
