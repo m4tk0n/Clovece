@@ -481,6 +481,7 @@
 .menu-screen:not(#main-menu) .settings-container select {
     min-width: 112px;
     padding: 5px 7px;
+    font-size: 14px;
 }
 .menu-screen:not(#main-menu) .toggle-switch {
     flex: 0 0 auto;
