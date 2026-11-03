@@ -259,6 +259,11 @@ async function openGame(gameId, inviteUrl = '') {
     await refreshGame();
 }
 
+async function savePlayerName() {
+    const name = $('online-player-name')?.value.trim();
+    if (name) await api('set_name', { display_name: name });
+}
+
 function extractInviteToken(value) {
     const text = String(value || '').trim();
     if (!text) return '';
@@ -282,6 +287,7 @@ async function joinRoom(value) {
     }
 
     try {
+        await savePlayerName();
         const result = await api('join_game', { invite_token: inviteToken });
         const url = new URL(window.location.href);
         url.search = '';
@@ -298,6 +304,7 @@ async function createRoom() {
     const playerLimit = Number(select?.value || 4);
 
     try {
+        await savePlayerName();
         const result = await api('create_game', { player_limit: String(playerLimit) });
         const inviteUrl = new URL(result.invite_url, window.location.href).toString();
         await openGame(result.game_id, inviteUrl);
@@ -431,6 +438,8 @@ export async function initOnline() {
         }
         csrfToken = data.csrf_token || '';
         if (!csrfToken) throw new Error('Server neposlal bezpečnostní token.');
+        const nameField = $('online-player-name');
+        if (nameField && !nameField.value) nameField.value = data.identity?.display_name || 'Hráč';
         return data;
     })();
 
