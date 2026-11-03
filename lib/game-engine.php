@@ -57,9 +57,11 @@ function onlineEngineCreateState(array $participants): array
         'players' => $players,
         'trackLength' => $trackLength,
         'currentPlayer' => 0,
-        'startRolls' => [],
+        'startRolls' => [[]],
+        'startCandidates' => array_keys($players),
+        'startWinner' => null,
         'diceValue' => 0,
-        'phase' => 'roll',
+        'phase' => 'start-roll',
         'turnNumber' => 1,
         'winner' => null,
         'lastMove' => null,
@@ -100,6 +102,62 @@ function onlineEngineDetermineStartingPlayer(array &$game, ?callable $rollFn = n
     $game['startRolls'] = $rounds;
 
     return ['playerId' => $candidates[0], 'rounds' => $rounds];
+}
+
+/**
+ * Zaznamená jeden skutečně vyžádaný hod rozstřelu.
+ * Lidský hráč akci spouští kliknutím; AI je obsloužena samostatně serverem.
+ */
+function onlineEngineRecordStartingRoll(array &$game, int $playerId, ?callable $rollFn = null): array
+{
+    if (($game['phase'] ?? '') !== 'start-roll') {
+        throw new RuntimeException('Rozstřel právě neprobíhá.');
+    }
+    if ((int) ($game['currentPlayer'] ?? -1) !== $playerId) {
+        throw new RuntimeException('Nyní hází jiný hráč.');
+    }
+
+    $rollFn ??= static fn(): int => random_int(1, 6);
+    $value = (int) $rollFn($playerId, count($game['startRolls']) - 1);
+    if ($value < 1 || $value > 6) {
+        throw new InvalidArgumentException('Hod rozstřelu musí být číslo od 1 do 6.');
+    }
+
+    if (!isset($game['startRolls']) || $game['startRolls'] === []) {
+        $game['startRolls'] = [[]];
+    }
+    $roundIndex = count($game['startRolls']) - 1;
+    $game['startRolls'][$roundIndex][] = [
+        'playerId' => $playerId,
+        'value' => $value,
+    ];
+    $game['diceValue'] = $value;
+
+    $candidates = array_values(array_map('intval', $game['startCandidates'] ?? []));
+    $round = $game['startRolls'][$roundIndex];
+    if (count($round) < count($candidates)) {
+        $game['currentPlayer'] = $candidates[count($round)];
+        return ['value' => $value, 'roundComplete' => false, 'finished' => false];
+    }
+
+    $highest = max(array_column($round, 'value'));
+    $winners = array_values(array_map(
+        static fn(array $roll): int => (int) $roll['playerId'],
+        array_filter($round, static fn(array $roll): bool => (int) $roll['value'] === $highest)
+    ));
+
+    if (count($winners) === 1) {
+        $game['currentPlayer'] = $winners[0];
+        $game['startWinner'] = $winners[0];
+        $game['startCandidates'] = [];
+        $game['phase'] = 'roll';
+        return ['value' => $value, 'roundComplete' => true, 'finished' => true];
+    }
+
+    $game['startCandidates'] = $winners;
+    $game['startRolls'][] = [];
+    $game['currentPlayer'] = $winners[0];
+    return ['value' => $value, 'roundComplete' => true, 'finished' => false];
 }
 
 function onlineEnginePiecePosition(array $game, int $playerId, array $piece): ?int
