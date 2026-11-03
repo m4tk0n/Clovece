@@ -61,6 +61,7 @@ function onlineEngineCreateState(array $participants): array
         'startCandidates' => array_keys($players),
         'startWinner' => null,
         'diceValue' => 0,
+        'baseRollAttempts' => 0,
         'phase' => 'start-roll',
         'turnNumber' => 1,
         'winner' => null,
