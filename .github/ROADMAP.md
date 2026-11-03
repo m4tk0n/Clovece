@@ -207,7 +207,6 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | Update | Změna | Stav |
 |---|---|---|
 | 0 | Kontrola současného projektu a sepsání roadmapy | Hotovo |
-
 | 1 | Doplnění návrhu interního plánovače bez systémového cronu | Hotovo |
 | 2 | Pracovní návrh databáze multiplayeru a migrací (`DATABASE-PLAN.md`) | Hotovo – rozhodnutí doplněna |
 | 3 | Zápis potvrzeného pravidla rozstřelu do roadmapy | Hotovo |
@@ -217,7 +216,8 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 7 | Ruční rozstřel živých hráčů v lokální i online hře, automatické hody AI a jediný průběžný řádek logu | Implementováno; PHP lint, JS syntaxe, testy enginu a FTP deploy úspěšné; čeká na praktický test více zařízení |
 | 8 | Vizuální umístění startovního pole na kruhové desce na pozici 0 + 1 | Upraveno podle upřesnění; čeká na ověření na webu |
 | 9 | Výběr velikosti desky 40/48/80 v menu lokální hry | Implementováno ve větvi `feature/board-size-selector`; čeká na CI a nasazení |
-| 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; čeká na automatické kontroly a vizuální ověření |
+| 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; automatické kontroly a FTP deploy úspěšné; čeká na vizuální ověření |
+| 11 | Změna orientace kruhové desky 40/48: pozice domečků a cílových drah po obvodu v rozestupech odpovídajících čtyřem, respektive šesti slotům | Implementováno; čeká na vizuální ověření |
 
 ## Potvrzená pravidla hry
 
@@ -257,7 +257,6 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 Důležité: online místnosti a serverově ověřované tahy jsou napojené na rozhraní. Lokální hra zůstává beze změny. Před potvrzením funkčnosti je nutný test na skutečném hostingu ve dvou zařízeních.
 
 - [x] Pravidlo tří pokusů o šestku při všech čtyřech figurkách v základně; po vyhození poslední nasazené figurky se výhoda obnovuje. Prakticky ověřeno v lokální hře proti AI: neúspěšné hody končí po třetím pokusu, šestka na třetí pokus umožní pokračovat dalším hodem a po vyhození poslední figurky se hráči se všemi čtyřmi figurkami v základně obnoví tři pokusy. Ověřeno z herních logů uživatele; online režim tímto testem samostatně potvrzen nebyl.
-
 
 ## Záznam opravy rozhraní – 2026-11-04
 
