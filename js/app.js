@@ -104,7 +104,6 @@ function renderPlayers() {
         ).length;
         return '<div class="board-player-stat" style="--player-color:' + player.color + '" title="' +
             escapeHtml(player.name) + '">' +
-            '<span class="board-player-dot"></span>' +
             '<strong>' + finished + '/4</strong>' +
         '</div>';
     }).join('');
