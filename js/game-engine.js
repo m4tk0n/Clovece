@@ -95,6 +95,11 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
     return valid;
 }
 
+export function getForcedMove(game) {
+    const moves = getValidMoves(game);
+    return moves.length === 1 ? moves[0] : null;
+}
+
 export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     if (game.phase !== 'roll' || game.winner !== null) {
         throw new Error('Nyní nelze házet kostkou.');
