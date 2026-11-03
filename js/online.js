@@ -97,7 +97,7 @@ function renderGame(data) {
     const participants = data.participants || [];
 
     $('room-code-display')?.replaceChildren(
-        document.createTextNode(currentInviteUrl || game.public_id)
+        document.createTextNode(game.public_id)
     );
     if ($('room-invite-url')) $('room-invite-url').value = currentInviteUrl;
 
