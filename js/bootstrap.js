@@ -2,8 +2,8 @@
  * Hlavní vstup aplikace.
  * Verzi předáváme všem hlavním modulům, aby prohlížeč nepoužil staré kopie.
  */
-const appVersion = new URL(import.meta.url).searchParams.get('v') || Date.now();
-const loadModule = path => import(`${path}?v=${encodeURIComponent(appVersion)}`);
+// Verze všech modulů je nastavena centrálně přes import map v index.php.
+const loadModule = path => import(path);
 
 async function startApp() {
     try {
