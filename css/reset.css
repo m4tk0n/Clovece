@@ -12,7 +12,7 @@
 /* HTML */
 html {
     font-size: 16px;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
 }
 
 /* Body */
@@ -21,7 +21,7 @@ body {
     background: var(--darker);
     color: var(--white);
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
     line-height: 1.6;
 }
 
