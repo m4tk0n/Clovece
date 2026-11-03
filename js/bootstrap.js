@@ -5,11 +5,13 @@
 import { initNavigation } from './navigation.js';
 import { initAudio } from './audio.js';
 import { initGame } from './app.js';
+import { initOnline } from './online.js';
 
 function startApp() {
     document.getElementById('loading-screen')?.classList.add('hidden');
     document.getElementById('main-menu')?.classList.remove('hidden');
 
+    void initOnline();
     initNavigation();
     initAudio();
     initGame();
