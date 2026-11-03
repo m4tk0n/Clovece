@@ -67,14 +67,19 @@ test('landing on an unsafe enemy square sends the enemy piece home', () => {
     assert.equal(game.pieces[0].pieces[0].steps, 2);
 });
 
-test('an occupied safe starting square cannot be captured or entered', () => {
+test('an occupied opponent start square is an ordinary square and can be captured', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = 25;
     game.pieces[1].pieces[0].steps = 0;
 
-    assert.deepEqual(getValidMoves(game), []);
+    assert.deepEqual(getValidMoves(game), [0]);
+    const move = movePiece(game, 0);
+
+    assert.equal(move.captured.playerId, 1);
+    assert.equal(game.pieces[1].pieces[0].steps, -1);
+    assert.equal(game.pieces[0].pieces[0].steps, 26);
 });
 
 test('a player wins only by bringing all four pieces exactly home', () => {
