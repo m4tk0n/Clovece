@@ -168,6 +168,54 @@ test('the full circuit includes the start square before entering the home lane',
     assert.equal(getHomeLaneIndex(game, piece), 0);
 });
 
+
+test('a piece may jump over own pieces but may not land on them on the main track', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = 0;
+    game.pieces[0].pieces[1].steps = 1;
+    game.phase = 'move';
+    game.diceValue = 2;
+
+    assert.deepEqual(getValidMoves(game), [0]);
+    movePiece(game, 0);
+    assert.equal(game.pieces[0].pieces[0].steps, 2);
+    assert.equal(game.pieces[0].pieces[1].steps, 1);
+
+    game.currentPlayer = 0;
+    game.phase = 'move';
+    game.diceValue = 1;
+    assert.deepEqual(getValidMoves(game), [1]);
+});
+
+test('a piece may jump over own pieces in the home lane but may not land on them', () => {
+    const game = createGame(1, 1);
+    const laneStart = game.trackLength + 1;
+    game.pieces[0].pieces[0].steps = laneStart;
+    game.pieces[0].pieces[1].steps = laneStart + 1;
+    game.phase = 'move';
+    game.diceValue = 2;
+
+    assert.deepEqual(getValidMoves(game), [0]);
+    movePiece(game, 0);
+    assert.equal(game.pieces[0].pieces[0].steps, laneStart + 2);
+    assert.equal(game.pieces[0].pieces[1].steps, laneStart + 1);
+
+    game.currentPlayer = 0;
+    game.phase = 'move';
+    game.diceValue = 1;
+    assert.deepEqual(getValidMoves(game), [1]);
+});
+
+test('two own pieces cannot occupy the same home-lane square', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = game.trackLength + 1;
+    game.pieces[0].pieces[1].steps = game.trackLength + 2;
+    game.phase = 'move';
+    game.diceValue = 1;
+
+    assert.deepEqual(getValidMoves(game), []);
+});
+
 test('a player wins only by bringing all four pieces exactly home', () => {
     const game = createGame(1, 1);
     const finish = game.trackLength + 4;
