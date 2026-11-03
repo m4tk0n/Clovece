@@ -254,9 +254,11 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
 
     $maxSteps = (int) $game['trackLength'] + 4;
     $finishedNow = $nextSteps === $maxSteps;
+    // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     $playerFinished = true;
     foreach ($game['pieces'][$playerId]['pieces'] as $item) {
-        if ((int) $item['steps'] !== $maxSteps) {
+        $itemSteps = (int) $item['steps'];
+        if ($itemSteps <= (int) $game['trackLength'] || $itemSteps > $maxSteps) {
             $playerFinished = false;
             break;
         }
