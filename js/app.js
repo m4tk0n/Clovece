@@ -128,14 +128,16 @@ function renderChat() {
     messages.scrollTop = messages.scrollHeight;
 }
 
-function sendChatMessage(text) {
+function addChatEntry(sender, text) {
     const message = String(text || '').trim().slice(0, 240);
-    if (!message || !game) return;
-    chatHistory.push({
-        sender: game.players[game.currentPlayer].name,
-        text: message
-    });
+    if (!message) return;
+    chatHistory.push({ sender: String(sender || 'Hra'), text: message });
     renderChat();
+}
+
+function sendChatMessage(text) {
+    if (!game) return;
+    addChatEntry(game.players[game.currentPlayer].name, text);
 }
 
 function updateTurnControls() {
@@ -243,6 +245,11 @@ function closeKickModal() {
 }
 
 function finishMove(move) {
+    const logText = ['hodil ' + move.diceValue];
+    if (move.captured) logText.push('vyhodil ' + move.captured.playerName);
+    if (move.finishedNow) logText.push('dostal figurku do domečku');
+    addChatEntry(move.playerName, logText.join(', '));
+
     showGame();
     if (move.captured) {
         openKickModal(move);
@@ -300,6 +307,7 @@ async function doRoll(isAI = false) {
     if (!game || game.winner !== null || isPaused()) return;
 
     if (game.phase === 'no-move') {
+        addChatEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', nemá platný tah');
         toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
         showGame();
         setTimeout(() => {
