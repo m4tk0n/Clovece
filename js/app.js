@@ -8,14 +8,28 @@ import {
 } from './game-engine.js';
 import { renderBoard } from './game-board.js';
 import { showScreen } from './navigation.js';
-import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
+import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
 let game = null;
 let humanCount = 1;
 let aiCount = 1;
 let aiTimer = null;
 let modalOpen = false;
-let settings = { aiSpeed: 'medium', animations: true };
+function loadSettings() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('clovece-settings') || '{}');
+        return {
+            aiSpeed: ['fast', 'medium', 'slow'].includes(saved.aiSpeed) ? saved.aiSpeed : 'medium',
+            animations: saved.animations !== false,
+            sfx: saved.sfx !== false
+        };
+    } catch (error) {
+        console.warn('Nastavení se nepodařilo načíst:', error);
+        return { aiSpeed: 'medium', animations: true, sfx: true };
+    }
+}
+
+let settings = loadSettings();
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
@@ -571,11 +585,42 @@ export function initGame() {
     $('back-settings-btn')?.addEventListener('click', () => showScreen('main-menu'));
     $('back-rules-btn')?.addEventListener('click', () => showScreen('main-menu'));
 
-    $('ai-speed')?.addEventListener('change', event => settings.aiSpeed = event.target.value);
-    $('animations-toggle')?.addEventListener('change', event => settings.animations = event.target.checked);
+    const aiSpeedSelect = $('ai-speed');
+    const animationsToggle = $('animations-toggle');
+    const sfxToggle = $('sfx-toggle');
+
+    if (aiSpeedSelect) aiSpeedSelect.value = settings.aiSpeed;
+    if (animationsToggle) animationsToggle.checked = settings.animations;
+    if (sfxToggle) sfxToggle.checked = settings.sfx;
+
+    const applyAnimationSetting = () => {
+        document.documentElement.classList.toggle('animations-disabled', !settings.animations);
+    };
+    applyAnimationSetting();
+    setSoundEffectsEnabled(settings.sfx);
+
+    aiSpeedSelect?.addEventListener('change', event => {
+        settings.aiSpeed = event.target.value;
+    });
+    animationsToggle?.addEventListener('change', event => {
+        settings.animations = event.target.checked;
+        applyAnimationSetting();
+    });
+    sfxToggle?.addEventListener('change', event => {
+        settings.sfx = event.target.checked;
+        setSoundEffectsEnabled(settings.sfx);
+    });
     $('save-settings-btn')?.addEventListener('click', () => {
-        settings.aiSpeed = $('ai-speed')?.value || 'medium';
-        settings.animations = $('animations-toggle')?.checked !== false;
+        settings.aiSpeed = aiSpeedSelect?.value || 'medium';
+        settings.animations = animationsToggle?.checked !== false;
+        settings.sfx = sfxToggle?.checked !== false;
+        applyAnimationSetting();
+        setSoundEffectsEnabled(settings.sfx);
+        try {
+            localStorage.setItem('clovece-settings', JSON.stringify(settings));
+        } catch (error) {
+            console.warn('Nastavení se nepodařilo uložit:', error);
+        }
         toast('Nastavení uloženo.');
         showScreen('main-menu');
     });
