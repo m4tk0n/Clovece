@@ -412,6 +412,10 @@ function renderMyGames(games) {
     const container = $('my-games-list');
     if (!container) return;
 
+    // Nemažeme a nevytváříme znovu seznam, pokud server vrátil stejná data.
+    const renderKey = JSON.stringify(games);
+    if (container.dataset.renderKey === renderKey) return;
+    container.dataset.renderKey = renderKey;
     container.replaceChildren();
     if (!games.length) {
         const empty = document.createElement('p');
