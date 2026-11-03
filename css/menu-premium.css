@@ -392,7 +392,7 @@
 }
 .menu-screen:not(#main-menu) .form-group input,
 .menu-screen:not(#main-menu) .form-group select {
-    padding-left: 36px;
+    padding-left: 24px;
 }
 .menu-screen:not(#main-menu) .form-group i {
     left: 12px;
@@ -450,7 +450,7 @@
 .menu-screen:not(#main-menu) .player-preview h3 {
     margin: 0 0 9px;
 }
- .menu-screen:not(#main-menu) .preview-players {
+.menu-screen:not(#main-menu) .preview-players {
     gap: 7px;
     margin-bottom: 0;
 }
