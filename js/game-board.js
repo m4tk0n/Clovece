@@ -21,16 +21,11 @@ function point(angle, radius) {
 
 function slotPosition(slot, slotCount, trackLength) {
     if (trackLength === 40 || trackLength === 48) {
-        // Domečky tvoří jednu vodorovnou řadu nad okruhem.
-        const spacing = slotCount === 6 ? 104 : 152;
-        const center = {
-            x: CENTER + (slot - (slotCount - 1) / 2) * spacing,
-            y: 70
-        };
-        return {
-            center,
-            angle: Math.atan2(center.y - CENTER, center.x - CENTER) * 180 / Math.PI
-        };
+        // Domeček leží vně okruhu radiálně nad svým startovním polem.
+        // Vykreslení startů je posunuté o jedno pole, proto stejný posun použijeme i zde.
+        const startIndex = (Math.round(slot * trackLength / slotCount) + 1) % trackLength;
+        const angle = trackAngle(startIndex, { trackLength, players: [] });
+        return { center: point(angle, BASE_RADIUS), angle };
     }
 
     const angle = (slotCount <= 4 ? -135 : -90) + slot * 360 / slotCount;
