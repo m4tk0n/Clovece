@@ -74,11 +74,17 @@ function updateSetup() {
     $('setup-board-note').textContent = total <= 4
         ? 'Čtyři základny, čtyři domácí dráhy.'
         : 'Každý hráč má vlastní barevný domeček a domácí dráhu.';
+    const usedColors = new Set();
     $('preview-players').innerHTML = Array.from({ length: total }, (_, index) => {
-        const color = customPlayerColors.get((index < humanCount ? 'human:' + (index + 1) : 'ai:' + (index - humanCount + 1))) || PLAYER_COLORS[index];
         const isAI = index >= humanCount;
         const number = isAI ? index - humanCount + 1 : index + 1;
         const key = (isAI ? 'ai:' : 'human:') + number;
+        const requestedColor = customPlayerColors.get(key);
+        const color = PLAYER_COLORS.includes(requestedColor) && !usedColors.has(requestedColor)
+            ? requestedColor
+            : PLAYER_COLORS.find(candidate => !usedColors.has(candidate));
+        usedColors.add(color);
+        customPlayerColors.set(key, color);
         const defaultName = (isAI ? 'AI ' : 'Hráč ') + number;
         const name = customPlayerNames.get(key) || defaultName;
         return '<div class="preview-player" style="--player-color:' + color + '">' +
