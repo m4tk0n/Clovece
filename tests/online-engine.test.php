@@ -98,6 +98,7 @@ checkSame([0], onlineEngineValidMoves($circuit), 'Návrat na vlastní startovní
 onlineEngineMovePiece($circuit, 0);
 checkSame($circuit['trackLength'], $circuit['pieces'][0]['pieces'][0]['steps'], 'Celý okruh musí skončit na vlastním startovním poli.');
 checkSame($circuit['players'][0]['start'], onlineEnginePiecePosition($circuit, 0, $circuit['pieces'][0]['pieces'][0]), 'Startovní pole se musí započítat jako poslední pole okruhu.');
+$circuit['currentPlayer'] = 0;
 $circuit['phase'] = 'move';
 $circuit['diceValue'] = 1;
 checkSame([0], onlineEngineValidMoves($circuit), 'Z vlastního startovního pole musí být možné vstoupit do domečku.');
