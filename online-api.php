@@ -266,7 +266,9 @@ try {
             $gameId = filter_var($_POST['game_id'] ?? 0, FILTER_VALIDATE_INT);
             $color = $_POST['color'] ?? '';
             $allowedColors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
-            if (!$gameId || $gameId < 1 || !is_string($color) || !in_array($color, $allowedColors, true)) {
+            // "random" znamená, že hráč zatím nerezervuje žádnou konkrétní barvu.
+            if (!$gameId || $gameId < 1 || !is_string($color)
+                || ($color !== 'random' && !in_array($color, $allowedColors, true))) {
                 onlineFail('Neplatná barva nebo identifikátor místnosti.');
             }
             $db->beginTransaction();
@@ -289,12 +291,14 @@ try {
                 $participant = $stmt->fetch();
                 if (!$participant) onlineFail('Nejsi aktivním hráčem této místnosti.', 403);
 
-                $stmt = $db->prepare(
-                    'SELECT id FROM ' . onlineTable('game_participants') . '
-                     WHERE game_id = ? AND left_at IS NULL AND color = ? AND id <> ? LIMIT 1'
-                );
-                $stmt->execute([$gameId, $color, $participant['id']]);
-                if ($stmt->fetch()) onlineFail('Tuto barvu už má vybranou jiný hráč.', 409);
+                if ($color !== 'random') {
+                    $stmt = $db->prepare(
+                        'SELECT id FROM ' . onlineTable('game_participants') . '
+                         WHERE game_id = ? AND left_at IS NULL AND color = ? AND id <> ? LIMIT 1'
+                    );
+                    $stmt->execute([$gameId, $color, $participant['id']]);
+                    if ($stmt->fetch()) onlineFail('Tuto barvu už má vybranou jiný hráč.', 409);
+                }
 
                 $db->prepare('UPDATE ' . onlineTable('game_participants') . ' SET color = ? WHERE id = ?')
                     ->execute([$color, $participant['id']]);
@@ -329,13 +333,12 @@ try {
                 $stmt->execute([$publicId, $identityId, $playerLimit, $boardType]);
                 $gameId = (int) $db->lastInsertId();
 
-                $colors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
                 $stmt = $db->prepare(
                     'INSERT INTO ' . onlineTable('game_participants') . '
                      (game_id, identity_id, player_index, player_type, display_name, color, is_ready)
-                     VALUES (?, ?, 0, \'human\', ?, ?, 1)'
+                     VALUES (?, ?, 0, \'human\', ?, \'random\', 1)'
                 );
-                $stmt->execute([$gameId, $identityId, $displayName, $colors[0]]);
+                $stmt->execute([$gameId, $identityId, $displayName]);
 
                 $stmt = $db->prepare(
                     'INSERT INTO ' . onlineTable('game_invites') . '
@@ -424,18 +427,16 @@ try {
                         onlineFail('Hra je již plná.', 409);
                     }
 
-                    $colors = ['#f05b62', '#36c9c1', '#f4c84a', '#67c98b', '#e77ab4', '#9b83e8', '#e99555', '#6c9de8'];
                     $stmt = $db->prepare(
                         'INSERT INTO ' . onlineTable('game_participants') . '
                          (game_id, identity_id, player_index, player_type, display_name, color, is_ready, last_seen_at)
-                         VALUES (?, ?, ?, \'human\', ?, ?, 0, NOW())'
+                         VALUES (?, ?, ?, \'human\', ?, \'random\', 0, NOW())'
                     );
                     $stmt->execute([
                         $gameId,
                         $identityId,
                         $playerIndex,
                         onlineCleanName($identity['display_name'] ?? 'Hráč'),
-                        $colors[$playerIndex],
                     ]);
                     $participantId = (int) $db->lastInsertId();
 
@@ -523,6 +524,32 @@ try {
                     )->execute([$index, $participant['id']]);
                     $participants[$index]['player_index'] = $index;
                 }
+
+                // Ručně zvolené barvy mají přednost. Hráči s volbou "random"
+                // dostanou náhodně jednu ze zbývajících barev až při startu hry.
+                $allColors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
+                $usedColors = array_values(array_filter(
+                    array_column($participants, 'color'),
+                    static fn(string $color): bool => $color !== 'random'
+                ));
+                if (count($usedColors) !== count(array_unique($usedColors))) {
+                    onlineFail('V místnosti jsou duplicitní ručně vybrané barvy.', 409);
+                }
+                $freeColors = array_values(array_diff($allColors, $usedColors));
+                shuffle($freeColors);
+                foreach ($participants as $index => &$participant) {
+                    if ($participant['color'] !== 'random') {
+                        continue;
+                    }
+                    if ($freeColors === []) {
+                        onlineFail('Pro všechny hráče už nezbývá volná barva.', 409);
+                    }
+                    $participant['color'] = array_pop($freeColors);
+                    $db->prepare(
+                        'UPDATE ' . onlineTable('game_participants') . ' SET color = ? WHERE id = ?'
+                    )->execute([$participant['color'], $participant['id']]);
+                }
+                unset($participant);
 
                 $state = onlineEngineCreateState($participants);
                 $startResult = onlineEngineDetermineStartingPlayer($state);
