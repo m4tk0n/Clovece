@@ -116,29 +116,56 @@ export function renderBoard(container, game) {
     for (let i = 0; i < game.trackLength; i++) {
         const angle = trackAngle(i, game);
         const p = point(angle, TRACK_RADIUS);
+        const slotCount = game.slotCount || (game.players.length <= 4 ? 4 : 8);
+        const occupiedSlots = new Map(game.players.map(player => [
+            Number.isInteger(player.slot) ? player.slot : Math.round(player.start * slotCount / game.trackLength),
+            player
+        ]));
         const startPlayer = game.players.find(player =>
             (player.start + 1 + game.trackLength) % game.trackLength === i
         );
+        const emptyStart = !startPlayer && Array.from({ length: slotCount }, (_, slot) =>
+            (Math.round(slot * game.trackLength / slotCount) + 1 + game.trackLength) % game.trackLength
+        ).includes(i) && !Array.from(occupiedSlots.keys()).some(slot =>
+            (Math.round(slot * game.trackLength / slotCount) + 1 + game.trackLength) % game.trackLength === i
+        );
         track.push(
             '<g class="track-space ' + (startPlayer ? 'track-start' : '') + '">' +
-            '<circle cx="' + p.x + '" cy="' + p.y + '" r="13" fill="' + (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' + (startPlayer ? '.95' : '.12') + '" stroke="' + (startPlayer ? startPlayer.color : '#fff') + '" stroke-opacity="' + (startPlayer ? '.9' : '.22') + '" stroke-width="1.4"/>' +
-            (startPlayer ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#fff" fill-opacity=".9"/>' : '') +
+            '<circle cx="' + p.x + '" cy="' + p.y + '" r="13" fill="' + (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' + (startPlayer ? '.95' : (emptyStart ? '.42' : '.12')) + '" stroke="' + (startPlayer ? startPlayer.color : (emptyStart ? '#c6a96b' : '#fff')) + '" stroke-opacity="' + (startPlayer ? '.9' : (emptyStart ? '.65' : '.22')) + '" stroke-width="1.4"/>' +
+            (startPlayer ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#fff" fill-opacity=".9"/>' : (emptyStart ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="#c6a96b" fill-opacity=".8"/>' : '')) +
             '</g>'
         );
     }
 
-    const homeLanes = game.players.map(player => {
-        // Cílový domeček zůstává v původní ose základny;
-        // startovní pole na okruhu je samostatně posunuté o jedno místo.
-        const angle = playerAngle(player, total, game.trackLength);
+    const slotCount = game.slotCount || (total <= 4 ? 4 : 8);
+    const playersBySlot = new Map(game.players.map(player => [
+        Number.isInteger(player.slot) ? player.slot : Math.round(player.start * slotCount / game.trackLength),
+        player
+    ]));
+    const homeLanes = Array.from({ length: slotCount }, (_, slot) => {
+        // Každá pozice desky má vlastní cílový domeček, i když na ní nehraje žádný hráč.
+        const player = playersBySlot.get(slot);
+        const angle = player
+            ? playerAngle(player, total, game.trackLength)
+            : (total <= 4 ? -135 : -90) + slot * 360 / slotCount;
+        const color = player?.color || '#c6a96b';
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
-            return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="' + player.color + '" fill-opacity=".28" stroke="' + player.color + '" stroke-opacity=".85" stroke-width="1.5"/>';
+            return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="' + color + '" fill-opacity="' + (player ? '.28' : '.08') + '" stroke="' + color + '" stroke-opacity="' + (player ? '.85' : '.42') + '" stroke-width="1.5"/>';
         }).join('');
-        return '<g class="home-lane">' + cells + '</g>';
+        return '<g class="home-lane ' + (player ? '' : 'home-lane-empty') + '">' + cells + '</g>';
     }).join('');
 
-    const bases = game.players.map(player => baseMarkup(game, player, validMoves)).join('');
+    const bases = Array.from({ length: slotCount }, (_, slot) => {
+        const player = playersBySlot.get(slot);
+        if (player) return baseMarkup(game, player, validMoves);
+        const angle = (total <= 4 ? -135 : -90) + slot * 360 / slotCount;
+        const center = point(angle, BASE_RADIUS);
+        return '<g class="base-zone base-zone-empty">' +
+            '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="#c6a96b" fill-opacity=".035" stroke="#c6a96b" stroke-opacity=".32" stroke-width="2"/>' +
+            '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="#c6a96b" stroke-opacity=".2" stroke-dasharray="3 7"/>' +
+            '</g>';
+    }).join('');
     const boardPieces = game.players.map(player => {
         const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 4);
         return active.map(piece => {
