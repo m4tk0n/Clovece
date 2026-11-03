@@ -105,6 +105,33 @@ checkSame([0], onlineEngineValidMoves($circuit), 'Z vlastního startovního pole
 onlineEngineMovePiece($circuit, 0);
 checkSame($circuit['trackLength'] + 1, $circuit['pieces'][0]['pieces'][0]['steps'], 'První políčko domečku musí následovat až za návratem na start.');
 
+
+$jump = onlineEngineCreateState(testParticipants(2));
+$jump['phase'] = 'move';
+$jump['diceValue'] = 2;
+$jump['pieces'][0]['pieces'][0]['steps'] = 0;
+$jump['pieces'][0]['pieces'][1]['steps'] = 1;
+checkSame([0], onlineEngineValidMoves($jump), 'Vlastní figurku na hlavní dráze musí být možné přeskočit.');
+onlineEngineMovePiece($jump, 0);
+checkSame(2, $jump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku.');
+checkSame(1, $jump['pieces'][0]['pieces'][1]['steps'], 'Přeskočená vlastní figurka musí zůstat na místě.');
+
+$homeJump = onlineEngineCreateState(testParticipants(2));
+$homeJump['phase'] = 'move';
+$homeJump['diceValue'] = 2;
+$homeJump['pieces'][0]['pieces'][0]['steps'] = $homeJump['trackLength'] + 1;
+$homeJump['pieces'][0]['pieces'][1]['steps'] = $homeJump['trackLength'] + 2;
+checkSame([0], onlineEngineValidMoves($homeJump), 'Vlastní figurku v domácím sloupci musí být možné přeskočit.');
+onlineEngineMovePiece($homeJump, 0);
+checkSame($homeJump['trackLength'] + 3, $homeJump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku v domácím sloupci.');
+
+$homeBlock = onlineEngineCreateState(testParticipants(2));
+$homeBlock['phase'] = 'move';
+$homeBlock['diceValue'] = 1;
+$homeBlock['pieces'][0]['pieces'][0]['steps'] = $homeBlock['trackLength'] + 1;
+$homeBlock['pieces'][0]['pieces'][1]['steps'] = $homeBlock['trackLength'] + 2;
+checkSame([], onlineEngineValidMoves($homeBlock), 'Na obsazené políčko domácího sloupce nesmí vstoupit druhá vlastní figurka.');
+
 $finish = onlineEngineCreateState(testParticipants(2));
 $max = $finish['trackLength'] + 4;
 foreach ($finish['pieces'][0]['pieces'] as &$piece) {
