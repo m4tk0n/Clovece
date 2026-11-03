@@ -47,6 +47,15 @@ function play(id) {
     if (typeof window.playSound === 'function') window.playSound(id);
 }
 
+function shuffleColors(colors) {
+    const shuffled = [...colors];
+    for (let index = shuffled.length - 1; index > 0; index--) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+    return shuffled;
+}
+
 function updateSetup() {
     const humanInput = $('human-players');
     const aiInput = $('ai-players');
@@ -71,35 +80,52 @@ function updateSetup() {
     $('setup-board-type').textContent = total <= 4
         ? 'Klasická čtyřbarevná aréna'
         : 'Rozšířená osmisměrná aréna';
-    const usedColors = new Set();
-    $('preview-players').innerHTML = Array.from({ length: total }, (_, index) => {
+
+    const players = Array.from({ length: total }, (_, index) => {
         const isAI = index >= humanCount;
         const number = isAI ? index - humanCount + 1 : index + 1;
         const key = (isAI ? 'ai:' : 'human:') + number;
         const requestedColor = customPlayerColors.get(key);
-        let color = PLAYER_COLORS.includes(requestedColor) && !usedColors.has(requestedColor)
-            ? requestedColor
-            : null;
-        if (!color) {
-            const availableColors = PLAYER_COLORS.filter(candidate => !usedColors.has(candidate));
-            color = availableColors[Math.floor(Math.random() * availableColors.length)];
-        }
-        usedColors.add(color);
-        customPlayerColors.set(key, color);
-        const defaultName = (isAI ? 'AI ' : 'Hráč ') + number;
-        const name = customPlayerNames.get(key) || defaultName;
-        return '<div class="preview-player" style="--player-color:' + color + '">' +
-            '<span class="preview-player-orb">' + (isAI ? 'AI' : number) + '</span>' +
+        return {
+            isAI,
+            number,
+            key,
+            selectedColor: PLAYER_COLORS.includes(requestedColor) ? requestedColor : 'random',
+            name: customPlayerNames.get(key) || (isAI ? 'AI ' : 'Hráč ') + number
+        };
+    });
+
+    // Konkrétní barvy jsou rezervované. Náhodní hráči dostanou zbytek.
+    const reservedColors = new Set(players
+        .filter(player => player.selectedColor !== 'random')
+        .map(player => player.selectedColor));
+    const randomColors = shuffleColors(PLAYER_COLORS.filter(color => !reservedColors.has(color)));
+    let randomColorIndex = 0;
+
+    players.forEach(player => {
+        player.displayColor = player.selectedColor === 'random'
+            ? randomColors[randomColorIndex++]
+            : player.selectedColor;
+    });
+
+    $('preview-players').innerHTML = players.map(player => {
+        const availableColors = PLAYER_COLORS
+            .map((value, colorIndex) => ({ value, label: PLAYER_COLOR_LABELS[colorIndex] }))
+            .filter(color => color.value === player.selectedColor || !reservedColors.has(color.value));
+
+        return '<div class="preview-player" style="--player-color:' + player.displayColor + '">' +
+            '<span class="preview-player-orb">' + (player.isAI ? 'AI' : player.number) + '</span>' +
             '<input class="preview-player-name" type="text" maxlength="20" autocomplete="off" ' +
-                'aria-label="Jméno ' + (isAI ? 'AI ' : 'hráče ') + number + '" ' +
-                'data-name-key="' + key + '" value="' + escapeHtml(name) + '">' +
+                'aria-label="Jméno ' + (player.isAI ? 'AI ' : 'hráče ') + player.number + '" ' +
+                'data-name-key="' + player.key + '" value="' + escapeHtml(player.name) + '">' +
             '<label class="preview-color-label">' +
-                '<select class="preview-player-color" data-color-key="' + key + '" aria-label="Barva hráče ' + escapeHtml(name) + '">' +
-                    PLAYER_COLORS.map((value, colorIndex) => '<option value="' + value + '"' + (value === color ? ' selected' : '') + '>' + PLAYER_COLOR_LABELS[colorIndex] + '</option>').join('') +
+                '<select class="preview-player-color" data-color-key="' + player.key + '" aria-label="Barva hráče ' + escapeHtml(player.name) + '">' +
+                    '<option value="random"' + (player.selectedColor === 'random' ? ' selected' : '') + '>Náhodná</option>' +
+                    availableColors.map(color => '<option value="' + color.value + '"' +
+                        (color.value === player.selectedColor ? ' selected' : '') + '>' + color.label + '</option>').join('') +
                 '</select></label></div>';
     }).join('');
 }
-
 function showGame() {
     if (!game) return;
     renderBoard($('game-container'), game);
@@ -411,7 +437,11 @@ function startGame() {
             const number = input.dataset.nameKey.split(':')[1];
             return input.dataset.nameKey.startsWith('ai:') ? 'AI ' + number : 'Hráč ' + number;
         });
-        const colors = Array.from($('preview-players').querySelectorAll('[data-color-key]'), select => select.value);
+        const selectedColors = Array.from($('preview-players').querySelectorAll('[data-color-key]'), select => select.value);
+        const fixedColors = new Set(selectedColors.filter(color => color !== 'random'));
+        const randomColors = shuffleColors(PLAYER_COLORS.filter(color => !fixedColors.has(color)));
+        let randomColorIndex = 0;
+        const colors = selectedColors.map(color => color === 'random' ? randomColors[randomColorIndex++] : color);
         game = createGame(humanCount, aiCount, names, colors);
         determineStartingPlayer(game);
     } catch (error) {
@@ -453,31 +483,15 @@ export function initGame() {
     $('preview-players')?.addEventListener('change', event => {
         const select = event.target.closest('[data-color-key]');
         if (!select) return;
-        const preview = $('preview-players');
-        const duplicate = Array.from(preview.querySelectorAll('[data-color-key]')).some(other =>
-            other !== select && other.value === select.value
-        );
-        if (duplicate) {
-            const previous = customPlayerColors.get(select.dataset.colorKey);
-            select.value = previous || PLAYER_COLORS[0];
-            toast('Tuto barvu už má vybraný jiný hráč.');
-            return;
-        }
+
         customPlayerColors.set(select.dataset.colorKey, select.value);
-        select.closest('.preview-player')?.style.setProperty('--player-color', select.value);
+        updateSetup();
     });
     $('random-player-colors-btn')?.addEventListener('click', () => {
-        const shuffled = [...PLAYER_COLORS];
-        for (let index = shuffled.length - 1; index > 0; index--) {
-            const swapIndex = Math.floor(Math.random() * (index + 1));
-            [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-        }
-        const preview = $('preview-players');
-        preview?.querySelectorAll('[data-color-key]').forEach((select, index) => {
-            select.value = shuffled[index];
-            customPlayerColors.set(select.dataset.colorKey, select.value);
-            select.closest('.preview-player')?.style.setProperty('--player-color', select.value);
+        $('preview-players')?.querySelectorAll('[data-color-key]').forEach(select => {
+            customPlayerColors.set(select.dataset.colorKey, 'random');
         });
+        updateSetup();
     });
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
