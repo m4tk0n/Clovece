@@ -4,6 +4,7 @@ import {
     createGame,
     rollDice,
     getValidMoves,
+    getForcedMove,
     movePiece
 } from '../js/game-engine.js';
 
@@ -50,6 +51,20 @@ test('a piece can leave its base only after rolling six', () => {
     movePiece(ready, 0);
     assert.equal(ready.pieces[0].pieces[0].steps, 0);
     assert.equal(ready.phase, 'roll');
+});
+
+test('a single possible move is identified for automatic execution', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[1].steps = game.trackLength + 4;
+    game.pieces[0].pieces[2].steps = game.trackLength + 4;
+    game.pieces[0].pieces[3].steps = game.trackLength + 4;
+    const result = rollDice(game, 6);
+
+    assert.deepEqual(result.validMoves, [0]);
+    assert.equal(getForcedMove(game), 0);
+
+    game.pieces[0].pieces[1].steps = -1;
+    assert.equal(getForcedMove(game), null);
 });
 
 test('landing on an unsafe enemy square sends the enemy piece home', () => {
