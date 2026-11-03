@@ -1040,3 +1040,16 @@
     margin-left: -1px;
     margin-right: 0;
 }
+
+/* Rozšíření skutečného rámečku hrací plochy (nejen jeho kontejneru). */
+#game-screen .game-container {
+    width: 100% !important;
+    max-width: none !important;
+}
+#game-screen .game-container > .premium-board-shell {
+    box-sizing: border-box !important;
+    width: calc(100% + 2px) !important;
+    max-width: none !important;
+    margin-left: -1px !important;
+    margin-right: 0 !important;
+}
