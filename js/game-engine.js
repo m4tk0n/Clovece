@@ -114,22 +114,19 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
         if (nextSteps > maxSteps) return;
 
-        // Vlastní figurku lze přeskočit, ale nelze skončit na jejím políčku.
-        // Kontrola hlavní dráhy používá skutečnou pozici po oběhnutí okruhu;
-        // v domácím sloupci se porovnává přímo počet kroků.
-        // Cílové pole je společná cílová oblast; více dokončených figurek se zde počítá.
-        if (nextSteps !== maxSteps) {
-            const ownBlock = playerPieces.some(other => {
-                if (other.id === piece.id || other.steps < 0) return false;
-                if (nextSteps <= game.trackLength) {
-                    return other.steps <= game.trackLength &&
-                        getPiecePosition(game, playerId, other) ===
-                        (game.players[playerId].start + nextSteps) % game.trackLength;
-                }
-                return other.steps === nextSteps;
-            });
-            if (ownBlock) return;
-        }
+        // Vlastní figurku lze přeskočit, ale nelze skončit na žádném jejím políčku.
+        // Startovní pole je posledním polem hlavního okruhu (trackLength);
+        // až následující krok vstupuje na první ze čtyř samostatných cílových polí.
+        const ownBlock = playerPieces.some(other => {
+            if (other.id === piece.id || other.steps < 0) return false;
+            if (nextSteps <= game.trackLength) {
+                return other.steps <= game.trackLength &&
+                    getPiecePosition(game, playerId, other) ===
+                    (game.players[playerId].start + nextSteps) % game.trackLength;
+            }
+            return other.steps === nextSteps;
+        });
+        if (ownBlock) return;
 
         valid.push(piece.id);
     });
