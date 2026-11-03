@@ -58,7 +58,7 @@ Unikátní index na `token_hash`, index na `identity_id`. Token musí být náho
 - `display_name`, `color`, `player_type` – human nebo ai.
 - `is_ready`, `joined_at`, `last_seen_at`, `left_at`.
 
-Unikátní `(game_id, player_index)` a `(game_id, identity_id)`. Hráč může být v různých hrách, ale v jedné hře jen jednou. AI může být bez identity; pravidla této výjimky ošetří aplikační vrstva.
+Unikátní `(game_id, player_index)` a `(game_id, identity_id)`. Hráč může být v různých hrách, ale v jedné hře jen jednou. AI může být bez identity; pravidla této výjimky ošetří aplikační vrstva. Datový model s AI počítá od začátku, ale první online multiplayer doporučujeme spustit nejprve pro živé hráče. AI zapojíme až po stabilizaci synchronizace a serverového ověřování tahů; tím omezíme složitost první verze, aniž bychom později museli měnit databázi.
 
 ### 5. `game_invites` – pozvánky
 
@@ -85,18 +85,19 @@ Unikátní `(game_id, state_version)` a `(game_id, request_id)`. Historie tahů 
 - `message` – text s limitem délky v aplikační vrstvě.
 - `created_at`.
 
-Index `(game_id, id)`. Po vložení nové zprávy se v transakci odstraní starší záznamy tak, aby zůstalo nejvýše 30 zpráv pro danou hru. Mazání chatu nijak neovlivní uložený stav ani historii tahů.
+Index `(game_id, id)`. Po vložení nové zprávy se v transakci odstraní starší záznamy tak, aby zůstalo nejvýše 30 zpráv pro danou hru. V herním rozhraní se chat zobrazí společně s herními událostmi v jednom časovém proudu; v databázi zůstanou zprávy a události oddělené. Mazání chatu nijak neovlivní uložený stav ani historii tahů.
 
 ### 8. `cron_tasks` – interní plánovač bez systémového cronu
 
 - `task_key` – unikátní název úlohy.
-- `interval_seconds` – požadovaný interval.
 - `last_started_at`, `last_finished_at`, `next_run_at`.
 - `locked_until` nebo obdobný časový zámek.
 - `last_status`, `last_error` – stručná diagnostika bez citlivých údajů.
 - `is_enabled`.
 
-Plánovač při načtení stránky provede pouze levnou kontrolu splatných úloh. Nárok na úlohu získá atomicky, aby ji souběžné požadavky nespustily dvakrát. Práce bude omezená počtem záznamů i časem. Pokud úloha není splatná, skončí bez dalších dotazů. Úlohy se spouští jen při návštěvnosti webu – bez návštěv se nic nevykonává.
+Intervaly úloh a retenční lhůty budou nastavitelné v jednom konfiguračním souboru `/cron/config.php`, nikoli natvrdo v kódu jednotlivých úloh. Databáze bude uchovávat provozní stav (poslední spuštění, zámek a výsledek), ne vlastní nastavení. Díky tomu půjde například změnit mazání dokončených her ze 7 na 14 dní úpravou jediné hodnoty.
+
+Plánovač při načtení stránky provede pouze levkou kontrolu splatných úloh. Nárok na úlohu získá atomicky, aby ji souběžné požadavky nespustily dvakrát. Práce bude omezená počtem záznamů i časem. Pokud úloha není splatná, skončí bez dalších dotazů. Úlohy se spouští jen při návštěvnosti webu – bez návštěv se nic nevykonává.
 
 ## Ukládání stavu hry
 
@@ -116,13 +117,13 @@ Zastaralý požadavek dostane informaci, že musí načíst aktuální stav. Ste
 
 ## Interní plánovač – navržené úlohy
 
-| Úloha | Pracovní interval | Chování |
+| Úloha | Výchozí interval (konfigurovatelný) | Chování |
 |---|---:|---|
 | Úklid neaktivních her | 1 hodina | Vyhledá omezenou dávku her po uplynutí retenční lhůty. |
 | Úklid dokončených her | 1 den | Odstraní hry po uplynutí retenční lhůty dokončených her. |
 | Údržba plánovače | 1 den | Odstraní případné staré diagnostické údaje, pokud budou potřeba. |
 
-Pracovní retenční návrh zůstává 30 dní pro neaktivní hry a 7 dní pro dokončené hry. Před implementací potvrdit. Samotné mazání musí proběhnout přes cizí klíče s `ON DELETE CASCADE`, případně řízenou transakci. Nesmí se mazat hra, která má platnou aktivitu nebo právě probíhající tah.
+Výchozí retenční lhůty: 30 dní pro neaktivní hry a 7 dní pro dokončené hry. Obě hodnoty budou konfigurovatelné v `/cron/config.php`, takže je půjde kdykoli upravit bez změny databázového schématu. Samotné mazání musí proběhnout přes cizí klíče s `ON DELETE CASCADE`, případně řízenou transakci. Nesmí se mazat hra, která má platnou aktivitu nebo právě probíhající tah.
 
 ## Bezpečnost a výkon
 
@@ -146,11 +147,8 @@ Pracovní retenční návrh zůstává 30 dní pro neaktivní hry a 7 dní pro d
 
 ## Otevřené body před SQL migrací
 
-- Potvrdit, zda retenční lhůty 30 dní / 7 dní vyhovují.
 - Ověřit skutečnou verzi MySQL a oprávnění databázového uživatele.
 - Ověřit, zda lze na WZ vytvořit testovací databázi; pokud ne, navrhnout bezpečný testovací prefix.
-- Rozhodnout, zda se má chat zobrazovat společně s herními událostmi, nebo v oddělených záložkách. Ukládání zůstane oddělené.
-- Potvrdit, zda AI hráči budou v online hře povoleni hned od první verze, nebo až později.
 
 ## Co se záměrně nedělá v této fázi
 
