@@ -19,11 +19,37 @@ function point(angle, radius) {
     };
 }
 
-function playerAngle(player, total, trackLength) {
-    // U kruhových desek začíná geometrie nahoře. Domečky tak leží
-    // rovnoměrně po vnějším obvodu: 4 pozice u desky 40, 6 u desky 48.
-    const startAngle = trackLength === 40 || trackLength === 48 ? -90 : (total <= 4 ? -135 : -90);
-    return startAngle + player.start * 360 / trackLength;
+function slotPosition(slot, slotCount, trackLength) {
+    if (trackLength === 40 || trackLength === 48) {
+        // Domečky tvoří jednu vodorovnou řadu nad okruhem.
+        const spacing = slotCount === 6 ? 104 : 152;
+        const center = {
+            x: CENTER + (slot - (slotCount - 1) / 2) * spacing,
+            y: 70
+        };
+        return {
+            center,
+            angle: Math.atan2(center.y - CENTER, center.x - CENTER) * 180 / Math.PI
+        };
+    }
+
+    const angle = (slotCount <= 4 ? -135 : -90) + slot * 360 / slotCount;
+    return { center: point(angle, BASE_RADIUS), angle };
+}
+
+function playerSlot(player, game) {
+    const slotCount = game.slotCount || (game.trackLength === 40 ? 4 : game.trackLength === 48 ? 6 : (game.players.length <= 4 ? 4 : 8));
+    return Number.isInteger(player.slot)
+        ? player.slot
+        : Math.round(player.start * slotCount / game.trackLength);
+}
+
+function playerAngle(player, game) {
+    const slotCount = game.slotCount || (game.trackLength === 40 ? 4 : game.trackLength === 48 ? 6 : (game.players.length <= 4 ? 4 : 8));
+    if (game.trackLength === 40 || game.trackLength === 48) {
+        return slotPosition(playerSlot(player, game), slotCount, game.trackLength).angle;
+    }
+    return (game.players.length <= 4 ? -135 : -90) + player.start * 360 / game.trackLength;
 }
 
 function trackAngle(index, game) {
@@ -46,15 +72,17 @@ function svgText(x, y, value, size, fill) {
 }
 
 function baseMarkup(game, player, validMoves) {
-    const angle = playerAngle(player, game.players.length, game.trackLength);
-    const center = point(angle, BASE_RADIUS);
+    const angle = playerAngle(player, game);
+    const slotCount = game.slotCount || (game.trackLength === 40 ? 4 : game.trackLength === 48 ? 6 : (game.players.length <= 4 ? 4 : 8));
+    const center = slotPosition(playerSlot(player, game), slotCount, game.trackLength).center;
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
     markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="' + color + '" fill-opacity=".13" stroke="' + color + '" stroke-opacity=".7" stroke-width="2"/>';
     markup += '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="' + color + '" stroke-opacity=".3" stroke-dasharray="3 7"/>';
-    const labelAngle = (angle + 90) * Math.PI / 180;
-    markup += svgText(center.x + Math.cos(labelAngle) * 55, center.y + Math.sin(labelAngle) * 55, player.name, 10, '#f4f0e8');
+    const labelY = game.trackLength === 40 || game.trackLength === 48 ? center.y + 55 : center.y + Math.sin((angle + 90) * Math.PI / 180) * 55;
+    const labelX = game.trackLength === 40 || game.trackLength === 48 ? center.x : center.x + Math.cos((angle + 90) * Math.PI / 180) * 55;
+    markup += svgText(labelX, labelY, player.name, 10, '#f4f0e8');
 
     pieces.forEach(piece => {
         if (piece.steps !== -1) return;
@@ -87,11 +115,11 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
         pos = point(angle, TRACK_RADIUS);
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
-        pos = point(playerAngle(player, game.players.length, game.trackLength), HOME_RADII[Math.min(3, laneIndex)]);
+        pos = point(playerAngle(player, game), HOME_RADII[Math.min(3, laneIndex)]);
     }
 
     const spread = piece.steps === maxSteps ? 0 : (stackIndex - (stackCount - 1) / 2) * 9;
-    const angle = playerAngle(player, game.players.length, game.trackLength) + 90;
+    const angle = playerAngle(player, game) + 90;
     const radians = angle * Math.PI / 180;
     let x = pos.x + Math.cos(radians) * spread;
     let y = pos.y + Math.sin(radians) * spread;
@@ -150,8 +178,8 @@ export function renderBoard(container, game) {
         // Každá pozice desky má vlastní cílový domeček, i když na ní nehraje žádný hráč.
         const player = playersBySlot.get(slot);
         const angle = player
-            ? playerAngle(player, total, game.trackLength)
-            : (game.trackLength === 40 || game.trackLength === 48 ? -90 : (total <= 4 ? -135 : -90)) + slot * 360 / slotCount;
+            ? playerAngle(player, game)
+            : slotPosition(slot, slotCount, game.trackLength).angle;
         const color = player?.color || '#c6a96b';
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
@@ -163,11 +191,7 @@ export function renderBoard(container, game) {
     const bases = Array.from({ length: slotCount }, (_, slot) => {
         const player = playersBySlot.get(slot);
         if (player) return baseMarkup(game, player, validMoves);
-        const startAngle = game.trackLength === 40 || game.trackLength === 48
-            ? -90
-            : (total <= 4 ? -135 : -90);
-        const angle = startAngle + slot * 360 / slotCount;
-        const center = point(angle, BASE_RADIUS);
+        const center = slotPosition(slot, slotCount, game.trackLength).center;
         return '<g class="base-zone base-zone-empty">' +
             '<circle cx="' + center.x + '" cy="' + center.y + '" r="48" fill="#c6a96b" fill-opacity=".035" stroke="#c6a96b" stroke-opacity=".32" stroke-width="2"/>' +
             '<circle cx="' + center.x + '" cy="' + center.y + '" r="41" fill="none" stroke="#c6a96b" stroke-opacity=".2" stroke-dasharray="3 7"/>' +
