@@ -397,6 +397,16 @@ try {
                 if (count($participants) > (int) $gameRow['player_limit']) {
                     onlineFail('Počet hráčů překračuje limit místnosti.', 409);
                 }
+                $creatorIsPresent = false;
+                foreach ($participants as $participant) {
+                    if ((int) $participant['identity_id'] === $identityId) {
+                        $creatorIsPresent = true;
+                        break;
+                    }
+                }
+                if (!$creatorIsPresent) {
+                    onlineFail('Zakladatel musí být před spuštěním stále v místnosti.', 403);
+                }
 
                 // Dvoufázové přečíslování zabrání kolizi unikátního indexu.
                 $db->prepare(
