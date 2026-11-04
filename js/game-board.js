@@ -30,10 +30,40 @@ function playerAngle(player, total, trackLength) {
 }
 
 function trackAngle(index, game) {
-    // Geometrie běžných polí zůstává pevná. Opačný posun startu se řeší
-    // samostatně pouze u startovních značek a figurek.
     return (game.players.length <= 4 ? -135 : -90) +
         index * 360 / game.trackLength;
+}
+
+// Osmiúhelníkový obvod pro 80 polí. Body jsou rozmístěny po stejné
+// délce obvodu, nikoli po úhlech, takže mezery mezi sousedními poli
+// zůstávají rovnoměrné i v přechodech mezi stranami.
+function trackPosition(index, game) {
+    if (game.trackLength !== 80) {
+        return point(trackAngle(index, game), getTrackRadius(game));
+    }
+
+    const vertices = [
+        [150, 40], [570, 40], [680, 150], [680, 570],
+        [570, 680], [150, 680], [40, 570], [40, 150]
+    ];
+    const segments = vertices.map((start, i) => {
+        const end = vertices[(i + 1) % vertices.length];
+        return { start, end, length: Math.hypot(end[0] - start[0], end[1] - start[1]) };
+    });
+    const perimeter = segments.reduce((sum, segment) => sum + segment.length, 0);
+    let distance = ((index % 80) + 80) % 80 * perimeter / 80;
+
+    for (const segment of segments) {
+        if (distance <= segment.length) {
+            const ratio = distance / segment.length;
+            return {
+                x: segment.start[0] + (segment.end[0] - segment.start[0]) * ratio,
+                y: segment.start[1] + (segment.end[1] - segment.start[1]) * ratio
+            };
+        }
+        distance -= segment.length;
+    }
+    return { x: vertices[0][0], y: vertices[0][1] };
 }
 
 function routeAngle(player, game) {
@@ -89,8 +119,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
     if (piece.steps <= game.trackLength) {
         const trackIndex = getPiecePosition(game, player.id, piece);
         const visualIndex = (trackIndex + 1 + game.trackLength) % game.trackLength;
-        const angle = trackAngle(visualIndex, game);
-        pos = point(angle, getTrackRadius(game));
+        pos = trackPosition(visualIndex, game);
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
         pos = point(playerAngle(player, game.players.length, game.trackLength), HOME_RADII[Math.min(3, laneIndex)]);
@@ -124,8 +153,7 @@ export function renderBoard(container, game) {
     const validMoves = new Set(getValidMoves(game));
     const track = [];
     for (let i = 0; i < game.trackLength; i++) {
-        const angle = trackAngle(i, game);
-        const p = point(angle, getTrackRadius(game));
+        const p = trackPosition(i, game);
         const slotCount = game.slotCount || (game.players.length <= 4 ? 4 : 8);
         const occupiedSlots = new Map(game.players.map(player => [
             Number.isInteger(player.slot) ? player.slot : Math.round(player.start * slotCount / game.trackLength),
@@ -224,7 +252,9 @@ export function renderBoard(container, game) {
                     '<line x1="190" y1="125" x2="190" y2="145" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
                     '<text x="201" y="129" font-size="10" fill="#ffdf9a">190, 135</text>' +
                 '</g>' +
-                '<circle cx="360" cy="360" r="' + (game.trackLength === 80 ? 332 : 270) + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="' + (game.trackLength === 80 ? 20 : 44) + '"/>' +
+                (game.trackLength === 80
+                    ? '<polygon points="150,40 570,40 680,150 680,570 570,680 150,680 40,570 40,150" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
+                    : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes + track.join('') + bases +
                 '<circle cx="360" cy="360" r="68" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
