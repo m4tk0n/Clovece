@@ -6,7 +6,7 @@
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
 import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine.js';
-import { render3DBoard } from './game-board-3d.js';
+import { render3DBoard } from '/js/game-board-3d.js';
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
