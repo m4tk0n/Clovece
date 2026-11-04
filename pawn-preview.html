@@ -38,12 +38,25 @@ button:focus-visible{outline:2px solid #d7f2df;outline-offset:3px}
 </div>
 <div class="status" id="status" role="status">Načítám 3D model…</div>
 </main>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+  }
+}
+</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
 
 const stage = document.getElementById('stage');
 const status = document.getElementById('status');
+window.addEventListener('error', event => {
+  status.textContent = 'Chyba při vykreslení 3D modelu: ' + (event.message || 'neznámá chyba');
+});
+window.addEventListener('unhandledrejection', event => {
+  status.textContent = 'Nepodařilo se načíst 3D knihovnu: ' + String(event.reason?.message || event.reason);
+});
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1b2a21);
 
