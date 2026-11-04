@@ -13,20 +13,15 @@ export const PLAYER_NAMES = [
     'Růže', 'Ametyst', 'Měď', 'Safír'
 ];
 
-export const BOARD_CONFIGS = Object.freeze({
-    40: Object.freeze({ trackLength: 40, slotCount: 4 }),
-    48: Object.freeze({ trackLength: 48, slotCount: 6 }),
-    80: Object.freeze({ trackLength: 80, slotCount: 8 })
-});
+// Velikost desky = počet polí dráhy; hodnota je počet ramen (slotů).
+const BOARD_ARMS = { 40: 4, 48: 6, 80: 8 };
 
-export function getAvailableBoardSizes(playerCount) {
-    if (!Number.isInteger(playerCount) || playerCount < 2 || playerCount > 8) return [];
-    return Object.values(BOARD_CONFIGS)
-        .filter(config => playerCount <= config.slotCount)
-        .map(config => config.trackLength);
+/** Velikosti desky, na kterých je místo pro daný počet hráčů. */
+export function getAvailableBoardSizes(total) {
+    return Object.keys(BOARD_ARMS).map(Number).filter(size => BOARD_ARMS[size] >= total);
 }
 
-export function createGame(humanCount, aiCount, names = [], colors = [], boardSize = null) {
+export function createGame(humanCount, aiCount, names = [], colors = [], boardTrackLength = null) {
     const total = humanCount + aiCount;
     if (total < 2 || total > 8 || humanCount < 1 || aiCount < 0) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
@@ -41,42 +36,34 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
         assignedColors.push(color || PLAYER_COLORS[index]);
     }
 
-    const selectedBoard = boardSize === null ? null : BOARD_CONFIGS[Number(boardSize)];
-    if (boardSize !== null && (!selectedBoard || !getAvailableBoardSizes(total).includes(selectedBoard.trackLength))) {
-        throw new Error('Zvolená velikost desky není pro tento počet hráčů dostupná.');
-    }
-
-    // Bez výslovné volby zachováváme původní délky kvůli zpětné kompatibilitě uložených her.
-    const trackLength = selectedBoard?.trackLength ?? (total <= 4 ? 52 : 64);
-    const slotCount = selectedBoard?.slotCount ?? (total <= 4 ? 4 : 8);
-    const slots = selectedBoard
-        ? Array.from({ length: total }, (_, index) => Math.round(index * slotCount / total))
-        : (total <= 4
-            ? (total === 2 ? [0, 2] : total === 3 ? [0, 1, 2] : [0, 1, 2, 3])
-            : Array.from({ length: total }, (_, index) => Math.round(index * 8 / total)));
+    // Klasická deska: 40 polí = 4 ramena, 48 polí = 6 ramen, 80 polí = 8 ramen.
+    const available = getAvailableBoardSizes(total);
+    const trackLength = available.includes(Number(boardTrackLength))
+        ? Number(boardTrackLength)
+        : available[0];
+    const boardSize = BOARD_ARMS[trackLength];
+    const segment = trackLength / boardSize;
+    const slots = boardSize === 4
+        ? (total === 2 ? [0, 2] : Array.from({ length: total }, (_, index) => index))
+        : Array.from({ length: total }, (_, index) => Math.floor(index * boardSize / total));
     const players = Array.from({ length: total }, (_, index) => ({
         id: index,
         slot: slots[index],
         name: names[index] || (index < humanCount ? 'Hráč ' + (index + 1) : 'AI ' + (index - humanCount + 1)),
         color: assignedColors[index],
         isAI: index >= humanCount,
-        start: selectedBoard
-            ? slots[index] * (trackLength / slotCount)
-            : (total === 3 || total >= 5
-                ? Math.round(index * trackLength / total)
-                : slots[index] * 13),
+        // Start leží na vnější straně ramene, o jedno pole vedle špičky.
+        start: slots[index] * segment + segment / 2,
         finished: false
     }));
 
     return {
         players,
         trackLength,
-        boardSize: selectedBoard ? trackLength : null,
-        slotCount,
+        slotCount: boardSize,
         currentPlayer: 0,
         startRolls: [],
         diceValue: 0,
-        baseRollAttempts: 0,
         phase: 'roll',
         turnNumber: 1,
         winner: null,
@@ -140,19 +127,16 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
         if (nextSteps > maxSteps) return;
 
-        // Vlastní figurku lze přeskočit, ale nelze skončit na žádném jejím políčku.
-        // Startovní pole je posledním polem hlavního okruhu (trackLength);
-        // až následující krok vstupuje na první ze čtyř samostatných cílových polí.
-        const ownBlock = playerPieces.some(other => {
-            if (other.id === piece.id || other.steps < 0) return false;
-            if (nextSteps <= game.trackLength) {
-                return other.steps <= game.trackLength &&
-                    getPiecePosition(game, playerId, other) ===
-                    (game.players[playerId].start + nextSteps) % game.trackLength;
-            }
-            return other.steps === nextSteps;
-        });
-        if (ownBlock) return;
+        if (nextSteps <= game.trackLength) {
+            const destination = (game.players[playerId].start + nextSteps) % game.trackLength;
+            const ownBlock = playerPieces.some(other =>
+                other.id !== piece.id && other.steps >= 0 &&
+                other.steps <= game.trackLength &&
+                getPiecePosition(game, playerId, other) === destination
+            );
+            if (ownBlock) return;
+
+        }
 
         valid.push(piece.id);
     });
@@ -171,28 +155,14 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     }
 
     game.diceValue = Math.max(1, Math.min(6, Number(value) || 1));
-    const playerPieces = game.pieces[game.currentPlayer].pieces;
-    const allAtBase = playerPieces.every(piece => piece.steps === -1);
+    game.phase = 'move';
 
-    if (allAtBase && game.diceValue !== 6) {
-        game.baseRollAttempts = (game.baseRollAttempts || 0) + 1;
-        const retrying = game.baseRollAttempts < 3;
-        game.phase = retrying ? 'roll' : 'no-move';
-        return {
-            value: game.diceValue,
-            validMoves: [],
-            retrying,
-            attempt: game.baseRollAttempts,
-            maxAttempts: 3
-        };
+    const moves = getValidMoves(game);
+    if (!moves.length) {
+        game.phase = 'no-move';
     }
 
-    game.baseRollAttempts = 0;
-    game.phase = 'move';
-    const moves = getValidMoves(game);
-    if (!moves.length) game.phase = 'no-move';
-
-    return { value: game.diceValue, validMoves: moves, retrying: false };
+    return { value: game.diceValue, validMoves: moves };
 }
 
 export function movePiece(game, pieceId) {
@@ -232,18 +202,13 @@ export function movePiece(game, pieceId) {
     piece.steps = nextSteps;
     const maxSteps = game.trackLength + 4;
     const finishedNow = piece.steps === maxSteps;
-    // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
-    const homeSteps = game.pieces[playerId].pieces.map(item => item.steps);
-    const playerFinished = homeSteps.every(
-        steps => steps > game.trackLength && steps <= maxSteps
-    ) && new Set(homeSteps).size === 4;
+    const playerFinished = game.pieces[playerId].pieces.every(item => item.steps === maxSteps);
 
     if (playerFinished) {
         player.finished = true;
         game.winner = playerId;
         game.phase = 'finished';
     } else if (diceValue === 6 && !finishedNow) {
-        game.baseRollAttempts = 0;
         game.phase = 'roll';
     } else {
         advanceTurn(game);
@@ -270,7 +235,6 @@ export function advanceTurn(game) {
     }
     game.currentPlayer = next;
     game.diceValue = 0;
-    game.baseRollAttempts = 0;
     game.phase = 'roll';
     game.turnNumber++;
 }
