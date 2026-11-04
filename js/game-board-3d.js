@@ -230,3 +230,19 @@ function resize(stage) {
     stage._camera.aspect=width/height;
     stage._camera.updateProjectionMatrix();
 }
+
+/** Uvolní WebGL, OrbitControls a ResizeObserver při přepnutí do SVG režimu. */
+export function dispose3DBoard(stage) {
+    if (!stage) return;
+    if (stage._raf) cancelAnimationFrame(stage._raf);
+    stage._resizeObserver?.disconnect();
+    if (stage._onPointerDown) stage._renderer?.domElement.removeEventListener('pointerdown',stage._onPointerDown);
+    if (stage._onPointerUp) stage._renderer?.domElement.removeEventListener('pointerup',stage._onPointerUp);
+    stage._controls?.dispose();
+    stage._board?.traverse(object => {
+        object.geometry?.dispose();
+        if (Array.isArray(object.material)) object.material.forEach(item=>item.dispose());
+        else object.material?.dispose();
+    });
+    stage._renderer?.dispose();
+}
