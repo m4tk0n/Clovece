@@ -277,31 +277,17 @@ export function renderBoard(container, game) {
                     '<filter id="pieceGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
                 '</defs>' +
                 '<circle cx="360" cy="360" r="347" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>' +
-                // Jemná souřadnicová mřížka po 5 jednotkách; popisky jsou po 20.
-                Array.from({ length: 145 }, (_, i) => {
-                    const coordinate = i * 5;
-                    const major = coordinate % 20 === 0;
-                    return '<g class="board-coordinate" pointer-events="none">' +
-                        '<line x1="' + coordinate + '" y1="0" x2="' + coordinate + '" y2="720" stroke="#ffffff" stroke-opacity="' + (major ? '.075' : '.035') + '" stroke-width="' + (major ? '.65' : '.35') + '"/>' +
-                        '<line x1="0" y1="' + coordinate + '" x2="720" y2="' + coordinate + '" stroke="#ffffff" stroke-opacity="' + (major ? '.075' : '.035') + '" stroke-width="' + (major ? '.65' : '.35') + '"/>' +
-                        (major && coordinate > 0 && coordinate < 720 ? svgText(coordinate, 12, coordinate, 8, "#d9e4dc") : '') +
-                        (major && coordinate > 0 && coordinate < 720 ? '<text x="12" y="' + coordinate + '" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#d9e4dc">' + coordinate + '</text>' : '') +
-                        '</g>';
-                }).join('') +
-                // Kružnice se středem desky procházející referenčním bodem (190, 135).
-                '<circle class="board-reference-circle" cx="360" cy="360" r="282.02" fill="none" stroke="#ffcc66" stroke-opacity=".72" stroke-width="1.5" stroke-dasharray="6 5" pointer-events="none"/>' +
-                // Referenční bod pro ladění pozice první figurky.
-                '<g class="board-coordinate-marker" pointer-events="none">' +
-                    '<circle cx="190" cy="135" r="5" fill="#ffcc66" stroke="#172522" stroke-width="1.5"/>' +
-                    '<line x1="180" y1="135" x2="200" y2="135" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
-                    '<line x1="190" y1="125" x2="190" y2="145" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
-                    '<text x="201" y="129" font-size="10" fill="#ffdf9a">190, 135</text>' +
-                '</g>' +
+                // Souřadnicová mřížka a ladicí značky nejsou součástí herní desky.
+
                 (game.trackLength === 80
                     ? '<polygon points="278.8,164 441.2,164 556,278.8 556,441.2 441.2,556 278.8,556 164,441.2 164,278.8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
                     : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
-                homeLanes + track.join('') + bases +
+                homeLanes +
+                (game.trackLength === 80
+                    ? '<polyline points="' + TRACK_80_POSITIONS.map(position => position.x + ',' + position.y).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".24" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
+                    : '') +
+                track.join('') + bases +
                 '<circle cx="360" cy="360" r="68" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
                 '<circle cx="360" cy="360" r="57" fill="none" stroke="#c6a96b" stroke-opacity=".45" stroke-dasharray="2 5"/>' +
                 svgText(360, 350, 'ČLOVĚČE', 14, '#e9d7ac') +
