@@ -52,11 +52,12 @@ function baseMarkup(game, player, validMoves) {
 
     pieces.forEach(piece => {
         if (piece.steps !== -1) return;
-        const offset = [
-            [-17, -17], [17, -17], [-17, 17], [17, 17]
-        ][piece.id];
-        const x = center.x + offset[0];
-        const y = center.y + offset[1];
+        // Figurky jsou rozmístěné po vnějším půlkruhu základny.
+        const pieceAngles = [-60, -20, 20, 60];
+        const pieceAngle = (angle + pieceAngles[piece.id]) * Math.PI / 180;
+        const pieceRadius = 34;
+        const x = center.x + Math.cos(pieceAngle) * pieceRadius;
+        const y = center.y + Math.sin(pieceAngle) * pieceRadius;
         markup += '<g class="board-piece ' + (game.currentPlayer === player.id && validMoves.has(piece.id) ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">';
         markup += '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 4) + '" r="13"/>';
         markup += '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="12" fill="' + color + '"/>';
