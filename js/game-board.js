@@ -20,141 +20,69 @@ function point(angle, radius) {
 }
 
 function trackAngle(index, game) {
-    return (game.players.length <= 4 ? -135 : -90) +
-        index * 360 / game.trackLength;
+    return -90 + index * 360 / game.trackLength;
 }
 
-function interpolatePoint(start, end, ratio) {
-    return {
-        x: start.x + (end.x - start.x) * ratio,
-        y: start.y + (end.y - start.y) * ratio
-    };
-}
+// Obvod skutečného kříže: čtyři široká ramena, nikoli kruh ani čtverec.
+// Souřadnice leží na vnitřní hraně ramen; všechny varianty používají
+// stejnou geometrii a liší se pouze počtem rovnoměrně rozložených polí.
+const CROSS_OUTLINE = [
+    { x: 270, y: 60 }, { x: 450, y: 60 },
+    { x: 450, y: 270 }, { x: 660, y: 270 },
+    { x: 660, y: 450 }, { x: 450, y: 450 },
+    { x: 450, y: 660 }, { x: 270, y: 660 },
+    { x: 270, y: 450 }, { x: 60, y: 450 },
+    { x: 60, y: 270 }, { x: 270, y: 270 }
+];
 
-// Osm ramen osmiúhelníku: na každém jsou pouze tři obvodová pole.
-// Mezi rameny vede trasa čtyřmi poli dovnitř k zatáčce a čtyřmi ven
-// k dalšímu rameni. Zatáčka je společným bodem obou čtyřpolových úseků.
-function buildTrack80Positions() {
-    const apothem = 190;
-    const halfSide = apothem * Math.tan(Math.PI / 8);
-    const innerTurnRadius = 60;
-    const sideFractions = [-0.55, 0, 0.55];
-    const positions = [];
-
-    for (let side = 0; side < 8; side++) {
-        const angle = -90 + side * 45;
-        const radians = angle * Math.PI / 180;
-        const tangent = {
-            x: -Math.sin(radians),
-            y: Math.cos(radians)
-        };
-        const sideCenter = point(angle, apothem);
-        const sidePoints = sideFractions.map(fraction => ({
-            x: sideCenter.x + tangent.x * halfSide * fraction,
-            y: sideCenter.y + tangent.y * halfSide * fraction
-        }));
-
-        positions.push(...sidePoints);
-
-        const nextAngle = angle + 45;
-        const nextRadians = nextAngle * Math.PI / 180;
-        const nextTangent = {
-            x: -Math.sin(nextRadians),
-            y: Math.cos(nextRadians)
-        };
-        const nextSideCenter = point(nextAngle, apothem);
-        const nextSideStart = {
-            x: nextSideCenter.x - nextTangent.x * halfSide * 0.55,
-            y: nextSideCenter.y - nextTangent.y * halfSide * 0.55
-        };
-        const turn = point(angle + 22.5, innerTurnRadius);
-
-        // Čtyři pole směrem ke středu; čtvrté je samotná zatáčka.
-        for (let step = 1; step <= 4; step++) {
-            positions.push(interpolatePoint(sidePoints[2], turn, step / 4));
+function buildCrossTrackPositions(count) {
+    const edges = CROSS_OUTLINE.map((start, index) => {
+        const end = CROSS_OUTLINE[(index + 1) % CROSS_OUTLINE.length];
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        return { start, dx, dy, length: Math.hypot(dx, dy) };
+    });
+    const perimeter = edges.reduce((sum, edge) => sum + edge.length, 0);
+    return Array.from({ length: count }, (_, index) => {
+        let distance = (index + 0.5) * perimeter / count;
+        for (const edge of edges) {
+            if (distance <= edge.length) {
+                const ratio = distance / edge.length;
+                return {
+                    x: edge.start.x + edge.dx * ratio,
+                    y: edge.start.y + edge.dy * ratio
+                };
+            }
+            distance -= edge.length;
         }
-        // Tři mezilehlá pole zpět ven; čtvrté je první pole dalšího ramene.
-        for (let step = 1; step <= 3; step++) {
-            positions.push(interpolatePoint(turn, nextSideStart, step / 4));
-        }
-    }
-
-    return positions;
+        return { ...CROSS_OUTLINE[0] };
+    });
 }
 
-const TRACK_80_POSITIONS = buildTrack80Positions();
-
-// Čtyřramenná křížová deska: 4 rovné strany, na každé 10 stejně
-// vzdálených polí. Středové body stran tvoří osy čtyř ramen.
-function buildTrack40Positions() {
-    const min = 205;
-    const max = 515;
-    const count = 10;
-    const step = (max - min) / count;
-    const positions = [];
-
-    for (let i = 0; i < count; i++) {
-        const offset = min + step * (i + 0.5);
-        positions.push({ x: offset, y: min });
-    }
-    for (let i = 0; i < count; i++) {
-        const offset = min + step * (i + 0.5);
-        positions.push({ x: max, y: offset });
-    }
-    for (let i = 0; i < count; i++) {
-        const offset = max - step * (i + 0.5);
-        positions.push({ x: offset, y: max });
-    }
-    for (let i = 0; i < count; i++) {
-        const offset = max - step * (i + 0.5);
-        positions.push({ x: min, y: offset });
-    }
-    return positions;
-}
-
-const TRACK_40_POSITIONS = buildTrack40Positions();
+const TRACK_POSITIONS = Object.freeze({
+    40: buildCrossTrackPositions(40),
+    48: buildCrossTrackPositions(48),
+    80: buildCrossTrackPositions(80)
+});
 
 function playerAngle(player, total, trackLength) {
-    if (trackLength === 40) {
-        const start = trackPosition((player.start + 1) % 40, {
-            trackLength: 40,
-            players: []
-        });
-        return Math.atan2(start.y - CENTER, start.x - CENTER) * 180 / Math.PI;
-    }
-    if (trackLength === 80) {
-        const start = trackPosition((player.start + 1) % 80, {
-            trackLength: 80,
-            players: []
-        });
-        return Math.atan2(start.y - CENTER, start.x - CENTER) * 180 / Math.PI;
-    }
-
-    const startAngle = total <= 4 ? -135 : -90;
-    return startAngle + player.start * 360 / trackLength;
+    // Čtyři základny klasické desky směřují do čtyř ramen kříže.
+    const slotCount = trackLength === 48 ? 6 : (trackLength === 80 ? 8 : 4);
+    const slot = Number.isInteger(player.slot)
+        ? player.slot
+        : Math.round(player.start * slotCount / trackLength);
+    if (slotCount === 4) return [-90, 0, 90, 180][slot % 4];
+    return -90 + slot * 360 / slotCount;
 }
 
 export function trackPosition(index, game) {
-    if (game.trackLength === 40) {
-        return TRACK_40_POSITIONS[((index - 1) % 40 + 40) % 40];
-    }
-    if (game.trackLength === 80) {
-        // Vizuální starty jsou na indexech 1, 11, 21… stejně jako
-        // logické starty po posunu startovního pole o jedno místo.
-        return TRACK_80_POSITIONS[((index - 1) % 80 + 80) % 80];
-    }
-
+    const positions = TRACK_POSITIONS[game.trackLength];
+    if (positions) return positions[((index - 1) % game.trackLength + game.trackLength) % game.trackLength];
     return point(trackAngle(index, game), TRACK_RADIUS);
 }
 
 function routeAngle(player, game) {
-    if (game.trackLength === 80) {
-        return playerAngle(player, game.players.length, game.trackLength);
-    }
-
-    // Startovní pole je o jedno místo vpravo; základny zůstávají na místě.
-    const shiftedStart = (player.start + 1 + game.trackLength) % game.trackLength;
-    return trackAngle(shiftedStart, game);
+    return playerAngle(player, game.players.length, game.trackLength);
 }
 
 function svgText(x, y, value, size, fill) {
@@ -163,7 +91,7 @@ function svgText(x, y, value, size, fill) {
 
 function baseMarkup(game, player, validMoves) {
     const angle = playerAngle(player, game.players.length, game.trackLength);
-    const center = point(angle, BASE_RADIUS);
+    const baseAngle = angle + (game.trackLength === 40 ? -45 : -22.5);\n    const center = point(baseAngle, BASE_RADIUS * 1.12);
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
@@ -174,16 +102,15 @@ function baseMarkup(game, player, validMoves) {
         if (piece.steps !== -1) return;
         // První figurka leží na ose mezi domečkem a vlastním startovním polem.
         // Další figurky pokračují vedle ní po oblouku směrem nad herní dráhu.
-        const pieceAngles = [0, 6, 12, 18];
-        // První pozice slotu 0 je přesně (190, 135); ostatní sloty
-        // zachovávají stejné natočení vůči svému startovnímu poli.
-        const referenceAngle = Math.atan2(135 - CENTER, 190 - CENTER) * 180 / Math.PI;
-        const defaultRouteAngle = (game.players.length <= 4 ? -135 : -90) + 360 / game.trackLength;
-        const pieceAngle = routeAngle(player, game) + (referenceAngle - defaultRouteAngle) + pieceAngles[piece.id];
-        // Figurky v základně leží přímo na referenční kružnici desky.
-        const piecePosition = point(pieceAngle, Math.hypot(190 - CENTER, 135 - CENTER));
-        const x = piecePosition.x;
-        const y = piecePosition.y;
+        const baseAngle = angle + (game.trackLength === 40 ? -45 : -22.5);
+        const baseCenter = point(baseAngle, BASE_RADIUS * 1.12);
+        const offsets = [
+            [-19, -19], [19, -19], [-19, 19], [19, 19]
+        ];
+        const [offsetX, offsetY] = offsets[piece.id];
+        const radians = baseAngle * Math.PI / 180;
+        const x = baseCenter.x + offsetX * Math.cos(radians) - offsetY * Math.sin(radians);
+        const y = baseCenter.y + offsetX * Math.sin(radians) + offsetY * Math.cos(radians);
         markup += '<g class="board-piece ' + (game.currentPlayer === player.id && validMoves.has(piece.id) ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">';
         markup += '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 4) + '" r="13"/>';
         markup += '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="12" fill="' + color + '"/>';
@@ -254,7 +181,7 @@ export function renderBoard(container, game) {
         );
         track.push(
             '<g class="track-space ' + (startPlayer ? 'track-start' : '') + '">' +
-            '<circle cx="' + p.x + '" cy="' + p.y + '" r="13" fill="' + (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' + (startPlayer ? '.95' : (emptyStart ? '.42' : '.12')) + '" stroke="' + (startPlayer ? startPlayer.color : (emptyStart ? '#c6a96b' : '#fff')) + '" stroke-opacity="' + (startPlayer ? '.9' : (emptyStart ? '.65' : '.22')) + '" stroke-width="1.4"/>' +
+            '<rect x="' + (p.x - (game.trackLength === 80 ? 8 : game.trackLength === 48 ? 10 : 12)) + '" y="' + (p.y - (game.trackLength === 80 ? 8 : game.trackLength === 48 ? 10 : 12)) + '" width="' + (game.trackLength === 80 ? 16 : game.trackLength === 48 ? 20 : 24) + '" height="' + (game.trackLength === 80 ? 16 : game.trackLength === 48 ? 20 : 24) + '" rx="2" fill="' + (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' + (startPlayer ? '.95' : (emptyStart ? '.42' : '.12')) + '" stroke="' + (startPlayer ? startPlayer.color : (emptyStart ? '#c6a96b' : '#fff')) + '" stroke-opacity="' + (startPlayer ? '.9' : (emptyStart ? '.65' : '.22')) + '" stroke-width="1.4"/>' +
             (startPlayer ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="#fff" fill-opacity=".9"/>' : (emptyStart ? '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="#c6a96b" fill-opacity=".8"/>' : '')) +
             '</g>'
         );
@@ -316,23 +243,10 @@ export function renderBoard(container, game) {
                     '<linearGradient id="trackRing" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2e7d2"/><stop offset="1" stop-color="#8e9a8d"/></linearGradient>' +
                     '<filter id="pieceGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
                 '</defs>' +
-                (game.trackLength === 40
-                    ? '<rect x="18" y="18" width="684" height="684" rx="42" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>'
-                    : '<circle cx="360" cy="360" r="347" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>') +
-                // Souřadnicová mřížka a ladicí značky nejsou součástí herní desky.
-
-                (game.trackLength === 40
-                    ? '<rect x="190" y="190" width="340" height="340" rx="8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="30"/>'
-                    : game.trackLength === 80
-                        ? '<polygon points="278.8,164 441.2,164 556,278.8 556,441.2 441.2,556 278.8,556 164,441.2 164,278.8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
-                        : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
-                '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
+                '<path d="M270 35 H450 V270 H685 V450 H450 V685 H270 V450 H35 V270 H270 Z" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3" stroke-linejoin="round"/>' +
+                '<path d="M270 60 H450 V270 H660 V450 H450 V660 H270 V450 H60 V270 H270 Z" fill="none" stroke="url(#trackRing)" stroke-opacity=".16" stroke-width="3" stroke-linejoin="round"/>' +
                 homeLanes +
-                (game.trackLength === 40
-                    ? '<polyline points="' + TRACK_40_POSITIONS.map(position => position.x + ',' + position.y).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".24" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
-                    : game.trackLength === 80
-                        ? '<polyline points="' + TRACK_80_POSITIONS.map(position => position.x + ',' + position.y).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".24" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
-                        : '') +
+                '<polyline points="' + TRACK_POSITIONS[game.trackLength].map(position => position.x + ',' + position.y).concat([TRACK_POSITIONS[game.trackLength][0].x + ',' + TRACK_POSITIONS[game.trackLength][0].y]).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".28" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>' +
                 track.join('') + bases +
                 '<circle cx="360" cy="360" r="68" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
                 '<circle cx="360" cy="360" r="57" fill="none" stroke="#c6a96b" stroke-opacity=".45" stroke-dasharray="2 5"/>' +
