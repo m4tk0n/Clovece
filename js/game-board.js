@@ -54,7 +54,7 @@ function baseMarkup(game, player, validMoves) {
         if (piece.steps !== -1) return;
         // První figurka leží na ose mezi domečkem a vlastním startovním polem.
         // Další figurky pokračují vedle ní po oblouku směrem nad herní dráhu.
-        const pieceAngles = [0, 28, 56, 84];
+        const pieceAngles = [0, 6, 12, 18];
         const pieceAngle = routeAngle(player, game) + pieceAngles[piece.id];
         // Figurky v základně leží přímo na referenční kružnici desky.
         const piecePosition = point(pieceAngle, 283.05);
