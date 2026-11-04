@@ -54,7 +54,8 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 ## Technologie
 
 - HTML5, CSS3, JavaScript ES modules
-- Three.js 3D vykreslení celé hrací desky a figurek; SVG zajišťuje logické souřadnice a interakční cíle
+- Samostatný SVG renderer pro pevný 2D pohled shora a samostatný Three.js renderer, který vytváří vlastní 3D scénu přímo z herních dat; SVG se do 3D režimu vůbec nezapojuje
+- 3D kamera začíná shora a podporuje naklonění, otáčení a přiblížení; SVG režim zůstává vždy bez náklonu a perspektivy
 - Varianty desky classic a polygon, velikosti 40/48/80 polí
 - PHP a MySQL pro budoucí online režim
 - GitHub Actions pro testování a FTP nasazení
