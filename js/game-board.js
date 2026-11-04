@@ -67,6 +67,8 @@ function applyView(container) {
     svg.style.transform = view3d ? viewTransform() : '';
     svg.style.touchAction = view3d ? 'none' : '';
     svg.style.cursor = view3d ? 'grab' : '';
+    const threeLayer = container.querySelector('.three-pawns-layer');
+    if (threeLayer) threeLayer.style.transform = svg.style.transform;
     container.style.overflow = view3d ? 'hidden' : '';
 }
 
