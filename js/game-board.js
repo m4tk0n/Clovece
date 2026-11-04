@@ -6,7 +6,7 @@
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
 import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine.js';
-import { render3DPawns } from './game-board-3d.js';
+import { render3DBoard } from './game-board-3d.js';
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
@@ -31,19 +31,16 @@ const POLYGON = {
 
 let boardStyle = loadStyle();
 
-// 3D pohled: náklon (rotateX) a otočení desky (rotateZ) tahem prstu / myši.
+// SVG je vždy pevný pohled shora. 3D kamera patří výhradně Three.js rendereru.
 const VIEW_KEY = 'clovece_board_view';
-const DEFAULT_TILT = 52;
 let view3d = loadView();
-let tilt = DEFAULT_TILT;
-let rotation = 0;
 
 function loadView() {
     try {
         const saved = window.localStorage.getItem(VIEW_KEY);
         return saved === null ? true : saved === '3d';
     } catch {
-        return false;
+        return true;
     }
 }
 
@@ -51,26 +48,8 @@ function saveView() {
     try {
         window.localStorage.setItem(VIEW_KEY, view3d ? '3d' : '2d');
     } catch {
-        // Bez úložiště zůstane pohled platný do obnovení stránky.
+        // Bez úložiště zůstane volba platná do obnovení stránky.
     }
-}
-
-function viewTransform() {
-    const radians = rotation * Math.PI / 180;
-    // Zmenšení podle natočení, aby se rozlehlá deska nikdy neořízla o okraj.
-    const fit = 0.92 / (Math.abs(Math.cos(radians)) + Math.abs(Math.sin(radians)));
-    return 'perspective(1100px) rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + rotation.toFixed(1) + 'deg) scale(' + fit.toFixed(3) + ')';
-}
-
-function applyView(container) {
-    const svg = container.querySelector?.('.premium-board');
-    if (!svg) return;
-    svg.style.transform = view3d ? viewTransform() : '';
-    svg.style.touchAction = view3d ? 'none' : '';
-    svg.style.cursor = view3d ? 'grab' : '';
-    const threeLayer = container.querySelector('.three-pawns-layer');
-    if (threeLayer) threeLayer.style.transform = svg.style.transform;
-    container.style.overflow = view3d ? 'hidden' : '';
 }
 
 function loadStyle() {
@@ -305,20 +284,19 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves, g)
 
 function styleSwitchMarkup() {
     const label = { classic: 'KLASIK', polygon: 'MNOHOÚHELNÍK' };
-    return '<div class="board-style-switch" role="group" aria-label="Vzhled hrací desky">' +
+    return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
-        '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') + '" data-board-view="toggle" aria-pressed="' + view3d + '" title="3D pohled – otáčej deskou tahem prstu">3D</button>' +
-        (view3d ? '<button type="button" class="board-style-btn" data-board-view="reset" title="Obnovit výchozí pohled" aria-label="Obnovit výchozí pohled">↺</button>' : '') +
+        '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
+            '" data-board-view="toggle" aria-pressed="' + view3d + '">' + (view3d ? '3D' : '2D SVG') + '</button>' +
         '</div>';
 }
 
 const SWITCH_CSS = '<style>' +
     '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
+    '.premium-board-shell{position:relative}const SWITCH_CSS = '<style>' +
+    '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
     '.premium-board-shell{position:relative}' +
-    '.three-pawns-layer{position:absolute;z-index:2;pointer-events:none;display:block;overflow:visible}' +
-    '.three-pawns-layer canvas{display:block;width:100%;height:100%;pointer-events:none}' +
-    '.premium-board.three-pawns-active .pawn-piece{opacity:0}' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
     '.board-style-btn.is-active{background:rgba(198,169,107,.22);border-color:#c6a96b;color:#f3eddf}' +
@@ -337,14 +315,6 @@ function bindStyleSwitch(container) {
     if (container._boardStyleBound) return;
     container._boardStyleBound = true;
 
-    // Po tahu prstem nesmí vzniknout klik na figurku pod prstem.
-    container.addEventListener('click', event => {
-        if (container._suppressClick) {
-            event.stopPropagation();
-            event.preventDefault();
-        }
-    }, true);
-
     container.addEventListener('click', event => {
         const styleButton = event.target.closest?.('[data-board-style]');
         if (styleButton) {
@@ -357,45 +327,99 @@ function bindStyleSwitch(container) {
         }
         const viewButton = event.target.closest?.('[data-board-view]');
         if (!viewButton) return;
-        if (viewButton.dataset.boardView === 'toggle') {
-            view3d = !view3d;
-            saveView();
-        } else {
-            tilt = DEFAULT_TILT;
-            rotation = 0;
-        }
+        view3d = !view3d;
+        saveView();
         restyle(container);
     });
+}
 
-    container.addEventListener('pointerdown', event => {
-        if (!view3d || !event.target.closest?.('.premium-board')) return;
-        const start = { x: event.clientX, y: event.clientY, rotation, tilt, id: event.pointerId };
-        let moved = false;
-
-        const move = moveEvent => {
-            if (moveEvent.pointerId !== start.id) return;
-            const dx = moveEvent.clientX - start.x;
-            const dy = moveEvent.clientY - start.y;
-            if (!moved && Math.hypot(dx, dy) < 8) return;
-            moved = true;
-            rotation = start.rotation + dx * 0.5;
-            tilt = Math.max(0, Math.min(75, start.tilt + dy * 0.3));
-            applyView(container);
+// Sdílený čistý model. 3D renderer dostává pouze herní data a souřadnice,
+// nikdy SVG element, jeho atributy ani DOM uzly.
+export function buildBoardSceneData(game) {
+    const g = geometry(game);
+    const m = game.trackLength / g.n;
+    const playersBySlot = new Map(game.players.map(player => [slotOf(player, game), player]));
+    const track = Array.from({ length: game.trackLength }, (_, index) => {
+        const position = trackPosition(index, game);
+        const player = game.players.find(item => item.start === index);
+        const emptyStart = !player && index % m === m / 2;
+        return {
+            index, x: position.x - CENTER, z: position.y - CENTER,
+            radius: player ? g.field + 2 : g.field,
+            color: player ? player.color : (emptyStart ? '#c6a96b' : '#d9d2c3'),
+            opacity: player ? .95 : (emptyStart ? .4 : .12),
+            start: Boolean(player)
         };
-        const end = endEvent => {
-            if (endEvent.pointerId !== start.id) return;
-            window.removeEventListener('pointermove', move);
-            window.removeEventListener('pointerup', end);
-            window.removeEventListener('pointercancel', end);
-            if (moved) {
-                container._suppressClick = true;
-                window.setTimeout(() => { container._suppressClick = false; }, 60);
-            }
-        };
-        window.addEventListener('pointermove', move);
-        window.addEventListener('pointerup', end);
-        window.addEventListener('pointercancel', end);
     });
+    const lanes = Array.from({ length: g.n }, (_, slot) => {
+        const player = playersBySlot.get(slot);
+        return {
+            slot, color: player?.color || '#c6a96b', occupied: Boolean(player),
+            cells: Array.from({ length: 4 }, (_, lane) => {
+                const p = armPoint(slot, g.n, laneRadius(g, lane), 0);
+                return { x: p.x - CENTER, z: p.y - CENTER, radius: g.field + 1 };
+            })
+        };
+    });
+    const bases = game.players.map(player => {
+        const slot = slotOf(player, game);
+        const angle = slotAngle(slot, g.n) + Math.PI / g.n;
+        const center = polar(angle, g.baseDist);
+        const offset = g.base * .4;
+        const offsets = [[-offset,-offset],[offset,-offset],[-offset,offset],[offset,offset]];
+        return {
+            playerId: player.id, color: player.color,
+            x: center.x - CENTER, z: center.y - CENTER, radius: g.base,
+            pieces: game.pieces[player.id].pieces
+                .filter(piece => piece.steps === -1)
+                .map(piece => ({
+                    playerId: player.id, pieceId: piece.id,
+                    x: center.x + offsets[piece.id][0] - CENTER,
+                    z: center.y + offsets[piece.id][1] - CENTER,
+                    color: player.color,
+                    selectable: game.currentPlayer === player.id && getValidMoves(game).includes(piece.id)
+                }))
+        };
+    });
+    const validMoves = new Set(getValidMoves(game));
+    const allPieces = game.players.flatMap(player => game.pieces[player.id].pieces
+        .filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 4)
+        .map(piece => ({ player, piece })));
+    const pieces = [];
+    for (const { player, piece } of allPieces) {
+        const slot = slotOf(player, game);
+        let position;
+        if (piece.steps <= game.trackLength) {
+            const logicalPosition = getPiecePosition(game, player.id, piece);
+            position = trackPosition(logicalPosition, game);
+        } else {
+            const laneIndex = Math.min(3, getHomeLaneIndex(game, piece));
+            position = armPoint(slot, g.n, laneRadius(g, laneIndex), 0);
+        }
+        let stackIndex = 0;
+        let stackCount = 1;
+        if (piece.steps <= game.trackLength) {
+            const logicalPosition = getPiecePosition(game, player.id, piece);
+            const stack = allPieces.filter(item => item.piece.steps <= game.trackLength &&
+                getPiecePosition(game, item.player.id, item.piece) === logicalPosition);
+            stackIndex = stack.findIndex(item => item.player.id === player.id && item.piece.id === piece.id);
+            stackCount = stack.length;
+        }
+        const spread = piece.steps === game.trackLength + 4 ? 0 : (stackIndex - (stackCount - 1) / 2) * 9;
+        const angle = slotAngle(slot, g.n) + Math.PI / 2;
+        pieces.push({
+            playerId: player.id, pieceId: piece.id, color: player.color,
+            x: position.x + Math.cos(angle) * spread - CENTER,
+            z: position.y + Math.sin(angle) * spread - CENTER,
+            radius: g.piece,
+            selectable: player.id === game.currentPlayer && validMoves.has(piece.id)
+        });
+    }
+    return {
+        style: boardStyle, slotCount: g.n, trackLength: game.trackLength,
+        players: game.players.map(player => ({ id: player.id, color: player.color })),
+        track, lanes, bases, pieces
+    };
 }
 
 export function renderBoard(container, game) {
@@ -406,6 +430,22 @@ export function renderBoard(container, game) {
     // Při online pollingu přichází stejný stav opakovaně. SVG překreslíme
     // pouze tehdy, když se skutečně změnil herní stav nebo vzhled desky.
     const renderKey = boardStyle + (view3d ? '3d' : '2d') + JSON.stringify(game);
+    if (container.dataset.renderKey === renderKey) return;
+    container.dataset.renderKey = renderKey;
+
+    if (view3d) {
+        const activePlayer = game.players[game.currentPlayer];
+        container.innerHTML =
+            '<div class="premium-board-shell">' + SWITCH_CSS +
+                '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span>' + styleSwitchMarkup() + '</div>' +
+                '<div class="three-board-stage" aria-label="Plně prostorová hrací deska"></div>' +
+                '<div class="board-player-stats"><div class="players-panel" id="players-panel" aria-label="Stav figurek hráčů"></div></div>' +
+                '<div class="board-corner-info"><div class="board-turn-count"><span>POČET TAHŮ</span><strong>' + game.turnNumber + '</strong></div>' +
+                '<div class="board-current-player" style="--player-color:' + activePlayer.color + '"><span>NA ŘADĚ</span><strong>' + activePlayer.name + '</strong></div></div>' +
+            '</div>';
+        render3DBoard(container.querySelector('.three-board-stage'), buildBoardSceneData(game));
+        return;
+    }
     if (container.dataset.renderKey === renderKey) return;
     container.dataset.renderKey = renderKey;
 
@@ -505,6 +545,5 @@ export function renderBoard(container, game) {
                 '<div class="board-current-player" style="--player-color:' + active.color + '"><span>NA ŘADĚ</span><strong>' + active.name + '</strong></div>' +
             '</div>' +
         '</div>';
-    applyView(container);
-    render3DPawns(container, container.querySelector('.premium-board'), view3d);
+    // SVG renderer: pevný pohled shora, bez transformace, náklonu či perspektivy.
 }
