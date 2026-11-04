@@ -84,7 +84,44 @@ function buildTrack80Positions() {
 
 const TRACK_80_POSITIONS = buildTrack80Positions();
 
+// Čtyřramenná křížová deska: 4 rovné strany, na každé 10 stejně
+// vzdálených polí. Středové body stran tvoří osy čtyř ramen.
+function buildTrack40Positions() {
+    const min = 205;
+    const max = 515;
+    const count = 10;
+    const step = (max - min) / count;
+    const positions = [];
+
+    for (let i = 0; i < count; i++) {
+        const offset = min + step * (i + 0.5);
+        positions.push({ x: offset, y: min });
+    }
+    for (let i = 0; i < count; i++) {
+        const offset = min + step * (i + 0.5);
+        positions.push({ x: max, y: offset });
+    }
+    for (let i = 0; i < count; i++) {
+        const offset = max - step * (i + 0.5);
+        positions.push({ x: offset, y: max });
+    }
+    for (let i = 0; i < count; i++) {
+        const offset = max - step * (i + 0.5);
+        positions.push({ x: min, y: offset });
+    }
+    return positions;
+}
+
+const TRACK_40_POSITIONS = buildTrack40Positions();
+
 function playerAngle(player, total, trackLength) {
+    if (trackLength === 40) {
+        const start = trackPosition((player.start + 1) % 40, {
+            trackLength: 40,
+            players: []
+        });
+        return Math.atan2(start.y - CENTER, start.x - CENTER) * 180 / Math.PI;
+    }
     if (trackLength === 80) {
         const start = trackPosition((player.start + 1) % 80, {
             trackLength: 80,
@@ -98,6 +135,9 @@ function playerAngle(player, total, trackLength) {
 }
 
 export function trackPosition(index, game) {
+    if (game.trackLength === 40) {
+        return TRACK_40_POSITIONS[((index - 1) % 40 + 40) % 40];
+    }
     if (game.trackLength === 80) {
         // Vizuální starty jsou na indexech 1, 11, 21… stejně jako
         // logické starty po posunu startovního pole o jedno místo.
@@ -269,24 +309,30 @@ export function renderBoard(container, game) {
     const active = game.players[game.currentPlayer];
     container.innerHTML =
         '<div class="premium-board-shell">' +
-            '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span><div class="board-appearance" role="group" aria-label="Vzhled hrací desky"><span class="board-appearance-label">DESKA</span><button class="board-appearance-option is-active" type="button" aria-pressed="true" disabled>KULATÁ</button><button class="board-appearance-option is-unavailable" type="button" aria-pressed="false" disabled title="Klasická hranatá deska bude doplněna později">HRANATÁ</button></div></div>' +
+            '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span><div class="board-appearance" role="group" aria-label="Vzhled hrací desky"><span class="board-appearance-label">DESKA</span><button class="board-appearance-option is-active" type="button" aria-pressed="true" disabled>KŘÍŽOVÁ</button></div></div>' +
             '<svg class="premium-board" viewBox="0 0 720 720" role="img" aria-label="Hrací plán pro ' + total + ' hráčů">' +
                 '<defs>' +
                     '<radialGradient id="boardBg"><stop offset="0" stop-color="#34423f"/><stop offset=".68" stop-color="#182522"/><stop offset="1" stop-color="#0c1413"/></radialGradient>' +
                     '<linearGradient id="trackRing" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2e7d2"/><stop offset="1" stop-color="#8e9a8d"/></linearGradient>' +
                     '<filter id="pieceGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
                 '</defs>' +
-                '<circle cx="360" cy="360" r="347" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>' +
+                (game.trackLength === 40
+                    ? '<rect x="18" y="18" width="684" height="684" rx="42" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>'
+                    : '<circle cx="360" cy="360" r="347" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>') +
                 // Souřadnicová mřížka a ladicí značky nejsou součástí herní desky.
 
-                (game.trackLength === 80
-                    ? '<polygon points="278.8,164 441.2,164 556,278.8 556,441.2 441.2,556 278.8,556 164,441.2 164,278.8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
-                    : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
+                (game.trackLength === 40
+                    ? '<rect x="190" y="190" width="340" height="340" rx="8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="30"/>'
+                    : game.trackLength === 80
+                        ? '<polygon points="278.8,164 441.2,164 556,278.8 556,441.2 441.2,556 278.8,556 164,441.2 164,278.8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
+                        : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes +
-                (game.trackLength === 80
-                    ? '<polyline points="' + TRACK_80_POSITIONS.map(position => position.x + ',' + position.y).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".24" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
-                    : '') +
+                (game.trackLength === 40
+                    ? '<polyline points="' + TRACK_40_POSITIONS.map(position => position.x + ',' + position.y).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".24" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
+                    : game.trackLength === 80
+                        ? '<polyline points="' + TRACK_80_POSITIONS.map(position => position.x + ',' + position.y).join(' ') + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".24" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>'
+                        : '') +
                 track.join('') + bases +
                 '<circle cx="360" cy="360" r="68" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
                 '<circle cx="360" cy="360" r="57" fill="none" stroke="#c6a96b" stroke-opacity=".45" stroke-dasharray="2 5"/>' +
