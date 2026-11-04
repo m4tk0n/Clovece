@@ -8,11 +8,6 @@ import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine
 const SIZE = 720;
 const CENTER = SIZE / 2;
 const TRACK_RADIUS = 245;
-const TRACK_RADIUS_80 = 332;
-
-function getTrackRadius(game) {
-    return game.trackLength === 80 ? TRACK_RADIUS_80 : TRACK_RADIUS;
-}
 const BASE_RADIUS = 300;
 const HOME_RADII = [202, 164, 126, 88];
 
@@ -24,49 +19,99 @@ function point(angle, radius) {
     };
 }
 
-function playerAngle(player, total, trackLength) {
-    const startAngle = total <= 4 ? -135 : -90;
-    return startAngle + player.start * 360 / trackLength;
-}
-
 function trackAngle(index, game) {
     return (game.players.length <= 4 ? -135 : -90) +
         index * 360 / game.trackLength;
 }
 
-// Osmiúhelníkový obvod pro 80 polí. Body jsou rozmístěny po stejné
-// délce obvodu, nikoli po úhlech, takže mezery mezi sousedními poli
-// zůstávají rovnoměrné i v přechodech mezi stranami.
-function trackPosition(index, game) {
-    if (game.trackLength !== 80) {
-        return point(trackAngle(index, game), getTrackRadius(game));
-    }
+function interpolatePoint(start, end, ratio) {
+    return {
+        x: start.x + (end.x - start.x) * ratio,
+        y: start.y + (end.y - start.y) * ratio
+    };
+}
 
-    const vertices = [
-        [150, 40], [570, 40], [680, 150], [680, 570],
-        [570, 680], [150, 680], [40, 570], [40, 150]
-    ];
-    const segments = vertices.map((start, i) => {
-        const end = vertices[(i + 1) % vertices.length];
-        return { start, end, length: Math.hypot(end[0] - start[0], end[1] - start[1]) };
-    });
-    const perimeter = segments.reduce((sum, segment) => sum + segment.length, 0);
-    let distance = ((index % 80) + 80) % 80 * perimeter / 80;
+// Osm ramen osmiúhelníku: na každém jsou pouze tři obvodová pole.
+// Mezi rameny vede trasa čtyřmi poli dovnitř k zatáčce a čtyřmi ven
+// k dalšímu rameni. Zatáčka je společným bodem obou čtyřpolových úseků.
+function buildTrack80Positions() {
+    const apothem = 270;
+    const halfSide = apothem * Math.tan(Math.PI / 8);
+    const innerTurnRadius = 145;
+    const sideFractions = [-0.55, 0, 0.55];
+    const positions = [];
 
-    for (const segment of segments) {
-        if (distance <= segment.length) {
-            const ratio = distance / segment.length;
-            return {
-                x: segment.start[0] + (segment.end[0] - segment.start[0]) * ratio,
-                y: segment.start[1] + (segment.end[1] - segment.start[1]) * ratio
-            };
+    for (let side = 0; side < 8; side++) {
+        const angle = -90 + side * 45;
+        const radians = angle * Math.PI / 180;
+        const tangent = {
+            x: -Math.sin(radians),
+            y: Math.cos(radians)
+        };
+        const sideCenter = point(angle, apothem);
+        const sidePoints = sideFractions.map(fraction => ({
+            x: sideCenter.x + tangent.x * halfSide * fraction,
+            y: sideCenter.y + tangent.y * halfSide * fraction
+        }));
+
+        positions.push(...sidePoints);
+
+        const nextAngle = angle + 45;
+        const nextRadians = nextAngle * Math.PI / 180;
+        const nextTangent = {
+            x: -Math.sin(nextRadians),
+            y: Math.cos(nextRadians)
+        };
+        const nextSideCenter = point(nextAngle, apothem);
+        const nextSideStart = {
+            x: nextSideCenter.x - nextTangent.x * halfSide * 0.55,
+            y: nextSideCenter.y - nextTangent.y * halfSide * 0.55
+        };
+        const turn = point(angle + 22.5, innerTurnRadius);
+
+        // Čtyři pole směrem ke středu; čtvrté je samotná zatáčka.
+        for (let step = 1; step <= 4; step++) {
+            positions.push(interpolatePoint(sidePoints[2], turn, step / 4));
         }
-        distance -= segment.length;
+        // Tři mezilehlá pole zpět ven; čtvrté je první pole dalšího ramene.
+        for (let step = 1; step <= 3; step++) {
+            positions.push(interpolatePoint(turn, nextSideStart, step / 4));
+        }
     }
-    return { x: vertices[0][0], y: vertices[0][1] };
+
+    return positions;
+}
+
+const TRACK_80_POSITIONS = buildTrack80Positions();
+
+function playerAngle(player, total, trackLength) {
+    if (trackLength === 80) {
+        const start = trackPosition((player.start + 1) % 80, {
+            trackLength: 80,
+            players: []
+        });
+        return Math.atan2(start.y - CENTER, start.x - CENTER) * 180 / Math.PI;
+    }
+
+    const startAngle = total <= 4 ? -135 : -90;
+    return startAngle + player.start * 360 / trackLength;
+}
+
+export function trackPosition(index, game) {
+    if (game.trackLength === 80) {
+        // Vizuální starty jsou na indexech 1, 11, 21… stejně jako
+        // logické starty po posunu startovního pole o jedno místo.
+        return TRACK_80_POSITIONS[((index - 1) % 80 + 80) % 80];
+    }
+
+    return point(trackAngle(index, game), TRACK_RADIUS);
 }
 
 function routeAngle(player, game) {
+    if (game.trackLength === 80) {
+        return playerAngle(player, game.players.length, game.trackLength);
+    }
+
     // Startovní pole je o jedno místo vpravo; základny zůstávají na místě.
     const shiftedStart = (player.start + 1 + game.trackLength) % game.trackLength;
     return trackAngle(shiftedStart, game);
@@ -253,7 +298,7 @@ export function renderBoard(container, game) {
                     '<text x="201" y="129" font-size="10" fill="#ffdf9a">190, 135</text>' +
                 '</g>' +
                 (game.trackLength === 80
-                    ? '<polygon points="150,40 570,40 680,150 680,570 570,680 150,680 40,570 40,150" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
+                    ? '<polygon points="246,84 474,84 636,246 636,474 474,636 246,636 84,474 84,246" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
                     : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes + track.join('') + bases +
