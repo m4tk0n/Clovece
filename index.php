@@ -34,6 +34,7 @@ $ver = date('Ymd-His');
     <script type="importmap">
     {
         "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
             "/js/app.js": "/js/app.js?v=<?= $ver ?>",
             "/js/audio.js": "/js/audio.js?v=<?= $ver ?>",
             "/js/game-board.js": "/js/game-board.js?v=<?= $ver ?>",
