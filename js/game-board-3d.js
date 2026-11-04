@@ -160,6 +160,14 @@ export async function render3DPawns(container, svg, enabled) {
         }
 
         renderer.setSize(width, height, false);
+        if (typeof ResizeObserver !== 'undefined' && !layer._resizeObserver) {
+            layer._resizeObserver = new ResizeObserver(() => {
+                if (layer.isConnected && layer.style.display !== 'none') {
+                    render3DPawns(container, svg, true);
+                }
+            });
+            layer._resizeObserver.observe(svg);
+        }
         layer._camera.left = 0;
         layer._camera.right = 720;
         layer._camera.top = 720;
