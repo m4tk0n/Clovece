@@ -38,6 +38,7 @@ $ver = date('Ymd-His');
             "/js/app.js": "/js/app.js?v=<?= $ver ?>",
             "/js/audio.js": "/js/audio.js?v=<?= $ver ?>",
             "/js/game-board.js": "/js/game-board.js?v=<?= $ver ?>",
+            "/js/game-board-3d.js": "/js/game-board-3d.js?v=<?= $ver ?>",
             "/js/game-engine.js": "/js/game-engine.js?v=<?= $ver ?>",
             "/js/lazy-load.js": "/js/lazy-load.js?v=<?= $ver ?>",
             "/js/navigation.js": "/js/navigation.js?v=<?= $ver ?>",
