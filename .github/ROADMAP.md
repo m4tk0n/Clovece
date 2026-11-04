@@ -270,3 +270,10 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Zachovat pořadí pozic po směru hodinových ručiček; cílové dráhy směřují od domečků dovnitř.
 - [x] Prázdné pozice zůstávají neutrální a deska 80 zůstává beze změny.
 - [ ] Vizuálně ověřit obě varianty na živém webu.
+
+
+## Záznam úpravy figurek v základně – 2026-11-04
+
+- [x] První figurku umístit na osu směřující k vlastnímu startovnímu poli.
+- [x] Zbývající figurky rozmístit vedle ní po oblouku směrem nad herní dráhu.
+- [ ] Vizuálně ověřit rozestavení na živém webu a podle potřeby doladit směr i rozestupy.
