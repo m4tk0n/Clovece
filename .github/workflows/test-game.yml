@@ -21,6 +21,7 @@ jobs:
           node --experimental-default-type=module --check js/online.js
           node --experimental-default-type=module --check js/game-engine.js
           node --experimental-default-type=module --check js/game-board.js
+          node --experimental-default-type=module --check js/game-board-3d.js
       - name: Test game rules
         run: node --experimental-default-type=module --test tests/game-engine.test.mjs
 
