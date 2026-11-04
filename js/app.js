@@ -510,10 +510,10 @@ function scheduleAI() {
 }
 
 function onBoardClick(event) {
-    const piece = event.target.closest('[data-player][data-piece]');
-    if (!piece || !game || game.phase !== 'move' || modalOpen) return;
-    const playerId = Number(piece.dataset.player);
-    const pieceId = Number(piece.dataset.piece);
+    const piece = event.target.closest?.('[data-player][data-piece]');
+    const playerId = Number(event.detail?.playerId ?? piece?.dataset.player);
+    const pieceId = Number(event.detail?.pieceId ?? piece?.dataset.piece);
+    if (!Number.isInteger(playerId) || !Number.isInteger(pieceId) || !game || game.phase !== 'move' || modalOpen) return;
     if (playerId !== game.currentPlayer || game.players[playerId].isAI) return;
 
     if (!getValidMoves(game).includes(pieceId)) {
@@ -644,6 +644,7 @@ export function initGame() {
     }
 
     $('game-container')?.addEventListener('click', onBoardClick);
+    $('game-container')?.addEventListener('boardpiececlick', onBoardClick);
     $('chat-form')?.addEventListener('submit', event => {
         event.preventDefault();
         const input = $('chat-input');
