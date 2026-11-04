@@ -177,13 +177,18 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
     const baseY = y + pr * 0.39;
     const label = pieceLabelColor(color);
 
+    const upright = view3d
+        ? ' style="transform:rotateX(-' + tilt.toFixed(1) + 'deg);transform-box:fill-box;transform-origin:center;transform-style:preserve-3d"'
+        : '';
     return '<g class="board-piece pawn-piece ' + (selectable ? 'piece-selectable' : '') +
-        '" data-player="' + playerId + '" data-piece="' + pieceId + '">' +
+        '" data-player="' + playerId + '" data-piece="' + pieceId + '"' + upright + '>' +
         '<ellipse class="piece-shadow" cx="' + x.toFixed(1) + '" cy="' + (y + pr * 0.61).toFixed(1) +
         '" rx="' + (pr * 0.82).toFixed(1) + '" ry="' + (pr * 0.25).toFixed(1) +
         '" fill="#000" fill-opacity=".48"/>' +
+        '<ellipse cx="' + x.toFixed(1) + '" cy="' + (baseY + pr * .12).toFixed(1) + '" rx="' + (pr * .78).toFixed(1) +
+        '" ry="' + (pr * 0.29).toFixed(1) + '" fill="#07100e" fill-opacity=".72"/>' +
         '<ellipse cx="' + x.toFixed(1) + '" cy="' + baseY.toFixed(1) + '" rx="' + (pr * 0.78).toFixed(1) +
-        '" ry="' + (pr * 0.29).toFixed(1) + '" fill="url(#' + id + ')" stroke="#07100e" stroke-opacity=".42" stroke-width=".8"/>' +
+        '" ry="' + (pr * 0.29).toFixed(1) + '" fill="url(#' + id + ')" stroke="#07100e" stroke-opacity=".55" stroke-width="1.2"/>' +
         '<path class="piece-core" d="' +
         'M ' + (x - pr * .69).toFixed(1) + ' ' + (y + pr * .38).toFixed(1) +
         ' C ' + (x - pr * .72).toFixed(1) + ' ' + (y + pr * .08).toFixed(1) + ', ' +
