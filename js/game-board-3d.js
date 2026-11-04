@@ -22,7 +22,7 @@ function add(T,parent,geometry,material,x,y,z,shadows=true) {
     mesh.castShadow=shadows;mesh.receiveShadow=true;parent.add(mesh);return mesh;
 }
 function pawn(T,color,size,playerId,pieceId,selectable) {
-    const group=new T.Group(),scale=Math.max(10,size)/25;
+    const group=new T.Group(),scale=Math.max(10,size)/15;
     const plastic=new T.MeshPhysicalMaterial({color,roughness:.22,metalness:.04,clearcoat:.8,clearcoatRoughness:.17});
     const dark=mat(T,0x18221e,{roughness:.3,metalness:.48}),gold=mat(T,0xd4b36b,{roughness:.24,metalness:.72});
     add(T,group,new T.CylinderGeometry(.34*scale,.38*scale,.13*scale,40),dark,0,.105*scale,0);
@@ -98,7 +98,7 @@ export async function render3DBoard(stage,data) {
         let renderer=stage._renderer;
         if(!renderer){
             stage._scene=new T.Scene();stage._scene.background=new T.Color(0x18251e);
-            stage._camera=new T.PerspectiveCamera(34,1,.1,100);stage._camera.position.set(0,boardRadius*3.1,.01);
+            stage._camera=new T.PerspectiveCamera(34,1,.1,100);stage._camera.position.set(0,boardRadius*3.5,.01);
             renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
             renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;
             renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;
