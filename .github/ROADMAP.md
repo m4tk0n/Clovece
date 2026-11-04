@@ -301,3 +301,10 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Vnější osmiúhelník zmenšen (apotéma 190); zatáčka je na poloměru 60. Rozestupy sousedních polí jsou nyní přibližně 34–43 jednotek místo původních přibližně 34–62.
 - [x] Kruhové vykreslení desek 40 a 48 polí zůstává beze změny. Herní engine, logické indexy a pravidla se nemění.
 - [ ] Vizuálně ověřit rozmístění a rozestupy na živém webu; případně doladit pouze souřadnice SVG.
+
+## Úprava geometrie 80políčkové desky – 2026-11-04
+
+- [x] Odstranit souřadnicovou mřížku, referenční kružnici a ladicí značky z viditelné desky.
+- [x] Vykreslit hlavní trasu 80 polí jako pás s konstantní šířkou, aby ramena nepůsobila kuželově.
+- [x] Zachovat všech 80 středů polí a jejich pořadí; nepřekrývání ověřovat testem všech dvojic polí.
+- [ ] Vizuálně ověřit tvar ramen a rozestupy na živém webu.
