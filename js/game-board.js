@@ -6,6 +6,7 @@
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
 import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine.js';
+import { render3DPawns } from './game-board-3d.js';
 
 const SIZE = 720;
 const CENTER = SIZE / 2;
@@ -196,7 +197,7 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         (x + pr * .68).toFixed(2) + ' ' + (baseY - pr * .02).toFixed(2) + ' Z';
 
     return '<g class="board-piece pawn-piece ' + (selectable ? 'piece-selectable' : '') +
-        '" data-player="' + playerId + '" data-piece="' + pieceId + '">' +
+        '" data-player="' + playerId + '" data-piece="' + pieceId + '" data-x="' + x.toFixed(2) + '" data-y="' + y.toFixed(2) + '">' +
         // Měkký stín pod figurkou.
         '<ellipse class="piece-shadow" cx="' + x.toFixed(2) + '" cy="' + (baseY + pr * .22).toFixed(2) +
         '" rx="' + (pr * .92).toFixed(2) + '" ry="' + (pr * .25).toFixed(2) +
@@ -311,6 +312,9 @@ function styleSwitchMarkup() {
 
 const SWITCH_CSS = '<style>' +
     '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
+    '.three-pawns-layer{position:absolute;z-index:2;pointer-events:none;display:block;overflow:visible}' +
+    '.three-pawns-layer canvas{display:block;width:100%;height:100%;pointer-events:none}' +
+    '.premium-board.three-pawns-active .pawn-piece{opacity:0}' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
     '.board-style-btn.is-active{background:rgba(198,169,107,.22);border-color:#c6a96b;color:#f3eddf}' +
@@ -498,4 +502,5 @@ export function renderBoard(container, game) {
             '</div>' +
         '</div>';
     applyView(container);
+    render3DPawns(container, container.querySelector('.premium-board'), view3d);
 }
