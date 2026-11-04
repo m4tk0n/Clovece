@@ -192,7 +192,7 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         ' C ' + (x - pr * .23).toFixed(1) + ' ' + (y - pr * .55).toFixed(1) + ', ' +
         (x - pr * .45).toFixed(1) + ' ' + (y - pr * .58).toFixed(1) + ', ' +
         (x - pr * .45).toFixed(1) + ' ' + headY.toFixed(1) +
-        ' A ' + (pr * .45).toFixed(1) + ' ' + (pr * .45).toFixed(1) + ' 0 1 1 ' +
+        ' A ' + (pr * .45).toFixed(1) + ' ' + (pr * .45).toFixed(1) + ' 0 1 0 ' +
         (x + pr * .45).toFixed(1) + ' ' + headY.toFixed(1) +
         ' C ' + (x + pr * .45).toFixed(1) + ' ' + (y - pr * .58).toFixed(1) + ', ' +
         (x + pr * .23).toFixed(1) + ' ' + (y - pr * .55).toFixed(1) + ', ' +
