@@ -198,12 +198,19 @@ export function renderBoard(container, game) {
                 Array.from({ length: 17 }, (_, i) => {
                     const coordinate = i * 40;
                     return '<g class="board-coordinate" pointer-events="none">' +
-                        '<line x1="' + coordinate + '" y1="0" x2="' + coordinate + '" y2="720" stroke="#ffffff" stroke-opacity=".12" stroke-width=".7"/>' +
-                        '<line x1="0" y1="' + coordinate + '" x2="720" y2="' + coordinate + '" stroke="#ffffff" stroke-opacity=".12" stroke-width=".7"/>' +
+                        '<line x1="' + coordinate + '" y1="0" x2="' + coordinate + '" y2="720" stroke="#ffffff" stroke-opacity=".055" stroke-width=".55"/>' +
+                        '<line x1="0" y1="' + coordinate + '" x2="720" y2="' + coordinate + '" stroke="#ffffff" stroke-opacity=".055" stroke-width=".55"/>' +
                         (i > 0 && i < 17 ? svgText(coordinate, 12, coordinate, 8, "#d9e4dc") : '') +
                         (i > 0 && i < 17 ? '<text x="12" y="' + coordinate + '" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#d9e4dc">' + coordinate + '</text>' : '') +
                         '</g>';
                 }).join('') +
+                // Orientační bod pro ladění pozice první figurky.
+                '<g class="board-coordinate-marker" pointer-events="none">' +
+                    '<circle cx="190" cy="130" r="5" fill="#ffcc66" stroke="#172522" stroke-width="1.5"/>' +
+                    '<line x1="180" y1="130" x2="200" y2="130" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
+                    '<line x1="190" y1="120" x2="190" y2="140" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
+                    '<text x="201" y="124" font-size="10" fill="#ffdf9a">190, 130</text>' +
+                '</g>' +
                 '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>' +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes + track.join('') + bases +
