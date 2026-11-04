@@ -314,6 +314,7 @@ function styleSwitchMarkup() {
 
 const SWITCH_CSS = '<style>' +
     '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
+    '.premium-board-shell{position:relative}' +
     '.three-pawns-layer{position:absolute;z-index:2;pointer-events:none;display:block;overflow:visible}' +
     '.three-pawns-layer canvas{display:block;width:100%;height:100%;pointer-events:none}' +
     '.premium-board.three-pawns-active .pawn-piece{opacity:0}' +
