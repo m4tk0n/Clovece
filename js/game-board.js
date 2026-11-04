@@ -297,6 +297,8 @@ const SWITCH_CSS = '<style>' +
     '.premium-board-shell{position:relative}const SWITCH_CSS = '<style>' +
     '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
     '.premium-board-shell{position:relative}' +
+    '.three-board-stage{flex:1 1 auto;min-height:0;width:100%;height:0;position:relative;overflow:hidden;touch-action:none;border-radius:10px;background:radial-gradient(ellipse at 50% 42%,#34483d,#111a15 78%)}' +
+    '.three-board-stage canvas{display:block;width:100%;height:100%;touch-action:none}' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
     '.board-style-btn.is-active{background:rgba(198,169,107,.22);border-color:#c6a96b;color:#f3eddf}' +
