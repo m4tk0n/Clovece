@@ -217,6 +217,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 8 | Vizuální umístění startovního pole na kruhové desce na pozici 0 + 1 | Upraveno podle upřesnění; čeká na ověření na webu |
 | 9 | Výběr velikosti desky 40/48/80 v menu lokální hry | Implementováno ve větvi `feature/board-size-selector`; čeká na CI a nasazení |
 | 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; automatické kontroly a FTP deploy úspěšné; čeká na vizuální ověření |
+| 11 | Osmiúhelníková 80políčková trasa se třemi obvodovými poli na rameno a vnitřními návraty | Implementováno; test geometrie, herní testy a FTP deploy úspěšné; čeká na vizuální ověření |
 
 ## Potvrzená pravidla hry
 
@@ -287,20 +288,15 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Kruhová deska: první pozice figurky základny nastavena na (190, 135); referenční kružnice prochází tímto bodem (poloměr 282,00 jednotek). Rozestupy figurek zůstávají 6°.
 
 
-## Návrh nové geometrie 80 polí – 2026-11-04
+## Geometrie osmiúhelníkové desky 80 polí – 2026-11-04
 
-### Oprava původního návrhu
+### Potvrzené rozložení
 
-- [x] Označit předchozí osmiúhelníkový uzavřený obvod za chybný návrh; neodpovídá požadované trase a nesmí být považován za cílovou geometrii.
-- [ ] Nahradit jej křížovou/cikcak trasou, která se opakovaně stáčí směrem ke středu desky a následně zpět ven. Trasa nesmí tvořit jednoduchý osmiúhelníkový obvod.
-
-### Potvrzené rozměry nové trasy
-
-- [x] Pořadí délek 16 rovných úseků mezi zatáčkami, počínaje od středu: `5, 5, 4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5, 4, 4`.
-- [x] Mezi sousedními úseky (například mezi úseky 5 a 5) vložit jeden spojovací bod na vnějším okraji, který tvoří zatáčku.
-- [x] Součet je 72 polí v rovných úsecích + 8 spojovacích bodů = přesně 80 polí.
-- [ ] Přesně zakreslit orientaci a návaznost všech úseků do souvislé trasy; teprve potom převést návrh na souřadnice SVG.
-- [ ] Vyřešit případnou výjimku tří polí u úseku se startovním polem. Pokud se tato dříve zmíněná výjimka potvrdí, musí se zachovat celkových 80 polí úpravou jiného úseku nebo spojovacího bodu.
-- [ ] Vykreslit všech 80 polí jako jedinečné pozice, ověřit jejich pořadí, rozestupy a návaznost startů.
-- [ ] Zachovat kruhové vykreslení pro 40 a 48 polí; herní logiku a logické indexy neměnit.
-- [ ] Vizuálně ověřit výslednou trasu na webu před označením geometrie za hotovou.
+- [x] Půdorys hlavní dráhy tvoří osmiúhelník, ale trasa nekopíruje celý jeho obvod.
+- [x] Na každém z osmi ramen leží na vnějším obvodu pouze tři pole: celkem 8 × 3 = 24 polí.
+- [x] Mezi sousedními rameny vede trasa čtyřmi poli směrem ke středu a čtyřmi poli zpět k dalšímu rameni; zatáčkové pole je společné oběma úsekům a krajní pole je již prvním polem dalšího ramene.
+- [x] Každé propojení ramen tak přidává 7 vnitřních polí. Osm propojení = 56 vnitřních polí; spolu s 24 obvodovými poli přesně 80.
+- [x] Osm startovních polí je na začátku jednotlivých ramen; vizuální indexy 1, 11, 21, 31, 41, 51, 61 a 71 zachovávají dosavadní posun startovního pole.
+- [x] Všech 80 souřadnic je jedinečných; automatický test kontroluje tři obvodová pole, směr dovnitř, zatáčku a návrat k sousednímu rameni.
+- [x] Kruhové vykreslení desek 40 a 48 polí zůstává beze změny. Herní engine, logické indexy a pravidla se nemění.
+- [ ] Vizuálně ověřit rozmístění a rozestupy na živém webu; případně doladit pouze souřadnice SVG.
