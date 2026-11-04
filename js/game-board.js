@@ -97,7 +97,8 @@ function baseMarkup(game, player, validMoves) {
     const center = point(baseAngle, BASE_RADIUS * 1.12);
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
-    let markup = '<g class="base-zone" style="--player-color:' + color + '">';
+    let markup = '<g class="base-zone" style="--player-color:' + color + '">' +
+        '<rect class="base-house" x="' + (center.x - 55) + '" y="' + (center.y - 55) + '" width="110" height="110" rx="14" fill="' + color + '" fill-opacity=".14" stroke="' + color + '" stroke-opacity=".8" stroke-width="2"/>';
     const labelAngle = (angle + 90) * Math.PI / 180;
     markup += svgText(center.x + Math.cos(labelAngle) * 55, center.y + Math.sin(labelAngle) * 55, player.name, 10, '#f4f0e8');
 
