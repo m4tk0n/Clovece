@@ -11,6 +11,7 @@ import {
     getHomeLaneIndex,
     getAvailableBoardSizes
 } from '../js/game-engine.js';
+import { trackPosition } from '../js/game-board.js';
 
 test('two to four players use the classic 52-space track and four corner starts', () => {
     const two = createGame(1, 1);
@@ -308,4 +309,35 @@ test('a piece cannot overshoot the final home space', () => {
     game.diceValue = 2;
 
     assert.deepEqual(getValidMoves(game), []);
+});
+
+
+test('80-space board has three outer fields per octagonal arm and a four-in/four-out turn', () => {
+    const game = { trackLength: 80, players: [] };
+    const positions = Array.from({ length: 80 }, (_, index) => trackPosition(index, game));
+    const key = position => position.x.toFixed(3) + ',' + position.y.toFixed(3);
+    const radius = position => Math.hypot(position.x - 360, position.y - 360);
+
+    assert.equal(new Set(positions.map(key)).size, 80, 'all 80 track positions must be unique');
+
+    for (let arm = 0; arm < 8; arm++) {
+        const start = arm * 10 + 1;
+        const outer = positions.slice(start, start + 3);
+        const inward = positions.slice(start + 3, start + 7);
+        const outward = positions.slice(start + 7, start + 10);
+
+        assert.equal(outer.length, 3);
+        assert.ok(outer.every(position => radius(position) > 260), 'each arm has exactly three outer fields');
+        assert.equal(inward.length, 4);
+        assert.equal(outward.length, 3);
+        assert.ok(inward.every((position, index) =>
+            index === 0 || radius(position) < radius(inward[index - 1])
+        ), 'the four inward fields must approach the center');
+        assert.ok(outward.every((position, index) =>
+            index === 0
+                ? radius(position) > radius(inward[3])
+                : radius(position) > radius(outward[index - 1])
+        ), 'the route must turn and return toward the next arm');
+        assert.ok(radius(positions[(start + 10) % 80]) > 260, 'the fourth outward field is the next arm start');
+    }
 });
