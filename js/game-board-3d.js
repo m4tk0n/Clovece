@@ -131,7 +131,7 @@ export async function render3DBoard(stage,data) {
             renderer.domElement.addEventListener('pointerdown',stage._onPointerDown);
             renderer.domElement.addEventListener('pointerup',stage._onPointerUp);stage._boardRadius=boardRadius;
         }else if(stage._boardRadius!==boardRadius){
-            stage._camera.position.set(0,boardRadius*3.1,.01);stage._controls.target.set(0,.1,0);
+            stage._camera.position.set(0,boardRadius*3.5,.01);stage._controls.target.set(0,.1,0);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.update();stage._boardRadius=boardRadius;
         }
