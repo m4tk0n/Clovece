@@ -197,7 +197,7 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         (x + pr * .68).toFixed(2) + ' ' + (baseY - pr * .02).toFixed(2) + ' Z';
 
     return '<g class="board-piece pawn-piece ' + (selectable ? 'piece-selectable' : '') +
-        '" data-player="' + playerId + '" data-piece="' + pieceId + '" data-x="' + x.toFixed(2) + '" data-y="' + y.toFixed(2) + '">' +
+        '" data-player="' + playerId + '" data-piece="' + pieceId + '" data-x="' + x.toFixed(2) + '" data-y="' + y.toFixed(2) + '" data-radius="' + pr.toFixed(2) + '" data-color="' + color + '">' +
         // Měkký stín pod figurkou.
         '<ellipse class="piece-shadow" cx="' + x.toFixed(2) + '" cy="' + (baseY + pr * .22).toFixed(2) +
         '" rx="' + (pr * .92).toFixed(2) + '" ry="' + (pr * .25).toFixed(2) +
