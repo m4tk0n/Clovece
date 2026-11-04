@@ -317,14 +317,15 @@ test('80-space board has three outer fields per octagonal arm and a four-in/four
     const positions = Array.from({ length: 80 }, (_, index) => trackPosition(index, game));
     const key = position => position.x.toFixed(3) + ',' + position.y.toFixed(3);
     const radius = position => Math.hypot(position.x - 360, position.y - 360);
+    const range = (start, count) => Array.from({ length: count }, (_, offset) => positions[(start + offset) % 80]);
 
     assert.equal(new Set(positions.map(key)).size, 80, 'all 80 track positions must be unique');
 
     for (let arm = 0; arm < 8; arm++) {
         const start = arm * 10 + 1;
-        const outer = positions.slice(start, start + 3);
-        const inward = positions.slice(start + 3, start + 7);
-        const outward = positions.slice(start + 7, start + 10);
+        const outer = range(start, 3);
+        const inward = range(start + 3, 4);
+        const outward = range(start + 7, 3);
 
         assert.equal(outer.length, 3);
         assert.ok(outer.every(position => radius(position) > 260), 'each arm has exactly three outer fields');
