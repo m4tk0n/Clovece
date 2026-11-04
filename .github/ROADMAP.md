@@ -298,5 +298,6 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Každé propojení ramen tak přidává 7 vnitřních polí. Osm propojení = 56 vnitřních polí; spolu s 24 obvodovými poli přesně 80.
 - [x] Osm startovních polí je na začátku jednotlivých ramen; vizuální indexy 1, 11, 21, 31, 41, 51, 61 a 71 zachovávají dosavadní posun startovního pole.
 - [x] Všech 80 souřadnic je jedinečných; automatický test kontroluje tři obvodová pole, směr dovnitř, zatáčku a návrat k sousednímu rameni.
+- [x] Vnější osmiúhelník zmenšen (apotéma 190); zatáčka je na poloměru 60. Rozestupy sousedních polí jsou nyní přibližně 34–43 jednotek místo původních přibližně 34–62.
 - [x] Kruhové vykreslení desek 40 a 48 polí zůstává beze změny. Herní engine, logické indexy a pravidla se nemění.
 - [ ] Vizuálně ověřit rozmístění a rozestupy na živém webu; případně doladit pouze souřadnice SVG.
