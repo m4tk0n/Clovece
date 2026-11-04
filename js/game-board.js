@@ -203,7 +203,7 @@ export function renderBoard(container, game) {
         const color = player?.color || '#c6a96b';
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
-            return '<circle cx="' + p.x + '" cy="' + p.y + '" r="14" fill="' + color + '" fill-opacity="' + (player ? '.28' : '.08') + '" stroke="' + color + '" stroke-opacity="' + (player ? '.85' : '.42') + '" stroke-width="1.5"/>';
+            return '<rect x="' + (p.x - 12) + '" y="' + (p.y - 12) + '" width="24" height="24" rx="2" fill="' + color + '" fill-opacity="' + (player ? '.28' : '.08') + '" stroke="' + color + '" stroke-opacity="' + (player ? '.85' : '.42') + '" stroke-width="1.5"/>';
         }).join('');
         return '<g class="home-lane ' + (player ? '' : 'home-lane-empty') + '">' + cells + '</g>';
     }).join('');
