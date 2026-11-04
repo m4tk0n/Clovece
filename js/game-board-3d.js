@@ -82,9 +82,11 @@ function buildScene(T, scene, data) {
     const gold=material(T,0xc6a96b,{roughness:.24,metalness:.72});
     const edge=material(T,0x9ba99f,{roughness:.38,metalness:.2});
 
-    add(T,board,new T.CylinderGeometry(358,362,18,Math.max(8,data.slotCount)),dark,0,-8,0);
+    const maxTrackRadius = data.track.reduce((max, cell) => Math.max(max, Math.hypot(cell.x, cell.z)), 0);
+    const boardRadius = data.style === 'polygon' ? maxTrackRadius + 34 : 360;
+    add(T,board,new T.CylinderGeometry(boardRadius-8,boardRadius,18,Math.max(8,data.slotCount)),dark,0,-8,0);
     add(T,board,createBoardShape(T,data),felt,0,1,0,false).rotation.x=-Math.PI/2;
-    const rim=add(T,board,new T.TorusGeometry(348,3,10,160),gold,0,4,0);
+    const rim=add(T,board,new T.TorusGeometry(boardRadius-12,3,10,160),gold,0,4,0);
     rim.rotation.x=Math.PI/2;
 
     data.track.forEach(cell => {
