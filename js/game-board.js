@@ -55,10 +55,11 @@ function baseMarkup(game, player, validMoves) {
         // První figurka leží na ose mezi domečkem a vlastním startovním polem.
         // Další figurky pokračují vedle ní po oblouku směrem nad herní dráhu.
         const pieceAngles = [0, 28, 56, 84];
-        const pieceAngle = (routeAngle(player, game) + pieceAngles[piece.id]) * Math.PI / 180;
-        const pieceRadius = 34;
-        const x = center.x + Math.cos(pieceAngle) * pieceRadius;
-        const y = center.y + Math.sin(pieceAngle) * pieceRadius;
+        const pieceAngle = routeAngle(player, game) + pieceAngles[piece.id];
+        // Figurky v základně leží přímo na referenční kružnici desky.
+        const piecePosition = point(pieceAngle, 283.05);
+        const x = piecePosition.x;
+        const y = piecePosition.y;
         markup += '<g class="board-piece ' + (game.currentPlayer === player.id && validMoves.has(piece.id) ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">';
         markup += '<circle class="piece-shadow" cx="' + x + '" cy="' + (y + 4) + '" r="13"/>';
         markup += '<circle class="piece-core" cx="' + x + '" cy="' + y + '" r="12" fill="' + color + '"/>';
