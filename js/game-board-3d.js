@@ -113,7 +113,7 @@ function buildScene(T, scene, data) {
 
     const pickables=[];
     const addPawn = item => {
-        const piece=pawn(T,item.color,15,item.playerId,item.pieceId,item.selectable);
+        const piece=pawn(T,item.color,item.radius||15,item.playerId,item.pieceId,item.selectable);
         piece.position.set(item.x,11,item.z);
         if(item.selectable) {
             piece.traverse(child => { if(child.isMesh) pickables.push(child); });
