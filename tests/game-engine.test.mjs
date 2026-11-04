@@ -318,8 +318,15 @@ test('80-space board has three outer fields per octagonal arm and a four-in/four
     const key = position => position.x.toFixed(3) + ',' + position.y.toFixed(3);
     const radius = position => Math.hypot(position.x - 360, position.y - 360);
     const range = (start, count) => Array.from({ length: count }, (_, offset) => positions[(start + offset) % 80]);
+    const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
     assert.equal(new Set(positions.map(key)).size, 80, 'all 80 track positions must be unique');
+
+    const stepDistances = positions.map((position, index) =>
+        distance(position, positions[(index + 1) % 80])
+    );
+    assert.ok(Math.min(...stepDistances) > 33, 'track fields must not bunch together');
+    assert.ok(Math.max(...stepDistances) < 44, 'outer fields must not be too far apart');
 
     for (let arm = 0; arm < 8; arm++) {
         const start = arm * 10 + 1;
@@ -328,7 +335,8 @@ test('80-space board has three outer fields per octagonal arm and a four-in/four
         const outward = range(start + 7, 3);
 
         assert.equal(outer.length, 3);
-        assert.ok(outer.every(position => radius(position) > 260), 'each arm has exactly three outer fields');
+        assert.ok(outer.every(position => radius(position) > 180), 'each arm has exactly three outer fields');
+        assert.ok(Math.abs(distance(outer[0], outer[1]) - distance(outer[1], outer[2])) < 0.01, 'the three outer fields must be evenly spaced');
         assert.equal(inward.length, 4);
         assert.equal(outward.length, 3);
         assert.ok(inward.every((position, index) =>
@@ -339,6 +347,6 @@ test('80-space board has three outer fields per octagonal arm and a four-in/four
                 ? radius(position) > radius(inward[3])
                 : radius(position) > radius(outward[index - 1])
         ), 'the route must turn and return toward the next arm');
-        assert.ok(radius(positions[(start + 10) % 80]) > 260, 'the fourth outward field is the next arm start');
+        assert.ok(radius(positions[(start + 10) % 80]) > 180, 'the fourth outward field is the next arm start');
     }
 });
