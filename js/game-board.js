@@ -170,6 +170,60 @@ function pieceLabelColor(color) {
     return color === '#F9A825' ? '#17211f' : '#fff';
 }
 
+
+function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
+    const id = 'pawnGradient' + playerId;
+    const headY = y - pr * 0.83;
+    const baseY = y + pr * 0.39;
+    const label = pieceLabelColor(color);
+
+    return '<g class="board-piece pawn-piece ' + (selectable ? 'piece-selectable' : '') +
+        '" data-player="' + playerId + '" data-piece="' + pieceId + '">' +
+        '<ellipse class="piece-shadow" cx="' + x.toFixed(1) + '" cy="' + (y + pr * 0.61).toFixed(1) +
+        '" rx="' + (pr * 0.82).toFixed(1) + '" ry="' + (pr * 0.25).toFixed(1) +
+        '" fill="#000" fill-opacity=".48"/>' +
+        '<ellipse cx="' + x.toFixed(1) + '" cy="' + baseY.toFixed(1) + '" rx="' + (pr * 0.78).toFixed(1) +
+        '" ry="' + (pr * 0.29).toFixed(1) + '" fill="url(#' + id + ')" stroke="#07100e" stroke-opacity=".42" stroke-width=".8"/>' +
+        '<path class="piece-core" d="' +
+        'M ' + (x - pr * .69).toFixed(1) + ' ' + (y + pr * .38).toFixed(1) +
+        ' C ' + (x - pr * .72).toFixed(1) + ' ' + (y + pr * .08).toFixed(1) + ', ' +
+        (x - pr * .38).toFixed(1) + ' ' + (y - pr * .02).toFixed(1) + ', ' +
+        (x - pr * .29).toFixed(1) + ' ' + (y - pr * .34).toFixed(1) +
+        ' C ' + (x - pr * .23).toFixed(1) + ' ' + (y - pr * .55).toFixed(1) + ', ' +
+        (x - pr * .45).toFixed(1) + ' ' + (y - pr * .58).toFixed(1) + ', ' +
+        (x - pr * .45).toFixed(1) + ' ' + headY.toFixed(1) +
+        ' A ' + (pr * .45).toFixed(1) + ' ' + (pr * .45).toFixed(1) + ' 0 1 0 ' +
+        (x + pr * .45).toFixed(1) + ' ' + headY.toFixed(1) +
+        ' C ' + (x + pr * .45).toFixed(1) + ' ' + (y - pr * .58).toFixed(1) + ', ' +
+        (x + pr * .23).toFixed(1) + ' ' + (y - pr * .55).toFixed(1) + ', ' +
+        (x + pr * .29).toFixed(1) + ' ' + (y - pr * .34).toFixed(1) +
+        ' C ' + (x + pr * .38).toFixed(1) + ' ' + (y - pr * .02).toFixed(1) + ', ' +
+        (x + pr * .72).toFixed(1) + ' ' + (y + pr * .08).toFixed(1) + ', ' +
+        (x + pr * .69).toFixed(1) + ' ' + (y + pr * .38).toFixed(1) + ' Z' +
+        '" fill="url(#' + id + ')" stroke="#07100e" stroke-opacity=".5" stroke-width="1.1"/>' +
+        '<path d="M ' + (x - pr * .39).toFixed(1) + ' ' + (y - pr * .57).toFixed(1) +
+        ' C ' + (x - pr * .58).toFixed(1) + ' ' + (y - pr * .12).toFixed(1) + ', ' +
+        (x - pr * .46).toFixed(1) + ' ' + (y + pr * .08).toFixed(1) + ', ' +
+        (x - pr * .42).toFixed(1) + ' ' + (y + pr * .24).toFixed(1) +
+        '" fill="none" stroke="#fff" stroke-opacity=".42" stroke-width="' + (pr * .12).toFixed(1) + '" stroke-linecap="round"/>' +
+        '<ellipse cx="' + (x - pr * .17).toFixed(1) + '" cy="' + (headY - pr * .13).toFixed(1) +
+        '" rx="' + (pr * .16).toFixed(1) + '" ry="' + (pr * .09).toFixed(1) +
+        '" fill="#fff" fill-opacity=".62"/>' +
+        svgText(x.toFixed(1), (y + pr * .02).toFixed(1), pieceId + 1, Math.max(7, pr * .58).toFixed(1), label) +
+        '</g>';
+}
+
+function pawnGradientMarkup(players) {
+    return players.map(player =>
+        '<linearGradient id="pawnGradient' + player.id + '" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0" stop-color="#fff" stop-opacity=".82"/>' +
+        '<stop offset=".2" stop-color="' + player.color + '"/>' +
+        '<stop offset=".72" stop-color="' + player.color + '"/>' +
+        '<stop offset="1" stop-color="#07100e" stop-opacity=".62"/>' +
+        '</linearGradient>'
+    ).join('');
+}
+
 function baseMarkup(game, player, validMoves, g) {
     const slot = slotOf(player, game);
     // Základna leží ve volném místě mezi domečky, po směru hodin od ramene hráče.
@@ -188,12 +242,7 @@ function baseMarkup(game, player, validMoves, g) {
         const x = c.x + offsets[piece.id][0];
         const y = c.y + offsets[piece.id][1];
         const selectable = game.currentPlayer === player.id && validMoves.has(piece.id);
-        markup += '<g class="board-piece ' + (selectable ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">';
-        markup += '<circle class="piece-shadow" cx="' + x.toFixed(1) + '" cy="' + (y + 4).toFixed(1) + '" r="' + (pr + 1) + '"/>';
-        markup += '<circle class="piece-core" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + pr + '" fill="' + color + '"/>';
-        markup += '<circle cx="' + (x - 3).toFixed(1) + '" cy="' + (y - 4).toFixed(1) + '" r="3.5" fill="#fff" fill-opacity=".65"/>';
-        markup += svgText(x.toFixed(1), (y + 1).toFixed(1), piece.id + 1, 10, pieceLabelColor(color));
-        markup += '</g>';
+        markup += pawnMarkup(x, y, pr, color, player.id, piece.id, selectable);
     });
     markup += '</g>';
     return markup;
@@ -220,12 +269,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves, g)
     const selectable = player.id === game.currentPlayer && validMoves.has(piece.id);
     const pr = g.piece;
 
-    return '<g class="board-piece ' + (selectable ? 'piece-selectable' : '') + '" data-player="' + player.id + '" data-piece="' + piece.id + '">' +
-        '<circle class="piece-shadow" cx="' + x.toFixed(1) + '" cy="' + (y + 5).toFixed(1) + '" r="' + (pr + 1) + '"/>' +
-        '<circle class="piece-core" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + pr + '" fill="' + color + '"/>' +
-        '<circle cx="' + (x - 3.5).toFixed(1) + '" cy="' + (y - 4).toFixed(1) + '" r="4" fill="#fff" fill-opacity=".68"/>' +
-        svgText(x.toFixed(1), (y + 1).toFixed(1), piece.id + 1, 10, pieceLabelColor(color)) +
-        '</g>';
+    return pawnMarkup(x, y, pr, color, player.id, piece.id, selectable);
 }
 
 function styleSwitchMarkup() {
@@ -411,6 +455,7 @@ export function renderBoard(container, game) {
                 '<defs>' +
                     '<radialGradient id="boardBg"><stop offset="0" stop-color="#34423f"/><stop offset=".68" stop-color="#182522"/><stop offset="1" stop-color="#0c1413"/></radialGradient>' +
                     '<filter id="pieceGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+                    pawnGradientMarkup(game.players) +
                 '</defs>' +
                 '<rect x="13" y="13" width="694" height="694" rx="40" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>' +
                 homeLanes + links + track + bases +
