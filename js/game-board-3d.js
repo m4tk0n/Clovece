@@ -63,7 +63,7 @@ function createBoardShape(T, data) {
         }
     } else {
         const outer = 342;
-        const inner = n===4 ? 52 : n===6 ? 72 : 88;
+        const inner = n===4 ? 72 : n===6 ? 84 : 86;
         for (let i=0;i<n*2;i++) {
             const angle = (-90 + i*180/n) * Math.PI/180;
             const radius = i%2===0 ? outer : inner;
@@ -84,7 +84,7 @@ function buildScene(T, scene, data) {
 
     const maxTrackRadius = data.track.reduce((max, cell) => Math.max(max, Math.hypot(cell.x, cell.z)), 0);
     const boardRadius = data.style === 'polygon' ? maxTrackRadius + 34 : 360;
-    add(T,board,new T.CylinderGeometry(boardRadius-8,boardRadius,18,Math.max(8,data.slotCount)),dark,0,-8,0);
+    add(T,board,new T.CylinderGeometry(boardRadius-8,boardRadius,18,(data.style === 'polygon' ? data.slotCount : data.slotCount*2)),dark,0,-8,0);
     add(T,board,createBoardShape(T,data),felt,0,1,0,false).rotation.x=-Math.PI/2;
     const rim=add(T,board,new T.TorusGeometry(boardRadius-12,3,10,160),gold,0,4,0);
     rim.rotation.x=Math.PI/2;
