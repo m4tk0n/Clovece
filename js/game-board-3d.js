@@ -131,12 +131,14 @@ export async function render3DBoard(stage, data) {
     try {
         const { THREE:T, OrbitControls } = await loadThree();
         if (!stage.isConnected) return;
+        const maxTrackRadius = data.track.reduce((max, cell) => Math.max(max, Math.hypot(cell.x, cell.z)), 0);
+        const boardRadius = data.style === 'polygon' ? maxTrackRadius + 34 : 360;
         let renderer=stage._renderer;
         if (!renderer) {
             stage._scene=new T.Scene();
             stage._scene.background=new T.Color(0x18251e);
             stage._camera=new T.PerspectiveCamera(34,1,.1,4000);
-            stage._camera.position.set(0,1050,0.01);
+            stage._camera.position.set(0,boardRadius*3.65,0.01);
             stage._camera.up.set(0,0,-1);
             renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
             renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
@@ -160,8 +162,8 @@ export async function render3DBoard(stage, data) {
             stage._controls.target.set(0,0,0);
             stage._controls.enableDamping=true;
             stage._controls.dampingFactor=.07;
-            stage._controls.minDistance=520;
-            stage._controls.maxDistance=1800;
+            stage._controls.minDistance=boardRadius*1.25;
+            stage._controls.maxDistance=boardRadius*5;
             stage._controls.maxPolarAngle=Math.PI*.49;
             stage._controls.enableRotate=true;
             stage._controls.update();
@@ -196,6 +198,14 @@ export async function render3DBoard(stage, data) {
             renderer.domElement.addEventListener('pointerdown',stage._onPointerDown);
             renderer.domElement.addEventListener('pointerup',stage._onPointerUp);
             stage._cameraMode='top';
+            stage._boardRadius=boardRadius;
+        } else if (stage._boardRadius !== boardRadius) {
+            stage._camera.position.set(0,boardRadius*3.65,0.01);
+            stage._controls.target.set(0,0,0);
+            stage._controls.minDistance=boardRadius*1.25;
+            stage._controls.maxDistance=boardRadius*5;
+            stage._controls.update();
+            stage._boardRadius=boardRadius;
         }
         if(stage._board) {
             stage._scene.remove(stage._board);
