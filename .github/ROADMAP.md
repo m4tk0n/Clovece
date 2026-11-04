@@ -289,7 +289,18 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 
 ## Návrh nové geometrie 80 polí – 2026-11-04
 
-- [x] Pro 80 polí nahradit kruhovou dráhu osmiúhelníkovým obvodem.
-- [x] Rozmístit 80 středů polí rovnoměrně podle délky obvodu, nikoli podle úhlu.
-- [x] Zachovat kruhové vykreslení pro 40 a 48 polí a ponechat herní logiku beze změny.
-- [ ] Vizuálně ověřit návaznost startovních polí, domečků a cílových drah na osmiúhelníkové trase; případně doladit jejich polohu a velikost polí.
+### Oprava původního návrhu
+
+- [x] Označit předchozí osmiúhelníkový uzavřený obvod za chybný návrh; neodpovídá požadované trase a nesmí být považován za cílovou geometrii.
+- [ ] Nahradit jej křížovou/cikcak trasou, která se opakovaně stáčí směrem ke středu desky a následně zpět ven. Trasa nesmí tvořit jednoduchý osmiúhelníkový obvod.
+
+### Potvrzené rozměry nové trasy
+
+- [x] Pořadí délek 16 rovných úseků mezi zatáčkami, počínaje od středu: `5, 5, 4, 4, 5, 5, 4, 4, 5, 5, 4, 4, 5, 5, 4, 4`.
+- [x] Mezi sousedními úseky (například mezi úseky 5 a 5) vložit jeden spojovací bod na vnějším okraji, který tvoří zatáčku.
+- [x] Součet je 72 polí v rovných úsecích + 8 spojovacích bodů = přesně 80 polí.
+- [ ] Přesně zakreslit orientaci a návaznost všech úseků do souvislé trasy; teprve potom převést návrh na souřadnice SVG.
+- [ ] Vyřešit případnou výjimku tří polí u úseku se startovním polem. Pokud se tato dříve zmíněná výjimka potvrdí, musí se zachovat celkových 80 polí úpravou jiného úseku nebo spojovacího bodu.
+- [ ] Vykreslit všech 80 polí jako jedinečné pozice, ověřit jejich pořadí, rozestupy a návaznost startů.
+- [ ] Zachovat kruhové vykreslení pro 40 a 48 polí; herní logiku a logické indexy neměnit.
+- [ ] Vizuálně ověřit výslednou trasu na webu před označením geometrie za hotovou.
