@@ -434,15 +434,33 @@ export function renderBoard(container, game) {
 
     if (view3d) {
         const activePlayer = game.players[game.currentPlayer];
-        container.innerHTML =
-            '<div class="premium-board-shell">' + SWITCH_CSS +
-                '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span>' + styleSwitchMarkup() + '</div>' +
-                '<div class="three-board-stage" aria-label="Plně prostorová hrací deska"></div>' +
-                '<div class="board-player-stats"><div class="players-panel" id="players-panel" aria-label="Stav figurek hráčů"></div></div>' +
-                '<div class="board-corner-info"><div class="board-turn-count"><span>POČET TAHŮ</span><strong>' + game.turnNumber + '</strong></div>' +
-                '<div class="board-current-player" style="--player-color:' + activePlayer.color + '"><span>NA ŘADĚ</span><strong>' + activePlayer.name + '</strong></div></div>' +
-            '</div>';
-        render3DBoard(container.querySelector('.three-board-stage'), buildBoardSceneData(game));
+        let stage = container.querySelector('.three-board-stage');
+        if (!stage) {
+            container.innerHTML =
+                '<div class="premium-board-shell">' + SWITCH_CSS +
+                    '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span>' + styleSwitchMarkup() + '</div>' +
+                    '<div class="three-board-stage" aria-label="Plně prostorová hrací deska"></div>' +
+                    '<div class="board-player-stats"><div class="players-panel" id="players-panel" aria-label="Stav figurek hráčů"></div></div>' +
+                    '<div class="board-corner-info"><div class="board-turn-count"><span>POČET TAHŮ</span><strong>' + game.turnNumber + '</strong></div>' +
+                    '<div class="board-current-player" style="--player-color:' + activePlayer.color + '"><span>NA ŘADĚ</span><strong>' + activePlayer.name + '</strong></div></div>' +
+                '</div>';
+            stage = container.querySelector('.three-board-stage');
+        } else {
+            const turn = container.querySelector('.board-turn-count strong');
+            const current = container.querySelector('.board-current-player');
+            if (turn) turn.textContent = game.turnNumber;
+            if (current) {
+                current.style.setProperty('--player-color', activePlayer.color);
+                const name = current.querySelector('strong');
+                if (name) name.textContent = activePlayer.name;
+            }
+            container.querySelectorAll('[data-board-style]').forEach(button => {
+                const selected = button.dataset.boardStyle === boardStyle;
+                button.classList.toggle('is-active', selected);
+                button.setAttribute('aria-pressed', String(selected));
+            });
+        }
+        render3DBoard(stage, buildBoardSceneData(game));
         return;
     }
     const g = geometry(game);
