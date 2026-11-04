@@ -62,6 +62,8 @@ function buildCrossTrackPositions(count) {
 const TRACK_POSITIONS = Object.freeze({
     40: buildCrossTrackPositions(40),
     48: buildCrossTrackPositions(48),
+    52: buildCrossTrackPositions(52),
+    64: buildCrossTrackPositions(64),
     80: buildCrossTrackPositions(80)
 });
 
