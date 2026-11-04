@@ -194,6 +194,16 @@ export function renderBoard(container, game) {
                     '<filter id="pieceGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
                 '</defs>' +
                 '<circle cx="360" cy="360" r="347" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>' +
+                // Dočasná souřadnicová mřížka pro přesné ladění rozmístění figurek.
+                Array.from({ length: 17 }, (_, i) => {
+                    const coordinate = i * 40;
+                    return '<g class="board-coordinate" pointer-events="none">' +
+                        '<line x1="' + coordinate + '" y1="0" x2="' + coordinate + '" y2="720" stroke="#ffffff" stroke-opacity=".12" stroke-width=".7"/>' +
+                        '<line x1="0" y1="' + coordinate + '" x2="720" y2="' + coordinate + '" stroke="#ffffff" stroke-opacity=".12" stroke-width=".7"/>' +
+                        (i > 0 && i < 17 ? svgText(coordinate, 12, coordinate, 8, "#d9e4dc") : '') +
+                        (i > 0 && i < 17 ? '<text x="12" y="' + coordinate + '" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#d9e4dc">' + coordinate + '</text>' : '') +
+                        '</g>';
+                }).join('') +
                 '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>' +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes + track.join('') + bases +
