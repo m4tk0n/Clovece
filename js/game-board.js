@@ -35,9 +35,9 @@ function interpolatePoint(start, end, ratio) {
 // Mezi rameny vede trasa čtyřmi poli dovnitř k zatáčce a čtyřmi ven
 // k dalšímu rameni. Zatáčka je společným bodem obou čtyřpolových úseků.
 function buildTrack80Positions() {
-    const apothem = 270;
+    const apothem = 190;
     const halfSide = apothem * Math.tan(Math.PI / 8);
-    const innerTurnRadius = 145;
+    const innerTurnRadius = 60;
     const sideFractions = [-0.55, 0, 0.55];
     const positions = [];
 
@@ -298,7 +298,7 @@ export function renderBoard(container, game) {
                     '<text x="201" y="129" font-size="10" fill="#ffdf9a">190, 135</text>' +
                 '</g>' +
                 (game.trackLength === 80
-                    ? '<polygon points="246,84 474,84 636,246 636,474 474,636 246,636 84,474 84,246" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
+                    ? '<polygon points="278.8,164 441.2,164 556,278.8 556,441.2 441.2,556 278.8,556 164,441.2 164,278.8" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="20" stroke-linejoin="round"/>'
                     : '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>') +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes + track.join('') + bases +
