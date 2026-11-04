@@ -308,3 +308,14 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Vykreslit hlavní trasu 80 polí jako pás s konstantní šířkou, aby ramena nepůsobila kuželově.
 - [x] Zachovat všech 80 středů polí a jejich pořadí; nepřekrývání ověřovat testem všech dvojic polí.
 - [ ] Vizuálně ověřit tvar ramen a rozestupy na živém webu.
+
+
+## Integrace plnohodnotné 3D desky – 2026-11-04
+
+- [x] Nahradit samostatnou 3D vrstvu figurek kompletním vykreslením desky v Three.js.
+- [x] Převzít skutečné souřadnice polí, domečků, základen a figurek z herního rendereru; pravidla a logické indexy zůstávají beze změny.
+- [x] Podporovat všechny velikosti 40/48/80 a oba vzhledy classic/polygon přes společný datový model SVG.
+- [x] Zachovat průhlednou interakční vrstvu SVG pro výběr figurek a ovládání hry.
+- [x] Nastavit 3D jako výchozí pohled; možnost přepnout na 2D zůstává dostupná.
+- [ ] Ověřit vykreslení, výběr figurek a výkon na mobilu a desktopu; doladit kameru a měřítko podle živého testu.
+- [ ] Ověřit kompatibilitu se všemi kombinacemi hráčů a velikostí desky v online místnosti.

@@ -54,6 +54,7 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 ## Technologie
 
 - HTML5, CSS3, JavaScript ES modules
-- SVG vykreslení hrací plochy
+- Three.js 3D vykreslení celé hrací desky a figurek; SVG zajišťuje logické souřadnice a interakční cíle
+- Varianty desky classic a polygon, velikosti 40/48/80 polí
 - PHP a MySQL pro budoucí online režim
 - GitHub Actions pro testování a FTP nasazení

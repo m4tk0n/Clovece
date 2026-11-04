@@ -40,7 +40,8 @@ let rotation = 0;
 
 function loadView() {
     try {
-        return window.localStorage.getItem(VIEW_KEY) === '3d';
+        const saved = window.localStorage.getItem(VIEW_KEY);
+        return saved === null ? true : saved === '3d';
     } catch {
         return false;
     }
