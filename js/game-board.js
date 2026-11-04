@@ -427,8 +427,7 @@ export function renderBoard(container, game) {
     bindStyleSwitch(container);
     container._lastGame = game;
 
-    // Při online pollingu přichází stejný stav opakovaně. SVG překreslíme
-    // pouze tehdy, když se skutečně změnil herní stav nebo vzhled desky.
+    // Při online pollingu se stejný herní stav nevykresluje opakovaně.
     const renderKey = boardStyle + (view3d ? '3d' : '2d') + JSON.stringify(game);
     if (container.dataset.renderKey === renderKey) return;
     container.dataset.renderKey = renderKey;
@@ -446,9 +445,6 @@ export function renderBoard(container, game) {
         render3DBoard(container.querySelector('.three-board-stage'), buildBoardSceneData(game));
         return;
     }
-    if (container.dataset.renderKey === renderKey) return;
-    container.dataset.renderKey = renderKey;
-
     const g = geometry(game);
     const total = game.players.length;
     const m = game.trackLength / g.n;
