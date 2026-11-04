@@ -322,6 +322,15 @@ test('80-space board has three outer fields per octagonal arm and a four-in/four
 
     assert.equal(new Set(positions.map(key)).size, 80, 'all 80 track positions must be unique');
 
+    for (let first = 0; first < positions.length; first++) {
+        for (let second = first + 1; second < positions.length; second++) {
+            assert.ok(
+                distance(positions[first], positions[second]) >= 26,
+                'track fields must not overlap'
+            );
+        }
+    }
+
     const stepDistances = positions.map((position, index) =>
         distance(position, positions[(index + 1) % 80])
     );
