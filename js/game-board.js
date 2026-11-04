@@ -200,7 +200,9 @@ export function renderBoard(container, game) {
         const player = playersBySlot.get(slot);
         const angle = player
             ? playerAngle(player, total, game.trackLength)
-            : (total <= 4 ? -135 : -90) + slot * 360 / slotCount;
+            : (slotCount === 4
+                ? [-90, 0, 90, 180][slot]
+                : -90 + slot * 360 / slotCount);
         const color = player?.color || '#c6a96b';
         const cells = HOME_RADII.map(radius => {
             const p = point(angle, radius);
