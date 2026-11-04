@@ -294,8 +294,6 @@ function styleSwitchMarkup() {
 
 const SWITCH_CSS = '<style>' +
     '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
-    '.premium-board-shell{position:relative}const SWITCH_CSS = '<style>' +
-    '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
     '.premium-board-shell{position:relative}' +
     '.three-board-stage{flex:1 1 auto;min-height:0;width:100%;height:0;position:relative;overflow:hidden;touch-action:none;border-radius:10px;background:radial-gradient(ellipse at 50% 42%,#34483d,#111a15 78%)}' +
     '.three-board-stage canvas{display:block;width:100%;height:100%;touch-action:none}' +
