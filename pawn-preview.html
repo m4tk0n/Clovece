@@ -1,220 +1,51 @@
 <!doctype html>
-<html lang="cs">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3D figurka – zkouška otáčení</title>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Člověče, nezlob se! – 3D deska</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#101714;color:#f2f5f2}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 25%,#293a32 0,#17231d 42%,#0d1411 100%);display:flex;flex-direction:column}
-header{padding:22px 18px 10px;text-align:center}
-h1{font-size:clamp(21px,4vw,30px);margin:0 0 7px;font-weight:700;letter-spacing:.02em}
-p{margin:0;color:#b9c8bf;font-size:14px}
-main{width:min(100%,900px);margin:auto;display:flex;flex-direction:column;align-items:center;padding:8px 14px 28px;gap:14px}
-#stage{position:relative;width:min(100%,760px);height:min(68vh,620px);min-height:360px;border:1px solid #52645a;border-radius:18px;overflow:hidden;background:radial-gradient(ellipse at 50% 43%,#34483d 0,#1c2b23 50%,#111a15 100%);box-shadow:0 24px 70px #0008;touch-action:none}
-#stage canvas{display:block;width:100%;height:100%;touch-action:none}
-.hint{position:absolute;left:12px;right:12px;bottom:12px;text-align:center;pointer-events:none;color:#d4e0d8;background:#101914b8;border:1px solid #60746877;border-radius:999px;padding:8px 12px;font-size:12px;backdrop-filter:blur(8px)}
-.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-button{border:1px solid #71877a;background:#24382d;color:#f3f7f4;border-radius:10px;padding:11px 18px;font:inherit;font-size:14px;cursor:pointer}
-button:hover{background:#304b3b}
-button:focus-visible{outline:2px solid #d7f2df;outline-offset:3px}
-.status{min-height:18px;color:#9fb1a5;font-size:12px;text-align:center}
-@media(max-width:520px){#stage{height:62vh;min-height:340px;border-radius:12px}.hint{font-size:11px}}
-</style>
-</head>
-<body>
-<header>
-<h1>3D figurka na podstavci</h1>
-<p>Samostatný test modelu a ovládání před zapojením do herní desky.</p>
-</header>
-<main>
-<div id="stage" aria-label="Interaktivní 3D figurka">
-<div class="hint">Otáčej tažením prstu nebo myši · Přibližuj dvěma prsty nebo kolečkem</div>
-</div>
-<div class="controls">
-<button id="reset-view" type="button">Vrátit pohled</button>
-<button id="toggle-spin" type="button" aria-pressed="false">Automatické otáčení: vypnuto</button>
-</div>
-<div class="status" id="status" role="status">Načítám 3D model…</div>
-</main>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
-  }
-}
-</script>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101713;color:#f2f5f2}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 25%,#293a32,#101713 72%);display:flex;flex-direction:column}header{text-align:center;padding:20px 14px 10px}h1{font-size:clamp(20px,4vw,30px);margin:0 0 6px}p{margin:0;color:#b9c8bf;font-size:13px}main{width:min(100%,1000px);margin:auto;padding:8px 12px 24px;display:flex;flex-direction:column;align-items:center;gap:12px}#stage{width:min(100%,900px);height:min(72vh,760px);min-height:420px;border:1px solid #52645a;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#34483d,#111a15 78%);box-shadow:0 24px 70px #0008;touch-action:none}#stage canvas{display:block;width:100%;height:100%;touch-action:none}.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}button{border:1px solid #71877a;background:#24382d;color:#f3f7f4;border-radius:9px;padding:10px 15px;font:inherit;font-size:13px;cursor:pointer}button:hover{background:#304b3b}.status{min-height:18px;color:#aebfb3;font-size:12px;text-align:center}@media(max-width:520px){#stage{height:68vh;min-height:390px;border-radius:10px}}
+</style></head><body>
+<header><h1>Člověče, nezlob se! – 3D herní plán</h1><p>8 barev · 32 figurek · 80 políček · otáčení a přibližování prstem nebo myší</p></header>
+<main><div id="stage" aria-label="Plně prostorový herní plán s 32 figurkami a 80 políčky"></div><div class="controls"><button id="reset-view" type="button">Vrátit pohled</button><button id="toggle-spin" type="button" aria-pressed="false">Automatické otáčení: vypnuto</button></div><div class="status" id="status" role="status">Načítám 3D herní plán…</div></main>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
-
-const stage = document.getElementById('stage');
-const status = document.getElementById('status');
-window.addEventListener('error', event => {
-  status.textContent = 'Chyba při vykreslení 3D modelu: ' + (event.message || 'neznámá chyba');
-});
-window.addEventListener('unhandledrejection', event => {
-  status.textContent = 'Nepodařilo se načíst 3D knihovnu: ' + String(event.reason?.message || event.reason);
-});
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1b2a21);
-
-const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-const initialCamera = new THREE.Vector3(3.25, 2.65, 4.2);
-camera.position.copy(initialCamera);
-
-const renderer = new THREE.WebGLRenderer({antialias:true, alpha:false, powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-stage.prepend(renderer.domElement);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 1.02, 0);
-controls.enableDamping = true;
-controls.dampingFactor = 0.065;
-controls.rotateSpeed = 0.72;
-controls.zoomSpeed = 0.8;
-controls.minDistance = 2.6;
-controls.maxDistance = 8;
-controls.minPolarAngle = 0.18;
-controls.maxPolarAngle = Math.PI * 0.49;
-controls.update();
-
-scene.add(new THREE.HemisphereLight(0xe5f3ff, 0x273329, 2.1));
-
-const key = new THREE.DirectionalLight(0xfff1dc, 4.2);
-key.position.set(-3.5, 6, 4);
-key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
-key.shadow.camera.left = -4;
-key.shadow.camera.right = 4;
-key.shadow.camera.top = 5;
-key.shadow.camera.bottom = -4;
-key.shadow.bias = -0.00025;
-scene.add(key);
-
-const rim = new THREE.DirectionalLight(0x8bb8ff, 2.2);
-rim.position.set(4, 3, -3);
-scene.add(rim);
-
-const pawn = new THREE.Group();
-scene.add(pawn);
-
-const redPlastic = new THREE.MeshPhysicalMaterial({
-  color:0xd92335, roughness:0.22, metalness:0.04,
-  clearcoat:0.72, clearcoatRoughness:0.18
-});
-const darkBase = new THREE.MeshStandardMaterial({
-  color:0x202a28, roughness:0.26, metalness:0.58
-});
-const trimMaterial = new THREE.MeshStandardMaterial({
-  color:0xd8b76c, roughness:0.2, metalness:0.78
-});
-
-function addMesh(geometry, material, y, target=pawn) {
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.y = y;
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  target.add(mesh);
-  return mesh;
-}
-
-// Široký kruhový podstavec s kovovým lemem a mírně zkosenou hranou.
-addMesh(new THREE.CylinderGeometry(0.76, 0.82, 0.18, 64, 1), darkBase, 0.11);
-addMesh(new THREE.CylinderGeometry(0.755, 0.79, 0.045, 64, 1), trimMaterial, 0.205);
-addMesh(new THREE.CylinderGeometry(0.70, 0.73, 0.075, 64, 1), redPlastic, 0.255);
-
-// Tělo je souvislý soustružený tvar, nikoli plochá silueta.
-const profile = [
-  new THREE.Vector2(0.00, 0.28),
-  new THREE.Vector2(0.48, 0.28),
-  new THREE.Vector2(0.54, 0.34),
-  new THREE.Vector2(0.52, 0.43),
-  new THREE.Vector2(0.43, 0.55),
-  new THREE.Vector2(0.32, 0.72),
-  new THREE.Vector2(0.265, 0.91),
-  new THREE.Vector2(0.27, 1.08),
-  new THREE.Vector2(0.34, 1.20),
-  new THREE.Vector2(0.36, 1.27),
-  new THREE.Vector2(0.29, 1.33),
-  new THREE.Vector2(0.00, 1.33)
-];
-const body = new THREE.Mesh(new THREE.LatheGeometry(profile, 64), redPlastic);
-body.castShadow = true;
-body.receiveShadow = true;
-pawn.add(body);
-
-// Krátký krček a kulová hlava s jemným spojovacím prstencem.
-addMesh(new THREE.CylinderGeometry(0.265, 0.29, 0.17, 48), redPlastic, 1.34);
-addMesh(new THREE.TorusGeometry(0.292, 0.027, 12, 64), trimMaterial, 1.29);
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.39, 64, 48), redPlastic);
-head.position.y = 1.67;
-head.castShadow = true;
-head.receiveShadow = true;
-pawn.add(head);
-
-// Jemný odlesk je geometrický detail, ne textura.
-const glint = new THREE.Mesh(
-  new THREE.SphereGeometry(0.055, 20, 16),
-  new THREE.MeshBasicMaterial({color:0xffffff})
-);
-glint.position.set(-0.13, 1.84, 0.335);
-glint.scale.set(1.25, 0.72, 0.35);
-pawn.add(glint);
-
-// Podlaha a měkký stín pod figurkou.
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(200, 200),
-  new THREE.MeshStandardMaterial({color:0x26352c, roughness:0.88, metalness:0.02})
-);
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = 0.005;
-floor.receiveShadow = true;
-scene.add(floor);
-
-function resize() {
-  const width = stage.clientWidth;
-  const height = stage.clientHeight;
-  if (!width || !height) return;
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-  renderer.setSize(width, height, false);
-}
-const resizeObserver = new ResizeObserver(resize);
-resizeObserver.observe(stage);
-resize();
-
-document.getElementById('reset-view').addEventListener('click', () => {
-  camera.position.copy(initialCamera);
-  controls.target.set(0, 1.02, 0);
-  controls.update();
-  pawn.rotation.y = 0;
-});
-let autoRotate = false;
-const spinButton = document.getElementById('toggle-spin');
-spinButton.addEventListener('click', () => {
-  autoRotate = !autoRotate;
-  controls.autoRotate = autoRotate;
-  spinButton.textContent = 'Automatické otáčení: ' + (autoRotate ? 'zapnuto' : 'vypnuto');
-  spinButton.setAttribute('aria-pressed', String(autoRotate));
-});
-
-const clock = new THREE.Clock();
-function animate() {
-  requestAnimationFrame(animate);
-  const delta = Math.min(clock.getDelta(), 0.05);
-  if (autoRotate) pawn.rotation.y += delta * 0.42;
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
-status.textContent = 'Model připraven. Figurku lze volně otáčet a přibližovat.';
-</script>
-</body>
-</html>
+import * as THREE from 'three';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
+const stage=document.getElementById('stage'),status=document.getElementById('status');
+window.addEventListener('error',e=>status.textContent='Chyba: '+(e.message||'neznámá chyba'));
+window.addEventListener('unhandledrejection',e=>status.textContent='Chyba načítání: '+String(e.reason?.message||e.reason));
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x18251e);
+const camera=new THREE.PerspectiveCamera(34,1,.1,100),initialCamera=new THREE.Vector3(12,15,17);camera.position.copy(initialCamera);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;stage.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.1,0);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=10;controls.maxDistance=30;controls.maxPolarAngle=Math.PI*.49;controls.update();
+scene.add(new THREE.HemisphereLight(0xe8f4ff,0x28352c,2.1));
+const key=new THREE.DirectionalLight(0xffefd9,3.4);key.position.set(-8,15,10);key.castShadow=true;key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-12;key.shadow.camera.right=12;key.shadow.camera.top=12;key.shadow.camera.bottom=-12;key.shadow.bias=-.0002;scene.add(key);
+const fill=new THREE.DirectionalLight(0x9bbcff,1.5);fill.position.set(10,8,-10);scene.add(fill);
+const board=new THREE.Group();scene.add(board);
+const colors=[0xe53935,0x2878e8,0xf5c542,0x269b62,0x9146c8,0xf07828,0x20b9bd,0xe65a9b];
+const dark=new THREE.MeshStandardMaterial({color:0x18221e,roughness:.3,metalness:.48}),gold=new THREE.MeshStandardMaterial({color:0xd4b36b,roughness:.24,metalness:.72}),felt=new THREE.MeshStandardMaterial({color:0x284337,roughness:.82}),tileMat=new THREE.MeshStandardMaterial({color:0xd9d3c5,roughness:.55}),tileEdge=new THREE.MeshStandardMaterial({color:0x9caa9f,roughness:.38,metalness:.2});
+function add(geometry,material,x,y,z,parent=board){const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh}
+function point(angle,r){return{x:Math.cos(angle)*r,z:Math.sin(angle)*r}}
+function armPoint(slot,along,side){const a=(-90+slot*45)*Math.PI/180,ux=Math.cos(a),uz=Math.sin(a);return{x:ux*along-uz*side,z:uz*along+ux*side}}
+// Osmicípá deska na pevném podstavci.
+add(new THREE.CylinderGeometry(8.25,8.45,.48,128),dark,0,-.28,0);add(new THREE.CylinderGeometry(8.12,8.2,.12,128),gold,0,-.015,0);
+const shape=new THREE.Shape();for(let i=0;i<16;i++){const a=(-90+i*22.5)*Math.PI/180,r=i%2===0?7.95:4.55,x=Math.cos(a)*r,z=Math.sin(a)*r;if(i===0)shape.moveTo(x,z);else shape.lineTo(x,z)}shape.closePath();
+const top=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.28,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.12,bevelThickness:.08}),felt);top.rotation.x=-Math.PI/2;top.position.y=.02;top.castShadow=true;top.receiveShadow=true;board.add(top);
+const rim=new THREE.Mesh(new THREE.TorusGeometry(8.12,.055,12,160),gold);rim.rotation.x=Math.PI/2;rim.position.y=.15;board.add(rim);
+// 8 ramen × 10 polí = 80 políček.
+const outer=6.95,inner=2.45,halfWidth=.62,k=4,step=(outer-inner)/k;
+function trackPosition(index){const i=((index%80)+80)%80,arm=Math.floor(i/10),t=i%10;if(t<k)return armPoint(arm,inner+(t+1)*step,-halfWidth);if(t===k)return armPoint(arm,outer,0);return armPoint(arm,inner+(2*k+1-t)*step,halfWidth)}
+for(let i=0;i<80;i++){const p=trackPosition(i),start=i%10===5,mat=start?new THREE.MeshStandardMaterial({color:colors[Math.floor(i/10)],roughness:.38}):tileMat;add(new THREE.CylinderGeometry(.34,.37,.105,32),tileEdge,p.x,.27,p.z);add(new THREE.CylinderGeometry(.305,.325,.10,32),mat,p.x,.34,p.z);if(start)add(new THREE.CylinderGeometry(.105,.105,.018,24),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.25}),p.x,.405,p.z)}
+// Osm cílových drah po čtyřech polích.
+for(let slot=0;slot<8;slot++)for(let lane=0;lane<4;lane++){const p=armPoint(slot,outer-(lane+1)*.83,0);add(new THREE.CylinderGeometry(.29,.31,.075,32),gold,p.x,.30,p.z);add(new THREE.CylinderGeometry(.255,.27,.08,32),new THREE.MeshStandardMaterial({color:colors[slot],roughness:.48}),p.x,.36,p.z)}
+// Opakovaně použitelný skutečný 3D model figurky.
+function makePawn(color){const g=new THREE.Group(),plastic=new THREE.MeshPhysicalMaterial({color,roughness:.22,metalness:.04,clearcoat:.8,clearcoatRoughness:.17});const base=new THREE.Mesh(new THREE.CylinderGeometry(.34,.38,.13,40),dark);base.position.y=.105;base.castShadow=true;base.receiveShadow=true;g.add(base);const trim=new THREE.Mesh(new THREE.CylinderGeometry(.335,.35,.035,40),gold);trim.position.y=.18;g.add(trim);const profile=[new THREE.Vector2(0,.19),new THREE.Vector2(.29,.19),new THREE.Vector2(.34,.25),new THREE.Vector2(.31,.34),new THREE.Vector2(.23,.47),new THREE.Vector2(.17,.66),new THREE.Vector2(.18,.79),new THREE.Vector2(.23,.86),new THREE.Vector2(0,.86)];const body=new THREE.Mesh(new THREE.LatheGeometry(profile,40),plastic);body.castShadow=true;body.receiveShadow=true;g.add(body);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.17,.20,.13,32),plastic);neck.position.y=.88;neck.castShadow=true;g.add(neck);const head=new THREE.Mesh(new THREE.SphereGeometry(.255,40,32),plastic);head.position.y=1.08;head.castShadow=true;head.receiveShadow=true;g.add(head);const shine=new THREE.Mesh(new THREE.SphereGeometry(.035,12,10),new THREE.MeshBasicMaterial({color:0xffffff}));shine.position.set(-.085,1.17,.22);shine.scale.set(1.2,.7,.4);g.add(shine);return g}
+// 8 barevných základen, v každé přesně 4 figurky = 32.
+for(let slot=0;slot<8;slot++){const angle=(-90+slot*45+22.5)*Math.PI/180,center=point(angle,4.25);const zone=new THREE.Mesh(new THREE.CylinderGeometry(1,1.08,.10,64),dark);zone.position.set(center.x,.25,center.z);zone.castShadow=true;zone.receiveShadow=true;board.add(zone);const ring=new THREE.Mesh(new THREE.TorusGeometry(.91,.035,10,64),new THREE.MeshStandardMaterial({color:colors[slot],roughness:.3,metalness:.25}));ring.rotation.x=Math.PI/2;ring.position.set(center.x,.32,center.z);board.add(ring);const plate=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.018,48),new THREE.MeshStandardMaterial({color:colors[slot],roughness:.55}));plate.position.set(center.x,.315,center.z);board.add(plate);[[-.38,-.38],[.38,-.38],[-.38,.38],[.38,.38]].forEach(([dx,dz])=>{const pawn=makePawn(colors[slot]);pawn.position.set(center.x+dx,.34,center.z+dz);pawn.rotation.y=angle+Math.PI/2;board.add(pawn)})}
+add(new THREE.CylinderGeometry(.78,.84,.16,64),dark,0,.30,0);const medallion=new THREE.Mesh(new THREE.TorusGeometry(.66,.045,12,64),gold);medallion.rotation.x=Math.PI/2;medallion.position.y=.40;board.add(medallion);add(new THREE.CylinderGeometry(.59,.59,.035,64),new THREE.MeshStandardMaterial({color:0x385545,roughness:.5}),0,.40,0);
+const floor=add(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x17231c,roughness:.92}),0,-.56,0,scene);floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}const observer=new ResizeObserver(resize);observer.observe(stage);resize();
+document.getElementById('reset-view').addEventListener('click',()=>{camera.position.copy(initialCamera);controls.target.set(0,.1,0);controls.update();board.rotation.y=0});
+let spin=false;const spinButton=document.getElementById('toggle-spin');spinButton.addEventListener('click',()=>{spin=!spin;spinButton.textContent='Automatické otáčení: '+(spin?'zapnuto':'vypnuto');spinButton.setAttribute('aria-pressed',String(spin));controls.autoRotate=spin});
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
+status.textContent='Hotovo: 32 prostorových figurek a přesně 80 políček. Desku lze otáčet a přibližovat.';
+</script></body></html>
