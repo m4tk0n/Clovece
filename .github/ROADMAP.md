@@ -285,3 +285,11 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [ ] Vizuálně ověřit polohu na živé desce.
 - [x] Rozestup čtyř figurek v základně zmenšen na 6° po kružnici; při poloměru 283,05 je vzdálenost středů sousedních figurek přibližně 29,6 jednotky (průměr figurky 24), takže se nedotýkají.
 - [x] Kruhová deska: první pozice figurky základny nastavena na (190, 135); referenční kružnice prochází tímto bodem (poloměr 282,00 jednotek). Rozestupy figurek zůstávají 6°.
+
+
+## Návrh nové geometrie 80 polí – 2026-11-04
+
+- [x] Pro 80 polí nahradit kruhovou dráhu osmiúhelníkovým obvodem.
+- [x] Rozmístit 80 středů polí rovnoměrně podle délky obvodu, nikoli podle úhlu.
+- [x] Zachovat kruhové vykreslení pro 40 a 48 polí a ponechat herní logiku beze změny.
+- [ ] Vizuálně ověřit návaznost startovních polí, domečků a cílových drah na osmiúhelníkové trase; případně doladit jejich polohu a velikost polí.
