@@ -211,7 +211,7 @@ export function renderBoard(container, game) {
                         '</g>';
                 }).join('') +
                 // Kružnice se středem desky procházející referenčním bodem (190, 135).
-                '<circle class="board-reference-circle" cx="360" cy="360" r="282.00" fill="none" stroke="#ffcc66" stroke-opacity=".72" stroke-width="1.5" stroke-dasharray="6 5" pointer-events="none"/>' +
+                '<circle class="board-reference-circle" cx="360" cy="360" r="282.02" fill="none" stroke="#ffcc66" stroke-opacity=".72" stroke-width="1.5" stroke-dasharray="6 5" pointer-events="none"/>' +
                 // Referenční bod pro ladění pozice první figurky.
                 '<g class="board-coordinate-marker" pointer-events="none">' +
                     '<circle cx="190" cy="135" r="5" fill="#ffcc66" stroke="#172522" stroke-width="1.5"/>' +
