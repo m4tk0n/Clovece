@@ -8,6 +8,11 @@ import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine
 const SIZE = 720;
 const CENTER = SIZE / 2;
 const TRACK_RADIUS = 245;
+const TRACK_RADIUS_80 = 332;
+
+function getTrackRadius(game) {
+    return game.trackLength === 80 ? TRACK_RADIUS_80 : TRACK_RADIUS;
+}
 const BASE_RADIUS = 300;
 const HOME_RADII = [202, 164, 126, 88];
 
@@ -85,7 +90,7 @@ function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves) {
         const trackIndex = getPiecePosition(game, player.id, piece);
         const visualIndex = (trackIndex + 1 + game.trackLength) % game.trackLength;
         const angle = trackAngle(visualIndex, game);
-        pos = point(angle, TRACK_RADIUS);
+        pos = point(angle, getTrackRadius(game));
     } else {
         const laneIndex = getHomeLaneIndex(game, piece);
         pos = point(playerAngle(player, game.players.length, game.trackLength), HOME_RADII[Math.min(3, laneIndex)]);
@@ -120,7 +125,7 @@ export function renderBoard(container, game) {
     const track = [];
     for (let i = 0; i < game.trackLength; i++) {
         const angle = trackAngle(i, game);
-        const p = point(angle, TRACK_RADIUS);
+        const p = point(angle, getTrackRadius(game));
         const slotCount = game.slotCount || (game.players.length <= 4 ? 4 : 8);
         const occupiedSlots = new Map(game.players.map(player => [
             Number.isInteger(player.slot) ? player.slot : Math.round(player.start * slotCount / game.trackLength),
@@ -219,7 +224,7 @@ export function renderBoard(container, game) {
                     '<line x1="190" y1="125" x2="190" y2="145" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
                     '<text x="201" y="129" font-size="10" fill="#ffdf9a">190, 135</text>' +
                 '</g>' +
-                '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>' +
+                '<circle cx="360" cy="360" r="' + (game.trackLength === 80 ? 332 : 270) + '" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="' + (game.trackLength === 80 ? 20 : 44) + '"/>' +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
                 homeLanes + track.join('') + bases +
                 '<circle cx="360" cy="360" r="68" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
