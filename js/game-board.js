@@ -205,12 +205,14 @@ export function renderBoard(container, game) {
                         (major && coordinate > 0 && coordinate < 720 ? '<text x="12" y="' + coordinate + '" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#d9e4dc">' + coordinate + '</text>' : '') +
                         '</g>';
                 }).join('') +
+                // Kružnice se středem desky procházející referenčním bodem (195, 130).
+                '<circle class="board-reference-circle" cx="360" cy="360" r="283.05" fill="none" stroke="#ffcc66" stroke-opacity=".72" stroke-width="1.5" stroke-dasharray="6 5" pointer-events="none"/>' +
                 // Referenční bod pro ladění pozice první figurky.
                 '<g class="board-coordinate-marker" pointer-events="none">' +
-                    '<circle cx="200" cy="140" r="5" fill="#ffcc66" stroke="#172522" stroke-width="1.5"/>' +
-                    '<line x1="190" y1="140" x2="210" y2="140" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
-                    '<line x1="200" y1="130" x2="200" y2="150" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
-                    '<text x="211" y="134" font-size="10" fill="#ffdf9a">200, 140</text>' +
+                    '<circle cx="195" cy="130" r="5" fill="#ffcc66" stroke="#172522" stroke-width="1.5"/>' +
+                    '<line x1="185" y1="130" x2="205" y2="130" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
+                    '<line x1="195" y1="120" x2="195" y2="140" stroke="#ffcc66" stroke-width="1" stroke-opacity=".9"/>' +
+                    '<text x="206" y="124" font-size="10" fill="#ffdf9a">195, 130</text>' +
                 '</g>' +
                 '<circle cx="360" cy="360" r="270" fill="none" stroke="url(#trackRing)" stroke-opacity=".18" stroke-width="44"/>' +
                 '<circle cx="360" cy="360" r="222" fill="none" stroke="#d6c6a5" stroke-opacity=".12" stroke-width="1" stroke-dasharray="3 8"/>' +
