@@ -52,9 +52,10 @@ function baseMarkup(game, player, validMoves) {
 
     pieces.forEach(piece => {
         if (piece.steps !== -1) return;
-        // Figurky jsou rozmístěné po vnějším půlkruhu základny.
-        const pieceAngles = [-60, -20, 20, 60];
-        const pieceAngle = (angle + pieceAngles[piece.id]) * Math.PI / 180;
+        // První figurka leží na ose mezi domečkem a vlastním startovním polem.
+        // Další figurky pokračují vedle ní po oblouku směrem nad herní dráhu.
+        const pieceAngles = [0, 28, 56, 84];
+        const pieceAngle = (routeAngle(player, game) + pieceAngles[piece.id]) * Math.PI / 180;
         const pieceRadius = 34;
         const x = center.x + Math.cos(pieceAngle) * pieceRadius;
         const y = center.y + Math.sin(pieceAngle) * pieceRadius;
