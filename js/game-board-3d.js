@@ -113,8 +113,9 @@ export async function render3DPawns(container, svg, enabled) {
             !container.querySelector('.premium-board') ||
             container.querySelector('.premium-board') !== svg) return;
 
-        const rect = svg.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
+        const width = svg.clientWidth;
+        const height = svg.clientHeight;
+        if (!width || !height) return;
 
         if (!layer) {
             layer = document.createElement('div');
@@ -123,12 +124,10 @@ export async function render3DPawns(container, svg, enabled) {
             shell.appendChild(layer);
         }
 
-        const svgRect = svg.getBoundingClientRect();
-        const shellRect = container.querySelector('.premium-board-shell').getBoundingClientRect();
-        layer.style.left = (svgRect.left - shellRect.left) + 'px';
-        layer.style.top = (svgRect.top - shellRect.top) + 'px';
-        layer.style.width = svgRect.width + 'px';
-        layer.style.height = svgRect.height + 'px';
+        layer.style.left = svg.offsetLeft + 'px';
+        layer.style.top = svg.offsetTop + 'px';
+        layer.style.width = width + 'px';
+        layer.style.height = height + 'px';
         layer.style.transform = svg.style.transform || '';
         layer.style.transformOrigin = svg.style.transformOrigin || '50% 50%';
         layer.style.display = 'block';
@@ -160,7 +159,7 @@ export async function render3DPawns(container, svg, enabled) {
             layer._scene.add(fill);
         }
 
-        renderer.setSize(rect.width, rect.height, false);
+        renderer.setSize(width, height, false);
         layer._camera.left = 0;
         layer._camera.right = 720;
         layer._camera.top = 720;
@@ -181,13 +180,11 @@ export async function render3DPawns(container, svg, enabled) {
         });
 
         svg.querySelectorAll('.pawn-piece[data-x][data-y]').forEach(node => {
-            const color = node.closest('[style*="--player-color"]')?.style.getPropertyValue('--player-color')
-                || node.querySelector('[fill]')?.getAttribute('fill')
-                || '#c6a96b';
+            const color = node.dataset.color || '#c6a96b';
             const x = Number(node.dataset.x);
             const y = 720 - Number(node.dataset.y);
             const playerId = Number(node.dataset.player);
-            const radius = Number(svg.querySelector('[data-player="' + playerId + '"]')?.dataset.radius) || 16;
+            const radius = Number(node.dataset.radius) || 16;
             const pawn = makePawn(THREE, color.trim(), x, y, radius);
             pawn.userData.isPawn = true;
             scene.add(pawn);
