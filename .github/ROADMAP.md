@@ -277,3 +277,9 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] První figurku umístit na osu směřující k vlastnímu startovnímu poli.
 - [x] Zbývající figurky rozmístit vedle ní po oblouku směrem nad herní dráhu.
 - [ ] Vizuálně ověřit rozestavení na živém webu a podle potřeby doladit směr i rozestupy.
+
+## Záznam úpravy polohy figurek – 2026-11-04
+
+- [x] Figurky umístěné v základně mají středy přímo na referenční kružnici (střed desky 360,360; poloměr 283,05).
+- [x] Zachováno jejich pořadí a úhlové rozestupy; pravidla ani logické pozice figurek se nemění.
+- [ ] Vizuálně ověřit polohu na živé desce.
