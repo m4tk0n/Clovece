@@ -93,7 +93,8 @@ function svgText(x, y, value, size, fill) {
 
 function baseMarkup(game, player, validMoves) {
     const angle = playerAngle(player, game.players.length, game.trackLength);
-    const baseAngle = angle + (game.trackLength === 40 ? -45 : -22.5);\n    const center = point(baseAngle, BASE_RADIUS * 1.12);
+    const baseAngle = angle + (game.trackLength === 40 ? -45 : -22.5);
+    const center = point(baseAngle, BASE_RADIUS * 1.12);
     const color = player.color;
     const pieces = game.pieces[player.id].pieces;
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
