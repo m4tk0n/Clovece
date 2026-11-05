@@ -1228,7 +1228,7 @@
 #player-selection .preview-players {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-    gap: 10px;
+    gap: 5px;
     width: 100%;
     min-height: 1px;
     visibility: visible;
