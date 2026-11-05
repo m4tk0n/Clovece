@@ -106,8 +106,14 @@ function buildScene(T,scene,data) {
     data.bases.forEach(base=>base.pieces.forEach(addPawn));data.pieces.forEach(addPawn);
     return {board,pickables};
 }
-export async function render3DBoard(stage,data) {
+export async function render3DBoard(stage,data,onError=()=>{}) {
     if(!stage)return;
+    const reportError=error=>{
+        if(stage._fallbackTriggered)return;
+        stage._fallbackTriggered=true;
+        onError(error);
+    };
+    stage._fallbackTriggered=false;
     try{
         const {THREE:T,OrbitControls}=await loadThree();if(!stage.isConnected)return;
         const maxRadius=data.track.reduce((m,p)=>Math.max(m,Math.hypot(p.x,p.z)),0);
@@ -131,8 +137,22 @@ export async function render3DBoard(stage,data) {
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.maxPolarAngle=Math.PI*.49;stage._controls.update();
             stage._raycaster=new T.Raycaster();stage._pointer=new T.Vector2();
-            stage._animation=()=>{if(!stage.isConnected)return;stage._raf=requestAnimationFrame(stage._animation);
-                stage._controls.update();stage._renderer.render(stage._scene,stage._camera)};
+            stage._onContextLost=event=>{
+                event.preventDefault();
+                reportError(new Error('WebGL context byl ztracen.'));
+            };
+            renderer.domElement.addEventListener('webglcontextlost',stage._onContextLost,false);
+            stage._onRenderError=reportError;
+            stage._animation=()=>{
+                if(!stage.isConnected)return;
+                stage._raf=requestAnimationFrame(stage._animation);
+                try{
+                    stage._controls.update();
+                    stage._renderer.render(stage._scene,stage._camera);
+                }catch(error){
+                    reportError(error);
+                }
+            };
             stage._animation();stage._resizeObserver=new ResizeObserver(()=>resize(stage));stage._resizeObserver.observe(stage);
             stage._onPointerDown=e=>{stage._downPoint={x:e.clientX,y:e.clientY}};
             stage._onPointerUp=e=>{
@@ -155,7 +175,10 @@ export async function render3DBoard(stage,data) {
         if(stage._board){stage._scene.remove(stage._board);stage._board.traverse(object=>{
             object.geometry?.dispose();if(Array.isArray(object.material))object.material.forEach(m=>m.dispose());else object.material?.dispose()})}
         const built=buildScene(T,stage._scene,data);stage._board=built.board;stage._pickables=built.pickables;resize(stage);
-    }catch(error){console.error('3D desku se nepodařilo vykreslit:',error);stage.textContent='3D desku se nepodařilo načíst. Přepni na 2D SVG.'}
+    }catch(error){
+        console.error('3D desku se nepodařilo vykreslit:',error);
+        reportError(error);
+    }
 }
 function resize(stage){
     const width=Math.max(1,stage.clientWidth),height=Math.max(1,stage.clientHeight);
@@ -165,6 +188,7 @@ export function dispose3DBoard(stage){
     if(!stage)return;if(stage._raf)cancelAnimationFrame(stage._raf);stage._resizeObserver?.disconnect();
     if(stage._onPointerDown)stage._renderer?.domElement.removeEventListener('pointerdown',stage._onPointerDown);
     if(stage._onPointerUp)stage._renderer?.domElement.removeEventListener('pointerup',stage._onPointerUp);
+    if(stage._onContextLost)stage._renderer?.domElement.removeEventListener('webglcontextlost',stage._onContextLost);
     stage._controls?.dispose();stage._board?.traverse(object=>{
         object.geometry?.dispose();if(Array.isArray(object.material))object.material.forEach(item=>item.dispose());else object.material?.dispose()});
     stage._renderer?.dispose();stage._renderer?.domElement.remove();
