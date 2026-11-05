@@ -107,6 +107,33 @@ export function initDebugOverlay() {
         updateSummary();
     }
 
+    // CSS načtené ještě před spuštěním modulu zjistíme z DOM a Resource Timing.
+    // Později vložené stylesheety a <style> elementy zachytí MutationObserver.
+    const trackedStyles = new WeakSet();
+    function trackStyleNode(node) {
+        if (!(node instanceof Element) || trackedStyles.has(node)) return;
+        if (node.tagName === 'LINK' && node.rel.split(/\\s+/).includes('stylesheet')) {
+            trackedStyles.add(node);
+            const href = node.href || node.getAttribute('href') || '(bez adresy)';
+            const resource = performance.getEntriesByType('resource').find(item => item.name === href);
+            const duration = resource ? Math.round(resource.duration) : null;
+            log('CSS soubor: ' + href, node.sheet ? 'OK' : 'CHYBA', duration);
+        } else if (node.tagName === 'STYLE') {
+            trackedStyles.add(node);
+            log('CSS vložené do stránky: ' + (node.id || 'inline style'), 'OK');
+        }
+    }
+    document.querySelectorAll('link[rel~="stylesheet"], style').forEach(trackStyleNode);
+    if (window.MutationObserver) {
+        const styleObserver = new MutationObserver(records => {
+            records.forEach(record => record.addedNodes.forEach(node => {
+                trackStyleNode(node);
+                node.querySelectorAll?.('link[rel~="stylesheet"], style').forEach(trackStyleNode);
+            }));
+        });
+        styleObserver.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
     window.addEventListener('resize', updateSummary, { passive: true });
     window.addEventListener('orientationchange', updateSummary, { passive: true });
     if (window.visualViewport) {
