@@ -10,7 +10,7 @@ async function startApp() {
         // Diagnostika se načítá pouze při výslovném zapnutí parametrem ?debug=1.
         if (new URLSearchParams(window.location.search).get('debug') === '1') {
             try {
-                const { initDebugOverlay } = await loadModule('/js/debug-overlay.js');
+                const { initDebugOverlay } = await loadModule('./debug-overlay.js');
                 initDebugOverlay();
             } catch (error) {
                 console.warn('Nepodařilo se spustit debug overlay:', error);
