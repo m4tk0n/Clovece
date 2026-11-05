@@ -29,6 +29,10 @@ Před nasazením pro běžné hraní je nutné dokončit test na WZ.cz ve dvou s
 
 Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné později připojit serverový herní engine bez přepisování celé hry.
 
+## Historie verzí
+
+Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HISTORY.md).
+
 ## Struktura
 
 - index.php – vstupní bod, pseudo-CRON a obrazovky aplikace
