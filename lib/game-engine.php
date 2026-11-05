@@ -247,7 +247,7 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
             }
 
             if ($nextSteps < $trackLength) {
-                if ($otherSteps <= $trackLength
+                if ($otherSteps < $trackLength
                     && onlineEnginePiecePosition($game, $playerId, $other)
                         === ((((int) $game['players'][$playerId]['start']) + $nextSteps) % $trackLength)) {
                     $ownBlock = true;
@@ -376,7 +376,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     $piece['steps'] = $nextSteps;
     unset($piece);
 
-    $maxSteps = (int) $game['trackLength'] + 4;
+    $maxSteps = (int) $game['trackLength'] + 3;
     $finishedNow = $nextSteps === $maxSteps;
     // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     $playerFinished = true;
@@ -437,7 +437,7 @@ function onlineEngineChooseAIMove(array $game): ?int
                 if ((int) $enemyId === $playerId) continue;
                 foreach ($group['pieces'] as $enemyPiece) {
                     $enemySteps = (int) $enemyPiece['steps'];
-                    if ($enemySteps >= 0 && $enemySteps <= $trackLength
+                    if ($enemySteps >= 0 && $enemySteps < $trackLength
                         && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) $score += 90;
                 }
             }
