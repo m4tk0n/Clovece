@@ -292,6 +292,27 @@ export function animateDice(value) {
 
     // Cílové natočení vždy končí správnou stěnou směrem k divákovi.
     const target = BASE[diceValue];
+
+    // Rychlý režim ukáže rovnou správnou stěnu bez roztočení kostky.
+    if (settings.moveSpeed === 'fast') {
+        animation.classList.remove('hidden');
+        scene.classList.remove('rolling');
+        cube.style.transition = 'none';
+        cube.style.transform =
+            'rotateX(' + (target.x - 24) + 'deg) rotateY(' + (target.y - 32) + 'deg)';
+        void cube.offsetWidth;
+        cube.style.transition = '';
+        diceCurrentX = target.x;
+        diceCurrentY = target.y;
+
+        return new Promise(resolve => {
+            window.setTimeout(() => {
+                animation.classList.add('hidden');
+                resolve();
+            }, 450);
+        });
+    }
+
     const nextX = spin(diceCurrentX, target.x);
     const nextY = spin(diceCurrentY, target.y);
 
@@ -322,7 +343,7 @@ export function animateDice(value) {
             scene.classList.remove('rolling');
             animation.classList.add('hidden');
             resolve();
-        }, 1200);
+        }, 1500);
     });
 }
 
