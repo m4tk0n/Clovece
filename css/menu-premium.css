@@ -736,3 +736,305 @@
     .menu-screen:not(#main-menu) .board-size-control { margin-top: 10px; }
     .menu-screen:not(#main-menu) .board-size-btn { min-height: 42px; }
 }
+
+
+/* Kompaktní rozložení pro starší telefony a malé displeje.
+   Zachovává stávající režim bez posouvání herní obrazovky. */
+@media (max-width: 420px) {
+    #game-screen:not(.hidden) {
+        padding: 3px 1px;
+    }
+    #game-screen .game-header {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 3px 5px;
+        padding: 4px 5px;
+        margin-bottom: 3px;
+        border-radius: 9px;
+    }
+    #game-screen .game-info {
+        gap: 2px 5px;
+    }
+    #game-screen .current-player,
+    #game-screen .dice-result {
+        font-size: 9px;
+    }
+    #game-screen .game-status {
+        font-size: 8px;
+    }
+    #game-screen .game-controls {
+        gap: 3px;
+    }
+    #game-screen .game-btn {
+        min-height: 30px;
+        padding: 4px 6px;
+        font-size: 9px;
+    }
+    #game-screen .game-btn i {
+        font-size: 12px;
+    }
+    #game-screen .game-container {
+        width: min(100%, calc(100vh - 138px));
+        width: min(100%, calc(100dvh - 138px));
+    }
+    #game-screen .premium-board-shell {
+        padding: 1px;
+        border-radius: 10px;
+    }
+    #game-screen .board-topline,
+    #game-screen .board-bottomline {
+        gap: 4px;
+        padding: 1px 3px 3px;
+        font-size: 6px;
+        letter-spacing: .025em;
+    }
+    #game-screen .board-topline .board-mode {
+        font-size: 5px;
+    }
+    #game-screen .board-appearance {
+        gap: 2px;
+    }
+    #game-screen .board-appearance-option {
+        min-height: 24px;
+        padding: 3px 4px;
+        font-size: 6px;
+    }
+    #game-screen .board-bottomline {
+        padding: 3px 3px 1px;
+    }
+    #game-screen .game-footer {
+        margin-top: 3px;
+    }
+    #game-screen .players-panel {
+        gap: 3px;
+    }
+    #game-screen .premium-player-card {
+        min-height: 27px;
+        padding: 3px 5px;
+        gap: 3px;
+        border-radius: 7px;
+    }
+    #game-screen .player-card-copy strong {
+        font-size: 9px;
+    }
+    #game-screen .player-card-progress {
+        font-size: 15px;
+    }
+
+    .menu-screen:not(#main-menu) {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+    .menu-screen:not(#main-menu) .menu-bg {
+        padding: 11px 9px;
+        border-radius: 14px;
+    }
+    .menu-screen:not(#main-menu) .glitch {
+        margin-bottom: 9px;
+        font-size: clamp(22px, 7vw, 29px);
+    }
+    .menu-screen:not(#main-menu) h3,
+    .menu-screen:not(#main-menu) h4 {
+        margin: 8px 0 5px;
+        font-size: 12px;
+    }
+    .menu-screen:not(#main-menu) .menu-btn {
+        min-height: 35px;
+        margin: 2px 0;
+        padding: 5px 7px;
+        font-size: 10px;
+    }
+    .menu-screen:not(#main-menu) input:not([type="range"]):not([type="checkbox"]),
+    .menu-screen:not(#main-menu) select {
+        min-height: 35px;
+        font-size: 12px;
+    }
+    .menu-screen:not(#main-menu) .auth-form,
+    .menu-screen:not(#main-menu) .selection-container {
+        padding: 10px;
+        margin-bottom: 8px;
+    }
+    .menu-screen:not(#main-menu) .form-group {
+        margin-bottom: 8px;
+    }
+    .menu-screen:not(#main-menu) .setup-grid {
+        gap: 6px;
+    }
+    .menu-screen:not(#main-menu) .setup-control {
+        padding: 7px;
+    }
+    .menu-screen:not(#main-menu) .setup-control label {
+        margin-bottom: 5px;
+        font-size: 9px;
+    }
+    .menu-screen:not(#main-menu) .setup-number {
+        margin-bottom: 5px;
+    }
+    .menu-screen:not(#main-menu) .setup-number strong {
+        font-size: 27px;
+    }
+    .menu-screen:not(#main-menu) .setup-summary {
+        gap: 5px 7px;
+        margin-top: 7px;
+        padding: 8px;
+    }
+    .menu-screen:not(#main-menu) .player-preview {
+        margin-top: 7px;
+        padding: 8px;
+    }
+    .menu-screen:not(#main-menu) .settings-container {
+        margin-bottom: 8px;
+        padding: 8px 10px;
+    }
+    .menu-screen:not(#main-menu) .setting-item {
+        gap: 7px;
+        padding: 6px 0;
+    }
+    #lobby-screen .lobby-actions {
+        gap: 5px 7px;
+        margin: 8px 0;
+    }
+    #lobby-screen .identity-transfer {
+        gap: 5px;
+        margin-bottom: 8px;
+        padding: 8px;
+    }
+    #lobby-screen .my-games-list {
+        gap: 5px;
+        margin: 6px 0 8px;
+    }
+    #room-screen .participant-list {
+        gap: 5px;
+        margin: 7px 0;
+    }
+    #room-screen .participant-item {
+        gap: 7px;
+        padding: 6px 8px;
+    }
+    #room-screen .room-actions {
+        gap: 4px;
+        margin: 7px 0;
+    }
+    #room-screen .room-chat {
+        margin-top: 8px;
+        padding: 8px;
+    }
+    .menu-screen:not(#main-menu) .rules-text {
+        padding: 9px;
+    }
+    .menu-screen:not(#main-menu) .rules-text h3 {
+        margin: 8px 0 4px;
+        padding-bottom: 4px;
+        font-size: 12px;
+    }
+    .menu-screen:not(#main-menu) .rules-text p {
+        margin-bottom: 6px;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+}
+
+@media (max-height: 680px) {
+    #game-screen:not(.hidden) {
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+    #game-screen .game-header {
+        padding-top: 3px;
+        padding-bottom: 3px;
+        margin-bottom: 2px;
+    }
+    #game-screen .game-container {
+        width: min(100%, calc(100vh - 118px));
+        width: min(100%, calc(100dvh - 118px));
+    }
+    #game-screen .game-footer {
+        margin-top: 2px;
+    }
+    #game-screen .premium-player-card {
+        min-height: 25px;
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+    #game-screen .player-card-progress {
+        font-size: 14px;
+    }
+
+    .menu-screen:not(#main-menu) .menu-bg {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .menu-screen:not(#main-menu) .glitch {
+        margin-bottom: 8px;
+    }
+    .menu-screen:not(#main-menu) h3,
+    .menu-screen:not(#main-menu) h4 {
+        margin-top: 7px;
+        margin-bottom: 4px;
+    }
+    .menu-screen:not(#main-menu) .menu-btn {
+        min-height: 34px;
+        margin-top: 1px;
+        margin-bottom: 1px;
+    }
+}
+
+@media (max-width: 360px) {
+    #game-screen .game-container {
+        width: min(100%, calc(100vh - 132px));
+        width: min(100%, calc(100dvh - 132px));
+    }
+    #game-screen .current-player,
+    #game-screen .dice-result {
+        font-size: 8px;
+    }
+    #game-screen .game-btn {
+        min-height: 28px;
+        padding: 3px 5px;
+        font-size: 8px;
+    }
+    #game-screen .premium-player-card {
+        min-height: 24px;
+        padding: 2px 4px;
+    }
+    #game-screen .player-card-copy strong {
+        font-size: 8px;
+    }
+    #game-screen .player-card-progress {
+        font-size: 13px;
+    }
+    #main-menu.menu-screen {
+        padding-left: 7px;
+        padding-right: 7px;
+    }
+    #main-menu .menu-bg {
+        padding: 16px 11px 13px;
+        border-radius: 16px;
+    }
+    #main-menu .game-title {
+        font-size: clamp(34px, 10vw, 42px);
+    }
+    #main-menu .game-logo {
+        width: 48px;
+        height: 48px;
+        margin: 9px auto 12px;
+        font-size: 23px;
+    }
+    #main-menu .menu-buttons {
+        gap: 6px;
+    }
+    #main-menu .menu-buttons .menu-btn {
+        min-height: 40px;
+        padding: 8px 10px;
+        font-size: 10px;
+    }
+    #main-menu .menu-buttons #play-btn {
+        min-height: 44px;
+    }
+    #main-menu .auth-buttons {
+        gap: 6px;
+        margin-top: 8px;
+    }
+    #main-menu .credits {
+        margin-top: 10px;
+    }
+}
