@@ -25,7 +25,7 @@
     border-radius: 18px;
     background: linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
     border: 1px solid rgba(255,255,255,.1);
-    text-align: left;
+    text-align: center;
 }
 .setup-control label,
 .setup-control .setup-label {
@@ -38,12 +38,12 @@
 .setup-stepper {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 12px;
     color: #fff;
 }
 .setup-stepper strong {
-    flex: 1;
+    flex: 0 0 56px;
     font: 700 46px/1 "Bangers",Impact,sans-serif;
     color: var(--table-gold);
     text-align: center;
@@ -1239,4 +1239,36 @@
 }
 #player-selection #random-player-colors-btn {
     margin-top: 14px;
+}
+
+
+/* Player-count controls stay centered and side by side, including narrow phones. */
+@media (max-width: 760px) {
+    #player-selection .setup-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    #player-selection .setup-control {
+        min-width: 0;
+        padding: 14px 8px;
+    }
+    #player-selection .setup-control .setup-label {
+        min-height: 3em;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(8px, 2.5vw, 11px);
+        text-align: center;
+    }
+    #player-selection .setup-stepper { gap: 6px; }
+    #player-selection .setup-stepper strong {
+        flex-basis: 34px;
+        font-size: clamp(30px, 9vw, 42px);
+    }
+    #player-selection .setup-stepper-btn {
+        width: 34px;
+        height: 38px;
+        flex-basis: 34px;
+    }
 }
