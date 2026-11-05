@@ -159,8 +159,6 @@ function pieceLabelColor(color) {
 
 
 function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
-    const bodyId = 'pawnBodyGradient' + playerId;
-    const headId = 'pawnHeadGradient' + playerId;
     const baseY = y + pr * 0.43;
     const headY = y - pr * 0.78;
     const headR = pr * 0.39;
@@ -201,14 +199,7 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         '" fill="' + color + '"/>' +
         // Tělo má tmavou boční hranu a světlejší čelní plochu.
         '<path class="piece-core" d="' + bodyPath + '" fill="' + color + '"/>' +
-        '<path d="M ' + (x - pr * .42).toFixed(2) + ' ' + (y - pr * .27).toFixed(2) +
-        ' C ' + (x - pr * .54).toFixed(2) + ' ' + (y - pr * .02).toFixed(2) + ', ' +
-        (x - pr * .48).toFixed(2) + ' ' + (y + pr * .13).toFixed(2) + ', ' +
-        (x - pr * .42).toFixed(2) + ' ' + (baseY - pr * .10).toFixed(2) +
-        '" fill="none"/>' +
-        // Samostatná kulová hlava s odleskem a tmavým okrajem.
-        '<circle cx="' + x.toFixed(2) + '" cy="' + headY.toFixed(2) + '" r="' + headR.toFixed(2) +
-        '" fill="' + color + '"/>' +
+        // Hlava a tělo používají výhradně základní barvu hráče.
         '<circle cx="' + x.toFixed(2) + '" cy="' + headY.toFixed(2) + '" r="' + headR.toFixed(2) +
         '" fill="' + color + '"/>' +
 
