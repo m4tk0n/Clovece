@@ -1053,10 +1053,15 @@
 }
 
 
-/* Hlavní obrazovka vyplní celý viditelný viewport se stejným horním
-   a dolním bezpečným odsazením. Panel se roztáhne mezi těmito okraji. */
+/* Hlavní obrazovka vyplní celý viditelný viewport. Rodič používá
+   sloupcový flex, aby se panel roztahoval na výšku, ne na šířku. */
 #main-menu.menu-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: flex-start;
     box-sizing: border-box;
+    width: 100%;
     height: 100vh;
     height: 100dvh;
     min-height: 100vh;
@@ -1068,6 +1073,8 @@
 #main-menu .menu-bg {
     box-sizing: border-box;
     flex: 1 0 auto;
+    width: min(100%, 560px);
+    min-height: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
