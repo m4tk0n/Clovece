@@ -57,11 +57,7 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
         name: names[index] || (index < humanCount ? 'Hráč ' + (index + 1) : 'AI ' + (index - humanCount + 1)),
         color: assignedColors[index],
         isAI: index >= humanCount,
-        start: selectedBoard
-            ? slots[index] * (trackLength / slotCount)
-            : (total === 3 || total >= 5
-                ? Math.round(index * trackLength / total)
-                : slots[index] * 13),
+        start: slots[index] * (trackLength / slotCount),
         finished: false
     }));
 
