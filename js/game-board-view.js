@@ -18,6 +18,7 @@ const VIEW_KEY = 'clovece_board_view';
 let view3d = loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
+let threeStylesPromise = null;
 
 function loadThreeRenderer() {
     if (!threeRendererPromise) {
@@ -35,8 +36,8 @@ function disposeThreeRenderer(stage) {
 }
 
 function ensureThreeStyles() {
-    if (document.getElementById('clovece-three-board-styles')) return Promise.resolve();
-    return new Promise((resolve, reject) => {
+    if (threeStylesPromise) return threeStylesPromise;
+    threeStylesPromise = new Promise((resolve, reject) => {
         const link = document.createElement('link');
         link.id = 'clovece-three-board-styles';
         link.rel = 'stylesheet';
@@ -44,10 +45,12 @@ function ensureThreeStyles() {
         link.onload = resolve;
         link.onerror = () => {
             link.remove();
+            threeStylesPromise = null;
             reject(new Error('Nepodařilo se načíst css/board-3d.css'));
         };
         document.head.appendChild(link);
     });
+    return threeStylesPromise;
 }
 
 function loadView() {
