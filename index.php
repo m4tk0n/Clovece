@@ -420,7 +420,7 @@ $ver = date('Ymd-His');
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label>Rychlost hry</label>
+                        <label>Rychlost pohybu figurek</label>
                         <select id="ai-speed">
                             <option value="normal" selected>Normální</option>
                             <option value="fast">Rychlá</option>
@@ -531,8 +531,8 @@ $ver = date('Ymd-His');
                 </div>
             </div>
             <div class="menu-audio-row">
-                <label for="game-speed">Rychlost hry</label>
-                <select id="game-speed" aria-label="Rychlost hry">
+                <label for="game-speed">Rychlost pohybu figurek</label>
+                <select id="game-speed" aria-label="Rychlost pohybu figurek">
                     <option value="normal">Normální</option>
                     <option value="fast">Rychlá</option>
                 </select>
