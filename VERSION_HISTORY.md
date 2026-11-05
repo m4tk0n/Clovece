@@ -18,6 +18,18 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 ---
 
 
+## 1.00.00.05 – Sjednocení okrajů při nízkém displeji
+
+**Datum:** 5. 11. 2026  
+**Typ:** Oprava responzivního rozložení  
+**Mění:** úpravu odsazení zavedenou verzí 1.00.00.04
+
+- Při výšce displeje do 680 px má herní obrazovka jednotné vnější odsazení 1 px ze všech čtyř stran.
+- Horní a dolní odsazení je tedy stejné jako boční; nepoužívá se velký okraj ani nulové odsazení.
+
+**Dotčené soubory:**
+- `css/menu-premium.css`
+
 ## 1.00.00.04 – Odstranění horního odsazení herní obrazovky na mobilech
 
 **Datum:** 5. 11. 2026  
