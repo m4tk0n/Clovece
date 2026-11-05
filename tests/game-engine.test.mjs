@@ -366,6 +366,23 @@ test('a six without any legal move is consumed but grants another roll', () => {
     assert.equal(game.phase, 'roll');
 });
 
+
+test('a six still grants a bonus roll when one piece reaches D4', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = game.trackLength - 3;
+    game.pieces[0].pieces[1].steps = 5;
+    game.pieces[0].pieces[2].steps = 10;
+    game.pieces[0].pieces[3].steps = 15;
+    game.phase = 'move';
+    game.diceValue = 6;
+
+    assert.ok(getValidMoves(game).includes(0));
+    movePiece(game, 0);
+    assert.equal(game.pieces[0].pieces[0].steps, game.trackLength + 3);
+    assert.equal(game.winner, null);
+    assert.equal(game.phase, 'roll');
+});
+
 test('a piece cannot overshoot the final home space', () => {
     const game = createGame(1, 1);
     game.pieces[0].pieces[0].steps = game.trackLength + 3;
