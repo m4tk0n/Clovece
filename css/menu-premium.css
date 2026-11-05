@@ -1051,3 +1051,26 @@
 #game-screen {
     padding-top: 0 !important;
 }
+
+
+/* Hlavní obrazovka vyplní celý viditelný viewport se stejným horním
+   a dolním bezpečným odsazením. Panel se roztáhne mezi těmito okraji. */
+#main-menu.menu-screen {
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+#main-menu .menu-bg {
+    box-sizing: border-box;
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 0;
+    margin-bottom: 0;
+}
