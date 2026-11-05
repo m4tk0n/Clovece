@@ -16,17 +16,18 @@ let aiCount = 1;
 let selectedBoardSize = 40;
 let aiTimer = null;
 let modalOpen = false;
+let moveAnimating = false;
 function loadSettings() {
     try {
         const saved = JSON.parse(localStorage.getItem('clovece-settings') || '{}');
         return {
-            aiSpeed: saved.aiSpeed === 'fast' ? 'fast' : 'normal',
+            moveSpeed: (saved.moveSpeed || saved.aiSpeed) === 'fast' ? 'fast' : 'normal',
             animations: saved.animations !== false,
             sfx: saved.sfx !== false
         };
     } catch (error) {
         console.warn('Nastavení se nepodařilo načíst:', error);
-        return { aiSpeed: 'normal', animations: true, sfx: true };
+        return { moveSpeed: 'normal', animations: true, sfx: true };
     }
 }
 
@@ -42,7 +43,7 @@ function escapeHtml(value) {
 }
 
 const $ = id => document.getElementById(id);
-const speedDelay = () => settings.aiSpeed === 'fast' ? 450 : 950;
+const speedDelay = () => 950;
 
 function isPaused() {
     return !$('game-menu')?.classList.contains('hidden');
@@ -321,7 +322,7 @@ export function animateDice(value) {
             scene.classList.remove('rolling');
             animation.classList.add('hidden');
             resolve();
-        }, settings.aiSpeed === 'fast' ? 650 : 1200);
+        }, 1200);
     });
 }
 
@@ -343,7 +344,62 @@ function closeKickModal() {
     continueGame();
 }
 
-function finishMove(move) {
+function snapshotPieceSteps() {
+    return game.pieces.map(group => group.pieces.map(piece => piece.steps));
+}
+
+function restorePieceSteps(snapshot) {
+    game.pieces.forEach((group, playerId) => group.pieces.forEach((piece, pieceId) => {
+        piece.steps = snapshot[playerId][pieceId];
+    }));
+}
+
+function delay(ms) {
+    return new Promise(resolve => window.setTimeout(resolve, ms));
+}
+
+async function performMove(pieceId) {
+    if (!game || moveAnimating) return;
+    const before = snapshotPieceSteps();
+    const move = movePiece(game, pieceId);
+    const after = snapshotPieceSteps();
+    await finishMove(move, { before, after });
+}
+
+async function animatePieceMove(move, movement) {
+    if (!movement || settings.moveSpeed !== 'normal' || !settings.animations) return;
+    const { before, after } = movement;
+    const playerId = move.playerId;
+    const pieceId = move.pieceId;
+    const piece = game.pieces[playerId].pieces[pieceId];
+    const from = before[playerId][pieceId];
+    const to = after[playerId][pieceId];
+    if (from === to) return;
+
+    moveAnimating = true;
+    try {
+        const steps = from < 0 ? [0] : Array.from(
+            { length: to - from }, (_, index) => from + index + 1
+        );
+        for (const step of steps) {
+            piece.steps = step;
+            if (move.captured) {
+                const captured = move.captured;
+                game.pieces[captured.playerId].pieces[captured.pieceId].steps =
+                    before[captured.playerId][captured.pieceId];
+            }
+            showGame();
+            await delay(260);
+        }
+    } finally {
+        restorePieceSteps(after);
+        moveAnimating = false;
+        showGame();
+    }
+}
+
+async function finishMove(move, movement) {
+    await animatePieceMove(move, movement);
     const logText = ['hodil ' + move.diceValue];
     if (move.captured) logText.push('vyhodil ' + move.captured.playerName);
     if (move.finishedNow) logText.push('dostal figurku do domečku');
@@ -355,7 +411,7 @@ function finishMove(move) {
         if (game.players[move.playerId]?.isAI) {
             setTimeout(() => {
                 if (modalOpen) closeKickModal();
-            }, settings.aiSpeed === 'fast' ? 950 : 1900);
+            }, 1900);
         }
         return;
     }
@@ -470,14 +526,14 @@ async function doRoll(isAI = false) {
                 advanceTurn(game);
                 continueGame();
             }
-        }, settings.aiSpeed === 'fast' ? 250 : (isAI ? 350 : 650));
+        }, 650);
         return;
     }
 
     const debugManualMoves = new URLSearchParams(window.location.search).get('debug') === '1';
     const forcedMove = getForcedMove(game);
     if (forcedMove !== null && !debugManualMoves) {
-        finishMove(movePiece(game, forcedMove));
+        performMove(forcedMove);
         return;
     }
 
@@ -487,7 +543,7 @@ async function doRoll(isAI = false) {
         if (selected !== null) {
             aiTimer = setTimeout(() => {
                 if (!game || game.phase !== 'move' || isPaused()) return;
-                finishMove(movePiece(game, selected));
+                performMove(selected);
             }, speedDelay());
         }
     }
@@ -500,12 +556,12 @@ function scheduleAI() {
     if (!player || !player.isAI) return;
 
     aiTimer = setTimeout(() => {
-        if (!game || modalOpen || game.winner !== null || isPaused()) return;
+        if (!game || modalOpen || moveAnimating || game.winner !== null || isPaused()) return;
         if (game.phase === 'start-roll' || game.phase === 'roll') {
             doRoll(true);
         } else if (game.phase === 'move') {
             const selected = chooseAIMove(game);
-            if (selected !== null) finishMove(movePiece(game, selected));
+            if (selected !== null) performMove(selected);
         }
     }, speedDelay());
 }
@@ -514,7 +570,7 @@ function onBoardClick(event) {
     const piece = event.target.closest?.('[data-player][data-piece]');
     const playerId = Number(event.detail?.playerId ?? piece?.dataset.player);
     const pieceId = Number(event.detail?.pieceId ?? piece?.dataset.piece);
-    if (!Number.isInteger(playerId) || !Number.isInteger(pieceId) || !game || game.phase !== 'move' || modalOpen) return;
+    if (!Number.isInteger(playerId) || !Number.isInteger(pieceId) || !game || game.phase !== 'move' || modalOpen || moveAnimating) return;
     if (playerId !== game.currentPlayer || game.players[playerId].isAI) return;
 
     if (!getValidMoves(game).includes(pieceId)) {
@@ -523,7 +579,7 @@ function onBoardClick(event) {
     }
 
     try {
-        finishMove(movePiece(game, pieceId));
+        performMove(pieceId);
     } catch (error) {
         toast(error.message);
     }
@@ -663,7 +719,7 @@ export function initGame() {
     $('menu-btn')?.addEventListener('click', () => {
         clearTimeout(aiTimer);
         const gameSpeedSelect = $('game-speed');
-        if (gameSpeedSelect) gameSpeedSelect.value = settings.aiSpeed;
+        if (gameSpeedSelect) gameSpeedSelect.value = settings.moveSpeed;
         $('game-menu').classList.remove('hidden');
     });
     $('resume-btn')?.addEventListener('click', () => {
@@ -684,9 +740,9 @@ export function initGame() {
     const animationsToggle = $('animations-toggle');
     const sfxToggle = $('sfx-toggle');
 
-    if (aiSpeedSelect) aiSpeedSelect.value = settings.aiSpeed;
+    if (aiSpeedSelect) aiSpeedSelect.value = settings.moveSpeed;
     const gameSpeedSelect = $('game-speed');
-    if (gameSpeedSelect) gameSpeedSelect.value = settings.aiSpeed;
+    if (gameSpeedSelect) gameSpeedSelect.value = settings.moveSpeed;
     if (animationsToggle) animationsToggle.checked = settings.animations;
     if (sfxToggle) sfxToggle.checked = settings.sfx;
 
@@ -697,17 +753,20 @@ export function initGame() {
     setSoundEffectsEnabled(settings.sfx);
 
     aiSpeedSelect?.addEventListener('change', event => {
-        settings.aiSpeed = event.target.value;
+        settings.moveSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
+        gameSpeedSelect && (gameSpeedSelect.value = settings.moveSpeed);
+        try { localStorage.setItem('clovece-settings', JSON.stringify(settings)); }
+        catch (error) { console.warn('Nastavení rychlosti pohybu se nepodařilo uložit:', error); }
     });
     gameSpeedSelect?.addEventListener('change', event => {
-        settings.aiSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
-        aiSpeedSelect && (aiSpeedSelect.value = settings.aiSpeed);
+        settings.moveSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
+        aiSpeedSelect && (aiSpeedSelect.value = settings.moveSpeed);
         try {
             localStorage.setItem('clovece-settings', JSON.stringify(settings));
         } catch (error) {
             console.warn('Rychlost hry se nepodařilo uložit:', error);
         }
-        toast('Rychlost hry: ' + (settings.aiSpeed === 'fast' ? 'Rychlá' : 'Normální'));
+        toast('Rychlost pohybu figurek: ' + (settings.moveSpeed === 'fast' ? 'Rychlá' : 'Normální'));
     });
     animationsToggle?.addEventListener('change', event => {
         settings.animations = event.target.checked;
@@ -718,7 +777,7 @@ export function initGame() {
         setSoundEffectsEnabled(settings.sfx);
     });
     $('save-settings-btn')?.addEventListener('click', () => {
-        settings.aiSpeed = aiSpeedSelect?.value === 'fast' ? 'fast' : 'normal';
+        settings.moveSpeed = aiSpeedSelect?.value === 'fast' ? 'fast' : 'normal';
         settings.animations = animationsToggle?.checked !== false;
         settings.sfx = sfxToggle?.checked !== false;
         applyAnimationSetting();
