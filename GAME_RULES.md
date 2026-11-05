@@ -89,3 +89,11 @@
 - **Rychlá:** kostka se neroztáčí a ihned zobrazí konečnou hozenou hodnotu.
 - Rychlost kostky používá stejný přepínač Normální / Rychlá jako pohyb figurek.
 - Výsledek hodu se v obou režimech nemění.
+
+## 13. Příklad: opakované nasazení při řetězení šestek
+- Hráč má na začátku tahu všechny čtyři figurky v základně.
+- Na první pokus hodí 6. Podle pravidel musí jednu figurku nasadit na své startovní pole. Šestka se spotřebuje na nasazení a následuje bonusový hod.
+- Při bonusovém hodu padne znovu 6. Hráč má stále alespoň jednu figurku v základně, proto musí znovu nasadit další figurku. Nesmí místo toho táhnout figurkou, která už stojí na okruhu.
+- Protože je startovní pole obsazeno jeho první figurkou, tato figurka se vrátí do základny a nově nasazená figurka ji na startovním poli nahradí.
+- Druhá šestka rovněž zakládá nárok na další bonusový hod. Řetězení šestek není omezeno.
+- **Důležité:** Vrácení vlastní figurky do základny při tomto povinném nasazení není chyba ani zrušení tahu. Je to výslovně povolená a povinná součást pravidel.
