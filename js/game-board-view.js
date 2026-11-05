@@ -5,7 +5,6 @@
  * Základny leží uvnitř desky ve volném místě, takže dráha může zabírat
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
-import { render3DBoard, dispose3DBoard } from './game-board-3d.js';
 import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js';
 import { render2DBoard } from './game-board-2d.js';
 
@@ -18,6 +17,33 @@ let boardStyle = loadStyle();
 const VIEW_KEY = 'clovece_board_view';
 let view3d = loadView();
 let view3dUnavailable = false;
+let threeRendererPromise = null;
+
+function loadThreeRenderer() {
+    if (!threeRendererPromise) {
+        threeRendererPromise = import('./game-board-3d.js').catch(error => {
+            threeRendererPromise = null;
+            throw error;
+        });
+    }
+    return threeRendererPromise;
+}
+
+function disposeThreeRenderer(stage) {
+    if (!stage?._threeRendererModule) return;
+    stage._threeRendererModule.dispose3DBoard(stage);
+}
+
+function ensureThreeStyles() {
+    if (document.getElementById('clovece-three-board-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'clovece-three-board-styles';
+    style.textContent =
+        '.three-board-stage{display:block;flex:none;width:100%;height:min(72vh,760px);min-height:340px;position:relative;overflow:hidden;touch-action:none;border-radius:10px;background:radial-gradient(ellipse at 50% 42%,#34483d,#111a15 78%)}' +
+        '@media(max-width:600px){.three-board-stage{height:68vh;min-height:320px;border-radius:10px}}' +
+        '.three-board-stage canvas{display:block;width:100%;height:100%;touch-action:none}';
+    document.head.appendChild(style);
+}
 
 function loadView() {
     try {
@@ -70,8 +96,6 @@ function styleSwitchMarkup() {
 const SWITCH_CSS = '<style>' +
     '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
     '.premium-board-shell{position:relative}' +
-    '.three-board-stage{display:block;flex:none;width:100%;height:min(72vh,760px);min-height:340px;position:relative;overflow:hidden;touch-action:none;border-radius:10px;background:radial-gradient(ellipse at 50% 42%,#34483d,#111a15 78%)}@media(max-width:600px){.three-board-stage{height:68vh;min-height:320px;border-radius:10px}}' +
-    '.three-board-stage canvas{display:block;width:100%;height:100%;touch-action:none}' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
     '.board-style-btn.is-active{background:rgba(198,169,107,.22);border-color:#c6a96b;color:#f3eddf}' +
@@ -153,11 +177,24 @@ export function renderBoard(container, game) {
                 button.setAttribute('aria-pressed', String(selected));
             });
         }
-        render3DBoard(stage, buildBoardSceneData(game), error => {
-            // Selhání WebGL/Three.js nesmí zablokovat samotnou hru.
-            // Přepnutí platí pro aktuální zobrazení; při dalším načtení se 3D zkusí znovu.
+        // 3D renderer a jeho CSS se načtou až při skutečném vykreslení hry v 3D.
+        ensureThreeStyles();
+        loadThreeRenderer().then(module => {
             if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
-            console.error('Přepínám herní desku z 3D na 2D SVG:', error);
+            stage._threeRendererModule = module;
+            module.render3DBoard(stage, buildBoardSceneData(container._lastGame || game), error => {
+                // Selhání WebGL/Three.js nesmí zablokovat samotnou hru.
+                // Přepnutí platí pro aktuální zobrazení; při dalším načtení se 3D zkusí znovu.
+                if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
+                console.error('Přepínám herní desku z 3D na 2D SVG:', error);
+                view3d = false;
+                view3dUnavailable = true;
+                container.dataset.renderKey = '';
+                renderBoard(container, container._lastGame || game);
+            });
+        }).catch(error => {
+            if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
+            console.error('3D renderer se nepodařilo načíst:', error);
             view3d = false;
             view3dUnavailable = true;
             container.dataset.renderKey = '';
@@ -166,7 +203,7 @@ export function renderBoard(container, game) {
         return;
     }
     const previousStage = container.querySelector('.three-board-stage');
-    if (previousStage) dispose3DBoard(previousStage);
+    if (previousStage) disposeThreeRenderer(previousStage);
 
     render2DBoard(container, game, boardStyle, {
         switchCss: SWITCH_CSS,
