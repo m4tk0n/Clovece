@@ -22,6 +22,7 @@ jobs:
           node --experimental-default-type=module --check js/game-engine.js
           node --experimental-default-type=module --check js/game-board-geometry.js
           node --experimental-default-type=module --check js/game-board-scene.js
+          node --experimental-default-type=module --check js/game-board-2d.js
           node --experimental-default-type=module --check js/game-board.js
           node --experimental-default-type=module --check js/game-board-3d.js
       - name: Test game rules
