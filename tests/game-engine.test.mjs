@@ -277,7 +277,7 @@ test('two own pieces cannot occupy the same home-lane square', () => {
 
 test('a player wins when all four pieces occupy the four distinct home-lane squares', () => {
     const game = createGame(1, 1);
-    const laneStart = game.trackLength + 1;
+    const laneStart = game.trackLength;
     game.pieces[0].pieces[0].steps = laneStart;
     game.pieces[0].pieces[1].steps = laneStart + 1;
     game.pieces[0].pieces[2].steps = laneStart + 2;
