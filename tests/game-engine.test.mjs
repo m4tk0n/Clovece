@@ -13,35 +13,37 @@ import {
 } from '../js/game-engine.js';
 import { trackPosition } from '../js/game-board-geometry.js';
 
-test('two to four players use the classic 52-space track and four corner starts', () => {
+test('default board size is always one of 40, 48 or 80 spaces', () => {
     const two = createGame(1, 1);
-    assert.equal(two.trackLength, 52);
-    assert.deepEqual(two.players.map(player => player.start), [0, 26]);
+    assert.equal(two.trackLength, 40);
+    assert.deepEqual(two.players.map(player => player.start), [0, 20]);
 
     const three = createGame(1, 2);
-    assert.deepEqual(three.players.map(player => player.start), [0, 17, 35]);
+    assert.equal(three.trackLength, 40);
+    assert.deepEqual(three.players.map(player => player.start), [0, 10, 30]);
 
     const four = createGame(2, 2);
-    assert.equal(four.trackLength, 52);
-    assert.deepEqual(four.players.map(player => player.start), [0, 13, 26, 39]);
+    assert.equal(four.trackLength, 40);
+    assert.deepEqual(four.players.map(player => player.start), [0, 10, 20, 30]);
     assert.ok(four.pieces.every(group => group.pieces.length === 4));
-});
 
-test('five to eight players receive unique starts on the extended track', () => {
     const five = createGame(1, 4);
-    assert.deepEqual(five.players.map(player => player.start), [0, 13, 26, 38, 51]);
+    assert.equal(five.trackLength, 48);
+    assert.deepEqual(five.players.map(player => player.start), [0, 8, 16, 32, 40]);
 
     const six = createGame(2, 4);
-    assert.deepEqual(six.players.map(player => player.start), [0, 11, 21, 32, 43, 53]);
+    assert.equal(six.trackLength, 48);
+    assert.deepEqual(six.players.map(player => player.start), [0, 8, 16, 24, 32, 40]);
 
     const seven = createGame(2, 5);
-    assert.deepEqual(seven.players.map(player => player.start), [0, 9, 18, 27, 37, 46, 55]);
+    assert.equal(seven.trackLength, 80);
+    assert.deepEqual(seven.players.map(player => player.start), [0, 10, 20, 30, 50, 60, 70]);
 
-    const game = createGame(2, 6);
-    assert.equal(game.trackLength, 64);
-    assert.deepEqual(game.players.map(player => player.start), [0, 8, 16, 24, 32, 40, 48, 56]);
-    assert.equal(new Set(game.players.map(player => player.start)).size, 8);
-    assert.ok(game.pieces.every(group => group.pieces.length === 4));
+    const eight = createGame(2, 6);
+    assert.equal(eight.trackLength, 80);
+    assert.deepEqual(eight.players.map(player => player.start), [0, 10, 20, 30, 40, 50, 60, 70]);
+    assert.equal(new Set(eight.players.map(player => player.start)).size, 8);
+    assert.ok(eight.pieces.every(group => group.pieces.length === 4));
 });
 
 test('new board sizes use fixed slot geometry and preserve empty positions', () => {
@@ -164,7 +166,7 @@ test('landing on an unsafe enemy square sends the enemy piece home', () => {
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = 1;
-    game.pieces[1].pieces[0].steps = 28; // Both resolve to track square 2.
+    game.pieces[1].pieces[0].steps = 22; // Both resolve to track square 2.
 
     assert.deepEqual(getValidMoves(game), [0]);
     const move = movePiece(game, 0);
@@ -178,7 +180,7 @@ test('an occupied opponent start square is an ordinary square and can be capture
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 25;
+    game.pieces[0].pieces[0].steps = 19;
     game.pieces[1].pieces[0].steps = 0;
 
     assert.deepEqual(getValidMoves(game), [0]);
