@@ -83,9 +83,10 @@ async function startApp() {
         document.getElementById('main-menu')?.classList.remove('hidden');
 
         // Online inicializace běží samostatně; její chyby se zaznamenají do panelu.
-        trackedInit('initOnline()', initOnline).catch(error => {
-            console.error('Chyba initOnline():', error);
-        });
+        const onlineInit = trackedInit('initOnline()', initOnline);
+        if (onlineInit && typeof onlineInit.catch === 'function') {
+            onlineInit.catch(error => console.error('Chyba initOnline():', error));
+        }
         trackedInit('initNavigation()', initNavigation);
         trackedInit('initAudio()', initAudio);
         trackedInit('initGame()', initGame);
