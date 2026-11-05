@@ -18,6 +18,8 @@ Zobrazuje:
 - **DPR** – poměr fyzických pixelů displeje k CSS pixelům (`devicePixelRatio`).
 - **FPS** – orientační počet snímků za sekundu podle `requestAnimationFrame`; hodnota se obnovuje přibližně jednou za sekundu.
 
+Pokud prohlížeč nepodporuje Visual Viewport API, panel se připne 2 px od spodního okraje okna. Pokud se diagnostický modul nepodaří načíst (například kvůli nepodporované import mapě nebo staré cache), bootstrap zobrazí nouzový červený panel s chybou a základními rozměry displeje a okna.
+
 ### Jak údaje vyhodnocovat
 
 - Porovnání **DISPLAY**, **OKNO** a **VIDITELNÉ** pomáhá odhalit rozdíly při otočení telefonu, otevření klávesnice nebo změně měřítka.
