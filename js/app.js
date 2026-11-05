@@ -352,8 +352,10 @@ function openKickModal(move) {
     const player = game.players[move.playerId];
     $('kicker-piece').style.background = player.color;
     $('kicked-piece').style.background = move.captured.color;
-    $('kick-title').textContent = 'PŘESNÝ ZÁSAH!';
-    $('kick-message').textContent = player.name + ' poslal hráče ' + move.captured.playerName + ' zpět do domečku.';
+    $('kick-title').textContent = move.captured.ownPiece ? 'VÝMĚNA NA STARTU' : 'PŘESNÝ ZÁSAH!';
+    $('kick-message').textContent = move.captured.ownPiece
+        ? 'Při nasazení nové figurky se vaše původní figurka vrátila do základny.'
+        : player.name + ' poslal hráče ' + move.captured.playerName + ' zpět do domečku.';
     $('kick-modal').classList.remove('hidden');
     play('kick-sound');
 }
@@ -533,7 +535,10 @@ async function doRoll(isAI = false) {
     if (!game || game.winner !== null || isPaused()) return;
 
     if (result.retrying) {
-        addGameLogEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', bez šestky (pokus ' + result.attempt + '/3)');
+        const retryText = result.value === 6
+            ? 'hodil 6, nemá legální tah a hází znovu'
+            : 'hodil ' + result.value + ', bez šestky (pokus ' + result.attempt + '/3)';
+        addGameLogEntry(game.players[game.currentPlayer].name, retryText);
         continueGame();
         return;
     }
