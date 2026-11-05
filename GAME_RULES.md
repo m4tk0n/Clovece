@@ -114,6 +114,15 @@ Tyto otázky nejsou touto specifikací rozhodnuté. Před změnou enginů je nut
 - Zpětná kompatibilita nesmí vytvářet ani vybírat žádnou nepodporovanou délku.
 - Tento dokument je jediným zdrojem herních pravidel. README na něj pouze odkazuje.
 
+## 13. Režimy animace hrací kostky
+
+Rychlost animace kostky se řídí stejným přepínačem Normální / Rychlá jako pohyb figurek. Výsledek hodu ani herní pravidla se nemění.
+
+- **Normální:** kostka se viditelně roztočí a zastaví na hozené hodnotě. Animace trvá přibližně 1,5 sekundy.
+- **Rychlá:** kostka se neroztáčí; ihned se zobrazí v konečné poloze se správnou hozenou hodnotou.
+- Rychlý režim se vztahuje na běžné hody i rozstřel.
+- Globální vypnutí animací může zobrazení animované kostky vypnout bez ohledu na zvolený režim.
+
 ## 12. Režimy pohybu figurek
 
 Nastavení rychlosti se vztahuje výhradně na animaci pohybu figurek. Nesmí měnit rychlost hodu kostkou, prodlevy AI, délku zobrazení vyhození ani jiné časování hry.
