@@ -363,16 +363,24 @@ $assetVersion = static function (string $path): int {
             <div class="menu-content">
                 <h2 class="glitch" data-text="VYTVOŘENÍ HRY">VYTVOŘENÍ HRY</h2>
                 <div class="selection-container">
-                    <div class="setup-grid">
+                    <div class="setup-grid" id="setup-grid">
                         <div class="setup-control">
-                            <label for="human-players">ŽIVÍ HRÁČI</label>
-                            <div class="setup-number"><strong id="human-players-value">1</strong><span>ČLOVĚK</span></div>
-                            <input type="range" id="human-players" min="1" max="8" value="1" class="slider">
+                            <span class="setup-label">ŽIVÍ HRÁČI</span>
+                            <div class="setup-stepper" role="group" aria-label="Počet živých hráčů">
+                                <button type="button" class="setup-stepper-btn" data-count-target="human-players" data-count-step="-1" aria-label="Odebrat živého hráče">−</button>
+                                <strong id="human-players-value" aria-live="polite">1</strong>
+                                <button type="button" class="setup-stepper-btn" data-count-target="human-players" data-count-step="1" aria-label="Přidat živého hráče">+</button>
+                            </div>
+                            <input type="hidden" id="human-players" min="1" max="8" value="1">
                         </div>
                         <div class="setup-control">
-                            <label for="ai-players">AI SOUPEŘI</label>
-                            <div class="setup-number"><strong id="ai-players-value">1</strong><span>POČET BOTŮ</span></div>
-                            <input type="range" id="ai-players" min="0" max="7" value="1" class="slider">
+                            <span class="setup-label">AI SOUPEŘI</span>
+                            <div class="setup-stepper" role="group" aria-label="Počet počítačových soupeřů">
+                                <button type="button" class="setup-stepper-btn" data-count-target="ai-players" data-count-step="-1" aria-label="Odebrat AI soupeře">−</button>
+                                <strong id="ai-players-value" aria-live="polite">1</strong>
+                                <button type="button" class="setup-stepper-btn" data-count-target="ai-players" data-count-step="1" aria-label="Přidat AI soupeře">+</button>
+                            </div>
+                            <input type="hidden" id="ai-players" min="0" max="7" value="1">
                         </div>
                     </div>
                     <div class="board-size-control">
