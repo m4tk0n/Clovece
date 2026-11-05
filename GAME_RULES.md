@@ -113,3 +113,14 @@ Tyto otázky nejsou touto specifikací rozhodnuté. Před změnou enginů je nut
 - Pokud volající velikost desky výslovně nepředá, použije se první dostupná velikost pro daný počet hráčů: 40 pro 2–4 hráče, 48 pro 5–6 hráčů a 80 pro 7–8 hráčů.
 - Zpětná kompatibilita nesmí vytvářet ani vybírat žádnou nepodporovanou délku.
 - Tento dokument je jediným zdrojem herních pravidel. README na něj pouze odkazuje.
+
+## 12. Režimy pohybu figurek
+
+Nastavení rychlosti se vztahuje výhradně na animaci pohybu figurek. Nesmí měnit rychlost hodu kostkou, prodlevy AI, délku zobrazení vyhození ani jiné časování hry.
+
+- **Normální:** každá figurka se při tahu viditelně přesouvá postupně z jednoho políčka na další. Platí to stejně pro lidské hráče i AI.
+- **Rychlá:** animace mezilehlých políček se přeskočí a figurka se zobrazí rovnou na cílovém políčku.
+- Pravidla pohybu, vyhodnocení tahu a cílová pozice jsou v obou režimech totožné.
+- Animace se používá pro 2D i 3D zobrazení; režim zobrazení nesmí měnit její pravidla.
+- Globální vypnutí animací může pohybovou animaci vypnout bez ohledu na zvolený režim.
+
