@@ -33,9 +33,12 @@ export function initDebugOverlay() {
     const entries = [];
     function renderLog() {
         details.textContent = entries.map((entry, index) => {
-            const duration = entry.duration === null ? '' : ' (' + entry.duration + ' ms)';
+            const metrics = [];
+            if (entry.duration !== null) metrics.push(entry.duration + ' ms');
+            if (entry.size !== null) metrics.push(entry.size + ' kB');
+            const suffix = metrics.length ? ' (' + metrics.join(', ') + ')' : '';
             return (index + 1 < 10 ? '0' : '') + (index + 1) + ' [' + entry.status + '] ' +
-                entry.name + duration;
+                entry.name + suffix;
         }).join('\n');
     }
     function toggle() {
@@ -101,8 +104,13 @@ export function initDebugOverlay() {
         else window.setTimeout(measureFrame, 1000 / 30);
     }
 
-    function log(name, status, duration) {
-        entries.push({ name: String(name), status: status || 'INFO', duration: typeof duration === 'number' ? duration : null });
+    function log(name, status, duration, size) {
+        entries.push({
+            name: String(name),
+            status: status || 'INFO',
+            duration: typeof duration === 'number' ? duration : null,
+            size: typeof size === 'number' ? size : null
+        });
         renderLog();
         updateSummary();
     }
@@ -120,11 +128,22 @@ export function initDebugOverlay() {
         if (!(node instanceof Element) || trackedStyles.has(node)) return;
         if (node.tagName === 'LINK' && node.rel.split(/\s+/).includes('stylesheet')) {
             trackedStyles.add(node);
-            const href = node.href || node.getAttribute('href') || '(bez adresy)';
+            const href = node.href || node.getAttribute('href') || '';
+            let fileName = 'inline';
+            try {
+                fileName = new URL(href, document.baseURI).pathname.split('/').pop() || 'inline';
+                fileName = fileName.replace(/\\.css$/i, '') || 'inline';
+            } catch (_) {
+                fileName = href.split('/').pop().split('?')[0].replace(/\\.css$/i, '') || 'inline';
+            }
             const report = status => {
                 const resource = window.performance?.getEntriesByType('resource').find(item => item.name === href);
                 const duration = resource ? Math.round(resource.duration) : null;
-                log('CSS soubor: ' + href, status, duration);
+                const bytes = resource
+                    ? (resource.encodedBodySize || resource.decodedBodySize || resource.transferSize || 0)
+                    : 0;
+                const size = bytes > 0 ? Math.max(1, Math.round(bytes / 1024)) : null;
+                log('CSS: ' + fileName, status, duration, size);
             };
             if (node.sheet) report('OK');
             else {
@@ -133,7 +152,7 @@ export function initDebugOverlay() {
             }
         } else if (node.tagName === 'STYLE') {
             trackedStyles.add(node);
-            log('CSS vložené do stránky: ' + (node.id || 'inline style'), 'OK');
+            log('CSS: ' + (node.id || 'inline style'), 'OK');
         }
     }
     document.querySelectorAll('link[rel~="stylesheet"], style').forEach(trackStyleNode);
