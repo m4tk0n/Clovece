@@ -424,7 +424,9 @@ async function animatePieceMove(move, movement) {
 async function finishMove(move, movement) {
     await animatePieceMove(move, movement);
     const logText = ['hodil ' + move.diceValue];
-    if (move.captured) logText.push('vyhodil ' + move.captured.playerName);
+    if (move.captured) logText.push(move.captured.ownPiece
+        ? 'vrátil původní figurku do základny'
+        : 'vyhodil ' + move.captured.playerName);
     if (move.finishedNow) logText.push('dostal figurku do domečku');
     addGameLogEntry(move.playerName, logText.join(', '));
 
