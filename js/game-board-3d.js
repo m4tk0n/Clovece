@@ -49,11 +49,26 @@ function createBoardShape(T,data) {
     }
     shape.closePath();return shape;
 }
+
+function addFieldNumber(T,parent,label,x,y,z,size,color=0x18221e) {
+    const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
+    const ctx=canvas.getContext('2d');ctx.clearRect(0,0,128,128);
+    ctx.fillStyle='#'+color.toString(16).padStart(6,'0');
+    ctx.font='bold 68px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(label,64,66);
+    const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
+    const material=new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,side:T.DoubleSide});
+    const mesh=new T.Mesh(new T.PlaneGeometry(size,size),material);
+    mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y,z);mesh.renderOrder=5;parent.add(mesh);
+    return mesh;
+}
+
 function buildScene(T,scene,data) {
     const board=new T.Group();scene.add(board);
     const dark=mat(T,0x18221e,{roughness:.3,metalness:.48}),gold=mat(T,0xd4b36b,{roughness:.24,metalness:.72});
     const felt=mat(T,0x284337,{roughness:.82}),edge=mat(T,0x9caa9f,{roughness:.38,metalness:.2});
     const radius=data.boardRadius*UNIT;
+    const showFieldNumbers=new URLSearchParams(window.location.search).get('debug')==='1';
     add(T,board,new T.CylinderGeometry(radius,radius+.20,.48,128),dark,0,-.28,0);
     add(T,board,new T.CylinderGeometry(radius-.08,radius-.02,.12,128),gold,0,-.015,0);
     const top=new T.Mesh(new T.ExtrudeGeometry(createBoardShape(T,data),{depth:.28,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.12,bevelThickness:.08}),felt);
@@ -65,11 +80,13 @@ function buildScene(T,scene,data) {
         add(T,board,new T.CylinderGeometry(r,r+.02,.10,32),mat(T,cell.start?cell.color:0xd9d3c5,
             {roughness:cell.start?.38:.55,opacity:cell.start?1:Math.max(.42,cell.opacity)}),x,.34,z,false);
         if(cell.start)add(T,board,new T.CylinderGeometry(r*.30,r*.30,.018,24),mat(T,0xffffff,{roughness:.25}),x,.405,z,false);
+        if(showFieldNumbers)addFieldNumber(T,board,String(cell.index+1),x,.415,z,Math.max(.20,r*1.45));
     });
-    data.lanes.forEach(lane=>lane.cells.forEach(cell=>{
+    data.lanes.forEach(lane=>lane.cells.forEach((cell,index)=>{
         const x=cell.x*UNIT,z=cell.z*UNIT,r=cell.radius*UNIT;
         add(T,board,new T.CylinderGeometry(r+.035,r+.04,.075,32),gold,x,.30,z,false);
         add(T,board,new T.CylinderGeometry(r,r+.01,.08,32),mat(T,lane.color,{roughness:.48,opacity:lane.occupied?.92:.30}),x,.36,z,false);
+        if(showFieldNumbers)addFieldNumber(T,board,'D'+(lane.slot+1)+'-'+(index+1),x,.415,z,Math.max(.19,r*1.45),0xffffff);
     }));
     data.bases.forEach(base=>{
         const x=base.x*UNIT,z=base.z*UNIT,r=base.radius*UNIT;
