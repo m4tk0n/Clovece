@@ -400,7 +400,7 @@ $assetVersion = static function (string $path): int {
                         </button>
                     </div>
                 </div>
-                <button id="start-game-btn" class="menu-btn pulse">
+                <button id="start-game-btn" class="menu-btn secondary">
                     <span>ZAČÍT HRU</span>
                     <i class="fas fa-dice"></i>
                 </button>
