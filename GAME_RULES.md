@@ -56,26 +56,26 @@
 ## 5. Nasazení figurek a šestka
 
 - Figurka v základně může být nasazena na vlastní startovní pole pouze při hodu 6.
-- Figurka v základně se při hodu 6 musí nasadit na vlastní startovní pole, pokud má hráč alespoň jednu figurku v základně. Nasazení není volitelné ani tehdy, když by tím hráč vyhodil vlastní figurku stojící na jeho startovním poli.
-- Pokud je vlastní startovní pole při nasazení obsazeno vlastní figurkou, tato dosavadní figurka se vrátí do základny a nově nasazovaná figurka obsadí startovní pole.
+- Pokud má hráč při hodu 6 alespoň jednu figurku v základně, musí jednu z nich nasadit. Nemůže místo toho táhnout jinou figurkou.
+- Pokud je vlastní startovní pole obsazeno vlastní figurkou, tato dosavadní figurka se vrátí do základny a nově nasazovaná figurka obsadí startovní pole. Jde o jedinou situaci, ve které hráč smí vyhodit vlastní figurku.
 - Pokud je vlastní startovní pole obsazeno soupeřovou figurkou, soupeřova figurka se vrátí do své základny.
-- Po nasazení získává hráč další hod. Při následném tahu může použít libovolnou svou figurku, která má legální tah; není povinen táhnout právě nasazenou figurkou.
-- Pokud má po dalším hodu legální tah pouze právě nasazená figurka, musí táhnout touto figurkou. Pokud tato figurka legální tah nemá, použije hráč jinou svou figurku, pokud nějaká legální možnost existuje.
-- Pokud jsou všechny čtyři figurky hráče v základně, má hráč nejvýše tři pokusy získat šestku.
-- Pokud hráč nezíská šestku ani při třetím pokusu, jeho tah končí.
-- Pokud hráč získá šestku v kterémkoliv z těchto tří pokusů, musí nasadit figurku.
-- Výhoda tří pokusů se obnoví, jakmile jsou všechny čtyři figurky znovu v základně, například po vyhození poslední nasazené figurky.
-- Pokud má hráč alespoň jednu figurku mimo základnu, pravidlo tří pokusů se neuplatní; hráč provádí běžný hod.
+- Nasazení spotřebuje celý hod 6; nasazená figurka se při tomto tahu neposouvá o dalších šest polí.
+- Za šestku při nasazení získá hráč další hod. S číslem z tohoto nového hodu může pohnout libovolnou svou figurkou na desce, včetně právě nasazené.
+- Pokud po bonusovém hodu nemá žádná jiná jeho figurka než právě nasazená legální tah, musí pohnout právě nasazenou figurkou. Pokud ani ta nemá legální tah, uplatní se pravidla pro šestku bez legálního tahu.
+- Pokud jsou všechny čtyři figurky hráče v základně, má hráč nejvýše tři pokusy získat šestku. Nezíská-li ji ani při třetím pokusu, tah končí.
+- Jakmile hráč získá šestku a nasadí figurku, další hod už je běžným bonusovým hodem; pravidlo tří pokusů se tímto nasazením ukončí.
+- Výhoda tří pokusů se obnoví, jakmile jsou všechny čtyři figurky znovu v základně.
 
 ## 6. Pohyb a obsazování polí
 
 - Hod kostkou určuje počet polí, o který se zvolená figurka posune.
-- Vlastní figurku lze na trase přeskočit.
-- Na pole obsazené vlastní figurkou nelze ukončit tah.
-- Stejné pravidlo obsazení platí i ve vlastní cílové dráze: vlastní figurku lze přeskočit, ale nelze vstoupit na pole obsazené jinou vlastní figurkou.
-- Soupeřovy figurky na trase pohyb neblokují; při vstupu na jejich pole se vyhodnocuje vyhození.
+- Vlastní figurky na hlavním okruhu lze přeskočit, ale tah nesmí skončit na poli obsazeném vlastní figurkou.
+- Soupeřovy figurky na hlavním okruhu pohyb neblokují; pokud tah skončí na jejich poli, jsou vyhozeny do základny.
 - Na cílovou dráhu vstupuje figurka po dokončení jednoho průchodu hlavním okruhem.
-- Do cíle je nutné dojet přesným hodem. Pokud by tah skončil za D4, takový tah není možný.
+- Do cílové dráhy je nutné vstoupit přesným hodem. Pokud by tah skončil za D4, takový tah není možný.
+- V cílové dráze se vlastní figurky nesmějí přeskakovat. Každé pole v pořadí D1 až D4 musí být při průchodu volné; figurka nesmí přeskočit vlastní figurku ani ukončit tah na obsazeném poli.
+- Pokud hozené číslo umožňuje některé figurce na hlavním okruhu přesný a volný vstup do cílové dráhy, hráč musí provést právě tento vstup. Nesmí místo něj táhnout jinou figurkou.
+- Povinnost vstoupit do cílové dráhy se neuplatní, pokud je vstup zablokovaný vlastní figurkou nebo pokud přesný vstup žádné figurce neumožňuje aktuální hod.
 
 ## 7. Vyhazování
 
@@ -90,27 +90,27 @@
 
 - Každý hráč má čtyři samostatná cílová pole D1 až D4.
 - Dvě vlastní figurky nesmějí stát na stejném cílovém poli.
-- Figurku v cílové dráze lze přeskočit, ale nelze ukončit tah na poli obsazeném vlastní figurkou.
+- V cílové dráze se figurky nesmějí přeskakovat; cesta k cílovému poli musí být volná.
 - Přesný dojezd na volné cílové pole je povinný.
 - Hráč vyhrává, když všechny čtyři jeho figurky obsadí čtyři různá cílová pole D1–D4.
 
-## 9. Další hod a konec tahu
+## 9. Další hod, řetězení šestek a konec tahu
 
-- Po každém tahu zakončeném šestkou dostane hráč další hod, pokud tímto tahem hru neukončil.
-- To platí i po povinném nasazení figurky a po vyhození soupeřovy nebo vlastní figurky.
-- Po nasazení může hráč při dalším tahu zvolit libovolnou svou figurku s legálním tahem. Pokud má legální tah pouze právě nasazená figurka, musí táhnout jí.
-- Pokud po hodu neexistuje žádný legální tah, tah se přeskočí a pokračuje další hráč.
+- Každá hozená šestka dává hráči právo na další hod po vyhodnocení tahu nebo nasazení.
+- Počet po sobě jdoucích šestek není omezen. Po každé šestce hráč provede příslušnou akci a znovu hází.
+- Pokud hráč hodí 6, ale nemá žádný legální tah ani možnost povinného nasazení, tah s touto šestkou propadá, ale hráč přesto hází znovu.
+- Pokud hráč hodí 1 až 5 a nemá žádný legální tah, jeho tah končí a pokračuje další hráč.
+- Po nasazení za šestku následuje bonusový hod. Číslo z bonusového hodu se použije k běžnému pohybu libovolnou vlastní figurkou s legálním tahem; právě nasazená figurka není automaticky upřednostněna.
+- Pokud je jedinou figurkou s legálním tahem právě nasazená figurka, hráč musí táhnout jí.
 - Pokud hráč dokončí všechny čtyři figurky v domečku, hra okamžitě končí.
 
-## 10. Body k rozhodnutí
+## 10. Otevřené otázky
 
-Tyto otázky nejsou touto specifikací rozhodnuté. Před změnou enginů je nutné je potvrdit:
+Před implementací je nutné vyřešit pouze následující okrajové případy:
 
-1. **Nasazení při šestce:** Je povinné, pokud má hráč alespoň jednu figurku v základně, a to i tehdy, když jiná figurka může legálně táhnout. Povinné nasazení může vyhodit vlastní figurku stojící na startovním poli.
-2. **Opakovaný hod po šestce:** Hráč hází znovu po každé šestce, včetně povinného nasazení nové figurky a vyhození soupeřovy nebo vlastní figurky.
-3. **Šestka bez legálního tahu:** Pokud hráč hodí 6, ale žádnou figurkou nemůže legálně táhnout ani nasadit, končí jeho tah, nebo má házet znovu?
-4. **Bezpečná pole:** Jsou všechna pole hlavního okruhu běžná a lze na každém vyhodit soupeře, nebo existují další chráněná pole kromě případných pravidel, která ještě nebyla popsána?
-5. **Více soupeřových figurek na jednom poli:** Pokud by na stejném poli stály figurky více soupeřů, vyhodí příchozí figurka všechny, jen jednu, nebo na takové pole nesmí vstoupit?
+1. **Bezpečná pole:** Jsou všechna pole hlavního okruhu běžná a lze na každém vyhodit soupeře, nebo existují další chráněná pole?
+2. **Více soupeřových figurek na jednom poli:** Pokud by na stejném poli stály figurky více soupeřů, vyhodí příchozí figurka všechny, jen jednu, nebo na takové pole nesmí vstoupit?
+3. **Tři pokusy při všech figurkách v základně:** Zůstává zachováno pravidlo nejvýše tří pokusů o šestku, pokud jsou všechny čtyři figurky v základně?
 
 ## 11. Rozdíly mezi specifikací a současnou implementací
 
