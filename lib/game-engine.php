@@ -41,35 +41,20 @@ function onlineEngineCreateState(array $participants, ?int $boardSize = null): a
     );
 
     $configs = onlineEngineBoardConfigs();
-    $selectedBoard = $boardSize === null ? null : ($configs[$boardSize] ?? null);
-    if ($boardSize !== null && (
-        $selectedBoard === null || !in_array($boardSize, onlineEngineAvailableBoardSizes($total), true)
-    )) {
+    $availableBoardSizes = onlineEngineAvailableBoardSizes($total);
+    $effectiveBoardSize = $boardSize ?? $availableBoardSizes[0];
+    $selectedBoard = $configs[$effectiveBoardSize] ?? null;
+    if ($selectedBoard === null || !in_array($effectiveBoardSize, $availableBoardSizes, true)) {
         throw new InvalidArgumentException('Zvolená velikost desky není pro tento počet hráčů dostupná.');
     }
 
-    // Bez výslovné volby zachováváme původní délky kvůli zpětné kompatibilitě uložených her.
-    $trackLength = $selectedBoard['trackLength'] ?? ($total <= 4 ? 52 : 64);
-    $slotCount = $selectedBoard['slotCount'] ?? ($total <= 4 ? 4 : 8);
+    $trackLength = $selectedBoard['trackLength'];
+    $slotCount = $selectedBoard['slotCount'];
 
     $players = [];
     foreach ($participants as $index => $participant) {
-        if ($selectedBoard !== null) {
-            $slot = (int) floor(($index * $slotCount / $total) + 0.5);
-            $start = (int) ($slot * ($trackLength / $slotCount));
-        } else {
-            $classicSlots = match ($total) {
-                2 => [0, 2],
-                3 => [0, 1, 2],
-                default => [0, 1, 2, 3],
-            };
-            $slot = $total <= 4
-                ? $classicSlots[$index]
-                : (int) floor(($index * 8 / $total) + 0.5);
-            $start = ($total === 3 || $total >= 5)
-                ? (int) floor(($index * $trackLength / $total) + 0.5)
-                : $slot * 13;
-        }
+        $slot = (int) floor(($index * $slotCount / $total) + 0.5);
+        $start = (int) ($slot * ($trackLength / $slotCount));
 
         $players[] = [
             'id' => $index,
@@ -94,7 +79,7 @@ function onlineEngineCreateState(array $participants, ?int $boardSize = null): a
     return [
         'players' => $players,
         'trackLength' => $trackLength,
-        'boardSize' => $selectedBoard !== null ? $trackLength : null,
+        'boardSize' => $trackLength,
         'slotCount' => $slotCount,
         'currentPlayer' => 0,
         'startRolls' => [[]],
