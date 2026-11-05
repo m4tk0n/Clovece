@@ -118,19 +118,19 @@ export function determineStartingPlayer(game, rollFn = () => Math.floor(Math.ran
 }
 
 export function getPiecePosition(game, playerId, piece) {
-    if (piece.steps < 0 || piece.steps > game.trackLength) return null;
+    if (piece.steps < 0 || piece.steps >= game.trackLength) return null;
     return (game.players[playerId].start + piece.steps) % game.trackLength;
 }
 
 export function getHomeLaneIndex(game, piece) {
-    if (piece.steps <= game.trackLength) return -1;
-    return piece.steps - game.trackLength - 1;
+    if (piece.steps < game.trackLength) return -1;
+    return piece.steps - game.trackLength;
 }
 
 export function getValidMoves(game, playerId = game.currentPlayer) {
     if (game.phase !== 'move' || playerId !== game.currentPlayer) return [];
     const playerPieces = game.pieces[playerId].pieces;
-    const maxSteps = game.trackLength + 4;
+    const maxSteps = game.trackLength + 3;
     const valid = [];
 
     playerPieces.forEach(piece => {
@@ -140,13 +140,12 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
         if (nextSteps > maxSteps) return;
 
-        // Vlastní figurku lze přeskočit, ale nelze skončit na žádném jejím políčku.
-        // Startovní pole je posledním polem hlavního okruhu (trackLength);
-        // až následující krok vstupuje na první ze čtyř samostatných cílových polí.
+        // Hlavní okruh má trackLength polí: kroky 0 až trackLength - 1.
+        // Po posledním poli následuje přímo D1, bez druhého průchodu startem.
         const ownBlock = playerPieces.some(other => {
             if (other.id === piece.id || other.steps < 0) return false;
-            if (nextSteps <= game.trackLength) {
-                return other.steps <= game.trackLength &&
+            if (nextSteps < game.trackLength) {
+                return other.steps < game.trackLength &&
                     getPiecePosition(game, playerId, other) ===
                     (game.players[playerId].start + nextSteps) % game.trackLength;
             }
@@ -209,13 +208,13 @@ export function movePiece(game, pieceId) {
     const nextSteps = fromSteps === -1 ? 0 : fromSteps + diceValue;
     let captured = null;
 
-    if (nextSteps <= game.trackLength) {
+    if (nextSteps < game.trackLength) {
         const destination = (player.start + nextSteps) % game.trackLength;
         // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
         game.pieces.forEach((group, enemyId) => {
             if (enemyId === playerId) return;
             group.pieces.forEach(enemyPiece => {
-                if (enemyPiece.steps >= 0 && enemyPiece.steps <= game.trackLength &&
+                if (enemyPiece.steps >= 0 && enemyPiece.steps < game.trackLength &&
                     getPiecePosition(game, enemyId, enemyPiece) === destination) {
                     captured = {
                         playerId: enemyId,
@@ -235,7 +234,7 @@ export function movePiece(game, pieceId) {
     // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     const homeSteps = game.pieces[playerId].pieces.map(item => item.steps);
     const playerFinished = homeSteps.every(
-        steps => steps > game.trackLength && steps <= maxSteps
+        steps => steps >= game.trackLength && steps <= maxSteps
     ) && new Set(homeSteps).size === 4;
 
     if (playerFinished) {
@@ -283,13 +282,13 @@ export function chooseAIMove(game) {
     const candidates = valid.map(pieceId => {
         const piece = game.pieces[playerId].pieces[pieceId];
         const next = piece.steps < 0 ? 0 : piece.steps + game.diceValue;
-        const destination = next <= game.trackLength
+        const destination = next < game.trackLength
             ? (game.players[playerId].start + next) % game.trackLength
             : null;
         let score = next;
 
         if (piece.steps < 0) score += 18;
-        if (next === game.trackLength + 4) score += 1000;
+        if (next === game.trackLength + 3) score += 1000;
         if (destination !== null) {
             game.pieces.forEach((group, enemyId) => {
                 if (enemyId === playerId) return;
