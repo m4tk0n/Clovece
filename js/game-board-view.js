@@ -151,7 +151,15 @@ export function renderBoard(container, game) {
                 button.setAttribute('aria-pressed', String(selected));
             });
         }
-        render3DBoard(stage, buildBoardSceneData(game));
+        render3DBoard(stage, buildBoardSceneData(game), error => {
+            // Selhání WebGL/Three.js nesmí zablokovat samotnou hru.
+            // Přepnutí platí pro aktuální zobrazení; při dalším načtení se 3D zkusí znovu.
+            if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
+            console.error('Přepínám herní desku z 3D na 2D SVG:', error);
+            view3d = false;
+            container.dataset.renderKey = '';
+            renderBoard(container, container._lastGame || game);
+        });
         return;
     }
     const previousStage = container.querySelector('.three-board-stage');
