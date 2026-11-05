@@ -66,21 +66,32 @@ checkSame(0, $manual['currentPlayer'], 'Začínat musí vítěz ručního rozst�
 checkSame([[0, 0], [1, 0], [2, 0], [0, 1], [2, 1]], $manualSequence, 'Ruční rozstřel nesmí házet za hráče automaticky ani zapojit hráče bez remízy.');
 
 $two = onlineEngineCreateState(testParticipants(2));
-checkSame(52, $two['trackLength'], 'Dva hráči musí mít 52 polí.');
-checkSame([0, 26], array_column($two['players'], 'start'), 'Startovní pole pro dva hráče nesouhlasí.');
+checkSame(40, $two['trackLength'], 'Dva hráči musí mít výchozí desku 40 polí.');
+checkSame([0, 20], array_column($two['players'], 'start'), 'Startovní pole pro dva hráče nesouhlasí.');
 
 $three = onlineEngineCreateState(testParticipants(3));
-checkSame([0, 17, 35], array_column($three['players'], 'start'), 'Startovní pole pro tři hráče nesouhlasí.');
+checkSame(40, $three['trackLength'], 'Tři hráči musí mít výchozí desku 40 polí.');
+checkSame([0, 10, 30], array_column($three['players'], 'start'), 'Startovní pole pro tři hráče nesouhlasí.');
 
 $four = onlineEngineCreateState(testParticipants(4));
-checkSame([0, 13, 26, 39], array_column($four['players'], 'start'), 'Startovní pole pro čtyři hráče nesouhlasí.');
+checkSame(40, $four['trackLength'], 'Čtyři hráči musí mít výchozí desku 40 polí.');
+checkSame([0, 10, 20, 30], array_column($four['players'], 'start'), 'Startovní pole pro čtyři hráče nesouhlasí.');
 
 $five = onlineEngineCreateState(testParticipants(5));
-checkSame(64, $five['trackLength'], 'Pět hráčů musí mít rozšířenou desku.');
-checkSame([0, 13, 26, 38, 51], array_column($five['players'], 'start'), 'Startovní pole pro pět hráčů nesouhlasí.');
+checkSame(48, $five['trackLength'], 'Pět hráčů musí mít výchozí desku 48 polí.');
+checkSame([0, 8, 16, 32, 40], array_column($five['players'], 'start'), 'Startovní pole pro pět hráčů nesouhlasí.');
+
+$six = onlineEngineCreateState(testParticipants(6));
+checkSame(48, $six['trackLength'], 'Šest hráčů musí mít výchozí desku 48 polí.');
+checkSame([0, 8, 16, 24, 32, 40], array_column($six['players'], 'start'), 'Startovní pole pro šest hráčů nesouhlasí.');
+
+$seven = onlineEngineCreateState(testParticipants(7));
+checkSame(80, $seven['trackLength'], 'Sedm hráčů musí mít výchozí desku 80 polí.');
+checkSame([0, 10, 20, 30, 50, 60, 70], array_column($seven['players'], 'start'), 'Startovní pole pro sedm hráčů nesouhlasí.');
 
 $eight = onlineEngineCreateState(testParticipants(8));
-checkSame([0, 8, 16, 24, 32, 40, 48, 56], array_column($eight['players'], 'start'), 'Startovní pole pro osm hráčů nesouhlasí.');
+checkSame(80, $eight['trackLength'], 'Osm hráčů musí mít výchozí desku 80 polí.');
+checkSame([0, 10, 20, 30, 40, 50, 60, 70], array_column($eight['players'], 'start'), 'Startovní pole pro osm hráčů nesouhlasí.');
 
 checkSame([40, 48, 80], onlineEngineAvailableBoardSizes(2), 'Dva hráči musí mít dostupné všechny velikosti.');
 checkSame([40, 48, 80], onlineEngineAvailableBoardSizes(4), 'Čtyři hráči musí mít dostupné všechny velikosti.');
@@ -119,7 +130,7 @@ $capture = onlineEngineCreateState(testParticipants(2));
 $capture['phase'] = 'move';
 $capture['diceValue'] = 1;
 $capture['pieces'][0]['pieces'][0]['steps'] = 1;
-$capture['pieces'][1]['pieces'][0]['steps'] = 28;
+$capture['pieces'][1]['pieces'][0]['steps'] = 22;
 checkSame([0], onlineEngineValidMoves($capture), 'Tah na obsazené nebezpečné pole má být povolen.');
 $move = onlineEngineMovePiece($capture, 0);
 checkSame(1, $move['captured']['playerId'], 'Tah musí vyhodit soupeřovu figurku.');
@@ -129,7 +140,7 @@ checkSame(2, $capture['pieces'][0]['pieces'][0]['steps'], 'Vlastní figurka se m
 $spawnCapture = onlineEngineCreateState(testParticipants(2));
 $spawnCapture['phase'] = 'move';
 $spawnCapture['diceValue'] = 6;
-$spawnCapture['pieces'][1]['pieces'][0]['steps'] = 26; // Soupeř stojí na startovním poli hráče 1.
+$spawnCapture['pieces'][1]['pieces'][0]['steps'] = 20; // Soupeř stojí na startovním poli hráče 1.
 checkSame([0, 1, 2, 3], onlineEngineValidMoves($spawnCapture), 'Nasazení na vlastní startovní pole musí být povoleno i při obsazení soupeřem.');
 $spawnMove = onlineEngineMovePiece($spawnCapture, 0);
 checkSame(1, $spawnMove['captured']['playerId'], 'Nasazením na vlastní startovní pole se musí vyhodit soupeř.');
@@ -139,7 +150,7 @@ checkSame(0, $spawnCapture['pieces'][0]['pieces'][0]['steps'], 'Nasazená figurk
 $safe = onlineEngineCreateState(testParticipants(2));
 $safe['phase'] = 'move';
 $safe['diceValue'] = 1;
-$safe['pieces'][0]['pieces'][0]['steps'] = 25;
+$safe['pieces'][0]['pieces'][0]['steps'] = 19;
 $safe['pieces'][1]['pieces'][0]['steps'] = 0;
 checkSame([0], onlineEngineValidMoves($safe), 'Na obsazené startovní pole soupeře musí být možné vstoupit.');
 $safeMove = onlineEngineMovePiece($safe, 0);
