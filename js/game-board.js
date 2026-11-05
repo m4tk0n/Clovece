@@ -195,29 +195,23 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         ' L ' + (x + pr * .78).toFixed(2) + ' ' + (baseY + pr * .20).toFixed(2) +
         ' A ' + (pr * .78).toFixed(2) + ' ' + (pr * .30).toFixed(2) + ' 0 0 1 ' +
         (x - pr * .78).toFixed(2) + ' ' + (baseY + pr * .20).toFixed(2) + ' Z' +
-        '" fill="#07100e" stroke="#050a09" stroke-width=".8"/>' +
+        '" fill="' + color + '"/>' +
         '<ellipse cx="' + x.toFixed(2) + '" cy="' + baseY.toFixed(2) +
         '" rx="' + (pr * .78).toFixed(2) + '" ry="' + (pr * .30).toFixed(2) +
-        '" fill="url(#' + bodyId + ')" stroke="#07100e" stroke-opacity=".75" stroke-width="1"/>' +
+        '" fill="' + color + '"/>' +
         // Tělo má tmavou boční hranu a světlejší čelní plochu.
-        '<path d="' + bodyPath + '" transform="translate(' + (pr * .12).toFixed(2) + ' ' + (pr * .10).toFixed(2) +
-        ')" fill="#07100e" fill-opacity=".82"/>' +
-        '<path class="piece-core" d="' + bodyPath + '" fill="url(#' + bodyId +
-        ')" stroke="#07100e" stroke-opacity=".72" stroke-width="1"/>' +
+        '<path class="piece-core" d="' + bodyPath + '" fill="' + color + '"/>' +
         '<path d="M ' + (x - pr * .42).toFixed(2) + ' ' + (y - pr * .27).toFixed(2) +
         ' C ' + (x - pr * .54).toFixed(2) + ' ' + (y - pr * .02).toFixed(2) + ', ' +
         (x - pr * .48).toFixed(2) + ' ' + (y + pr * .13).toFixed(2) + ', ' +
         (x - pr * .42).toFixed(2) + ' ' + (baseY - pr * .10).toFixed(2) +
-        '" fill="none" stroke="#fff" stroke-opacity=".42" stroke-width="' + (pr * .10).toFixed(2) +
-        '" stroke-linecap="round"/>' +
+        '" fill="none"/>' +
         // Samostatná kulová hlava s odleskem a tmavým okrajem.
         '<circle cx="' + x.toFixed(2) + '" cy="' + headY.toFixed(2) + '" r="' + headR.toFixed(2) +
-        '" fill="#07100e" fill-opacity=".8" transform="translate(' + (pr * .07).toFixed(2) + ' ' + (pr * .08).toFixed(2) + ')"/>' +
+        '" fill="' + color + '"/>' +
         '<circle cx="' + x.toFixed(2) + '" cy="' + headY.toFixed(2) + '" r="' + headR.toFixed(2) +
-        '" fill="url(#' + headId + ')" stroke="#07100e" stroke-opacity=".68" stroke-width=".9"/>' +
-        '<ellipse cx="' + (x - pr * .13).toFixed(2) + '" cy="' + (headY - pr * .14).toFixed(2) +
-        '" rx="' + (pr * .13).toFixed(2) + '" ry="' + (pr * .075).toFixed(2) +
-        '" fill="#fff" fill-opacity=".72"/>' +
+        '" fill="' + color + '"/>' +
+
         '</g>';
 }
 
