@@ -137,7 +137,7 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
         if (nextSteps > maxSteps) return;
 
-        const ownBlock = playerPieces.some(other => {
+        const ownBlock = piece.steps !== -1 && playerPieces.some(other => {
             if (other.id === piece.id || other.steps < 0) return false;
 
             if (nextSteps < game.trackLength) {
