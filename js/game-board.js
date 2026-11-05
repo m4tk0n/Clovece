@@ -497,14 +497,13 @@ export function renderBoard(container, game) {
     for (let i = 0; i < game.trackLength; i++) {
         const p = trackPosition(i, game);
         const startPlayer = game.players.find(player => player.start === i);
-        const emptyStart = !startPlayer && i % m === m / 2;
         const r = startPlayer ? g.field + 2 : g.field;
         track += '<g class="track-space ' + (startPlayer ? 'track-start' : '') + '">' +
             '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + r + '" fill="' +
-            (startPlayer ? startPlayer.color : (emptyStart ? '#c6a96b' : '#d9d2c3')) + '" fill-opacity="' +
-            (startPlayer ? '.95' : (emptyStart ? '.4' : '.12')) + '" stroke="' +
-            (startPlayer ? startPlayer.color : (emptyStart ? '#c6a96b' : '#fff')) + '" stroke-opacity="' +
-            (startPlayer ? '.9' : (emptyStart ? '.65' : '.22')) + '" stroke-width="1.4"/>' +
+            (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' +
+            (startPlayer ? '.95' : '.12') + '" stroke="' +
+            (startPlayer ? startPlayer.color : '#fff') + '" stroke-opacity="' +
+            (startPlayer ? '.9' : '.22') + '" stroke-width="1.4"/>' +
             (startPlayer ? '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4" fill="#fff" fill-opacity=".9"/>' : '') +
             '</g>';
     }
