@@ -182,22 +182,10 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
 
     return '<g class="board-piece pawn-piece ' + (selectable ? 'piece-selectable' : '') +
         '" data-player="' + playerId + '" data-piece="' + pieceId + '" data-x="' + x.toFixed(2) + '" data-y="' + y.toFixed(2) + '" data-radius="' + pr.toFixed(2) + '" data-color="' + color + '">' +
-        // Měkký stín pod figurkou.
-        '<ellipse class="piece-shadow" cx="' + x.toFixed(2) + '" cy="' + (baseY + pr * .22).toFixed(2) +
-        '" rx="' + (pr * .92).toFixed(2) + '" ry="' + (pr * .25).toFixed(2) +
-        '" fill="#000" fill-opacity=".5"/>' +
-        // Boční stěna podstavce – posun vytváří skutečně viditelnou hloubku.
-        '<path d="M ' + (x - pr * .78).toFixed(2) + ' ' + baseY.toFixed(2) +
-        ' A ' + (pr * .78).toFixed(2) + ' ' + (pr * .30).toFixed(2) + ' 0 0 0 ' +
-        (x + pr * .78).toFixed(2) + ' ' + baseY.toFixed(2) +
-        ' L ' + (x + pr * .78).toFixed(2) + ' ' + (baseY + pr * .20).toFixed(2) +
-        ' A ' + (pr * .78).toFixed(2) + ' ' + (pr * .30).toFixed(2) + ' 0 0 1 ' +
-        (x - pr * .78).toFixed(2) + ' ' + (baseY + pr * .20).toFixed(2) + ' Z' +
-        '" fill="' + color + '"/>' +
         '<ellipse cx="' + x.toFixed(2) + '" cy="' + baseY.toFixed(2) +
         '" rx="' + (pr * .78).toFixed(2) + '" ry="' + (pr * .30).toFixed(2) +
         '" fill="' + color + '"/>' +
-        // Tělo má tmavou boční hranu a světlejší čelní plochu.
+        // Ploché tělo v jednotné barvě hráče.
         '<path class="piece-core" d="' + bodyPath + '" fill="' + color + '"/>' +
         // Hlava a tělo používají výhradně základní barvu hráče.
         '<circle cx="' + x.toFixed(2) + '" cy="' + headY.toFixed(2) + '" r="' + headR.toFixed(2) +
