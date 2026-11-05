@@ -101,7 +101,7 @@ Následující body popisují současnou implementaci a čekají na potvrzení j
 
 Tyto otázky nejsou touto specifikací rozhodnuté. Před změnou enginů je nutné je potvrdit:
 
-1. **Šestka při třech figurkách v základně a jedné na poli 40:** Má se při hodu 6 nasadit jedna z figurek ze základny na vlastní start, zatímco figurka na poli 40 zůstane stát, protože by šest polí přesáhla D4? Současná logika by měla umožnit nasazení ze základny; zaznamenaný problém ukazuje, že se tato situace musí ověřit a sjednotit.
+1. **Nasazení při šestce, když jiná figurka nemůže táhnout:** Pokud má hráč alespoň jednu figurku v základně a hodí 6, může nasadit figurku na vlastní startovní pole, i když jiná jeho figurka na dráze nemá legální tah (například by šestkou přejela D4). Figurky, které nemohou legálně táhnout, zůstávají stát. Toto pravidlo se netýká konkrétního pole 40. Ještě je třeba potvrdit, zda nasazení zůstává volbou i tehdy, když jiná figurka legálně táhnout může.
 2. **Opakovaný hod po šestce:** Potvrďte, zda hráč hází znovu po každé šestce, včetně nasazení nové figurky a vyhození soupeře.
 3. **Šestka bez legálního tahu:** Pokud hráč hodí 6, ale žádnou figurkou nemůže legálně táhnout ani nasadit, končí jeho tah, nebo má házet znovu?
 4. **Bezpečná pole:** Jsou všechna pole hlavního okruhu běžná a lze na každém vyhodit soupeře, nebo existují další chráněná pole kromě případných pravidel, která ještě nebyla popsána?
