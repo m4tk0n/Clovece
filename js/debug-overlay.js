@@ -5,7 +5,7 @@
  * Herní logiku ani herní chat nemění.
  */
 export function initDebugOverlay() {
-    if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
+    if (!/(?:^|[?&])debug=1(?:&|$)/.test(window.location.search)) return;
     if (!document.body || document.getElementById('clovece-debug-overlay')) return;
 
     const panel = document.createElement('div');
@@ -13,6 +13,7 @@ export function initDebugOverlay() {
     panel.setAttribute('aria-hidden', 'true');
     panel.style.cssText = [
         'position:fixed',
+        'display:inline-block',
         'top:auto',
         'left:2px',
         'z-index:2147483647',
@@ -35,7 +36,12 @@ export function initDebugOverlay() {
     document.body.appendChild(panel);
 
     let frameCount = 0;
-    let lastSample = performance.now();
+    const getNow = function () {
+        return window.performance && typeof window.performance.now === 'function'
+            ? window.performance.now()
+            : Date.now();
+    };
+    let lastSample = getNow();
     let fps = 0;
 
     const format = value => Math.round(value);
@@ -70,7 +76,8 @@ export function initDebugOverlay() {
         }
     }
 
-    function measureFrame(now) {
+    function measureFrame() {
+        const now = getNow();
         frameCount++;
         const elapsed = now - lastSample;
         if (elapsed >= 1000) {
@@ -79,8 +86,10 @@ export function initDebugOverlay() {
             lastSample = now;
             update();
         }
-        if (window.requestAnimationFrame) {
+            if (window.requestAnimationFrame) {
             window.requestAnimationFrame(measureFrame);
+        } else {
+            window.setTimeout(measureFrame, 1000 / 30);
         }
     }
 
@@ -94,5 +103,7 @@ export function initDebugOverlay() {
     update();
     if (window.requestAnimationFrame) {
         window.requestAnimationFrame(measureFrame);
+    } else {
+        window.setTimeout(measureFrame, 1000 / 30);
     }
 }
