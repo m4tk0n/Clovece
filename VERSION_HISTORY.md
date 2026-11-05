@@ -18,6 +18,19 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 ---
 
 
+## 1.00.00.04 – Odstranění horního odsazení herní obrazovky na mobilech
+
+**Datum:** 5. 11. 2026  
+**Typ:** Oprava responzivního rozložení  
+**Mění:** mobilní rozložení zavedené verzí 1.00.00.03
+
+- Horní vnitřní odsazení herní obrazovky na telefonech do šířky 420 px je nastaveno na 0 px.
+- Při nízké výšce displeje se již horní odsazení nepřidává zpět pravidlem pro krátké obrazovky.
+- Herní obrazovka začíná na horním okraji viewportu; vnitřní odsazení hlavičky zůstává zachováno kvůli čitelnosti ovládacích prvků.
+
+**Dotčené soubory:**
+- `css/menu-premium.css`
+
 ## 1.00.00.03 – Kompaktní rozložení pro malé displeje
 
 **Datum:** 5. 11. 2026  
