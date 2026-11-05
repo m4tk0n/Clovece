@@ -742,7 +742,7 @@
    Zachovává stávající režim bez posouvání herní obrazovky. */
 @media (max-width: 420px) {
     #game-screen:not(.hidden) {
-        padding: 3px 1px;
+        padding: 0 1px 1px;
     }
     #game-screen .game-header {
         grid-template-columns: minmax(0, 1fr) auto;
@@ -935,8 +935,8 @@
 
 @media (max-height: 680px) {
     #game-screen:not(.hidden) {
-        padding-top: 2px;
-        padding-bottom: 2px;
+        padding-top: 0;
+        padding-bottom: 0;
     }
     #game-screen .game-header {
         padding-top: 3px;
