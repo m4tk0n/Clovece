@@ -276,17 +276,17 @@ test('two own pieces cannot occupy the same home-lane square', () => {
 test('a player wins when all four pieces occupy the four distinct home-lane squares', () => {
     const game = createGame(1, 1);
     const laneStart = game.trackLength;
-    game.pieces[0].pieces[0].steps = laneStart;
-    game.pieces[0].pieces[1].steps = laneStart + 1;
-    game.pieces[0].pieces[2].steps = laneStart + 2;
+    game.pieces[0].pieces[0].steps = laneStart + 1;
+    game.pieces[0].pieces[1].steps = laneStart + 2;
+    game.pieces[0].pieces[2].steps = laneStart + 3;
     game.pieces[0].pieces[3].steps = game.trackLength - 1;
     game.phase = 'move';
-    game.diceValue = 4;
+    game.diceValue = 1;
 
     assert.deepEqual(getValidMoves(game), [3]);
     movePiece(game, 3);
     assert.deepEqual(game.pieces[0].pieces.map(piece => piece.steps), [
-        laneStart, laneStart + 1, laneStart + 2, laneStart + 3
+        laneStart + 1, laneStart + 2, laneStart + 3, laneStart
     ]);
     assert.equal(game.winner, 0);
     assert.equal(game.phase, 'finished');
