@@ -12,7 +12,7 @@ Malý červený panel je připnutý ke spodnímu okraji právě viditelné čás
 
 Panel lze klepnutím rozbalit a dalším klepnutím opět sbalit. Rozbalený panel obsahuje chronologický protokol načítání a inicializace modulů. U každé operace je stav (`…` probíhá, `OK` dokončeno, `CHYBA` selhalo) a po dokončení také doba trvání v milisekundách. Panel lze ovládat také klávesami Enter a mezerník.
 
-Protokol aktuálně sleduje načtení `debug-overlay.js`, `navigation.js`, `audio.js`, `app.js` a `online.js` a následné spuštění funkcí `initOnline()`, `initNavigation()`, `initAudio()` a `initGame()`. Načítání čtyř hlavních modulů probíhá souběžně, proto jejich pořadí dokončení nemusí odpovídat pořadí v seznamu. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
+Protokol sleduje načtení hlavních JavaScript modulů, spuštění jejich inicializačních funkcí a také CSS soubory. U CSS uvádí adresu, stav a dostupnou dobu načítání. Sleduje i později vložené stylesheety a elementy <style>. Načítání čtyř hlavních modulů probíhá souběžně, proto jejich pořadí dokončení nemusí odpovídat pořadí v seznamu. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
 
 Zobrazuje:
 
@@ -32,7 +32,13 @@ Pokud prohlížeč nepodporuje Visual Viewport API, panel se připne 2 px od spo
 
 ### Co je a není zbytečné
 
-Protokol ukazuje, které moduly aplikace při startu skutečně importuje a které inicializační funkce spouští. Zda je některý modul zbytečný, nelze rozhodnout jen podle toho, že se načítá: může být potřeba až po otevření konkrétní obrazovky nebo při online hře. K takovému závěru je nutné prověřit jeho použití a závislosti v kódu. Současný protokol nesleduje jednotlivé obrázky, CSS, zvukové soubory ani všechny síťové požadavky.
+Protokol ukazuje, které moduly aplikace při startu skutečně importuje a které inicializační funkce spouští. Zda je některý modul zbytečný, nelze rozhodnout jen podle toho, že se načítá: může být potřeba až po otevření konkrétní obrazovky nebo při online hře. K takovému závěru je nutné prověřit jeho použití a závislosti v kódu. Protokol nesleduje jednotlivé obrázky, zvukové soubory ani všechny síťové požadavky. U CSS vloženého přímo do DOM uvádí jeho identifikátor, nikoli přenesený objem dat.
+
+### Odložené načítání 3D
+
+Při otevření webu ani při zobrazení obrazovky „Vytvoření hry“ se 3D renderer ani jeho stylesheet nenačítají. Volba 2D/3D se vyhodnotí až při prvním vykreslení skutečné hry. Pokud je zvolen režim 2D, načte se pouze SVG renderer. Pokud je zvoleno 3D, teprve tehdy se načte css/board-3d.css, modul js/game-board-3d.js a následně knihovna Three.js s OrbitControls.
+
+V debug protokolu se proto board-3d.css a 3D renderer mají objevit až po spuštění hry v režimu 3D. Při 2D hře se objevit nemají.
 
 ## 2. Číslování polí na 3D desce
 
