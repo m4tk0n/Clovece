@@ -1037,3 +1037,17 @@
         margin-top: 10px;
     }
 }
+
+/* Společné pravidlo rozložení: každá obrazovka začíná u horního okraje. */
+.menu-screen {
+    align-items: flex-start !important;
+    padding-top: 0 !important;
+}
+
+.menu-screen > .menu-bg {
+    margin-top: 0 !important;
+}
+
+#game-screen {
+    padding-top: 0 !important;
+}
