@@ -249,7 +249,7 @@ test('a piece may jump over own pieces but may not land on them on the main trac
     assert.deepEqual(getValidMoves(game), [0]);
 });
 
-test('a piece may jump over own pieces in the home lane but may not land on them', () => {
+test('a piece cannot jump over own pieces in the home lane', () => {
     const game = createGame(1, 1);
     const laneStart = game.trackLength;
     game.pieces[0].pieces[0].steps = laneStart;
@@ -257,15 +257,10 @@ test('a piece may jump over own pieces in the home lane but may not land on them
     game.phase = 'move';
     game.diceValue = 2;
 
-    assert.deepEqual(getValidMoves(game), [0, 1]);
-    movePiece(game, 0);
-    assert.equal(game.pieces[0].pieces[0].steps, laneStart + 2);
-    assert.equal(game.pieces[0].pieces[1].steps, laneStart + 1);
-
-    game.currentPlayer = 0;
-    game.phase = 'move';
-    game.diceValue = 1;
-    assert.deepEqual(getValidMoves(game), [0]);
+    assert.deepEqual(getValidMoves(game), [1]);
+    movePiece(game, 1);
+    assert.equal(game.pieces[0].pieces[0].steps, laneStart);
+    assert.equal(game.pieces[0].pieces[1].steps, laneStart + 3);
 });
 
 test('two own pieces cannot occupy the same home-lane square', () => {
@@ -305,6 +300,70 @@ test('the fourth home-lane square cannot be shared by two own pieces', () => {
     game.diceValue = 1;
 
     assert.deepEqual(getValidMoves(game), []);
+});
+
+
+test('a six with pieces in base forces deployment and replaces own piece on start', () => {
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 6;
+    game.pieces[0].pieces[0].steps = 0;
+
+    assert.deepEqual(getValidMoves(game), [1, 2, 3]);
+    const move = movePiece(game, 1);
+    assert.equal(move.captured.ownPiece, true);
+    assert.equal(move.captured.pieceId, 0);
+    assert.equal(game.pieces[0].pieces[0].steps, -1);
+    assert.equal(game.pieces[0].pieces[1].steps, 0);
+    assert.equal(game.phase, 'roll');
+});
+
+test('a legal exact entry into the home lane is mandatory', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = game.trackLength - 2;
+    game.pieces[0].pieces[1].steps = 5;
+    game.phase = 'move';
+    game.diceValue = 2;
+
+    assert.deepEqual(getValidMoves(game), [0]);
+});
+
+test('a piece cannot pass an occupied home-lane square', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = game.trackLength - 2;
+    game.pieces[0].pieces[1].steps = game.trackLength;
+    game.phase = 'move';
+    game.diceValue = 2;
+
+    assert.deepEqual(getValidMoves(game), [1]);
+});
+
+test('a six on the third base attempt deploys but ends the turn without a bonus roll', () => {
+    const game = createGame(1, 1);
+    game.baseRollAttempts = 2;
+    const result = rollDice(game, 6);
+    assert.equal(result.attempt, 3);
+    assert.equal(game.thirdAttemptSix, true);
+    assert.deepEqual(result.validMoves, [0, 1, 2, 3]);
+
+    movePiece(game, 0);
+    assert.equal(game.pieces[0].pieces[0].steps, 0);
+    assert.equal(game.currentPlayer, 1);
+    assert.equal(game.phase, 'roll');
+    assert.equal(game.thirdAttemptSix, false);
+});
+
+test('a six without any legal move is consumed but grants another roll', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = 0;
+    game.pieces[0].pieces[1].steps = 6;
+    game.pieces[0].pieces[2].steps = 12;
+    game.pieces[0].pieces[3].steps = 18;
+
+    const result = rollDice(game, 6);
+    assert.deepEqual(result.validMoves, []);
+    assert.equal(result.retrying, true);
+    assert.equal(game.phase, 'roll');
 });
 
 test('a piece cannot overshoot the final home space', () => {
