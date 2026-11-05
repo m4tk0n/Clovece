@@ -440,6 +440,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
         'playerId' => $playerId,
         'playerName' => (string) $player['name'],
         'pieceId' => $pieceId,
+        'deployed' => $fromSteps === -1,
         'captured' => $captured,
         'finishedNow' => $finishedNow,
         'diceValue' => $diceValue,
