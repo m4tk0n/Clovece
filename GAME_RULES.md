@@ -106,7 +106,6 @@ Tyto otázky nejsou touto specifikací rozhodnuté. Před změnou enginů je nut
 3. **Šestka bez legálního tahu:** Pokud hráč hodí 6, ale žádnou figurkou nemůže legálně táhnout ani nasadit, končí jeho tah, nebo má házet znovu?
 4. **Bezpečná pole:** Jsou všechna pole hlavního okruhu běžná a lze na každém vyhodit soupeře, nebo existují další chráněná pole kromě případných pravidel, která ještě nebyla popsána?
 5. **Více soupeřových figurek na jednom poli:** Pokud by na stejném poli stály figurky více soupeřů, vyhodí příchozí figurka všechny, jen jednu, nebo na takové pole nesmí vstoupit?
-6. **Rozstřel AI a živých hráčů:** Potvrďte, že při rozstřelu se živí hráči vždy střídají ručním hodem a AI automatickým hodem ve stejném pořadí, a že pořadí hráčů po rozstřelu zůstává zachováno.
 
 ## 11. Rozdíly mezi specifikací a současnou implementací
 
