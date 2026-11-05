@@ -8,25 +8,39 @@ export function initDebugOverlay() {
 
     const panel = document.createElement('div');
     panel.id = 'clovece-debug-overlay';
-    panel.setAttribute('role', 'button');
-    panel.setAttribute('tabindex', '0');
-    panel.setAttribute('aria-expanded', 'false');
     panel.style.cssText = [
         'position:fixed','left:2px','bottom:2px','z-index:2147483647',
         'box-sizing:border-box','max-width:calc(100vw - 8px)','width:max-content',
+        'display:flex','align-items:stretch','gap:6px',
         'padding:4px 6px','border:1px solid rgba(255,0,0,.7)','border-radius:4px',
         'background:rgba(0,0,0,.9)','color:#ff4545','font:10px/1.4 monospace',
         'white-space:normal','overflow-wrap:anywhere','pointer-events:auto',
-        'user-select:none','-webkit-user-select:none','touch-action:manipulation',
-        'cursor:pointer'
+        'user-select:none','-webkit-user-select:none'
     ].join(';');
 
+    const toggleButton = document.createElement('button');
+    toggleButton.type = 'button';
+    toggleButton.textContent = '+';
+    toggleButton.setAttribute('aria-label', 'Rozbalit debug panel');
+    toggleButton.setAttribute('aria-expanded', 'false');
+    toggleButton.style.cssText = 'align-self:stretch;min-width:20px;padding:0 4px;border:1px solid #a33;border-radius:3px;background:#260000;color:#ff5555;font:bold 14px/1 monospace;cursor:pointer;touch-action:manipulation';
+
+    const content = document.createElement('div');
+    content.style.cssText = 'display:flex;flex-direction:column;justify-content:center;min-width:0;gap:2px';
     const summary = document.createElement('div');
-    summary.textContent = 'DEBUG | načítání…';
+    summary.textContent = 'DEBUG';
+    const viewportSummary = document.createElement('div');
+    viewportSummary.textContent = 'VIDITELNÉ –';
+    const metaSummary = document.createElement('div');
+    metaSummary.style.cssText = 'display:none;color:#ff8888';
     const details = document.createElement('div');
     details.style.cssText = 'display:none;margin-top:5px;padding-top:5px;border-top:1px solid #a33;max-height:55vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere';
-    panel.appendChild(summary);
-    panel.appendChild(details);
+    content.appendChild(summary);
+    content.appendChild(viewportSummary);
+    content.appendChild(metaSummary);
+    content.appendChild(details);
+    panel.appendChild(toggleButton);
+    panel.appendChild(content);
     document.body.appendChild(panel);
 
     let expanded = false;
@@ -44,19 +58,13 @@ export function initDebugOverlay() {
     function toggle() {
         expanded = !expanded;
         details.style.display = expanded ? 'block' : 'none';
-        panel.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        summary.textContent = expanded
-            ? 'DEBUG ▲ | ' + entries.length + ' záznamů – klikni pro sbalení'
-            : 'DEBUG ▼ | ' + entries.length + ' záznamů – klikni pro rozbalení';
-        updatePosition();
+        metaSummary.style.display = expanded ? 'block' : 'none';
+        toggleButton.textContent = expanded ? '−' : '+';
+        toggleButton.setAttribute('aria-label', expanded ? 'Sbalit debug panel' : 'Rozbalit debug panel');
+        toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        updateSummary();
     }
-    panel.addEventListener('click', toggle);
-    panel.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            toggle();
-        }
-    });
+    toggleButton.addEventListener('click', toggle);
 
     const format = value => Math.round(value);
     let fps = 0;
@@ -82,12 +90,12 @@ export function initDebugOverlay() {
         const viewport = window.visualViewport;
         const visibleWidth = viewport ? format(viewport.width) : window.innerWidth;
         const visibleHeight = viewport ? format(viewport.height) : window.innerHeight;
-        summary.textContent = (expanded ? 'DEBUG ▲' : 'DEBUG ▼') +
-            ' | DISPLAY ' + screenWidth + '×' + screenHeight +
+        summary.textContent = 'DEBUG' + (expanded ? ' | ' + entries.length + ' záznamů' : '');
+        viewportSummary.textContent = 'VIDITELNÉ ' + visibleWidth + '×' + visibleHeight;
+        metaSummary.textContent = 'DISPLAY ' + screenWidth + '×' + screenHeight +
             ' | OKNO ' + window.innerWidth + '×' + window.innerHeight +
-            ' | VIDITELNÉ ' + visibleWidth + '×' + visibleHeight +
             ' | DPR ' + (window.devicePixelRatio || 1).toFixed(2) +
-            ' | FPS ' + fps + ' | ' + entries.length + ' záznamů';
+            ' | FPS ' + fps;
         updatePosition();
     }
     function measureFrame() {
