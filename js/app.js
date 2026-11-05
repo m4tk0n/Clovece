@@ -552,7 +552,10 @@ async function doRoll(isAI = false) {
     }
 
     if (game.phase === 'no-move') {
-        addGameLogEntry(game.players[game.currentPlayer].name, 'hodil ' + result.value + ', nemá platný tah');
+        const noMoveText = result.attempt && result.maxAttempts
+            ? 'hodil ' + result.value + ', bez šestky (pokus ' + result.attempt + '/' + result.maxAttempts + '), nemá platný tah'
+            : 'hodil ' + result.value + ', nemá platný tah';
+        addGameLogEntry(game.players[game.currentPlayer].name, noMoveText);
         toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
         showGame();
         setTimeout(() => {
