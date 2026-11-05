@@ -185,7 +185,7 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         // Měkký stín pod figurkou.
         '<ellipse class="piece-shadow" cx="' + x.toFixed(2) + '" cy="' + (baseY + pr * .22).toFixed(2) +
         '" rx="' + (pr * .92).toFixed(2) + '" ry="' + (pr * .25).toFixed(2) +
-        '" fill="#000" fill-opacity=".5" filter="url(#pieceGlow)"/>' +
+        '" fill="#000" fill-opacity=".5"/>' +
         // Boční stěna podstavce – posun vytváří skutečně viditelnou hloubku.
         '<path d="M ' + (x - pr * .78).toFixed(2) + ' ' + baseY.toFixed(2) +
         ' A ' + (pr * .78).toFixed(2) + ' ' + (pr * .30).toFixed(2) + ' 0 0 0 ' +
