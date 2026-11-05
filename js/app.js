@@ -93,6 +93,15 @@ function updateSetup() {
     $('human-players-value').textContent = humanCount;
     $('ai-players-value').textContent = aiCount;
 
+    document.querySelectorAll('[data-count-target][data-count-step]').forEach(button => {
+        const isHuman = button.dataset.countTarget === 'human-players';
+        const current = isHuman ? humanCount : aiCount;
+        const minimum = isHuman ? 1 : (humanCount === 1 ? 1 : 0);
+        const maximum = isHuman ? 8 : Math.min(7, 8 - humanCount);
+        const step = Number(button.dataset.countStep);
+        button.disabled = step < 0 ? current <= minimum : current >= maximum;
+    });
+
     const availableBoardSizes = getAvailableBoardSizes(total);
     if (!availableBoardSizes.includes(selectedBoardSize)) {
         selectedBoardSize = availableBoardSizes[0] || 40;
@@ -664,8 +673,17 @@ function restartGame() {
 }
 
 export function initGame() {
-    $('human-players')?.addEventListener('input', updateSetup);
-    $('ai-players')?.addEventListener('input', updateSetup);
+    $('setup-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-count-target][data-count-step]');
+        if (!button || button.disabled) return;
+
+        const input = $(button.dataset.countTarget);
+        if (!input) return;
+        const step = Number(button.dataset.countStep);
+        const current = Number(input.value) || 0;
+        input.value = String(current + step);
+        updateSetup();
+    });
     $('board-size-options')?.addEventListener('click', event => {
         const button = event.target.closest('[data-board-size]');
         if (!button || button.disabled) return;
