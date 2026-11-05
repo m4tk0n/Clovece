@@ -685,7 +685,7 @@
     transition: transform .9s ease-in-out, opacity .9s ease-in-out;
 }
 #dice-animation .scene.rolling .shadow {
-    animation: diceShadow 1.1s ease-in-out;
+    animation: diceShadow 1.5s ease-in-out;
 }
 @keyframes diceShadow {
     0%, 100% { transform: scale(1); opacity: 1; }
@@ -700,7 +700,7 @@
     -webkit-transform-style: preserve-3d;
 }
 #dice-animation .scene.rolling .jump {
-    animation: diceJump 1.1s cubic-bezier(.3, .1, .4, 1);
+    animation: diceJump 1.5s cubic-bezier(.3, .1, .4, 1);
 }
 @keyframes diceJump {
     0% { transform: translateY(0); }
@@ -719,7 +719,7 @@
     -webkit-transform-style: preserve-3d;
     transform: rotateX(-24deg) rotateY(-32deg);
     transform-origin: center;
-    transition: transform 1.1s cubic-bezier(.2, .7, .25, 1);
+    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1);
     will-change: transform;
 }
 #dice-animation .face {
@@ -788,7 +788,7 @@
 
 /* Ensure the supplied multi-turn rotation is interpolated from its visible start pose. */
 #dice-animation .cube {
-    transition: transform 1.1s cubic-bezier(.2, .7, .25, 1) !important;
+    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1) !important;
 }
 #dice-animation .scene.rolling .cube {
     will-change: transform;
