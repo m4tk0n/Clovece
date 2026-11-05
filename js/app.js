@@ -161,7 +161,7 @@ function renderPlayers() {
     if (!panel || !game) return;
     panel.innerHTML = game.players.map((player, index) => {
         const finished = game.pieces[index].pieces.filter(
-            piece => piece.steps > game.trackLength
+            piece => piece.steps >= game.trackLength
         ).length;
         return '<div class="board-player-stat" style="--player-color:' + player.color + '" title="' +
             escapeHtml(player.name) + '">' +
