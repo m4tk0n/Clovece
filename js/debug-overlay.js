@@ -1,81 +1,92 @@
 /**
- * Diagnostický overlay aktivovaný výhradně parametrem ?debug=1.
- * Sleduje rozměry obrazovky/viewportu a orientační FPS vykreslování stránky.
- * Panel je připnutý ke spodnímu okraji právě viditelné části obrazovky.
- * Herní logiku ani herní chat nemění.
+ * Diagnostický panel aktivovaný parametrem ?debug=1.
+ * Kliknutím se rozbalí/zabalí; rozšířený režim zobrazuje pořadí načítání modulů.
  */
 export function initDebugOverlay() {
-    if (!/(?:^|[?&])debug=1(?:&|$)/.test(window.location.search)) return;
-    if (!document.body || document.getElementById('clovece-debug-overlay')) return;
+    if (!/(?:^|[?&])debug=1(?:&|$)/.test(window.location.search)) return null;
+    if (!document.body || document.getElementById('clovece-debug-overlay')) return null;
 
     const panel = document.createElement('div');
     panel.id = 'clovece-debug-overlay';
-    panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('role', 'button');
+    panel.setAttribute('tabindex', '0');
+    panel.setAttribute('aria-expanded', 'false');
     panel.style.cssText = [
-        'position:fixed',
-        'display:inline-block',
-        'top:auto',
-        'left:2px',
-        'z-index:2147483647',
-        'bottom:2px',
-        'box-sizing:border-box',
-        'width:auto',
-        'max-width:calc(100vw - 8px)',
-        'padding:3px 5px',
-        'border:1px solid rgba(255,0,0,.55)',
-        'border-radius:3px',
-        'background:rgba(0,0,0,.82)',
-        'color:#ff3b3b',
-        'font:10px/1.35 monospace',
-        'white-space:normal',
-        'overflow-wrap:anywhere',
-        'pointer-events:none',
-        'user-select:none',
-        '-webkit-user-select:none'
+        'position:fixed','left:2px','bottom:2px','z-index:2147483647',
+        'box-sizing:border-box','max-width:calc(100vw - 8px)','width:max-content',
+        'padding:4px 6px','border:1px solid rgba(255,0,0,.7)','border-radius:4px',
+        'background:rgba(0,0,0,.9)','color:#ff4545','font:10px/1.4 monospace',
+        'white-space:normal','overflow-wrap:anywhere','pointer-events:auto',
+        'user-select:none','-webkit-user-select:none','touch-action:manipulation',
+        'cursor:pointer'
     ].join(';');
+
+    const summary = document.createElement('div');
+    summary.textContent = 'DEBUG | načítání…';
+    const details = document.createElement('div');
+    details.style.cssText = 'display:none;margin-top:5px;padding-top:5px;border-top:1px solid #a33;max-height:55vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere';
+    panel.appendChild(summary);
+    panel.appendChild(details);
     document.body.appendChild(panel);
 
-    let frameCount = 0;
-    const getNow = function () {
-        return window.performance && typeof window.performance.now === 'function'
-            ? window.performance.now()
-            : Date.now();
-    };
-    let lastSample = getNow();
-    let fps = 0;
+    let expanded = false;
+    const entries = [];
+    function renderLog() {
+        details.textContent = entries.map((entry, index) => {
+            const duration = entry.duration === null ? '' : ' (' + entry.duration + ' ms)';
+            return String(index + 1).padStart(2, '0') + ' [' + entry.status + '] ' +
+                entry.name + duration;
+        }).join('\n');
+    }
+    function toggle() {
+        expanded = !expanded;
+        details.style.display = expanded ? 'block' : 'none';
+        panel.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        summary.textContent = expanded
+            ? 'DEBUG ▲ | ' + entries.length + ' záznamů – klikni pro sbalení'
+            : 'DEBUG ▼ | ' + entries.length + ' záznamů – klikni pro rozbalení';
+        updatePosition();
+    }
+    panel.addEventListener('click', toggle);
+    panel.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggle();
+        }
+    });
 
     const format = value => Math.round(value);
+    let fps = 0;
+    let frameCount = 0;
+    const getNow = () => window.performance && typeof window.performance.now === 'function'
+        ? window.performance.now() : Date.now();
+    let lastSample = getNow();
 
-    function update() {
+    function updatePosition() {
         const viewport = window.visualViewport;
-        const screenWidth = window.screen ? window.screen.width : 0;
-        const screenHeight = window.screen ? window.screen.height : 0;
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        const visualWidth = viewport ? format(viewport.width) : windowWidth;
-        const visualHeight = viewport ? format(viewport.height) : windowHeight;
-
-        panel.textContent =
-            'DEBUG | DISPLAY ' + screenWidth + '×' + screenHeight +
-            ' | OKNO ' + windowWidth + '×' + windowHeight +
-            ' | VIDITELNÉ ' + visualWidth + '×' + visualHeight +
-            ' | DPR ' + (window.devicePixelRatio || 1).toFixed(2) +
-            ' | FPS ' + fps;
-
-        // VisualViewport má vlastní rozměry a posun (např. při klávesnici
-        // nebo skrytí adresního řádku). Výpočet proto nepoužívá jen innerHeight.
-        const visibleTop = viewport ? viewport.offsetTop : 0;
-        const visibleHeight = viewport ? viewport.height : windowHeight;
         if (viewport) {
-            const panelTop = Math.max(2, visibleTop + visibleHeight - panel.offsetHeight - 2);
-            panel.style.top = format(panelTop) + 'px';
+            const top = Math.max(2, viewport.offsetTop + viewport.height - panel.offsetHeight - 2);
+            panel.style.top = format(top) + 'px';
             panel.style.bottom = 'auto';
         } else {
             panel.style.top = 'auto';
             panel.style.bottom = '2px';
         }
     }
-
+    function updateSummary() {
+        const screenWidth = window.screen ? window.screen.width : 0;
+        const screenHeight = window.screen ? window.screen.height : 0;
+        const viewport = window.visualViewport;
+        const visibleWidth = viewport ? format(viewport.width) : window.innerWidth;
+        const visibleHeight = viewport ? format(viewport.height) : window.innerHeight;
+        summary.textContent = (expanded ? 'DEBUG ▲' : 'DEBUG ▼') +
+            ' | DISPLAY ' + screenWidth + '×' + screenHeight +
+            ' | OKNO ' + window.innerWidth + '×' + window.innerHeight +
+            ' | VIDITELNÉ ' + visibleWidth + '×' + visibleHeight +
+            ' | DPR ' + (window.devicePixelRatio || 1).toFixed(2) +
+            ' | FPS ' + fps + ' | ' + entries.length + ' záznamů';
+        updatePosition();
+    }
     function measureFrame() {
         const now = getNow();
         frameCount++;
@@ -84,26 +95,28 @@ export function initDebugOverlay() {
             fps = Math.round(frameCount * 1000 / elapsed);
             frameCount = 0;
             lastSample = now;
-            update();
+            updateSummary();
         }
-        if (window.requestAnimationFrame) {
-            window.requestAnimationFrame(measureFrame);
-        } else {
-            window.setTimeout(measureFrame, 1000 / 30);
-        }
+        if (window.requestAnimationFrame) window.requestAnimationFrame(measureFrame);
+        else window.setTimeout(measureFrame, 1000 / 30);
     }
 
-    window.addEventListener('resize', update, { passive: true });
-    window.addEventListener('orientationchange', update, { passive: true });
+    function log(name, status, duration) {
+        entries.push({ name: String(name), status: status || 'INFO', duration: typeof duration === 'number' ? duration : null });
+        renderLog();
+        updateSummary();
+    }
+
+    window.addEventListener('resize', updateSummary, { passive: true });
+    window.addEventListener('orientationchange', updateSummary, { passive: true });
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', update, { passive: true });
-        window.visualViewport.addEventListener('scroll', update, { passive: true });
+        window.visualViewport.addEventListener('resize', updateSummary, { passive: true });
+        window.visualViewport.addEventListener('scroll', updateSummary, { passive: true });
     }
 
-    update();
-    if (window.requestAnimationFrame) {
-        window.requestAnimationFrame(measureFrame);
-    } else {
-        window.setTimeout(measureFrame, 1000 / 30);
-    }
+    log('Debug panel inicializován', 'OK');
+    updateSummary();
+    if (window.requestAnimationFrame) window.requestAnimationFrame(measureFrame);
+    else window.setTimeout(measureFrame, 1000 / 30);
+    return log;
 }
