@@ -21,7 +21,7 @@ let threeRendererPromise = null;
 let threeStylesPromise = null;
 
 function emitDebugLoad(name, status, duration) {
-    if (!new URLSearchParams(window.location.search).has('debug')) return;
+    if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
     window.dispatchEvent(new CustomEvent('clovece:debug-log', {
         detail: { name, status, duration }
     }));
