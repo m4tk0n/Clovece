@@ -8,12 +8,27 @@ const loadModule = path => import(path);
 async function startApp() {
     try {
         // Diagnostika se načítá pouze při výslovném zapnutí parametrem ?debug=1.
-        if (new URLSearchParams(window.location.search).get('debug') === '1') {
+        // Regulární výraz funguje i ve starších prohlížečích bez URLSearchParams.
+        const debugEnabled = /(?:^|[?&])debug=1(?:&|$)/.test(window.location.search);
+        if (debugEnabled) {
             try {
-                const { initDebugOverlay } = await loadModule('./debug-overlay.js');
-                initDebugOverlay();
+                // Import přes import map zajistí správnou cestu v podadresáři
+                // i verzování souboru proti zastaralé cache.
+                const debugModule = await loadModule('/js/debug-overlay.js');
+                debugModule.initDebugOverlay();
             } catch (error) {
                 console.warn('Nepodařilo se spustit debug overlay:', error);
+
+                // Nouzový panel: i při chybě modulu musí být na telefonu vidět
+                // alespoň základní diagnostika a důvod selhání.
+                const fallback = document.createElement('div');
+                fallback.id = 'clovece-debug-overlay-fallback';
+                fallback.style.cssText = 'position:fixed;left:2px;bottom:2px;z-index:2147483647;max-width:calc(100vw - 8px);padding:4px 6px;background:#300;color:#ff5555;border:1px solid #f44;font:10px/1.4 monospace;white-space:normal;overflow-wrap:anywhere;pointer-events:none';
+                fallback.textContent = 'DEBUG CHYBA MODULU | ' +
+                    (error && error.message ? error.message : String(error)) +
+                    ' | DISPLAY ' + window.screen.width + 'x' + window.screen.height +
+                    ' | OKNO ' + window.innerWidth + 'x' + window.innerHeight;
+                document.body.appendChild(fallback);
             }
         }
 
