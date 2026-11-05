@@ -455,7 +455,7 @@
     margin: 0 0 9px;
 }
 .menu-screen:not(#main-menu) .preview-players {
-    gap: 7px;
+    gap: 5px;
     margin-bottom: 0;
 }
 #player-selection #random-player-colors-btn {
