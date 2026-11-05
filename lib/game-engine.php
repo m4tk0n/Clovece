@@ -204,7 +204,7 @@ function onlineEngineRecordStartingRoll(array &$game, int $playerId, ?callable $
 function onlineEnginePiecePosition(array $game, int $playerId, array $piece): ?int
 {
     $steps = (int) $piece['steps'];
-    if ($steps < 0 || $steps > (int) $game['trackLength']) {
+    if ($steps < 0 || $steps >= (int) $game['trackLength']) {
         return null;
     }
     return (((int) $game['players'][$playerId]['start']) + $steps) % (int) $game['trackLength'];
@@ -218,7 +218,7 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
     }
 
     $trackLength = (int) $game['trackLength'];
-    $maxSteps = $trackLength + 4;
+    $maxSteps = $trackLength + 3;
     $playerPieces = $game['pieces'][$playerId]['pieces'];
     $valid = [];
 
@@ -234,9 +234,8 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
             continue;
         }
 
-        // Vlastní figurku lze přeskočit, ale nelze skončit na žádném jejím políčku.
-        // Startovní pole je posledním polem hlavního okruhu (trackLength);
-        // až následující krok vstupuje na první ze čtyř samostatných cílových polí.
+        // Hlavní okruh má trackLength polí: kroky 0 až trackLength - 1.
+        // Po posledním poli následuje přímo D1, bez druhého průchodu startem.
         $ownBlock = false;
         foreach ($playerPieces as $other) {
             if ((int) $other['id'] === $pieceId) {
@@ -247,7 +246,7 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
                 continue;
             }
 
-            if ($nextSteps <= $trackLength) {
+            if ($nextSteps < $trackLength) {
                 if ($otherSteps <= $trackLength
                     && onlineEnginePiecePosition($game, $playerId, $other)
                         === ((((int) $game['players'][$playerId]['start']) + $nextSteps) % $trackLength)) {
@@ -349,7 +348,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     $nextSteps = $fromSteps === -1 ? 0 : $fromSteps + $diceValue;
     $captured = null;
 
-    if ($nextSteps <= (int) $game['trackLength']) {
+    if ($nextSteps < (int) $game['trackLength']) {
         $destination = (((int) $player['start']) + $nextSteps) % (int) $game['trackLength'];
         // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
         foreach ($game['pieces'] as $enemyId => &$group) {
@@ -358,7 +357,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
             }
             foreach ($group['pieces'] as &$enemyPiece) {
                 $enemySteps = (int) $enemyPiece['steps'];
-                if ($enemySteps >= 0 && $enemySteps <= (int) $game['trackLength']
+                if ($enemySteps >= 0 && $enemySteps < (int) $game['trackLength']
                     && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) {
                     $captured = [
                         'playerId' => (int) $enemyId,
@@ -384,7 +383,7 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     $homeSteps = [];
     foreach ($game['pieces'][$playerId]['pieces'] as $item) {
         $itemSteps = (int) $item['steps'];
-        if ($itemSteps <= (int) $game['trackLength'] || $itemSteps > $maxSteps) {
+        if ($itemSteps < (int) $game['trackLength'] || $itemSteps > $maxSteps) {
             $playerFinished = false;
             break;
         }
@@ -429,10 +428,10 @@ function onlineEngineChooseAIMove(array $game): ?int
     foreach ($valid as $pieceId) {
         $piece = $game['pieces'][$playerId]['pieces'][$pieceId];
         $nextSteps = (int) $piece['steps'] < 0 ? 0 : (int) $piece['steps'] + (int) $game['diceValue'];
-        $destination = $nextSteps <= $trackLength ? (((int) $player['start']) + $nextSteps) % $trackLength : null;
+        $destination = $nextSteps < $trackLength ? (((int) $player['start']) + $nextSteps) % $trackLength : null;
         $score = $nextSteps;
         if ((int) $piece['steps'] < 0) $score += 18;
-        if ($nextSteps === $trackLength + 4) $score += 1000;
+        if ($nextSteps === $trackLength + 3) $score += 1000;
         if ($destination !== null) {
             foreach ($game['pieces'] as $enemyId => $group) {
                 if ((int) $enemyId === $playerId) continue;
