@@ -112,7 +112,7 @@ export function initDebugOverlay() {
     const trackedStyles = new WeakSet();
     function trackStyleNode(node) {
         if (!(node instanceof Element) || trackedStyles.has(node)) return;
-        if (node.tagName === 'LINK' && node.rel.split(/\\s+/).includes('stylesheet')) {
+        if (node.tagName === 'LINK' && node.rel.split(/\s+/).includes('stylesheet')) {
             trackedStyles.add(node);
             const href = node.href || node.getAttribute('href') || '(bez adresy)';
             const report = status => {
