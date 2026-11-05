@@ -219,21 +219,9 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; automatické kontroly a FTP deploy úspěšné; čeká na vizuální ověření |
 | 11 | Osmiúhelníková 80políčková trasa se třemi obvodovými poli na rameno a vnitřními návraty | Implementováno; test geometrie, herní testy a FTP deploy úspěšné; čeká na vizuální ověření |
 
-## Potvrzená pravidla hry
+## Pravidla hry
 
-### Určení začínajícího hráče
-
-- Na začátku každé nové hry proběhne rozstřel hodem kostkou.
-- Každý živý hráč hází ručně kliknutím na kostku, až na něj přijde řada; server pouze vygeneruje a ověří výsledek vyžádaného hodu.
-- V lokální hře hází živí hráči ručně; počítačoví soupeři házejí automaticky jako AI.
-- V online hře házejí živí hráči ručně; online AI hází automaticky pouze tehdy, když je na řadě.
-- Pokud dosáhne nejvyššího výsledku více hráčů, házejí znovu pouze tito hráči.
-- Rozstřel se opakuje, dokud nezůstane jediný vítěz.
-- Vítěz rozstřelu začíná hru. Ostatní hráči pokračují v dosavadním pořadí po směru hodinových ručiček; jejich vzájemné pořadí se nemění.
-- Průběh celého rozstřelu se v herním logu zobrazuje a ukládá jako jediný průběžně aktualizovaný řádek; jednotlivé hody nevytvářejí samostatné řádky.
-- Server odmítne hod hráče, který není právě na řadě, opakovaný hod i běžný tah před dokončením rozstřelu.
-- Pravidlo platí pro lokální i online hru.
-- [x] Implementovat ruční rozstřel živých hráčů v lokální i online hře; AI hází automaticky. Při shodě házejí znovu pouze hráči s nejvyšším výsledkem. Vítěz začne a původní pořadí hráčů zůstává zachováno.
+Závazná a úplná pravidla jsou vedena pouze v [`GAME_RULES.md`](../GAME_RULES.md). Tento dokument je jediným zdrojem pravidel; roadmapa obsahuje pouze stav a úkoly vývoje.
 
 ---
 
