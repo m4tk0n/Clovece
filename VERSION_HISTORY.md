@@ -18,6 +18,22 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 ---
 
 
+## 1.00.00.03 – Kompaktní rozložení pro malé displeje
+
+**Datum:** 5. 11. 2026  
+**Typ:** Responzivní úprava uživatelského rozhraní
+
+- Zmenšeny okraje, mezery, vnitřní odsazení a výšky ovládacích prvků na telefonech s malým displejem.
+- Herní hlavička, ovládací tlačítka, hrací deska a přehled hráčů využívají dostupnou výšku úsporněji.
+- Zachováno zobrazení celé hrací desky bez posouvání herní obrazovky.
+- Zkompaktněny také hlavní menu, lobby, nastavení, místnost a pravidla; jejich dosavadní možnost posouvání zůstává zachována.
+- Doplněny samostatné úpravy pro šířku do 420 px, do 360 px a výšku do 680 px.
+
+**Dotčené soubory:**
+- `css/menu-premium.css`
+
+**Navazující změny:** žádné.
+
 ## 1.00.00.02 – Stručné označení nedostupného 3D
 
 **Datum:** 5. 11. 2026  
