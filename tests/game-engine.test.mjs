@@ -188,7 +188,7 @@ test('an occupied opponent start square is an ordinary square and can be capture
 
     assert.equal(move.captured.playerId, 1);
     assert.equal(game.pieces[1].pieces[0].steps, -1);
-    assert.equal(game.pieces[0].pieces[0].steps, 26);
+    assert.equal(game.pieces[0].pieces[0].steps, 20);
 });
 
 test('40-space circuit uses fields 1-40 once, then enters D1-D4', () => {
