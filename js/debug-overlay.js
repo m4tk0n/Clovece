@@ -115,10 +115,16 @@ export function initDebugOverlay() {
         if (node.tagName === 'LINK' && node.rel.split(/\\s+/).includes('stylesheet')) {
             trackedStyles.add(node);
             const href = node.href || node.getAttribute('href') || '(bez adresy)';
-            const resource = performance.getEntriesByType('resource').find(item => item.name === href);
-            const duration = resource ? Math.round(resource.duration) : null;
-            log('CSS soubor: ' + href, node.sheet ? 'OK' : 'CHYBA', duration);
-        } else if (node.tagName === 'STYLE') {
+            const report = status => {
+                const resource = window.performance?.getEntriesByType('resource').find(item => item.name === href);
+                const duration = resource ? Math.round(resource.duration) : null;
+                log('CSS soubor: ' + href, status, duration);
+            };
+            if (node.sheet) report('OK');
+            else {
+                node.addEventListener('load', () => report('OK'), { once: true });
+                node.addEventListener('error', () => report('CHYBA'), { once: true });
+            }        } else if (node.tagName === 'STYLE') {
             trackedStyles.add(node);
             log('CSS vložené do stránky: ' + (node.id || 'inline style'), 'OK');
         }
