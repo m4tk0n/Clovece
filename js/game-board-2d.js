@@ -84,12 +84,12 @@ function baseMarkup(game, player, validMoves, g) {
 
 function pieceMarkup(game, player, piece, stackIndex, stackCount, validMoves, g, style) {
     const color = player.color;
-    const maxSteps = game.trackLength + 4;
+    const maxSteps = game.trackLength + 3;
     if (piece.steps < 0) return '';
 
     const slot = slotOf(player, game);
     let pos;
-    if (piece.steps <= game.trackLength) {
+    if (piece.steps < game.trackLength) {
         pos = trackPosition(getPiecePosition(game, player.id, piece), game, style);
     } else {
         const laneIndex = Math.min(3, getHomeLaneIndex(game, piece));
@@ -162,16 +162,16 @@ export function render2DBoard(container, game, style, ui) {
     const bases = game.players.map(player => baseMarkup(game, player, validMoves, g)).join('');
 
     const boardPieces = game.players.map(player => {
-        const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 4);
+        const active = game.pieces[player.id].pieces.filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 3);
         return active.map(piece => {
             let stackIndex = 0;
             let stackCount = 1;
-            if (piece.steps <= game.trackLength) {
+            if (piece.steps < game.trackLength) {
                 const position = getPiecePosition(game, player.id, piece);
                 const all = game.pieces.flatMap((group, groupId) => group.pieces.map(item => ({
                     playerId: groupId,
                     piece: item
-                }))).filter(item => item.piece.steps >= 0 && item.piece.steps <= game.trackLength &&
+                }))).filter(item => item.piece.steps >= 0 && item.piece.steps < game.trackLength &&
                     getPiecePosition(game, item.playerId, item.piece) === position);
                 stackIndex = all.findIndex(item => item.playerId === player.id && item.piece.id === piece.id);
                 stackCount = all.length;
