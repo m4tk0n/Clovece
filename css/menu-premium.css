@@ -678,7 +678,8 @@
     }
 }
 @media (max-width: 360px) {
-    .menu-screen:not(#main-menu) .setup-grid {
+    /* Hráči a AI v nastavení nové hry zůstávají vedle sebe i na 360px. */
+    .menu-screen:not(#main-menu):not(#player-selection) .setup-grid {
         grid-template-columns: 1fr;
     }
     #lobby-screen .lobby-actions {
