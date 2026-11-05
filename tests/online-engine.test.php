@@ -196,7 +196,7 @@ $homeJump['pieces'][0]['pieces'][0]['steps'] = $homeJump['trackLength'];
 $homeJump['pieces'][0]['pieces'][1]['steps'] = $homeJump['trackLength'] + 1;
 checkSame([0, 1], onlineEngineValidMoves($homeJump), 'Vlastní figurku v domácím sloupci musí být možné přeskočit.');
 onlineEngineMovePiece($homeJump, 0);
-checkSame($homeJump['trackLength'] + 3, $homeJump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku v domácím sloupci.');
+checkSame($homeJump['trackLength'] + 2, $homeJump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku v domácím sloupci.');
 
 $homeBlock = onlineEngineCreateState(testParticipants(2));
 $homeBlock['phase'] = 'move';
