@@ -146,20 +146,30 @@ $safeMove = onlineEngineMovePiece($safe, 0);
 checkSame(1, $safeMove['captured']['playerId'], 'Na startovním poli soupeře se musí dát vyhodit jeho figurka.');
 checkSame(-1, $safe['pieces'][1]['pieces'][0]['steps'], 'Vyhozená figurka ze startovního pole soupeře se musí vrátit domů.');
 
-$circuit = onlineEngineCreateState(testParticipants(2));
-$circuit['pieces'][0]['pieces'][0]['steps'] = $circuit['trackLength'] - 1;
+$circuit = onlineEngineCreateState(testParticipants(2), 40);
+$circuitPiece = &$circuit['pieces'][0]['pieces'][0];
+$circuitPiece['steps'] = 38; // Pole 39.
 $circuit['phase'] = 'move';
 $circuit['diceValue'] = 1;
-checkSame([0], onlineEngineValidMoves($circuit), 'Návrat na vlastní startovní pole po celém okruhu musí být povolen.');
+checkSame([0], onlineEngineValidMoves($circuit), 'Z pole 39 musí být možné vstoupit na pole 40.');
 onlineEngineMovePiece($circuit, 0);
-checkSame($circuit['trackLength'], $circuit['pieces'][0]['pieces'][0]['steps'], 'Celý okruh musí skončit na vlastním startovním poli.');
-checkSame($circuit['players'][0]['start'], onlineEnginePiecePosition($circuit, 0, $circuit['pieces'][0]['pieces'][0]), 'Startovní pole se musí započítat jako poslední pole okruhu.');
+checkSame(39, $circuitPiece['steps'], 'Pole 40 musí být posledním polem hlavní dráhy.');
+
 $circuit['currentPlayer'] = 0;
 $circuit['phase'] = 'move';
 $circuit['diceValue'] = 1;
-checkSame([0], onlineEngineValidMoves($circuit), 'Z vlastního startovního pole musí být možné vstoupit do domečku.');
+checkSame([0], onlineEngineValidMoves($circuit), 'Z pole 40 musí figurka vstoupit přímo na D1.');
 onlineEngineMovePiece($circuit, 0);
-checkSame($circuit['trackLength'] + 1, $circuit['pieces'][0]['pieces'][0]['steps'], 'První políčko domečku musí následovat až za návratem na start.');
+checkSame(40, $circuitPiece['steps'], 'D1 musí být krok 40 bez opakovaného vstupu na start.');
+checkSame(null, onlineEnginePiecePosition($circuit, 0, $circuitPiece), 'D1 už nesmí být součástí hlavní dráhy.');
+
+$circuit['currentPlayer'] = 0;
+$circuit['phase'] = 'move';
+$circuit['diceValue'] = 3;
+checkSame([0], onlineEngineValidMoves($circuit), 'Z D1 musí být možné dojet na D4.');
+onlineEngineMovePiece($circuit, 0);
+checkSame(43, $circuitPiece['steps'], 'D4 musí být posledním krokem 40polové dráhy.');
+unset($circuitPiece);
 
 
 $jump = onlineEngineCreateState(testParticipants(2));
@@ -182,8 +192,8 @@ checkSame([1], onlineEngineValidMoves($mainBlock), 'Na obsazené políčko hlavn
 $homeJump = onlineEngineCreateState(testParticipants(2));
 $homeJump['phase'] = 'move';
 $homeJump['diceValue'] = 2;
-$homeJump['pieces'][0]['pieces'][0]['steps'] = $homeJump['trackLength'] + 1;
-$homeJump['pieces'][0]['pieces'][1]['steps'] = $homeJump['trackLength'] + 2;
+$homeJump['pieces'][0]['pieces'][0]['steps'] = $homeJump['trackLength'];
+$homeJump['pieces'][0]['pieces'][1]['steps'] = $homeJump['trackLength'] + 1;
 checkSame([0, 1], onlineEngineValidMoves($homeJump), 'Vlastní figurku v domácím sloupci musí být možné přeskočit.');
 onlineEngineMovePiece($homeJump, 0);
 checkSame($homeJump['trackLength'] + 3, $homeJump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku v domácím sloupci.');
@@ -191,16 +201,16 @@ checkSame($homeJump['trackLength'] + 3, $homeJump['pieces'][0]['pieces'][0]['ste
 $homeBlock = onlineEngineCreateState(testParticipants(2));
 $homeBlock['phase'] = 'move';
 $homeBlock['diceValue'] = 1;
-$homeBlock['pieces'][0]['pieces'][0]['steps'] = $homeBlock['trackLength'] + 1;
-$homeBlock['pieces'][0]['pieces'][1]['steps'] = $homeBlock['trackLength'] + 2;
+$homeBlock['pieces'][0]['pieces'][0]['steps'] = $homeBlock['trackLength'];
+$homeBlock['pieces'][0]['pieces'][1]['steps'] = $homeBlock['trackLength'] + 1;
 checkSame([1], onlineEngineValidMoves($homeBlock), 'Na obsazené políčko domácího sloupce nesmí vstoupit druhá vlastní figurka.');
 
 $finish = onlineEngineCreateState(testParticipants(2));
-$laneStart = $finish['trackLength'] + 1;
+$laneStart = $finish['trackLength'];
 $finish['pieces'][0]['pieces'][0]['steps'] = $laneStart;
 $finish['pieces'][0]['pieces'][1]['steps'] = $laneStart + 1;
 $finish['pieces'][0]['pieces'][2]['steps'] = $laneStart + 2;
-$finish['pieces'][0]['pieces'][3]['steps'] = $finish['trackLength'];
+$finish['pieces'][0]['pieces'][3]['steps'] = $finish['trackLength'] - 1;
 $finish['phase'] = 'move';
 $finish['diceValue'] = 4;
 checkSame([3], onlineEngineValidMoves($finish), 'Přesný dojezd na poslední volné cílové políčko musí být povolen.');
@@ -214,8 +224,8 @@ checkSame(0, $finish['winner'], 'Hráč musí vyhrát po obsazení všech čtyř
 checkSame('finished', $finish['phase'], 'Stav hry musí být finished.');
 
 $lastHomeBlocked = onlineEngineCreateState(testParticipants(2));
-$lastHomeBlocked['pieces'][0]['pieces'][0]['steps'] = $lastHomeBlocked['trackLength'] + 3;
-$lastHomeBlocked['pieces'][0]['pieces'][1]['steps'] = $lastHomeBlocked['trackLength'] + 4;
+$lastHomeBlocked['pieces'][0]['pieces'][0]['steps'] = $lastHomeBlocked['trackLength'] + 2;
+$lastHomeBlocked['pieces'][0]['pieces'][1]['steps'] = $lastHomeBlocked['trackLength'] + 3;
 $lastHomeBlocked['phase'] = 'move';
 $lastHomeBlocked['diceValue'] = 1;
 checkSame([], onlineEngineValidMoves($lastHomeBlocked), 'Na obsazené poslední cílové políčko nesmí vstoupit druhá vlastní figurka.');
