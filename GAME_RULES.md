@@ -21,7 +21,7 @@
 
 ### Potvrzené varianty
 
-- Podporované logické délky hlavního okruhu jsou 40, 48 a 80 polí.
+- Jediné povolené logické délky hlavního okruhu jsou 40, 48 a 80 polí. Jiné délky, zejména 52 a 64, jsou neplatné a nesmějí být použity ani jako výchozí nebo záložní varianta.
 - Deska 40 má 4 možné hráčské pozice.
 - Deska 48 má 6 možných hráčských pozic.
 - Deska 80 má 8 možných hráčských pozic.
@@ -109,7 +109,7 @@ Tyto otázky nejsou touto specifikací rozhodnuté. Před změnou enginů je nut
 
 ## 11. Rozdíly mezi specifikací a současnou implementací
 
-- Nové explicitně zvolené desky používají 40/48/80 polí.
-- Pokud se velikost desky při vytvoření hry nepředá, oba enginy kvůli zpětné kompatibilitě stále vytvářejí starou desku: 52 polí pro 2–4 hráče a 64 polí pro 5–8 hráčů.
-- README obsahuje staré údaje 52/64 a musí být po uzavření specifikace aktualizováno.
-- Pravidla v tomto dokumentu mají být po potvrzení otevřených bodů společným závazným podkladem pro lokální engine, online engine, AI a testy.
+- Lokální i serverový engine smějí vytvořit pouze desku s délkou 40, 48 nebo 80 polí.
+- Pokud volající velikost desky výslovně nepředá, použije se první dostupná velikost pro daný počet hráčů: 40 pro 2–4 hráče, 48 pro 5–6 hráčů a 80 pro 7–8 hráčů.
+- Hodnoty 52 a 64 jsou odstraněny; zpětná kompatibilita nesmí vytvářet ani vybírat neplatnou délku.
+- Tento dokument je jediným zdrojem herních pravidel. README na něj pouze odkazuje.
