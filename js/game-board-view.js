@@ -35,14 +35,19 @@ function disposeThreeRenderer(stage) {
 }
 
 function ensureThreeStyles() {
-    if (document.getElementById('clovece-three-board-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'clovece-three-board-styles';
-    style.textContent =
-        '.three-board-stage{display:block;flex:none;width:100%;height:min(72vh,760px);min-height:340px;position:relative;overflow:hidden;touch-action:none;border-radius:10px;background:radial-gradient(ellipse at 50% 42%,#34483d,#111a15 78%)}' +
-        '@media(max-width:600px){.three-board-stage{height:68vh;min-height:320px;border-radius:10px}}' +
-        '.three-board-stage canvas{display:block;width:100%;height:100%;touch-action:none}';
-    document.head.appendChild(style);
+    if (document.getElementById('clovece-three-board-styles')) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+        const link = document.createElement('link');
+        link.id = 'clovece-three-board-styles';
+        link.rel = 'stylesheet';
+        link.href = new URL('../css/board-3d.css?v=20261105', import.meta.url).href;
+        link.onload = resolve;
+        link.onerror = () => {
+            link.remove();
+            reject(new Error('Nepodařilo se načíst css/board-3d.css'));
+        };
+        document.head.appendChild(link);
+    });
 }
 
 function loadView() {
@@ -178,8 +183,7 @@ export function renderBoard(container, game) {
             });
         }
         // 3D renderer a jeho CSS se načtou až při skutečném vykreslení hry v 3D.
-        ensureThreeStyles();
-        loadThreeRenderer().then(module => {
+        ensureThreeStyles().then(() => loadThreeRenderer()).then(module => {
             if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
             stage._threeRendererModule = module;
             module.render3DBoard(stage, buildBoardSceneData(container._lastGame || game), error => {
