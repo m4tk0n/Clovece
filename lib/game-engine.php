@@ -87,6 +87,7 @@ function onlineEngineCreateState(array $participants, ?int $boardSize = null): a
         'startWinner' => null,
         'diceValue' => 0,
         'baseRollAttempts' => 0,
+        'thirdAttemptSix' => false,
         'phase' => 'start-roll',
         'turnNumber' => 1,
         'winner' => null,
@@ -205,31 +206,30 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
     $trackLength = (int) $game['trackLength'];
     $maxSteps = $trackLength + 3;
     $playerPieces = $game['pieces'][$playerId]['pieces'];
-    $valid = [];
+    $hasBasePiece = false;
+    foreach ($playerPieces as $piece) {
+        if ((int) $piece['steps'] === -1) {
+            $hasBasePiece = true;
+            break;
+        }
+    }
 
+    $candidates = [];
     foreach ($playerPieces as $piece) {
         $pieceId = (int) $piece['id'];
         $steps = (int) $piece['steps'];
-        if ($steps === $maxSteps || ($steps === -1 && (int) $game['diceValue'] !== 6)) {
-            continue;
-        }
+        if ($steps === $maxSteps) continue;
+        if ($hasBasePiece && (int) $game['diceValue'] === 6 && $steps !== -1) continue;
+        if ($steps === -1 && (int) $game['diceValue'] !== 6) continue;
 
         $nextSteps = $steps === -1 ? 0 : $steps + (int) $game['diceValue'];
-        if ($nextSteps > $maxSteps) {
-            continue;
-        }
+        if ($nextSteps > $maxSteps) continue;
 
-        // Hlavní okruh má trackLength polí: kroky 0 až trackLength - 1.
-        // Po posledním poli následuje přímo D1, bez druhého průchodu startem.
         $ownBlock = false;
         foreach ($playerPieces as $other) {
-            if ((int) $other['id'] === $pieceId) {
-                continue;
-            }
+            if ((int) $other['id'] === $pieceId) continue;
             $otherSteps = (int) $other['steps'];
-            if ($otherSteps < 0) {
-                continue;
-            }
+            if ($otherSteps < 0) continue;
 
             if ($nextSteps < $trackLength) {
                 if ($otherSteps < $trackLength
@@ -238,19 +238,30 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
                     $ownBlock = true;
                     break;
                 }
-            } elseif ($otherSteps === $nextSteps) {
-                $ownBlock = true;
-                break;
+            } else {
+                // V cílové dráze se nesmí přeskočit žádná vlastní figurka.
+                $firstHomeStep = max($trackLength, $steps + 1);
+                for ($step = $firstHomeStep; $step <= $nextSteps; $step++) {
+                    if ($otherSteps === $step) {
+                        $ownBlock = true;
+                        break 2;
+                    }
+                }
             }
         }
-        if ($ownBlock) {
-            continue;
-        }
-
-        $valid[] = $pieceId;
+        if (!$ownBlock) $candidates[] = $pieceId;
     }
 
-    return $valid;
+    // Přesný a volný vstup do cílové dráhy je povinný.
+    $forcedHomeEntries = [];
+    foreach ($candidates as $pieceId) {
+        $steps = (int) $playerPieces[$pieceId]['steps'];
+        if ($steps >= 0 && $steps < $trackLength
+            && $steps + (int) $game['diceValue'] >= $trackLength) {
+            $forcedHomeEntries[] = $pieceId;
+        }
+    }
+    return $forcedHomeEntries !== [] ? $forcedHomeEntries : $candidates;
 }
 
 function onlineEngineRollDice(array &$game, ?callable $rollFn = null): array
@@ -275,25 +286,46 @@ function onlineEngineRollDice(array &$game, ?callable $rollFn = null): array
         }
     }
 
-    if ($allAtBase && $value !== 6) {
+    if ($allAtBase) {
+        if ($value !== 6) {
+            $game['baseRollAttempts'] = (int) ($game['baseRollAttempts'] ?? 0) + 1;
+            $retrying = $game['baseRollAttempts'] < 3;
+            $game['phase'] = $retrying ? 'roll' : 'no-move';
+            return [
+                'value' => $value,
+                'validMoves' => [],
+                'retrying' => $retrying,
+                'attempt' => $game['baseRollAttempts'],
+                'maxAttempts' => 3,
+            ];
+        }
+
         $game['baseRollAttempts'] = (int) ($game['baseRollAttempts'] ?? 0) + 1;
-        $retrying = $game['baseRollAttempts'] < 3;
-        $game['phase'] = $retrying ? 'roll' : 'no-move';
-        return [
-            'value' => $value,
-            'validMoves' => [],
-            'retrying' => $retrying,
-            'attempt' => $game['baseRollAttempts'],
-            'maxAttempts' => 3,
-        ];
+        $game['thirdAttemptSix'] = $game['baseRollAttempts'] === 3;
+    } else {
+        $game['baseRollAttempts'] = 0;
+        $game['thirdAttemptSix'] = false;
     }
 
-    $game['baseRollAttempts'] = 0;
     $game['phase'] = 'move';
     $moves = onlineEngineValidMoves($game);
-    if ($moves === []) $game['phase'] = 'no-move';
+    if ($moves === []) {
+        if ($value === 6) {
+            $game['phase'] = 'roll';
+            $game['baseRollAttempts'] = 0;
+            $game['thirdAttemptSix'] = false;
+            return ['value' => $value, 'validMoves' => [], 'retrying' => true];
+        }
+        $game['phase'] = 'no-move';
+    }
 
-    return ['value' => $value, 'validMoves' => $moves, 'retrying' => false];
+    return [
+        'value' => $value,
+        'validMoves' => $moves,
+        'retrying' => false,
+        'attempt' => $allAtBase ? $game['baseRollAttempts'] : null,
+        'maxAttempts' => $allAtBase ? 3 : null,
+    ];
 }
 
 function onlineEngineAdvanceTurn(array &$game): void
@@ -327,19 +359,35 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
 
     $playerId = (int) $game['currentPlayer'];
     $player = $game['players'][$playerId];
-    $piece = &$game['pieces'][$playerId]['pieces'][$pieceId];
-    $fromSteps = (int) $piece['steps'];
+    $fromSteps = (int) $game['pieces'][$playerId]['pieces'][$pieceId]['steps'];
     $diceValue = (int) $game['diceValue'];
     $nextSteps = $fromSteps === -1 ? 0 : $fromSteps + $diceValue;
     $captured = null;
 
+    if ($fromSteps === -1) {
+        // Nasazení na vlastní obsazený start vrací dosavadní figurku do základny.
+        foreach ($game['pieces'][$playerId]['pieces'] as &$ownPiece) {
+            if ((int) $ownPiece['id'] === $pieceId) continue;
+            $ownSteps = (int) $ownPiece['steps'];
+            if ($ownSteps >= 0 && $ownSteps < (int) $game['trackLength']
+                && onlineEnginePiecePosition($game, $playerId, $ownPiece) === (int) $player['start']) {
+                $captured = [
+                    'playerId' => $playerId,
+                    'pieceId' => (int) $ownPiece['id'],
+                    'playerName' => (string) $player['name'],
+                    'color' => (string) $player['color'],
+                    'ownPiece' => true,
+                ];
+                $ownPiece['steps'] = -1;
+            }
+        }
+        unset($ownPiece);
+    }
+
     if ($nextSteps < (int) $game['trackLength']) {
         $destination = (((int) $player['start']) + $nextSteps) % (int) $game['trackLength'];
-        // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
         foreach ($game['pieces'] as $enemyId => &$group) {
-            if ((int) $enemyId === $playerId) {
-                continue;
-            }
+            if ((int) $enemyId === $playerId) continue;
             foreach ($group['pieces'] as &$enemyPiece) {
                 $enemySteps = (int) $enemyPiece['steps'];
                 if ($enemySteps >= 0 && $enemySteps < (int) $game['trackLength']
@@ -358,12 +406,9 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
         unset($group);
     }
 
-    $piece['steps'] = $nextSteps;
-    unset($piece);
-
+    $game['pieces'][$playerId]['pieces'][$pieceId]['steps'] = $nextSteps;
     $maxSteps = (int) $game['trackLength'] + 3;
     $finishedNow = $nextSteps === $maxSteps;
-    // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     $playerFinished = true;
     $homeSteps = [];
     foreach ($game['pieces'][$playerId]['pieces'] as $item) {
@@ -380,7 +425,10 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
         $game['players'][$playerId]['finished'] = true;
         $game['winner'] = $playerId;
         $game['phase'] = 'finished';
-    } elseif ($diceValue === 6 && !$finishedNow) {
+    } elseif (!empty($game['thirdAttemptSix'])) {
+        $game['thirdAttemptSix'] = false;
+        onlineEngineAdvanceTurn($game);
+    } elseif ($diceValue === 6) {
         $game['baseRollAttempts'] = 0;
         $game['phase'] = 'roll';
     } else {
@@ -396,10 +444,8 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
         'diceValue' => $diceValue,
     ];
     $game['lastMove'] = $move;
-
     return $move;
 }
-
 
 function onlineEngineChooseAIMove(array $game): ?int
 {
