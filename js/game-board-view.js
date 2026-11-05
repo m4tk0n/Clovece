@@ -200,7 +200,7 @@ export function renderBoard(container, game) {
         }
         // 3D renderer a jeho CSS se načtou až při skutečném vykreslení hry v 3D.
         ensureThreeStyles().then(() => loadThreeRenderer()).then(module => {
-            if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
+            if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d || container.dataset.renderKey !== renderKey) return;
             stage._threeRendererModule = module;
             module.render3DBoard(stage, buildBoardSceneData(container._lastGame || game), error => {
                 // Selhání WebGL/Three.js nesmí zablokovat samotnou hru.
@@ -213,7 +213,7 @@ export function renderBoard(container, game) {
                 renderBoard(container, container._lastGame || game);
             });
         }).catch(error => {
-            if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
+            if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d || container.dataset.renderKey !== renderKey) return;
             console.error('3D renderer se nepodařilo načíst:', error);
             view3d = false;
             view3dUnavailable = true;
