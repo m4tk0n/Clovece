@@ -22,7 +22,7 @@ Online režim je implementovaný v základní podobě a probíhá ověřování 
 - vytváření místností a připojování dalších hráčů
 - synchronizace stavu hry přes PHP API a MySQL
 - serverové házení kostkou a ověřování tahů
-- chat a společný časový proud chatu a herních událostí
+- chat a společný časový proud chatu a herních událostí (pravidla logování: [CHAT_LOG.md](CHAT_LOG.md))
 - pravidelné dotazování API; WebSockety nejsou vyžadovány
 
 Před nasazením pro běžné hraní je nutné dokončit test na WZ.cz ve dvou samostatných zařízeních.
