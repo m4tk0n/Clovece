@@ -219,16 +219,16 @@ checkSame([1], onlineEngineValidMoves($homeBlock), 'Na obsazené políčko domá
 
 $finish = onlineEngineCreateState(testParticipants(2));
 $laneStart = $finish['trackLength'];
-$finish['pieces'][0]['pieces'][0]['steps'] = $laneStart;
-$finish['pieces'][0]['pieces'][1]['steps'] = $laneStart + 1;
-$finish['pieces'][0]['pieces'][2]['steps'] = $laneStart + 2;
+$finish['pieces'][0]['pieces'][0]['steps'] = $laneStart + 1;
+$finish['pieces'][0]['pieces'][1]['steps'] = $laneStart + 2;
+$finish['pieces'][0]['pieces'][2]['steps'] = $laneStart + 3;
 $finish['pieces'][0]['pieces'][3]['steps'] = $finish['trackLength'] - 1;
 $finish['phase'] = 'move';
-$finish['diceValue'] = 4;
+$finish['diceValue'] = 1;
 checkSame([3], onlineEngineValidMoves($finish), 'Přesný dojezd na poslední volné cílové políčko musí být povolen.');
 onlineEngineMovePiece($finish, 3);
 checkSame(
-    [$laneStart, $laneStart + 1, $laneStart + 2, $laneStart + 3],
+    [$laneStart + 1, $laneStart + 2, $laneStart + 3, $laneStart],
     array_column($finish['pieces'][0]['pieces'], 'steps'),
     'Čtyři figurky musí obsadit čtyři různá cílová políčka.'
 );
