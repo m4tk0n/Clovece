@@ -229,7 +229,7 @@ export function movePiece(game, pieceId) {
     }
 
     piece.steps = nextSteps;
-    const maxSteps = game.trackLength + 4;
+    const maxSteps = game.trackLength + 3;
     const finishedNow = piece.steps === maxSteps;
     // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     const homeSteps = game.pieces[playerId].pieces.map(item => item.steps);
@@ -293,7 +293,7 @@ export function chooseAIMove(game) {
             game.pieces.forEach((group, enemyId) => {
                 if (enemyId === playerId) return;
                 group.pieces.forEach(enemy => {
-                    if (enemy.steps >= 0 && enemy.steps <= game.trackLength &&
+                    if (enemy.steps >= 0 && enemy.steps < game.trackLength &&
                         getPiecePosition(game, enemyId, enemy) === destination) score += 90;
                 });
             });
