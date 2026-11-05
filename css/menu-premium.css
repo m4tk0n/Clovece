@@ -465,7 +465,13 @@
     padding-bottom: 6px;
 }
 .menu-screen:not(#main-menu) .preview-player {
-    padding: 8px;
+    padding: 3px 8px;
+}
+
+/* Sestava u stolu: hráči mají být těsně pod sebou bez zbytečných mezer. */
+#player-selection .preview-player {
+    padding-top: 3px;
+    padding-bottom: 3px;
 }
 .menu-screen:not(#main-menu) .settings-container {
     max-width: 520px;
