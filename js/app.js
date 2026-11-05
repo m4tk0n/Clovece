@@ -423,10 +423,16 @@ async function animatePieceMove(move, movement) {
 
 async function finishMove(move, movement) {
     await animatePieceMove(move, movement);
+    const wasInBase = movement?.before?.[move.playerId]?.[move.pieceId] === -1;
     const logText = ['hodil ' + move.diceValue];
+    if (wasInBase) {
+        logText.push('nasadil figurku ' + (move.pieceId + 1));
+    } else {
+        logText.push('posunul figurku ' + (move.pieceId + 1) + ' o ' + move.diceValue + ' polí');
+    }
     if (move.captured) logText.push(move.captured.ownPiece
-        ? 'vrátil původní figurku do základny'
-        : 'vyhodil ' + move.captured.playerName);
+        ? 'vyměnil vlastní figurku na startu (původní se vrátila do základny)'
+        : 'vyhodil hráče ' + move.captured.playerName);
     if (move.finishedNow) logText.push('dostal figurku do domečku');
     addGameLogEntry(move.playerName, logText.join(', '));
 
