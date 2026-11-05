@@ -13,11 +13,12 @@ export function initDebugOverlay() {
     panel.setAttribute('aria-hidden', 'true');
     panel.style.cssText = [
         'position:fixed',
-        'top:0',
+        'top:auto',
         'left:2px',
         'z-index:2147483647',
+        'bottom:2px',
         'box-sizing:border-box',
-        'width:max-content',
+        'width:auto',
         'max-width:calc(100vw - 8px)',
         'padding:3px 5px',
         'border:1px solid rgba(255,0,0,.55)',
@@ -41,8 +42,8 @@ export function initDebugOverlay() {
 
     function update() {
         const viewport = window.visualViewport;
-        const screenWidth = window.screen?.width ?? 0;
-        const screenHeight = window.screen?.height ?? 0;
+        const screenWidth = window.screen ? window.screen.width : 0;
+        const screenHeight = window.screen ? window.screen.height : 0;
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         const visualWidth = viewport ? format(viewport.width) : windowWidth;
@@ -59,8 +60,14 @@ export function initDebugOverlay() {
         // nebo skrytí adresního řádku). Výpočet proto nepoužívá jen innerHeight.
         const visibleTop = viewport ? viewport.offsetTop : 0;
         const visibleHeight = viewport ? viewport.height : windowHeight;
-        const panelTop = Math.max(2, visibleTop + visibleHeight - panel.offsetHeight - 2);
-        panel.style.top = format(panelTop) + 'px';
+        if (viewport) {
+            const panelTop = Math.max(2, visibleTop + visibleHeight - panel.offsetHeight - 2);
+            panel.style.top = format(panelTop) + 'px';
+            panel.style.bottom = 'auto';
+        } else {
+            panel.style.top = 'auto';
+            panel.style.bottom = '2px';
+        }
     }
 
     function measureFrame(now) {
@@ -72,14 +79,20 @@ export function initDebugOverlay() {
             lastSample = now;
             update();
         }
-        window.requestAnimationFrame(measureFrame);
+        if (window.requestAnimationFrame) {
+            window.requestAnimationFrame(measureFrame);
+        }
     }
 
     window.addEventListener('resize', update, { passive: true });
     window.addEventListener('orientationchange', update, { passive: true });
-    window.visualViewport?.addEventListener('resize', update, { passive: true });
-    window.visualViewport?.addEventListener('scroll', update, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', update, { passive: true });
+        window.visualViewport.addEventListener('scroll', update, { passive: true });
+    }
 
     update();
-    window.requestAnimationFrame(measureFrame);
+    if (window.requestAnimationFrame) {
+        window.requestAnimationFrame(measureFrame);
+    }
 }
