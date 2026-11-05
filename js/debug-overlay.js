@@ -124,7 +124,8 @@ export function initDebugOverlay() {
             else {
                 node.addEventListener('load', () => report('OK'), { once: true });
                 node.addEventListener('error', () => report('CHYBA'), { once: true });
-            }        } else if (node.tagName === 'STYLE') {
+            }
+        } else if (node.tagName === 'STYLE') {
             trackedStyles.add(node);
             log('CSS vložené do stránky: ' + (node.id || 'inline style'), 'OK');
         }
