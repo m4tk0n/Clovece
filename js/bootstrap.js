@@ -1,27 +1,28 @@
 /**
  * Hlavní vstup aplikace.
- * Verzi předáváme všem hlavním modulům, aby prohlížeč nepoužil staré kopie.
+ * Verzi hlavních modulů nastavuje import map v index.php.
  */
-// Verze hlavních modulů je nastavena centrálně přes import map v index.php.
 const loadModule = path => import(path);
 
 async function startApp() {
+    const debugEnabled = /(?:^|[?&])debug=1(?:&|$)/.test(window.location.search);
+    let debugLog = null;
+
     try {
-        // Diagnostika se načítá pouze při výslovném zapnutí parametrem ?debug=1.
-        const debugEnabled = /(?:^|[?&])debug=1(?:&|$)/.test(window.location.search);
         if (debugEnabled) {
+            const startedAt = Date.now();
             try {
-                // Relativní import se řeší vůči tomuto souboru bootstrap.js.
-                // Nepotřebuje import-map alias s absolutní cestou od kořene webu.
+                // Relativní cesta funguje i při umístění aplikace v podadresáři.
                 const debugModule = await import('./debug-overlay.js?v=20261105');
-                debugModule.initDebugOverlay();
+                debugLog = debugModule.initDebugOverlay();
+                if (debugLog) {
+                    debugLog('Modul debug-overlay.js načten', 'OK', Date.now() - startedAt);
+                }
             } catch (error) {
                 console.warn('Nepodařilo se spustit debug overlay:', error);
-
-                // Nouzový panel při chybě načtení nebo inicializace diagnostického modulu.
                 const fallback = document.createElement('div');
                 fallback.id = 'clovece-debug-overlay-fallback';
-                fallback.style.cssText = 'position:fixed;left:2px;bottom:2px;z-index:2147483647;max-width:calc(100vw - 8px);padding:4px 6px;background:#300;color:#ff5555;border:1px solid #f44;font:10px/1.4 monospace;white-space:normal;overflow-wrap:anywhere;pointer-events:none';
+                fallback.style.cssText = 'position:fixed;left:2px;bottom:2px;z-index:2147483647;max-width:calc(100vw - 8px);padding:5px 7px;background:#300;color:#ff5555;border:1px solid #f44;font:11px/1.4 monospace;white-space:normal;overflow-wrap:anywhere;pointer-events:auto';
                 fallback.textContent = 'DEBUG CHYBA MODULU | ' +
                     (error && error.message ? error.message : String(error)) +
                     ' | DISPLAY ' + (window.screen ? window.screen.width : 0) + 'x' +
@@ -31,30 +32,69 @@ async function startApp() {
             }
         }
 
+        async function trackedImport(name, path) {
+            const startedAt = Date.now();
+            if (debugLog) debugLog(name + ' – načítání', '…');
+            try {
+                const module = await loadModule(path);
+                if (debugLog) debugLog(name + ' – načteno', 'OK', Date.now() - startedAt);
+                return module;
+            } catch (error) {
+                if (debugLog) debugLog(name + ' – chyba načítání: ' + (error && error.message ? error.message : String(error)), 'CHYBA', Date.now() - startedAt);
+                throw error;
+            }
+        }
+
         const [
             { initNavigation },
             { initAudio },
             { initGame },
             { initOnline }
         ] = await Promise.all([
-            loadModule('./navigation.js'),
-            loadModule('./audio.js'),
-            loadModule('./app.js'),
-            loadModule('./online.js')
+            trackedImport('navigation.js', './navigation.js'),
+            trackedImport('audio.js', './audio.js'),
+            trackedImport('app.js', './app.js'),
+            trackedImport('online.js', './online.js')
         ]);
+
+        function trackedInit(name, callback) {
+            const startedAt = Date.now();
+            if (debugLog) debugLog(name + ' – inicializace', '…');
+            try {
+                const result = callback();
+                if (result && typeof result.then === 'function') {
+                    return result.then(value => {
+                        if (debugLog) debugLog(name + ' – dokončeno', 'OK', Date.now() - startedAt);
+                        return value;
+                    }).catch(error => {
+                        if (debugLog) debugLog(name + ' – chyba: ' + (error && error.message ? error.message : String(error)), 'CHYBA', Date.now() - startedAt);
+                        throw error;
+                    });
+                }
+                if (debugLog) debugLog(name + ' – dokončeno', 'OK', Date.now() - startedAt);
+                return result;
+            } catch (error) {
+                if (debugLog) debugLog(name + ' – chyba: ' + (error && error.message ? error.message : String(error)), 'CHYBA', Date.now() - startedAt);
+                throw error;
+            }
+        }
 
         document.getElementById('loading-screen')?.classList.add('hidden');
         document.getElementById('main-menu')?.classList.remove('hidden');
 
-        void initOnline();
-        initNavigation();
-        initAudio();
-        initGame();
+        // Online inicializace běží samostatně; její chyby se zaznamenají do panelu.
+        trackedInit('initOnline()', initOnline).catch(error => {
+            console.error('Chyba initOnline():', error);
+        });
+        trackedInit('initNavigation()', initNavigation);
+        trackedInit('initAudio()', initAudio);
+        trackedInit('initGame()', initGame);
     } catch (error) {
         console.error('Nepodařilo se inicializovat aplikaci:', error);
+        if (debugLog) debugLog('Inicializace aplikace selhala: ' + (error && error.message ? error.message : String(error)), 'CHYBA');
         const loadingText = document.querySelector('#loading-screen p');
         if (loadingText) {
-            loadingText.textContent = 'Hru se nepodařilo načíst: ' + (error?.message || 'neznámá chyba');
+            loadingText.textContent = 'Hru se nepodařilo načíst: ' + (error && error.message ? error.message : 'neznámá chyba');
         }
     }
 }
