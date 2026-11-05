@@ -420,19 +420,23 @@
     padding: 12px;
     border-radius: 13px;
 }
-.menu-screen:not(#main-menu) .setup-control label {
+.menu-screen:not(#main-menu) .setup-control label,
+.menu-screen:not(#main-menu) .setup-control .setup-label {
     margin-bottom: 8px;
     font-size: 10px;
 }
-.menu-screen:not(#main-menu) .setup-number {
+.menu-screen:not(#main-menu) .setup-stepper {
     gap: 7px;
-    margin-bottom: 8px;
 }
-.menu-screen:not(#main-menu) .setup-number strong {
+.menu-screen:not(#main-menu) .setup-stepper strong {
     font-size: 36px;
 }
-.menu-screen:not(#main-menu) .setup-number span {
-    font-size: 10px;
+.menu-screen:not(#main-menu) .setup-stepper-btn {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 10px;
+    font-size: 26px;
 }
 .menu-screen:not(#main-menu) .setup-summary {
     gap: 7px 10px;
@@ -647,8 +651,14 @@
     .menu-screen:not(#main-menu) .setup-control {
         padding: 9px;
     }
-    .menu-screen:not(#main-menu) .setup-number strong {
+    .menu-screen:not(#main-menu) .setup-stepper strong {
         font-size: 31px;
+    }
+    .menu-screen:not(#main-menu) .setup-stepper-btn {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+        font-size: 23px;
     }
     #lobby-screen .lobby-actions {
         grid-template-columns: 92px minmax(0,1fr);
@@ -869,8 +879,14 @@
     .menu-screen:not(#main-menu) .setup-number {
         margin-bottom: 5px;
     }
-    .menu-screen:not(#main-menu) .setup-number strong {
+    .menu-screen:not(#main-menu) .setup-stepper strong {
         font-size: 27px;
+    }
+    .menu-screen:not(#main-menu) .setup-stepper-btn {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        font-size: 21px;
     }
     .menu-screen:not(#main-menu) .setup-summary {
         gap: 5px 7px;
