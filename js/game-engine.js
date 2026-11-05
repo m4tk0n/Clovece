@@ -301,6 +301,7 @@ export function movePiece(game, pieceId) {
         playerId,
         playerName: player.name,
         pieceId: piece.id,
+        deployed: fromSteps === -1,
         captured,
         finishedNow,
         diceValue
