@@ -41,19 +41,16 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
         assignedColors.push(color || PLAYER_COLORS[index]);
     }
 
-    const selectedBoard = boardSize === null ? null : BOARD_CONFIGS[Number(boardSize)];
-    if (boardSize !== null && (!selectedBoard || !getAvailableBoardSizes(total).includes(selectedBoard.trackLength))) {
+    const availableBoardSizes = getAvailableBoardSizes(total);
+    const effectiveBoardSize = boardSize === null ? availableBoardSizes[0] : Number(boardSize);
+    const selectedBoard = BOARD_CONFIGS[effectiveBoardSize];
+    if (!selectedBoard || !availableBoardSizes.includes(selectedBoard.trackLength)) {
         throw new Error('Zvolená velikost desky není pro tento počet hráčů dostupná.');
     }
 
-    // Bez výslovné volby zachováváme původní délky kvůli zpětné kompatibilitě uložených her.
-    const trackLength = selectedBoard?.trackLength ?? (total <= 4 ? 52 : 64);
-    const slotCount = selectedBoard?.slotCount ?? (total <= 4 ? 4 : 8);
-    const slots = selectedBoard
-        ? Array.from({ length: total }, (_, index) => Math.round(index * slotCount / total))
-        : (total <= 4
-            ? (total === 2 ? [0, 2] : total === 3 ? [0, 1, 2] : [0, 1, 2, 3])
-            : Array.from({ length: total }, (_, index) => Math.round(index * 8 / total)));
+    const trackLength = selectedBoard.trackLength;
+    const slotCount = selectedBoard.slotCount;
+    const slots = Array.from({ length: total }, (_, index) => Math.round(index * slotCount / total));
     const players = Array.from({ length: total }, (_, index) => ({
         id: index,
         slot: slots[index],
@@ -71,7 +68,7 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
     return {
         players,
         trackLength,
-        boardSize: selectedBoard ? trackLength : null,
+        boardSize: trackLength,
         slotCount,
         currentPlayer: 0,
         startRolls: [],
