@@ -5,12 +5,28 @@
  */
 const UNIT = 1 / 42;
 let threePromise;
+function emitDebugLoad(name, status, duration) {
+    if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
+    window.dispatchEvent(new CustomEvent('clovece:debug-log', {
+        detail: { name, status, duration }
+    }));
+}
 function loadThree() {
-    if (!threePromise) threePromise = Promise.all([
-        import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js'),
-        import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js')
-    ]).then(([THREE, controls]) => ({ THREE, OrbitControls: controls.OrbitControls }))
-      .catch(error => { threePromise = null; throw error; });
+    if (!threePromise) {
+        const startedAt = performance.now();
+        emitDebugLoad('Three.js + OrbitControls – načítání', '…');
+        threePromise = Promise.all([
+            import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js'),
+            import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js')
+        ]).then(([THREE, controls]) => {
+            emitDebugLoad('Three.js + OrbitControls – načteno', 'OK', Math.round(performance.now() - startedAt));
+            return { THREE, OrbitControls: controls.OrbitControls };
+        }).catch(error => {
+            emitDebugLoad('Three.js + OrbitControls – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
+            threePromise = null;
+            throw error;
+        });
+    }
     return threePromise;
 }
 function mat(T,color,options={}) {
