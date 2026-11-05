@@ -420,11 +420,10 @@ $ver = date('Ymd-His');
                         </label>
                     </div>
                     <div class="setting-item">
-                        <label>Rychlost AI</label>
+                        <label>Rychlost hry</label>
                         <select id="ai-speed">
-                            <option value="fast">Rychlé</option>
-                            <option value="medium" selected>Střední</option>
-                            <option value="slow">Pomalé</option>
+                            <option value="normal" selected>Normální</option>
+                            <option value="fast">Rychlá</option>
                         </select>
                     </div>
                 </div>
@@ -530,6 +529,13 @@ $ver = date('Ymd-His');
                 min="0" max="100" value="70" step="1"
                 aria-label="Hlasitost zvuku" title="Hlasitost">
                 </div>
+            </div>
+            <div class="menu-audio-row">
+                <label for="game-speed">Rychlost hry</label>
+                <select id="game-speed" aria-label="Rychlost hry">
+                    <option value="normal">Normální</option>
+                    <option value="fast">Rychlá</option>
+                </select>
             </div>
             <button id="resume-btn" class="menu-btn">
                 <span>POKRAČOVAT</span>
