@@ -474,8 +474,9 @@ async function doRoll(isAI = false) {
         return;
     }
 
+    const debugManualMoves = new URLSearchParams(window.location.search).get('debug') === '1';
     const forcedMove = getForcedMove(game);
-    if (forcedMove !== null) {
+    if (forcedMove !== null && !debugManualMoves) {
         finishMove(movePiece(game, forcedMove));
         return;
     }
