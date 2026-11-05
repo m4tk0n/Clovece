@@ -118,7 +118,7 @@ export function render2DBoard(container, game, style, ui) {
     let links = '';
     for (let i = 0; i < game.trackLength; i++) {
         const from = trackPosition(i, game, style);
-        const to = trackPosition(i + 1, game);
+        const to = trackPosition(i + 1, game, style);
         const dx = to.x - from.x;
         const dy = to.y - from.y;
         const distance = Math.hypot(dx, dy);
