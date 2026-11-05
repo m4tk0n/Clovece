@@ -358,12 +358,12 @@ function delay(ms) {
     return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
-async function performMove(pieceId) {
+function performMove(pieceId) {
     if (!game || moveAnimating) return;
     const before = snapshotPieceSteps();
     const move = movePiece(game, pieceId);
     const after = snapshotPieceSteps();
-    await finishMove(move, { before, after });
+    return finishMove(move, { before, after });
 }
 
 async function animatePieceMove(move, movement) {
