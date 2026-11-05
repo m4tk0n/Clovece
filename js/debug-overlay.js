@@ -34,7 +34,7 @@ export function initDebugOverlay() {
     function renderLog() {
         details.textContent = entries.map((entry, index) => {
             const duration = entry.duration === null ? '' : ' (' + entry.duration + ' ms)';
-            return String(index + 1).padStart(2, '0') + ' [' + entry.status + '] ' +
+            return (index + 1 < 10 ? '0' : '') + (index + 1) + ' [' + entry.status + '] ' +
                 entry.name + duration;
         }).join('\n');
     }
