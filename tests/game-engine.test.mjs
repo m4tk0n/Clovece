@@ -311,6 +311,7 @@ test('a six with pieces in base forces deployment and replaces own piece on star
 
     assert.deepEqual(getValidMoves(game), [1, 2, 3]);
     const move = movePiece(game, 1);
+    assert.equal(move.deployed, true);
     assert.equal(move.captured.ownPiece, true);
     assert.equal(move.captured.pieceId, 0);
     assert.equal(game.pieces[0].pieces[0].steps, -1);
