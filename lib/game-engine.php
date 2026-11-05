@@ -227,6 +227,7 @@ function onlineEngineValidMoves(array $game, ?int $playerId = null): array
 
         $ownBlock = false;
         foreach ($playerPieces as $other) {
+            if ($steps === -1) break;
             if ((int) $other['id'] === $pieceId) continue;
             $otherSteps = (int) $other['steps'];
             if ($otherSteps < 0) continue;
