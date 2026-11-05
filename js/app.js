@@ -20,13 +20,13 @@ function loadSettings() {
     try {
         const saved = JSON.parse(localStorage.getItem('clovece-settings') || '{}');
         return {
-            aiSpeed: ['fast', 'medium', 'slow'].includes(saved.aiSpeed) ? saved.aiSpeed : 'medium',
+            aiSpeed: saved.aiSpeed === 'fast' ? 'fast' : 'normal',
             animations: saved.animations !== false,
             sfx: saved.sfx !== false
         };
     } catch (error) {
         console.warn('Nastavení se nepodařilo načíst:', error);
-        return { aiSpeed: 'medium', animations: true, sfx: true };
+        return { aiSpeed: 'normal', animations: true, sfx: true };
     }
 }
 
@@ -42,7 +42,7 @@ function escapeHtml(value) {
 }
 
 const $ = id => document.getElementById(id);
-const speedDelay = () => ({ fast: 450, medium: 950, slow: 1600 }[settings.aiSpeed] || 950);
+const speedDelay = () => settings.aiSpeed === 'fast' ? 450 : 950;
 
 function isPaused() {
     return !$('game-menu')?.classList.contains('hidden');
@@ -321,7 +321,7 @@ export function animateDice(value) {
             scene.classList.remove('rolling');
             animation.classList.add('hidden');
             resolve();
-        }, 1200);
+        }, settings.aiSpeed === 'fast' ? 650 : 1200);
     });
 }
 
@@ -355,7 +355,7 @@ function finishMove(move) {
         if (game.players[move.playerId]?.isAI) {
             setTimeout(() => {
                 if (modalOpen) closeKickModal();
-            }, 1900);
+            }, settings.aiSpeed === 'fast' ? 950 : 1900);
         }
         return;
     }
@@ -470,7 +470,7 @@ async function doRoll(isAI = false) {
                 advanceTurn(game);
                 continueGame();
             }
-        }, isAI ? 350 : 650);
+        }, settings.aiSpeed === 'fast' ? 250 : (isAI ? 350 : 650));
         return;
     }
 
@@ -662,6 +662,8 @@ export function initGame() {
     });
     $('menu-btn')?.addEventListener('click', () => {
         clearTimeout(aiTimer);
+        const gameSpeedSelect = $('game-speed');
+        if (gameSpeedSelect) gameSpeedSelect.value = settings.aiSpeed;
         $('game-menu').classList.remove('hidden');
     });
     $('resume-btn')?.addEventListener('click', () => {
@@ -683,6 +685,8 @@ export function initGame() {
     const sfxToggle = $('sfx-toggle');
 
     if (aiSpeedSelect) aiSpeedSelect.value = settings.aiSpeed;
+    const gameSpeedSelect = $('game-speed');
+    if (gameSpeedSelect) gameSpeedSelect.value = settings.aiSpeed;
     if (animationsToggle) animationsToggle.checked = settings.animations;
     if (sfxToggle) sfxToggle.checked = settings.sfx;
 
@@ -695,6 +699,16 @@ export function initGame() {
     aiSpeedSelect?.addEventListener('change', event => {
         settings.aiSpeed = event.target.value;
     });
+    gameSpeedSelect?.addEventListener('change', event => {
+        settings.aiSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
+        aiSpeedSelect && (aiSpeedSelect.value = settings.aiSpeed);
+        try {
+            localStorage.setItem('clovece-settings', JSON.stringify(settings));
+        } catch (error) {
+            console.warn('Rychlost hry se nepodařilo uložit:', error);
+        }
+        toast('Rychlost hry: ' + (settings.aiSpeed === 'fast' ? 'Rychlá' : 'Normální'));
+    });
     animationsToggle?.addEventListener('change', event => {
         settings.animations = event.target.checked;
         applyAnimationSetting();
@@ -704,7 +718,7 @@ export function initGame() {
         setSoundEffectsEnabled(settings.sfx);
     });
     $('save-settings-btn')?.addEventListener('click', () => {
-        settings.aiSpeed = aiSpeedSelect?.value || 'medium';
+        settings.aiSpeed = aiSpeedSelect?.value === 'fast' ? 'fast' : 'normal';
         settings.animations = animationsToggle?.checked !== false;
         settings.sfx = sfxToggle?.checked !== false;
         applyAnimationSetting();
