@@ -478,6 +478,11 @@ $assetVersion = static function (string $path): int {
 
                     <h3>Desky a počet hráčů</h3>
                     <p>Hraje 2 až 8 hráčů. K dispozici jsou desky se 40, 48 nebo 80 poli podle počtu hráčů a zvolené varianty.</p>
+
+                    <h3>Příklad: Co se stane, když hodíte dvě šestky za sebou?</h3>
+                    <p>Pokud máte některé figurky stále v základně a hodíte šestku, musíte jednu z nich nasadit na své startovní pole. Za nasazení se už o šest polí neposouvá, ale získáte další hod.</p>
+                    <p>Když při tomto dalším hodu padne znovu šestka a máte stále figurku v základně, musíte nasadit další figurku. Jestliže vaše první nasazená figurka stále stojí na startovním poli, vrátí se při novém nasazení do základny a nová figurka obsadí její místo.</p>
+                    <p>To není chyba: podle těchto pravidel má nasazení při šestce přednost před pohybem ostatními figurkami. Za druhou šestku získáte opět další hod. Řetězení šestek může pokračovat, dokud nepadne jiný výsledek nebo nenastane výjimka podle pravidla tří pokusů.</p>
                 </div>
                 <button id="back-rules-btn" class="menu-btn secondary">
                     <span>ZPĚT</span>
