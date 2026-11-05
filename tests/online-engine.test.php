@@ -242,4 +242,17 @@ $lastHomeBlocked['phase'] = 'move';
 $lastHomeBlocked['diceValue'] = 1;
 checkSame([], onlineEngineValidMoves($lastHomeBlocked), 'Na obsazené poslední cílové políčko nesmí vstoupit druhá vlastní figurka.');
 
+
+$finishSix = onlineEngineCreateState(testParticipants(2));
+$finishSix['phase'] = 'move';
+$finishSix['diceValue'] = 6;
+$finishSix['pieces'][0]['pieces'][0]['steps'] = $finishSix['trackLength'] - 3;
+$finishSix['pieces'][0]['pieces'][1]['steps'] = 5;
+$finishSix['pieces'][0]['pieces'][2]['steps'] = 10;
+$finishSix['pieces'][0]['pieces'][3]['steps'] = 15;
+checkSame(true, in_array(0, onlineEngineValidMoves($finishSix), true), 'Šestka musí umožnit dojezd figurky na D4.');
+onlineEngineMovePiece($finishSix, 0);
+checkSame($finishSix['trackLength'] + 3, $finishSix['pieces'][0]['pieces'][0]['steps'], 'Figurka musí dokončit D4.');
+checkSame('roll', $finishSix['phase'], 'Šestka musí dát bonusový hod i po dojezdu jedné figurky do cíle.');
+
 echo "PHP online game engine tests: OK\n";
