@@ -47,7 +47,7 @@ function createBoardShape(T,data) {
         for(let i=0;i<n*2;i++){const a=(-90+i*180/n)*Math.PI/180,r=i%2===0?outer:inner,x=Math.cos(a)*r,z=Math.sin(a)*r;
             if(i===0)shape.moveTo(x,z);else shape.lineTo(x,z)}
     }
-    shape.closePath();return new T.ShapeGeometry(shape,3);
+    shape.closePath();return shape;
 }
 function buildScene(T,scene,data) {
     const board=new T.Group();scene.add(board);
