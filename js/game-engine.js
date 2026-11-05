@@ -70,6 +70,7 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
         startRolls: [],
         diceValue: 0,
         baseRollAttempts: 0,
+        thirdAttemptSix: false,
         phase: 'roll',
         turnNumber: 1,
         winner: null,
@@ -124,32 +125,46 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
     if (game.phase !== 'move' || playerId !== game.currentPlayer) return [];
     const playerPieces = game.pieces[playerId].pieces;
     const maxSteps = game.trackLength + 3;
-    const valid = [];
+    const hasBasePiece = playerPieces.some(piece => piece.steps === -1);
+    const candidates = [];
 
+    // Šestka s figurkou v základně vždy znamená povinné nasazení.
     playerPieces.forEach(piece => {
         if (piece.steps === maxSteps) return;
+        if (hasBasePiece && game.diceValue === 6 && piece.steps !== -1) return;
         if (piece.steps === -1 && game.diceValue !== 6) return;
 
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
         if (nextSteps > maxSteps) return;
 
-        // Hlavní okruh má trackLength polí: kroky 0 až trackLength - 1.
-        // Po posledním poli následuje přímo D1, bez druhého průchodu startem.
         const ownBlock = playerPieces.some(other => {
             if (other.id === piece.id || other.steps < 0) return false;
+
             if (nextSteps < game.trackLength) {
                 return other.steps < game.trackLength &&
                     getPiecePosition(game, playerId, other) ===
                     (game.players[playerId].start + nextSteps) % game.trackLength;
             }
-            return other.steps === nextSteps;
+
+            // V cílové dráze se nesmí přeskočit žádná vlastní figurka.
+            const firstHomeStep = Math.max(game.trackLength, piece.steps + 1);
+            for (let step = firstHomeStep; step <= nextSteps; step++) {
+                if (other.steps === step) return true;
+            }
+            return false;
         });
         if (ownBlock) return;
 
-        valid.push(piece.id);
+        candidates.push(piece.id);
     });
 
-    return valid;
+    // Přesný a volný vstup do cílové dráhy má přednost před všemi ostatními tahy.
+    const forcedHomeEntries = candidates.filter(pieceId => {
+        const piece = playerPieces[pieceId];
+        return piece.steps >= 0 && piece.steps < game.trackLength &&
+            piece.steps + game.diceValue >= game.trackLength;
+    });
+    return forcedHomeEntries.length ? forcedHomeEntries : candidates;
 }
 
 export function getForcedMove(game) {
@@ -166,25 +181,47 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     const playerPieces = game.pieces[game.currentPlayer].pieces;
     const allAtBase = playerPieces.every(piece => piece.steps === -1);
 
-    if (allAtBase && game.diceValue !== 6) {
+    if (allAtBase) {
+        if (game.diceValue !== 6) {
+            game.baseRollAttempts = (game.baseRollAttempts || 0) + 1;
+            const retrying = game.baseRollAttempts < 3;
+            game.phase = retrying ? 'roll' : 'no-move';
+            return {
+                value: game.diceValue,
+                validMoves: [],
+                retrying,
+                attempt: game.baseRollAttempts,
+                maxAttempts: 3
+            };
+        }
+
         game.baseRollAttempts = (game.baseRollAttempts || 0) + 1;
-        const retrying = game.baseRollAttempts < 3;
-        game.phase = retrying ? 'roll' : 'no-move';
-        return {
-            value: game.diceValue,
-            validMoves: [],
-            retrying,
-            attempt: game.baseRollAttempts,
-            maxAttempts: 3
-        };
+        game.thirdAttemptSix = game.baseRollAttempts === 3;
+    } else {
+        game.baseRollAttempts = 0;
+        game.thirdAttemptSix = false;
     }
 
-    game.baseRollAttempts = 0;
     game.phase = 'move';
     const moves = getValidMoves(game);
-    if (!moves.length) game.phase = 'no-move';
+    if (!moves.length) {
+        if (game.diceValue === 6) {
+            // Šestka bez legálního tahu propadá, ale hráč hází znovu.
+            game.phase = 'roll';
+            game.baseRollAttempts = 0;
+            game.thirdAttemptSix = false;
+            return { value: game.diceValue, validMoves: [], retrying: true };
+        }
+        game.phase = 'no-move';
+    }
 
-    return { value: game.diceValue, validMoves: moves, retrying: false };
+    return {
+        value: game.diceValue,
+        validMoves: moves,
+        retrying: false,
+        attempt: allAtBase ? game.baseRollAttempts : undefined,
+        maxAttempts: allAtBase ? 3 : undefined
+    };
 }
 
 export function movePiece(game, pieceId) {
@@ -201,9 +238,25 @@ export function movePiece(game, pieceId) {
     const nextSteps = fromSteps === -1 ? 0 : fromSteps + diceValue;
     let captured = null;
 
+    if (fromSteps === -1) {
+        // Při nasazení může být na vlastním startu i vlastní figurka.
+        game.pieces[playerId].pieces.forEach(ownPiece => {
+            if (ownPiece.id === piece.id || ownPiece.steps < 0 || ownPiece.steps >= game.trackLength) return;
+            if (getPiecePosition(game, playerId, ownPiece) === player.start) {
+                captured = {
+                    playerId,
+                    pieceId: ownPiece.id,
+                    playerName: player.name,
+                    color: player.color,
+                    ownPiece: true
+                };
+                ownPiece.steps = -1;
+            }
+        });
+    }
+
     if (nextSteps < game.trackLength) {
         const destination = (player.start + nextSteps) % game.trackLength;
-        // Startovní pole nemá žádnou ochranu – obsazenou soupeřovu figurku lze vyhodit.
         game.pieces.forEach((group, enemyId) => {
             if (enemyId === playerId) return;
             group.pieces.forEach(enemyPiece => {
@@ -224,7 +277,6 @@ export function movePiece(game, pieceId) {
     piece.steps = nextSteps;
     const maxSteps = game.trackLength + 3;
     const finishedNow = piece.steps === maxSteps;
-    // Vítězství nastane, když všechny čtyři figurky obsadí čtyři různá cílová pole.
     const homeSteps = game.pieces[playerId].pieces.map(item => item.steps);
     const playerFinished = homeSteps.every(
         steps => steps >= game.trackLength && steps <= maxSteps
@@ -234,7 +286,11 @@ export function movePiece(game, pieceId) {
         player.finished = true;
         game.winner = playerId;
         game.phase = 'finished';
-    } else if (diceValue === 6 && !finishedNow) {
+    } else if (game.thirdAttemptSix) {
+        // Šestka na třetí pokus nasadí figurku, ale další hod už nedává.
+        game.thirdAttemptSix = false;
+        advanceTurn(game);
+    } else if (diceValue === 6) {
         game.baseRollAttempts = 0;
         game.phase = 'roll';
     } else {
@@ -263,6 +319,7 @@ export function advanceTurn(game) {
     game.currentPlayer = next;
     game.diceValue = 0;
     game.baseRollAttempts = 0;
+    game.thirdAttemptSix = false;
     game.phase = 'roll';
     game.turnNumber++;
 }
