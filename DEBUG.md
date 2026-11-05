@@ -8,7 +8,7 @@ Bez parametru jsou níže popsané debug prvky vypnuté. Režim je určený pro 
 
 ## 1. Diagnostický panel obrazovky
 
-Malý červený panel je připnutý k hornímu okraji okna obrazovky, nikoli k obsahu stránky. Nezabírá místo v herním rozložení a neblokuje dotykové ovládání.
+Malý červený panel je připnutý ke spodnímu okraji právě viditelné části obrazovky, nikoli k obsahu stránky. Jeho polohu průběžně přizpůsobuje Visual Viewport API (včetně změn při otevření klávesnice nebo skrytí adresního řádku). Nezabírá místo v herním rozložení a neblokuje dotykové ovládání.
 
 Zobrazuje:
 
