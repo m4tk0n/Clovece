@@ -86,7 +86,7 @@ export function initDebugOverlay() {
             lastSample = now;
             update();
         }
-            if (window.requestAnimationFrame) {
+        if (window.requestAnimationFrame) {
             window.requestAnimationFrame(measureFrame);
         } else {
             window.setTimeout(measureFrame, 1000 / 30);
