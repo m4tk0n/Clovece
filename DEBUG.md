@@ -54,20 +54,10 @@ To umožňuje testerovi zkontrolovat dostupnou možnost a ručně vybrat figurku
 
 Toto nastavení se týká běžného zpracování tahu v lokální herní logice. Automatické rozhodování AI má vlastní větev a AI si tah vybírá sama.
 
-## 5. Chybová diagnostika
-
-Některé chyby se zapisují do konzole vývojářských nástrojů prohlížeče, například:
-
-- chyba načtení nebo vykreslení 3D desky,
-- automatické přepnutí z 3D na 2D po chybě 3D vykreslování,
-- chyba inicializace debug panelu.
-
-Debug panel sám tyto zprávy do herního chatu ani herního logu nekopíruje. Nejde o úplný záznam všech interních událostí aplikace; konzole obsahuje pouze místa, kde aplikace chyby nebo varování výslovně vypisuje.
-
-## 6. Co debug režim aktuálně nezobrazuje
+## 5. Co debug režim aktuálně nezobrazuje
 
 Aktuální debug režim nezobrazuje samostatný textový výpis všech souřadnic polí a figurek, kompletní interní stav herního enginu, síťové požadavky online hry ani automatický záznam všech rozhodnutí AI. Tyto údaje nejsou součástí současných debug nástrojů.
 
-## 7. Vypnutí
+## 6. Vypnutí
 
 Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D polí, vizualizace legálních tahů a ruční výběr místo automatického vynuceného tahu se pak vypnou.
