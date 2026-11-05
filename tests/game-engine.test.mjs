@@ -355,10 +355,10 @@ test('a six on the third base attempt deploys but ends the turn without a bonus 
 
 test('a six without any legal move is consumed but grants another roll', () => {
     const game = createGame(1, 1);
-    game.pieces[0].pieces[0].steps = 0;
-    game.pieces[0].pieces[1].steps = 6;
-    game.pieces[0].pieces[2].steps = 12;
-    game.pieces[0].pieces[3].steps = 18;
+    game.pieces[0].pieces[0].steps = game.trackLength;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
+    game.pieces[0].pieces[2].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength + 3;
 
     const result = rollDice(game, 6);
     assert.deepEqual(result.validMoves, []);
