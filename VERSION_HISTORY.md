@@ -17,6 +17,21 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 
 ---
 
+
+## 1.00.00.02 – Stručné označení nedostupného 3D
+
+**Datum:** 5. 11. 2026  
+**Typ:** Úprava uživatelského rozhraní  
+**Mění:** chování a zobrazení zavedené verzí 1.00.00.01
+
+- Při automatickém přepnutí z 3D na 2D kvůli chybě se přepínač zobrazí jako `BEZ 3D`.
+- Technické označení `2D SVG` se odstranilo.
+- Při ruční volbě 2D zůstává označení `2D`; při 3D se zobrazuje `3D`.
+- Přepínač zůstává aktivní, takže lze 3D ručně zkusit znovu.
+
+**Dotčené soubory:**
+- `js/game-board-view.js`
+
 ## 1.00.00.01 – Automatické 3D a záložní 2D zobrazení
 
 **Datum:** 5. 11. 2026  
