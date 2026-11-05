@@ -1041,7 +1041,7 @@
 /* Společné pravidlo rozložení: každá obrazovka začíná u horního okraje. */
 .menu-screen {
     align-items: flex-start !important;
-    padding-top: 0 !important;
+    padding-top: max(12px, env(safe-area-inset-top)) !important;
 }
 
 .menu-screen > .menu-bg {
