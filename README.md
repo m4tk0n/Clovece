@@ -9,11 +9,7 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 ### Herní možnosti
 
 - 2 až 8 hráčů v libovolné kombinaci lidí a AI
-- 2–4 hráči: čtyřbarevné klasické rozložení a 52 políček
-- 5–8 hráčů: rozšířená osmisměrná aréna a 64 políček
-- Každý hráč má vlastní start, domeček a 4 figurky
-- Vyvedení figurky při hodu 6
-- Vyhazování soupeřů i na startovních polích, čtyři samostatná cílová políčka a přesný dojezd
+- Podrobná a závazná pravidla hry včetně dostupných desek jsou vedena výhradně v [GAME_RULES.md](GAME_RULES.md)
 - Automatické tahy AI
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
