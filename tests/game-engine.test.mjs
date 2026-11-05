@@ -147,9 +147,9 @@ test('a piece can leave its base only after rolling six', () => {
 
 test('a single possible move is identified for automatic execution', () => {
     const game = createGame(1, 1);
-    game.pieces[0].pieces[1].steps = game.trackLength + 4;
-    game.pieces[0].pieces[2].steps = game.trackLength + 4;
-    game.pieces[0].pieces[3].steps = game.trackLength + 4;
+    game.pieces[0].pieces[1].steps = game.trackLength + 3;
+    game.pieces[0].pieces[2].steps = game.trackLength + 3;
+    game.pieces[0].pieces[3].steps = game.trackLength + 3;
     const result = rollDice(game, 6);
 
     assert.deepEqual(result.validMoves, [0]);
@@ -189,40 +189,42 @@ test('an occupied opponent start square is an ordinary square and can be capture
     assert.equal(game.pieces[0].pieces[0].steps, 26);
 });
 
-test('the full circuit includes the start square before entering the home lane', () => {
-    const game = createGame(1, 1);
+test('40-space circuit uses fields 1-40 once, then enters D1-D4', () => {
+    const game = createGame(1, 1, [], [], 40);
     const piece = game.pieces[0].pieces[0];
 
-    // After deployment, the piece is on its own start square (step 0).
-    // One full circuit later it must return to that same square (step 52).
-    piece.steps = game.trackLength - 1;
+    assert.equal(getPiecePosition(game, 0, piece), game.players[0].start);
+    piece.steps = 38; // Pole 39.
     game.phase = 'move';
     game.diceValue = 1;
     assert.deepEqual(getValidMoves(game), [0]);
     movePiece(game, 0);
-    assert.equal(piece.steps, game.trackLength);
-    assert.equal(getHomeLaneIndex(game, piece), -1);
-    assert.equal(getPiecePosition(game, 0, piece), game.players[0].start);
+    assert.equal(piece.steps, 39); // Pole 40.
 
-    // Only the next step enters the first home-lane square.
     game.currentPlayer = 0;
     game.phase = 'move';
     game.diceValue = 1;
     assert.deepEqual(getValidMoves(game), [0]);
     movePiece(game, 0);
-    assert.equal(piece.steps, game.trackLength + 1);
+    assert.equal(piece.steps, 40); // D1, never field 1 again.
     assert.equal(getHomeLaneIndex(game, piece), 0);
+    assert.equal(getPiecePosition(game, 0, piece), null);
 
-    // A move crossing the start counts it as a normal track square:
-    // step 51 -> own start (52) -> first home-lane square (53).
-    piece.steps = game.trackLength - 1;
+    game.currentPlayer = 0;
+    game.phase = 'move';
+    game.diceValue = 3;
+    assert.deepEqual(getValidMoves(game), [0]);
+    movePiece(game, 0);
+    assert.equal(piece.steps, 43); // D4.
+    assert.equal(getHomeLaneIndex(game, piece), 3);
+
+    piece.steps = 38;
     game.currentPlayer = 0;
     game.phase = 'move';
     game.diceValue = 2;
     assert.deepEqual(getValidMoves(game), [0]);
     movePiece(game, 0);
-    assert.equal(piece.steps, game.trackLength + 1);
-    assert.equal(getHomeLaneIndex(game, piece), 0);
+    assert.equal(piece.steps, 40); // A roll crossing field 40 enters D1 directly.
 });
 
 
@@ -246,7 +248,7 @@ test('a piece may jump over own pieces but may not land on them on the main trac
 
 test('a piece may jump over own pieces in the home lane but may not land on them', () => {
     const game = createGame(1, 1);
-    const laneStart = game.trackLength + 1;
+    const laneStart = game.trackLength;
     game.pieces[0].pieces[0].steps = laneStart;
     game.pieces[0].pieces[1].steps = laneStart + 1;
     game.phase = 'move';
@@ -265,8 +267,8 @@ test('a piece may jump over own pieces in the home lane but may not land on them
 
 test('two own pieces cannot occupy the same home-lane square', () => {
     const game = createGame(1, 1);
-    game.pieces[0].pieces[0].steps = game.trackLength + 1;
-    game.pieces[0].pieces[1].steps = game.trackLength + 2;
+    game.pieces[0].pieces[0].steps = game.trackLength;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
     game.phase = 'move';
     game.diceValue = 1;
 
@@ -279,7 +281,7 @@ test('a player wins when all four pieces occupy the four distinct home-lane squa
     game.pieces[0].pieces[0].steps = laneStart;
     game.pieces[0].pieces[1].steps = laneStart + 1;
     game.pieces[0].pieces[2].steps = laneStart + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength;
+    game.pieces[0].pieces[3].steps = game.trackLength - 1;
     game.phase = 'move';
     game.diceValue = 4;
 
@@ -294,8 +296,8 @@ test('a player wins when all four pieces occupy the four distinct home-lane squa
 
 test('the fourth home-lane square cannot be shared by two own pieces', () => {
     const game = createGame(1, 1);
-    game.pieces[0].pieces[0].steps = game.trackLength + 3;
-    game.pieces[0].pieces[1].steps = game.trackLength + 4;
+    game.pieces[0].pieces[0].steps = game.trackLength + 2;
+    game.pieces[0].pieces[1].steps = game.trackLength + 3;
     game.phase = 'move';
     game.diceValue = 1;
 
