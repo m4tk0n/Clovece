@@ -107,6 +107,12 @@ export function initDebugOverlay() {
         updateSummary();
     }
 
+    window.addEventListener('clovece:debug-log', event => {
+        const detail = event.detail || {};
+        log(detail.name || 'Neznámá operace', detail.status || 'INFO',
+            typeof detail.duration === 'number' ? detail.duration : null);
+    });
+
     // CSS načtené ještě před spuštěním modulu zjistíme z DOM a Resource Timing.
     // Později vložené stylesheety a <style> elementy zachytí MutationObserver.
     const trackedStyles = new WeakSet();
