@@ -935,8 +935,7 @@
 
 @media (max-height: 680px) {
     #game-screen:not(.hidden) {
-        padding-top: 0;
-        padding-bottom: 0;
+        padding: 1px;
     }
     #game-screen .game-header {
         padding-top: 3px;
