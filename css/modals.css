@@ -168,3 +168,34 @@
     color: var(--white);
     text-shadow: 0 0 20px var(--primary);
 }
+
+
+/* Pause menu controls */
+#game-menu .menu-audio-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    background: rgba(255,255,255,.045);
+    color: var(--white);
+    text-align: left;
+    font-size: .95rem;
+}
+#game-menu .menu-audio-row select {
+    min-width: 118px;
+    padding: 8px 10px;
+    border: 1px solid rgba(198,169,107,.55);
+    border-radius: 8px;
+    background: #18251e;
+    color: var(--white);
+    font: inherit;
+}
+#game-menu .game-audio-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
