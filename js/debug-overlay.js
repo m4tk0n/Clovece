@@ -91,7 +91,7 @@ export function initDebugOverlay() {
         const visibleWidth = viewport ? format(viewport.width) : window.innerWidth;
         const visibleHeight = viewport ? format(viewport.height) : window.innerHeight;
         summary.textContent = 'DEBUG' + (expanded ? ' | ' + entries.length + ' záznamů' : '');
-        viewportSummary.textContent = 'VIDITELNÉ ' + visibleWidth + '×' + visibleHeight;
+        viewportSummary.textContent = visibleWidth + '×' + visibleHeight;
         metaSummary.textContent = 'DISPLAY ' + screenWidth + '×' + screenHeight +
             ' | OKNO ' + window.innerWidth + '×' + window.innerHeight +
             ' | DPR ' + (window.devicePixelRatio || 1).toFixed(2) +
