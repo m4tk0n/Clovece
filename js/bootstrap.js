@@ -13,7 +13,7 @@ async function startApp() {
             const startedAt = Date.now();
             try {
                 // Relativní cesta funguje i při umístění aplikace v podadresáři.
-                const debugModule = await import('./debug-overlay.js?v=20261105');
+                const debugModule = await import('./debug-overlay.js?v=20261105-2');
                 debugLog = debugModule.initDebugOverlay();
                 if (debugLog) {
                     debugLog('Modul debug-overlay.js načten', 'OK', Date.now() - startedAt);
