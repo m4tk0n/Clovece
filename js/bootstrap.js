@@ -7,6 +7,16 @@ const loadModule = path => import(path);
 
 async function startApp() {
     try {
+        // Diagnostika se načítá pouze při výslovném zapnutí parametrem ?debug=1.
+        if (new URLSearchParams(window.location.search).get('debug') === '1') {
+            try {
+                const { initDebugOverlay } = await loadModule('./debug-overlay.js');
+                initDebugOverlay();
+            } catch (error) {
+                console.warn('Nepodařilo se spustit debug overlay:', error);
+            }
+        }
+
         const [
             { initNavigation },
             { initAudio },
