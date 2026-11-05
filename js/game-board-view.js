@@ -17,6 +17,7 @@ let boardStyle = loadStyle();
 // SVG je vždy pevný pohled shora. 3D kamera patří výhradně Three.js rendereru.
 const VIEW_KEY = 'clovece_board_view';
 let view3d = loadView();
+let view3dUnavailable = false;
 
 function loadView() {
     try {
@@ -62,7 +63,7 @@ function styleSwitchMarkup() {
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
         '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
-            '" data-board-view="toggle" aria-pressed="' + view3d + '">' + (view3d ? '3D' : '2D SVG') + '</button>' +
+            '" data-board-view="toggle" aria-pressed="' + view3d + '">' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>' +
         '</div>';
 }
 
@@ -102,6 +103,7 @@ function bindStyleSwitch(container) {
         const viewButton = event.target.closest?.('[data-board-view]');
         if (!viewButton) return;
         view3d = !view3d;
+        view3dUnavailable = false;
         saveView();
         restyle(container);
     });
@@ -157,6 +159,7 @@ export function renderBoard(container, game) {
             if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d) return;
             console.error('Přepínám herní desku z 3D na 2D SVG:', error);
             view3d = false;
+            view3dUnavailable = true;
             container.dataset.renderKey = '';
             renderBoard(container, container._lastGame || game);
         });
