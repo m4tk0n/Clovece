@@ -136,14 +136,12 @@ export function render2DBoard(container, game, style, ui) {
     for (let i = 0; i < game.trackLength; i++) {
         const p = trackPosition(i, game, style);
         const startPlayer = game.players.find(player => player.start === i);
-        const r = startPlayer ? g.field + 2 : g.field;
         track += '<g class="track-space ' + (startPlayer ? 'track-start' : '') + '">' +
-            '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + r + '" fill="' +
+            '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (g.field + 1) + '" fill="' +
             (startPlayer ? startPlayer.color : '#d9d2c3') + '" fill-opacity="' +
-            (startPlayer ? '.95' : '.12') + '" stroke="' +
+            (startPlayer ? '.28' : '.12') + '" stroke="' +
             (startPlayer ? startPlayer.color : '#fff') + '" stroke-opacity="' +
-            (startPlayer ? '.9' : '.22') + '" stroke-width="1.4"/>' +
-            (startPlayer ? '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4" fill="#fff" fill-opacity=".9"/>' : '') +
+            (startPlayer ? '.85' : '.22') + '" stroke-width="1.5"/>' +
             '</g>';
     }
 
