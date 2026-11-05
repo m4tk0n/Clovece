@@ -122,7 +122,10 @@ function laneRadius(g, laneIndex) {
 export function trackPosition(index, game) {
     const g = geometry(game);
     const length = game.trackLength;
-    const i = ((index % length) + length) % length;
+    // Na 40polové desce je geometrický začátek ramene o 5 polí před logickým startem hráče 1.
+    // Posun opravuje pouze vykreslení; indexy v herním enginu zůstávají beze změny.
+    const renderOffset = length === 40 ? 5 : 0;
+    const i = ((index + renderOffset) % length + length) % length;
     const m = length / g.n;
     const arm = Math.floor(i / m);
     const t = i % m;
