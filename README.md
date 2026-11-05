@@ -55,3 +55,11 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 - Varianty desky classic a polygon
 - PHP a MySQL pro budoucí online režim
 - GitHub Actions pro testování a FTP nasazení
+
+## Cache statických souborů
+
+- Lokální CSS a JavaScriptové soubory načítané přes `index.php` používají verzovací parametr `?v=` odvozený z času poslední změny konkrétního souboru pomocí PHP `filemtime()`.
+- Verze se tedy změní pouze u souboru, který byl upraven. Ostatní soubory si mohou prohlížeče ponechat v cache.
+- Verze se používá u všech lokálních CSS odkazů, u lokálních JavaScriptových modulů v `importmap` i u vstupního `js/bootstrap.js`.
+- Externí knihovny a externí fonty mají vlastní URL a tímto mechanismem se neoznačují.
+- Pokud lokální soubor neexistuje nebo jeho čas změny nelze načíst, funkce použije záložní verzi `1`; chybějící soubor tím samozřejmě nebude nahrazen.
