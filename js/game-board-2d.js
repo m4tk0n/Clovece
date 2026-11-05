@@ -3,6 +3,7 @@
  * Přijímá herní stav pouze ke čtení a nevykonává herní pravidla.
  */
 import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine.js';
+import { buildDebugMovePaths } from './game-board-debug.js';
 import { CENTER, geometry, slotOf, slotAngle, polar, armPoint, laneRadius, trackPosition } from './game-board-geometry.js';
 
 function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
@@ -159,6 +160,19 @@ export function render2DBoard(container, game, style, ui) {
         homeLanes += '<g class="home-lane ' + (player ? '' : 'home-lane-empty') + '">' + cells + '</g>';
     }
 
+    const debugMode = new URLSearchParams(window.location.search).get('debug') === '1';
+    const debugPaths = debugMode ? buildDebugMovePaths(game, style) : [];
+    const debugMarkup = debugPaths.map(path => path.points.map(point => {
+        const offset = (path.pieceId - 1.5) * g.field * .12;
+        const x = point.x + offset;
+        const y = point.y - offset;
+        const radius = Math.max(7, g.field * .72);
+        return '<g class="debug-move-step" data-debug-player="' + path.playerId + '" data-debug-piece="' + path.pieceId + '">' +
+            '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + radius.toFixed(1) + '" fill="' + path.color + '" fill-opacity=".88" stroke="#fff" stroke-width="2"/>' +
+            '<text x="' + x.toFixed(1) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="middle" font-family="Arial,sans-serif" font-size="' + Math.max(10, g.field * .9).toFixed(1) + '" font-weight="900" fill="#fff" stroke="#17211d" stroke-width="1.8" paint-order="stroke">' + point.number + '</text>' +
+            '</g>';
+    }).join('')).join('');
+
     const bases = game.players.map(player => baseMarkup(game, player, validMoves, g)).join('');
 
     const boardPieces = game.players.map(player => {
@@ -191,7 +205,7 @@ export function render2DBoard(container, game, style, ui) {
                     pawnGradientMarkup(game.players) +
                 '</defs>' +
                 '<rect x="13" y="13" width="694" height="694" rx="40" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>' +
-                homeLanes + links + track + bases +
+                homeLanes + links + track + debugMarkup + bases +
                 '<circle cx="360" cy="360" r="22" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
                 boardPieces +
             '</svg>' +
