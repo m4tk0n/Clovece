@@ -59,4 +59,5 @@ test('debug move paths show the start field for every legal deployment', () => {
     assert.equal(paths.length, 4);
     assert.ok(paths.every(path => path.points.length === 1));
     assert.ok(paths.every(path => path.points[0].field === game.players[0].start + 1));
+    assert.equal(new Set(paths.map(path => path.color)).size, 4);
 });
