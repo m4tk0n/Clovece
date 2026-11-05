@@ -389,7 +389,7 @@ async function animatePieceMove(move, movement) {
                     before[captured.playerId][captured.pieceId];
             }
             showGame();
-            await delay(260);
+            await delay(350);
         }
     } finally {
         restorePieceSteps(after);
