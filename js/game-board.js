@@ -56,14 +56,6 @@ export function getBoardStyle() {
     return boardStyle;
 }
 
-function geometry(game) {
-    return getGeometry(game, boardStyle);
-}
-
-function trackPosition(index, game) {
-    return getTrackPosition(index, game, boardStyle);
-}
-
 function styleSwitchMarkup() {
     const label = { classic: 'KLASIK', polygon: 'MNOHOÚHELNÍK' };
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
