@@ -9,7 +9,11 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/cron/cron.php';
 
-$ver = date('Ymd-His');
+// Verze assetů se mění pouze při změně konkrétního souboru.
+$assetVersion = static function (string $path): int {
+    $file = __DIR__ . '/' . ltrim($path, '/');
+    return is_file($file) ? (int) filemtime($file) : 1;
+};
 ?>
 
 <!DOCTYPE html>
@@ -18,30 +22,30 @@ $ver = date('Ymd-His');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Člověče, nezlob se! | Online Ludo Game</title>
-    <link rel="stylesheet" href="css/variables.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/reset.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/animations.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/layout.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/components.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/board.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/modals.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/toast.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/responsive.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/game-premium.css?v=<?= $ver ?>">
-    <link rel="stylesheet" href="css/menu-premium.css?v=<?= $ver ?>">
+    <link rel="stylesheet" href="css/variables.css?v=<?= $assetVersion('css/variables.css') ?>">
+    <link rel="stylesheet" href="css/reset.css?v=<?= $assetVersion('css/reset.css') ?>">
+    <link rel="stylesheet" href="css/animations.css?v=<?= $assetVersion('css/animations.css') ?>">
+    <link rel="stylesheet" href="css/layout.css?v=<?= $assetVersion('css/layout.css') ?>">
+    <link rel="stylesheet" href="css/components.css?v=<?= $assetVersion('css/components.css') ?>">
+    <link rel="stylesheet" href="css/board.css?v=<?= $assetVersion('css/board.css') ?>">
+    <link rel="stylesheet" href="css/modals.css?v=<?= $assetVersion('css/modals.css') ?>">
+    <link rel="stylesheet" href="css/toast.css?v=<?= $assetVersion('css/toast.css') ?>">
+    <link rel="stylesheet" href="css/responsive.css?v=<?= $assetVersion('css/responsive.css') ?>">
+    <link rel="stylesheet" href="css/game-premium.css?v=<?= $assetVersion('css/game-premium.css') ?>">
+    <link rel="stylesheet" href="css/menu-premium.css?v=<?= $assetVersion('css/menu-premium.css') ?>">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rubik+Glitch&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="importmap">
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-            "/js/app.js": "/js/app.js?v=<?= $ver ?>",
-            "/js/audio.js": "/js/audio.js?v=<?= $ver ?>",
-            "/js/game-board.js": "/js/game-board.js?v=<?= $ver ?>",
-            "/js/game-engine.js": "/js/game-engine.js?v=<?= $ver ?>",
-            "/js/lazy-load.js": "/js/lazy-load.js?v=<?= $ver ?>",
-            "/js/navigation.js": "/js/navigation.js?v=<?= $ver ?>",
-            "/js/online.js": "/js/online.js?v=<?= $ver ?>"
+            "/js/app.js": "/js/app.js?v=<?= $assetVersion('js/app.js') ?>",
+            "/js/audio.js": "/js/audio.js?v=<?= $assetVersion('js/audio.js') ?>",
+            "/js/game-board.js": "/js/game-board.js?v=<?= $assetVersion('js/game-board.js') ?>",
+            "/js/game-engine.js": "/js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
+            "/js/lazy-load.js": "/js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
+            "/js/navigation.js": "/js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
+            "/js/online.js": "/js/online.js?v=<?= $assetVersion('js/online.js') ?>"
         }
     }
     </script>
@@ -625,6 +629,6 @@ $ver = date('Ymd-His');
     <audio id="move-sound" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="none"></audio>
 
     <!-- JavaScript -->
-    <script type="module" src="js/bootstrap.js?v=<?= $ver ?>"></script>
+    <script type="module" src="js/bootstrap.js?v=<?= $assetVersion('js/bootstrap.js') ?>"></script>
 </body>
 </html>
