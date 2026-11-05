@@ -10,6 +10,10 @@ Bez parametru jsou níže popsané debug prvky vypnuté. Režim je určený pro 
 
 Malý červený panel je připnutý ke spodnímu okraji právě viditelné části obrazovky, nikoli k obsahu stránky. Jeho polohu průběžně přizpůsobuje Visual Viewport API (včetně změn při otevření klávesnice nebo skrytí adresního řádku). Nezabírá místo v herním rozložení a neblokuje dotykové ovládání.
 
+Panel lze klepnutím rozbalit a dalším klepnutím opět sbalit. Rozbalený panel obsahuje chronologický protokol načítání a inicializace modulů. U každé operace je stav (`…` probíhá, `OK` dokončeno, `CHYBA` selhalo) a po dokončení také doba trvání v milisekundách. Panel lze ovládat také klávesami Enter a mezerník.
+
+Protokol aktuálně sleduje načtení `debug-overlay.js`, `navigation.js`, `audio.js`, `app.js` a `online.js` a následné spuštění funkcí `initOnline()`, `initNavigation()`, `initAudio()` a `initGame()`. Načítání čtyř hlavních modulů probíhá souběžně, proto jejich pořadí dokončení nemusí odpovídat pořadí v seznamu. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
+
 Zobrazuje:
 
 - **DISPLAY** – rozměry obrazovky podle `screen.width × screen.height` v CSS pixelech.
@@ -25,6 +29,10 @@ Pokud prohlížeč nepodporuje Visual Viewport API, panel se připne 2 px od spo
 - Porovnání **DISPLAY**, **OKNO** a **VIDITELNÉ** pomáhá odhalit rozdíly při otočení telefonu, otevření klávesnice nebo změně měřítka.
 - **DPR** odlišuje rozměry v CSS pixelech od fyzického rozlišení.
 - **FPS** orientačně ukazuje plynulost vykreslování stránky. Nízká hodnota může ukazovat na vysokou zátěž zařízení, ale sama neurčí její příčinu.
+
+### Co je a není zbytečné
+
+Protokol ukazuje, které moduly aplikace při startu skutečně importuje a které inicializační funkce spouští. Zda je některý modul zbytečný, nelze rozhodnout jen podle toho, že se načítá: může být potřeba až po otevření konkrétní obrazovky nebo při online hře. K takovému závěru je nutné prověřit jeho použití a závislosti v kódu. Současný protokol nesleduje jednotlivé obrázky, CSS, zvukové soubory ani všechny síťové požadavky.
 
 ## 2. Číslování polí na 3D desce
 
