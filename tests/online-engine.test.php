@@ -205,9 +205,10 @@ $homeJump['phase'] = 'move';
 $homeJump['diceValue'] = 2;
 $homeJump['pieces'][0]['pieces'][0]['steps'] = $homeJump['trackLength'];
 $homeJump['pieces'][0]['pieces'][1]['steps'] = $homeJump['trackLength'] + 1;
-checkSame([0, 1], onlineEngineValidMoves($homeJump), 'Vlastní figurku v domácím sloupci musí být možné přeskočit.');
-onlineEngineMovePiece($homeJump, 0);
-checkSame($homeJump['trackLength'] + 2, $homeJump['pieces'][0]['pieces'][0]['steps'], 'Figurka musí přeskočit vlastní figurku v domácím sloupci.');
+checkSame([1], onlineEngineValidMoves($homeJump), 'Figurka nesmí přeskočit vlastní figurku v cílové dráze.');
+onlineEngineMovePiece($homeJump, 1);
+checkSame($homeJump['trackLength'], $homeJump['pieces'][0]['pieces'][0]['steps'], 'Blokující figurka musí zůstat na D1.');
+checkSame($homeJump['trackLength'] + 3, $homeJump['pieces'][0]['pieces'][1]['steps'], 'Volná figurka musí pokračovat na D4.');
 
 $homeBlock = onlineEngineCreateState(testParticipants(2));
 $homeBlock['phase'] = 'move';
