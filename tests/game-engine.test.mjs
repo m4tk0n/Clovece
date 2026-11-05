@@ -192,6 +192,7 @@ test('an occupied opponent start square is an ordinary square and can be capture
 test('40-space circuit uses fields 1-40 once, then enters D1-D4', () => {
     const game = createGame(1, 1, [], [], 40);
     const piece = game.pieces[0].pieces[0];
+    piece.steps = 0;
 
     assert.equal(getPiecePosition(game, 0, piece), game.players[0].start);
     piece.steps = 38; // Pole 39.
