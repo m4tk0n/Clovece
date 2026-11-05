@@ -35,32 +35,52 @@
     border: 1px solid rgba(255,255,255,.1);
     text-align: left;
 }
-.setup-control label {
+.setup-control label,
+.setup-control .setup-label {
     display: block;
     color: #c7d0c5;
     font: 700 11px/1.5 "Press Start 2P",monospace;
     letter-spacing: .04em;
     margin-bottom: 18px;
 }
-.setup-number {
+.setup-stepper {
     display: flex;
-    align-items: baseline;
-    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     color: #fff;
-    margin-bottom: 12px;
 }
-.setup-number strong {
+.setup-stepper strong {
+    flex: 1;
     font: 700 46px/1 "Bangers",Impact,sans-serif;
     color: var(--table-gold);
+    text-align: center;
 }
-.setup-number span {
-    color: var(--table-muted);
-    font-size: 12px;
-    letter-spacing: .1em;
+.setup-stepper-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 12px;
+    background: rgba(255,255,255,.09);
+    color: #fff;
+    font: 700 30px/1 Arial,sans-serif;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease, opacity .15s ease;
 }
-.setup-control input[type=range] {
-    width: 100%;
-    accent-color: var(--table-gold);
+.setup-stepper-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,.2);
+    transform: translateY(-1px);
+}
+.setup-stepper-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+.setup-stepper-btn:disabled {
+    opacity: .3;
+    cursor: not-allowed;
 }
 .setup-summary {
     margin: 20px 0 0;
