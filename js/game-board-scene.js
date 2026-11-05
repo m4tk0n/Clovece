@@ -53,13 +53,13 @@ export function buildBoardSceneData(game, style = 'classic') {
     });
     const validMoves = new Set(getValidMoves(game));
     const allPieces = game.players.flatMap(player => game.pieces[player.id].pieces
-        .filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 4)
+        .filter(piece => piece.steps >= 0 && piece.steps <= game.trackLength + 3)
         .map(piece => ({ player, piece })));
     const pieces = [];
     for (const { player, piece } of allPieces) {
         const slot = slotOf(player, game);
         let position;
-        if (piece.steps <= game.trackLength) {
+        if (piece.steps < game.trackLength) {
             const logicalPosition = getPiecePosition(game, player.id, piece);
             position = trackPosition(logicalPosition, game, style);
         } else {
@@ -68,14 +68,14 @@ export function buildBoardSceneData(game, style = 'classic') {
         }
         let stackIndex = 0;
         let stackCount = 1;
-        if (piece.steps <= game.trackLength) {
+        if (piece.steps < game.trackLength) {
             const logicalPosition = getPiecePosition(game, player.id, piece);
-            const stack = allPieces.filter(item => item.piece.steps <= game.trackLength &&
+            const stack = allPieces.filter(item => item.piece.steps < game.trackLength &&
                 getPiecePosition(game, item.player.id, item.piece) === logicalPosition);
             stackIndex = stack.findIndex(item => item.player.id === player.id && item.piece.id === piece.id);
             stackCount = stack.length;
         }
-        const spread = piece.steps === game.trackLength + 4 ? 0 : (stackIndex - (stackCount - 1) / 2) * 9;
+        const spread = piece.steps === game.trackLength + 3 ? 0 : (stackIndex - (stackCount - 1) / 2) * 9;
         const angle = slotAngle(slot, g.n) + Math.PI / 2;
         pieces.push({
             playerId: player.id, pieceId: piece.id, color: player.color,
