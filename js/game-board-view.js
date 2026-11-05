@@ -20,9 +20,22 @@ let view3dUnavailable = false;
 let threeRendererPromise = null;
 let threeStylesPromise = null;
 
+function emitDebugLoad(name, status, duration) {
+    if (!new URLSearchParams(window.location.search).has('debug')) return;
+    window.dispatchEvent(new CustomEvent('clovece:debug-log', {
+        detail: { name, status, duration }
+    }));
+}
+
 function loadThreeRenderer() {
     if (!threeRendererPromise) {
-        threeRendererPromise = import('./game-board-3d.js').catch(error => {
+        const startedAt = performance.now();
+        emitDebugLoad('game-board-3d.js – načítání', '…');
+        threeRendererPromise = import('./game-board-3d.js').then(module => {
+            emitDebugLoad('game-board-3d.js – načteno', 'OK', Math.round(performance.now() - startedAt));
+            return module;
+        }).catch(error => {
+            emitDebugLoad('game-board-3d.js – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
             threeRendererPromise = null;
             throw error;
         });
