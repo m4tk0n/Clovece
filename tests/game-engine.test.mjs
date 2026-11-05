@@ -11,7 +11,7 @@ import {
     getHomeLaneIndex,
     getAvailableBoardSizes
 } from '../js/game-engine.js';
-import { trackPosition } from '../js/game-board.js';
+import { trackPosition } from '../js/game-board-geometry.js';
 
 test('two to four players use the classic 52-space track and four corner starts', () => {
     const two = createGame(1, 1);
