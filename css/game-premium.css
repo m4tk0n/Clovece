@@ -205,9 +205,8 @@
 .board-bottomline span:last-child { color:var(--player-color); text-align:right; }
 .board-piece { cursor:default; }
 .board-piece.piece-selectable { cursor:pointer; filter:url(#pieceGlow); }
-.board-piece.piece-selectable .piece-core { stroke:#fff; stroke-width:2.8; }
 .board-piece.piece-selectable:hover { transform:translateY(-4px); }
-.piece-core { stroke:rgba(255,255,255,.72); stroke-width:1.3; }
+.piece-core { stroke:none; }
 .piece-shadow { fill:#000; fill-opacity:.45; }
 .track-space { pointer-events:none; }
 #game-screen .game-footer {
