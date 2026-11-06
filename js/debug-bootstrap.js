@@ -2,9 +2,9 @@
  * Vstupní bod diagnostiky. Tento soubor se vkládá do stránky pouze při ?debug=1.
  * Běžná hra nestahuje ani tento modul, ani žádný z jeho závislých debug modulů.
  */
-import { initDebugOverlay } from './debug-overlay.js';
+import { initDebugOverlay } from './debug-overlay.js?v=20261106-1';
 import { registerGameExtension } from './game-extensions.js';
-import { buildDebugMovePaths } from './game-board-debug.js';
+import { buildDebugMovePaths } from './game-board-debug.js?v=20261106-1';
 
 const log = initDebugOverlay();
 const format = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
