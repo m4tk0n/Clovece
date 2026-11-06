@@ -1,3 +1,23 @@
+## 1.00.00.20 – Nastavitelná rozšířená pravidla místní hry
+
+**Datum:** 6. 11. 2026  
+**Typ:** Nová funkce – nastavení místní hry
+
+- Ukázkové položky nahrazeny pravidly 3 hody a Povinnost nasadit.
+- Každé pravidlo má informační nápovědu a přepínač ANO/NE.
+- Výchozí stav obou pravidel je ANO; zachovává dosavadní chování.
+- Vypnutí pravidla 3 hody omezí získání šestky na jediný pokus.
+- Vypnutí povinnosti nasadit dovolí při šestce táhnout již nasazenou figurkou.
+- Volby ovlivňují pouze lokální JavaScriptový engine; online režim zůstává beze změny.
+
+**Dotčené soubory:**
+- `screens/player-selection.php`, `css/components-player-selection.css`
+- `js/player-setup.js`, `js/game-engine.js`, `js/app.js`, `js/game-turn.js`
+
+**Ověření:** čeká na automatické a praktické testy.
+
+---
+
 ## 1.00.00.19 – Automatická volba velikosti desky podle počtu hráčů
 
 **Datum:** 6. 11. 2026  

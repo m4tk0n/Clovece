@@ -26,8 +26,9 @@ export function getAvailableBoardSizes(playerCount) {
         .map(config => config.trackLength);
 }
 
-export function createGame(humanCount, aiCount, names = [], colors = [], boardSize = null) {
+export function createGame(humanCount, aiCount, names = [], colors = [], boardSize = null, rules = {}) {
     const total = humanCount + aiCount;
+    const gameRules = { threeRolls: rules.threeRolls !== false, mustDeploy: rules.mustDeploy !== false };
     if (total < 2 || total > 8 || humanCount < 1 || aiCount < 0) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
     }
@@ -63,6 +64,7 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
 
     return {
         players,
+        rules: gameRules,
         trackLength,
         boardSize: trackLength,
         slotCount,
@@ -131,7 +133,7 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
     // Šestka s figurkou v základně vždy znamená povinné nasazení.
     playerPieces.forEach(piece => {
         if (piece.steps === maxSteps) return;
-        if (hasBasePiece && game.diceValue === 6 && piece.steps !== -1) return;
+        if (game.rules.mustDeploy && hasBasePiece && game.diceValue === 6 && piece.steps !== -1) return;
         if (piece.steps === -1 && game.diceValue !== 6) return;
 
         const nextSteps = piece.steps === -1 ? 0 : piece.steps + game.diceValue;
@@ -184,19 +186,20 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     if (allAtBase) {
         if (game.diceValue !== 6) {
             game.baseRollAttempts = (game.baseRollAttempts || 0) + 1;
-            const retrying = game.baseRollAttempts < 3;
+            const maxAttempts = game.rules.threeRolls ? 3 : 1;
+            const retrying = game.baseRollAttempts < maxAttempts;
             game.phase = retrying ? 'roll' : 'no-move';
             return {
                 value: game.diceValue,
                 validMoves: [],
                 retrying,
                 attempt: game.baseRollAttempts,
-                maxAttempts: 3
+                maxAttempts
             };
         }
 
         game.baseRollAttempts = (game.baseRollAttempts || 0) + 1;
-        game.thirdAttemptSix = game.baseRollAttempts === 3;
+        game.thirdAttemptSix = game.rules.threeRolls && game.baseRollAttempts === 3;
     } else {
         game.baseRollAttempts = 0;
         game.thirdAttemptSix = false;
@@ -220,7 +223,7 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
         validMoves: moves,
         retrying: false,
         attempt: allAtBase ? game.baseRollAttempts : undefined,
-        maxAttempts: allAtBase ? 3 : undefined
+        maxAttempts: allAtBase ? (game.rules.threeRolls ? 3 : 1) : undefined
     };
 }
 

@@ -213,7 +213,7 @@ export function createTurnController(deps) {
         if (result.retrying) {
             const retryText = result.value === 6
                 ? 'hodil 6, nemá legální tah a hází znovu'
-                : 'hodil ' + result.value + ', bez šestky (pokus ' + result.attempt + '/3)';
+                : 'hodil ' + result.value + ', bez šestky (pokus ' + result.attempt + '/' + result.maxAttempts + ')';
             addGameLogEntry(game.players[game.currentPlayer].name, retryText);
             continueGame();
             return;
