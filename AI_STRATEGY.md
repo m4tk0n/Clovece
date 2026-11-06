@@ -124,3 +124,13 @@ Volba se uloží do stavu konkrétní hry jako `game.aiDifficulty`. Pokud není 
 ## 10. Budoucí rozšíření
 
 Možné další zlepšení je úplná enumerace všech tahových posloupností soupeřů, včetně volby figurky po každém hodu, společného rozdělení pravděpodobností, blokování a více kol dopředu. Takový model musí zůstat výpočetně omezený, aby hra nezpomalovala zejména na mobilních telefonech.
+
+
+## 11. Vysvětlení rozhodnutí v debug režimu
+
+- Při otevření hry s parametrem `?debug=1` zapisuje AI do herního chatu samostatné zprávy od odesílatele **AI rozhodování**.
+- Zpráva vysvětluje hlavní důvod vybraného tahu: dokončení figurky v domečku, vyhození soupeře, nasazení další figurky, pokračování právě nasazenou figurkou nebo omezení rizika.
+- Pokud existuje alternativa s vyhozením soupeře, vysvětlení může uvést, proč AI zvolila bezpečnější postup nebo dokončení figurky.
+- Při jediném legálním tahu AI oznámí, že nemá jinou možnost.
+- V běžném režimu bez `?debug=1` se rozhodovací komentáře nezobrazují.
+- Rozhodovací text je pouze diagnostický. Nemění skóre, legální tahy ani pravidla hry.
