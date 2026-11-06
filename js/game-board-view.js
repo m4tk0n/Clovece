@@ -93,11 +93,25 @@ export async function prepareBoardRendering() {
     view3d = false;
     view3dUnavailable = false;
     let canUse3D = false;
+    const probeCanvas = document.createElement('canvas');
+    let probeContext = null;
     try {
-        const module = await loadThreeRenderer();
-        canUse3D = await module.probe3D();
+        // Three.js r180 vyžaduje WebGL 2. Bez něj vůbec nenačítáme 3D moduly.
+        probeContext = probeCanvas.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+        canUse3D = Boolean(probeContext && !probeContext.isContextLost());
     } catch (error) {
-        console.info('3D není dostupné; používá se 2D.', error);
+        canUse3D = false;
+    } finally {
+        probeContext?.getExtension('WEBGL_lose_context')?.loseContext();
+    }
+    if (canUse3D) {
+        try {
+            const module = await loadThreeRenderer();
+            canUse3D = await module.probe3D();
+        } catch (error) {
+            console.info('3D renderer není dostupný; používá se 2D.', error);
+            canUse3D = false;
+        }
     }
     view3d = canUse3D;
     view3dUnavailable = !canUse3D;
@@ -189,7 +203,7 @@ function styleSwitchMarkup() {
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
         '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
-            '" data-board-view="toggle" aria-pressed="' + view3d + '">' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>' +
+            '" data-board-view="toggle" aria-pressed="' + view3d + '"' + (view3dUnavailable ? ' disabled title="3D není na tomto zařízení dostupné"' : '') + '>' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>' +
         '</div>';
 }
 
@@ -222,6 +236,7 @@ function bindStyleSwitch(container) {
             event.target.closest?.('[data-board-view]');
         if (viewButton && container.contains(viewButton)) {
             event.preventDefault();
+            if (view3dUnavailable) return;
             view3d = !view3d;
             view3dUnavailable = false;
             saveView();
@@ -291,6 +306,7 @@ export function renderBoard(container, game) {
                 viewButton.classList.toggle('is-active', view3d);
                 viewButton.setAttribute('aria-pressed', String(view3d));
                 viewButton.textContent = view3d ? '3D' : '2D';
+                viewButton.disabled = view3dUnavailable;
             }
         }
         // 3D renderer a jeho CSS se načtou až při skutečném vykreslení hry v 3D.
