@@ -25,13 +25,12 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <title>Člověče, nezlob se! | Online Ludo Game</title>
     <link rel="stylesheet" href="css/variables.css?v=<?= $assetVersion('css/variables.css') ?>">
     <link rel="stylesheet" href="css/reset.css?v=<?= $assetVersion('css/reset.css') ?>">
-    <link rel="stylesheet" href="css/menu-animations.css?v=<?= $assetVersion('css/menu-animations.css') ?>">
     <link rel="stylesheet" href="css/menu-components.css?v=<?= $assetVersion('css/menu-components.css') ?>">
     <link rel="stylesheet" href="css/layout.css?v=<?= $assetVersion('css/layout.css') ?>">
     <link rel="stylesheet" href="css/toast.css?v=<?= $assetVersion('css/toast.css') ?>">
     <link rel="stylesheet" href="css/responsive.css?v=<?= $assetVersion('css/responsive.css') ?>">
     <link rel="stylesheet" href="css/menu-premium.css?v=<?= $assetVersion('css/menu-premium.css') ?>">
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rubik+Glitch&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="importmap">
     {
@@ -76,12 +75,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
 <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader">
-            <div class="dice-loader">
-                <div class="dice"></div>
-                <div class="dice"></div>
-                <div class="dice"></div>
-            </div>
-            <h2 class="glitch" data-text="ČLOVĚČE NEZLOB SE">ČLOVĚČE NEZLOB SE</h2>
+            <h2>ČLOVĚČE NEZLOB SE</h2>
             <p>Načítání hry...</p>
         </div>
     </div>
@@ -89,7 +83,6 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <!-- Main Menu -->
     <div id="main-menu" class="menu-screen hidden">
         <div class="menu-bg">
-            <div class="particles" id="particles"></div>
             <div class="menu-content">
                 <div class="user-info" id="user-info" class="hidden">
                     <div class="user-avatar">
@@ -108,13 +101,13 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     </button>
                 </div>
                 
-                <h1 class="game-title glitch" data-text="ČLOVĚČE NEZLOB SE">ČLOVĚČE NEZLOB SE</h1>
+                <h1 class="game-title">ČLOVĚČE NEZLOB SE</h1>
                 <div class="game-logo">
                     <i class="fas fa-dice"></i>
                 </div>
                 
                 <div class="menu-buttons">
-                    <button id="play-btn" class="menu-btn pulse">
+                    <button id="play-btn" class="menu-btn">
                         <span>HRÁT</span>
                         <i class="fas fa-play"></i>
                     </button>
