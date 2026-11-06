@@ -184,3 +184,9 @@
     .preview-player-orb { width: 28px; height: 28px; }
 }
 
+
+
+/* Obsah vytvoření místní hry je nahoře, vodorovně vycentrovaný. */
+#player-selection .menu-content {
+    margin: 0 auto;
+}
