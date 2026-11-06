@@ -4,28 +4,10 @@
  * Souřadnice herního modelu (720 × 720) převádíme do prostorové scény.
  */
 import { notifyGameExtensions } from './game-extensions.js';
+import { BOARD_CAMERA_CONFIG, configureBoardCamera } from './game-camera-config.js?v=20261106-1';
 
 const UNIT = 1 / 42;
 
-// Jediné místo pro výchozí pohled na 3D desku.
-// Náklon je měřen od svislé osy; uživatel může kameru následně volně otáčet.
-const BOARD_CAMERA = Object.freeze({
-    tilt: 55 * Math.PI / 180,
-    distance: 32.6065620543,
-    azimuthX: 0.4385559757,
-    azimuthZ: -0.8987038757
-});
-
-function applyBoardCamera(stage) {
-    const horizontal = BOARD_CAMERA.distance * Math.sin(BOARD_CAMERA.tilt);
-    stage._controls.target.set(0, 0, 0);
-    stage._camera.position.set(
-        horizontal * BOARD_CAMERA.azimuthX,
-        BOARD_CAMERA.distance * Math.cos(BOARD_CAMERA.tilt),
-        horizontal * BOARD_CAMERA.azimuthZ
-    );
-    stage._controls.update();
-}
 let threePromise;
 function loadThree() {
     if (!threePromise) {
@@ -391,7 +373,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
         let renderer=stage._renderer;
         if(!renderer){
             stage._scene=new T.Scene();stage._scene.background=new T.Color(0x18251e);
-            stage._camera=new T.PerspectiveCamera(34,1,.1,100);
+            stage._camera=new T.PerspectiveCamera(BOARD_CAMERA_CONFIG.fov,1,BOARD_CAMERA_CONFIG.near,BOARD_CAMERA_CONFIG.far);
             renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
             renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;
             renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;
@@ -403,9 +385,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             key.shadow.camera.top=12;key.shadow.camera.bottom=-12;key.shadow.bias=-.0002;stage._scene.add(key);
             const fill=new T.DirectionalLight(0x9bbcff,1.5);fill.position.set(10,8,-10);stage._scene.add(fill);
             stage._controls=new OrbitControls(stage._camera,renderer.domElement);
-            stage._controls.enableDamping=true;stage._controls.dampingFactor=.07;
-            stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
-            stage._controls.maxPolarAngle=Math.PI*.49;applyBoardCamera(stage);
+            configureBoardCamera(stage._camera,stage._controls,boardRadius);
             stage._raycaster=new T.Raycaster();stage._pointer=new T.Vector2();
             stage._onContextLost=event=>{
                 event.preventDefault();
@@ -439,8 +419,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             renderer.domElement.addEventListener('pointerup',stage._onPointerUp);stage._boardRadius=boardRadius;
         }else if(stage._boardRadius!==boardRadius){
             // Zachovat stejný výchozí pohled i při změně varianty/velikosti desky.
-            stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
-            applyBoardCamera(stage);stage._boardRadius=boardRadius;
+            configureBoardCamera(stage._camera,stage._controls,boardRadius);stage._boardRadius=boardRadius;
         }
         if(stage._board){stage._scene.remove(stage._board);disposeObjectResources(stage._board)}
         const built=buildScene(T,stage._scene,data);stage._board=built.board;stage._pickables=built.pickables;resize(stage);
