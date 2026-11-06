@@ -1,3 +1,25 @@
+## 1.00.00.25 – Testovací laboratoř a rozšířená diagnostika
+
+**Datum:** 7. 11. 2026  
+**Typ:** Testovací a diagnostické nástroje
+
+- Aplikace obsahuje automatickou testovací laboratoř dostupnou přes parametr `?test=1`: [otevřít testovací laboratoř](https://7x.wz.cz/clovece/?test=1).
+- Laboratoř spouští automatickou místní partii v aktuálním prohlížeči nad skutečným herním enginem a rendererem. Umožňuje testovací běh pozastavit, obnovit a zastavit a sleduje průběh hry v protokolu.
+- Testovací režim používá izolovanou místní hru; nevytváří online místnosti ani nemění běžné rozehrané online hry.
+- Diagnostický režim je dostupný přes parametr `?debug=1`: [otevřít debug režim](https://7x.wz.cz/clovece/?debug=1).
+- Debug panel sleduje rozměry displeje a viewportu, DPR, FPS a načítání JavaScriptových modulů a CSS. Panel lze sbalit, rozbalit a přesouvat.
+- Při zobrazení 3D desky debug panel zobrazuje živé souřadnice kamery, její náklon ve stupních a souřadnice cílového bodu. Hodnoty se aktualizují také při ručním pohybu kamery.
+- Testovací a diagnostické nástroje jsou oddělené od běžného herního režimu.
+
+**Dokumentace a implementace:**
+- Testovací laboratoř: `TEST_RUNNER.md`, `js/` a související testovací soubory.
+- Diagnostika: `DEBUG.md`, `js/debug-bootstrap.js`, `js/debug-overlay.js` a `js/game-board-debug.js`.
+- Izolaci debug režimu ověřuje `tests/debug-isolation.test.mjs`.
+
+**Ověření:** existence a popsané funkce ověřeny kontrolou zdrojových souborů a dokumentace. Praktický kompletní běh testovací laboratoře na živém hostingu nebyl v rámci této změny spuštěn.
+
+---
+
 ## 1.00.00.24 – Jednotné místo nastavení 3D kamery
 
 **Datum:** 7. 11. 2026  
