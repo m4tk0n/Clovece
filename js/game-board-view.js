@@ -158,9 +158,9 @@ function saveStyle(style) {
     }
 }
 
-export async function animateThreeDice(value, fast = false) {
+export async function animateThreeDice(value, fast = false, rotationPlan = null) {
     const module = await loadThreeRenderer();
-    return module.animateThreeDice(value, fast);
+    return module.animateThreeDice(value, fast, rotationPlan);
 }
 
 export function getBoardView() {
