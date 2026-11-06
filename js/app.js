@@ -10,7 +10,8 @@ import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from '.
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
 import { settings } from './settings.js';
-import { getPlayerSetup, initPlayerSetup, updateSetup, escapeHtml } from './player-setup.js';
+import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
+import { createGameView } from './game-view.js';
 import { createGameLog } from './game-log.js';
 
 const $ = id => document.getElementById(id);
@@ -45,26 +46,11 @@ function play(id) {
 }
 
 let game = null;
-function showGame() {
-    if (!game) return;
-    renderBoard($('game-container'), game);
-    renderPlayers();
-    updateTurnControls();
-}
+const { showGame, renderPlayers, updateTurnControls } = createGameView({
+    getGame: () => game,
+    renderBoard
+});
 
-function renderPlayers() {
-    const panel = $('players-panel');
-    if (!panel || !game) return;
-    panel.innerHTML = game.players.map((player, index) => {
-        const finished = game.pieces[index].pieces.filter(
-            piece => piece.steps >= game.trackLength
-        ).length;
-        return '<div class="board-player-stat" style="--player-color:' + player.color + '" title="' +
-            escapeHtml(player.name) + '">' +
-            '<strong>' + finished + '/4</strong>' +
-        '</div>';
-    }).join('');
-}
 
 const { resetGameLog, updateStartLog, renderChat, addChatEntry, addGameLogEntry, sendChatMessage } = createGameLog(() => game);
 
