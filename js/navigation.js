@@ -46,6 +46,26 @@ function bindClick(id, callback) {
 }
 
 export function initNavigation() {
+    let localGameModulePromise = null;
+    let localGameInitialized = false;
+    const openLocalGame = async () => {
+        try {
+            if (!localGameModulePromise) {
+                localGameModulePromise = import('./app.js');
+            }
+            const gameModule = await localGameModulePromise;
+            if (!localGameInitialized) {
+                gameModule.initGame();
+                localGameInitialized = true;
+            }
+            gameModule.openPlayerSelection();
+        } catch (error) {
+            console.error('Herní modul se nepodařilo načíst:', error);
+            window.alert('Herní část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        }
+    };
+    bindClick('play-btn', openLocalGame);
+    bindClick('create-room-btn', openLocalGame);
     bindClick('show-register', () => showScreen('register'));
     bindClick('show-login', () => showScreen('login'));
     bindClick('back-from-login', () => showScreen('main-menu'));
