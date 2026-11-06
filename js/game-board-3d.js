@@ -402,8 +402,11 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             const fill=new T.DirectionalLight(0x9bbcff,1.5);fill.position.set(10,8,-10);stage._scene.add(fill);
             stage._controls=new OrbitControls(stage._camera,renderer.domElement);stage._controls.target.set(0,.1,0);
             stage._controls.enableDamping=true;stage._controls.dampingFactor=.07;
+            stage._onCameraChange=()=>emitCameraDebug(stage);
+            stage._controls.addEventListener('change',stage._onCameraChange);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.maxPolarAngle=Math.PI*.49;stage._controls.update();
+            emitCameraDebug(stage);
             stage._raycaster=new T.Raycaster();stage._pointer=new T.Vector2();
             stage._onContextLost=event=>{
                 event.preventDefault();
@@ -438,7 +441,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
         }else if(stage._boardRadius!==boardRadius){
             stage._camera.position.set(0,boardRadius*2.75,boardRadius*2.15);stage._controls.target.set(0,.1,0);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
-            stage._controls.update();stage._boardRadius=boardRadius;
+            stage._controls.update();emitCameraDebug(stage);stage._boardRadius=boardRadius;
         }
         if(stage._board){stage._scene.remove(stage._board);disposeObjectResources(stage._board)}
         const built=buildScene(T,stage._scene,data);stage._board=built.board;stage._pickables=built.pickables;resize(stage);
@@ -447,6 +450,23 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
         reportError(error);
     }
 }
+function emitCameraDebug(stage) {
+    if (new URLSearchParams(window.location.search).get('debug') !== '1' || !stage?._camera || !stage?._controls) return;
+    const camera = stage._camera.position;
+    const target = stage._controls.target;
+    const dx = camera.x - target.x;
+    const dy = camera.y - target.y;
+    const dz = camera.z - target.z;
+    const tilt = Math.atan2(Math.hypot(dx, dz), dy) * 180 / Math.PI;
+    window.dispatchEvent(new CustomEvent('clovece:debug-camera', {
+        detail: {
+            x: camera.x, y: camera.y, z: camera.z,
+            targetX: target.x, targetY: target.y, targetZ: target.z,
+            tilt
+        }
+    }));
+}
+
 function resize(stage){
     const width=Math.max(1,stage.clientWidth),height=Math.max(1,stage.clientHeight);
     stage._renderer.setSize(width,height,false);stage._camera.aspect=width/height;stage._camera.updateProjectionMatrix();
@@ -456,9 +476,10 @@ export function dispose3DBoard(stage){
     if(stage._onPointerDown)stage._renderer?.domElement.removeEventListener('pointerdown',stage._onPointerDown);
     if(stage._onPointerUp)stage._renderer?.domElement.removeEventListener('pointerup',stage._onPointerUp);
     if(stage._onContextLost)stage._renderer?.domElement.removeEventListener('webglcontextlost',stage._onContextLost);
+    if(stage._onCameraChange)stage._controls?.removeEventListener('change',stage._onCameraChange);
     stage._controls?.dispose();disposeObjectResources(stage._board);
     stage._renderer?.dispose();stage._renderer?.domElement.remove();
-    stage._controls=null;stage._board=null;stage._pickables=null;stage._scene=null;stage._camera=null;
+    stage._controls=null;stage._onCameraChange=null;stage._board=null;stage._pickables=null;stage._scene=null;stage._camera=null;
     stage._raycaster=null;stage._pointer=null;stage._renderer=null;stage._raf=null;stage._animation=null;
     stage._resizeObserver=null;stage._onPointerDown=null;stage._onPointerUp=null;stage._onContextLost=null;
 }
