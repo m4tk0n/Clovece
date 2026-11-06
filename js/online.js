@@ -2,7 +2,7 @@
  * Online lobby – napojení obrazovek na anonymní online API.
  * Samotné tahy se zatím nehrají online; serverová validace enginu je další krok.
  */
-import { showScreen } from './navigation.js';
+import { showScreen, loadScreen } from './navigation.js';
 import { api, bootstrapOnline } from './online/api.js';
 import { notify } from './online/notifications.js';
 import { createRoomActions } from './online/room-actions.js';
@@ -87,7 +87,7 @@ function renderGame(data) {
         });
         return;
     }
-    renderRoomView(data, { state: onlineRuntimeState, onlineRuntimeState.currentInviteUrl, showScreen });
+    renderRoomView(data, { state: onlineRuntimeState, currentInviteUrl: onlineRuntimeState.currentInviteUrl, showScreen });
 }
 
 async function sendGameAction(actionType, pieceId = null) {
