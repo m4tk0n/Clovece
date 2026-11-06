@@ -1,6 +1,6 @@
 /**
  * Potvrzení opuštění aplikace systémovým tlačítkem Zpět.
- * Ochranná položka historie existuje pouze na hlavní úvodní obrazovce.
+ * Ochranná položka historie se spravuje pouze v paměti aktuální stránky.
  */
 export function initExitGuard() {
     const mainMenu = document.getElementById('main-menu');
@@ -12,6 +12,7 @@ export function initExitGuard() {
 
     const isMainMenuVisible = () => !mainMenu.classList.contains('hidden');
     let modalOpen = false;
+    let guardArmed = false;
     let allowExit = false;
 
     const showModal = () => {
@@ -28,33 +29,34 @@ export function initExitGuard() {
         modal.setAttribute('aria-hidden', 'true');
     };
 
-    // Vloží právě jednu ochrannou položku pro aktuální zobrazení hlavního menu.
+    // Každé načtení stránky dostane vlastní ochrannou položku.
+    // Nespoléháme na history.state, který může přežít obnovení stránky.
     const armHistoryGuard = () => {
-        if (!isMainMenuVisible()) return;
-        if (window.history.state?.cloveceExitGuard === true) return;
+        if (!isMainMenuVisible() || guardArmed) return;
 
         window.history.pushState(
-            { ...(window.history.state || {}), cloveceExitGuard: true },
+            { cloveceExitGuard: true },
             '',
             window.location.href
         );
+        guardArmed = true;
     };
 
-    // Při návratu do hlavního menu obnovíme ochranu, pokud ji mezitím
-    // systémové Zpět na jiné obrazovce odstranilo.
     window.addEventListener('clovece:main-menu-shown', armHistoryGuard);
     armHistoryGuard();
 
     window.addEventListener('popstate', () => {
+        guardArmed = false;
+
         if (allowExit) {
             allowExit = false;
             return;
         }
 
-        // Ostatní obrazovky používají systémové Zpět bez potvrzovacího dialogu.
+        // Na ostatních obrazovkách systémové Zpět funguje běžně.
         if (!isMainMenuVisible()) return;
 
-        // Okamžitě obnovíme ochrannou položku, aby prohlížeč neopustil stránku.
+        // Znovu vložíme ochranu ještě před zobrazením potvrzení.
         armHistoryGuard();
         showModal();
     });
@@ -63,9 +65,8 @@ export function initExitGuard() {
 
     yesButton.addEventListener('click', () => {
         hideModal();
-        // Uvolníme ochrannou položku. Samotné zavření panelu prohlížeč
-        // JavaScriptem povolit nemusí; systémové Zpět pak může stránku opustit.
         allowExit = true;
+        guardArmed = false;
         window.history.back();
     });
 
