@@ -45,6 +45,33 @@
                     <span>ZAČÍT HRU</span>
                     <i class="fas fa-dice"></i>
                 </button>
+                <button id="extended-rules-toggle" class="menu-btn extended-rules-toggle" type="button" aria-expanded="false" aria-controls="extended-rules-panel">
+                    <span>ROZŠÍŘENÁ PRAVIDLA</span>
+                    <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                </button>
+                <section id="extended-rules-panel" class="extended-rules-panel hidden" aria-label="Volitelná pravidla hry">
+                    <div class="extended-rule-row">
+                        <div class="extended-rule-description">
+                            <span>Pravidlo 1</span>
+                            <button class="rule-info" type="button" aria-label="Informace k pravidlu 1" title="Ukázkové pravidlo. Popis bude doplněn.">i</button>
+                        </div>
+                        <button class="rule-switch" type="button" data-rule-toggle="rule1" aria-pressed="false"><span>NE</span></button>
+                    </div>
+                    <div class="extended-rule-row">
+                        <div class="extended-rule-description">
+                            <span>Pravidlo 2</span>
+                            <button class="rule-info" type="button" aria-label="Informace k pravidlu 2" title="Ukázkové pravidlo. Popis bude doplněn.">i</button>
+                        </div>
+                        <button class="rule-switch" type="button" data-rule-toggle="rule2" aria-pressed="false"><span>NE</span></button>
+                    </div>
+                    <div class="extended-rule-row">
+                        <div class="extended-rule-description">
+                            <span>Pravidlo 3</span>
+                            <button class="rule-info" type="button" aria-label="Informace k pravidlu 3" title="Ukázkové pravidlo. Popis bude doplněn.">i</button>
+                        </div>
+                        <button class="rule-switch" type="button" data-rule-toggle="rule3" aria-pressed="false"><span>NE</span></button>
+                    </div>
+                </section>
                 <button id="back-to-menu-btn" class="menu-btn">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
