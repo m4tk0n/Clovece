@@ -5,6 +5,7 @@
 export {
     getBoardStyle,
     getBoardView,
+    ensureGameStyles,
     buildBoardSceneData,
     renderBoard,
     ensureModeStyles,
