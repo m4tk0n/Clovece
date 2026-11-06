@@ -10,10 +10,11 @@ export function initOnlineLobbyControls(deps) {
     const { resumeMyGame, loadMyGames, createRoom, api, notify, joinRoom, schedulePoll } = deps;
     const $ = id => document.getElementById(id);
 
-    $('my-games-list')?.addEventListener('click', event => {
+    document.addEventListener('click', event => {
         const button = event.target.closest?.('[data-game-id]');
-        if (!button || button.disabled) return;
-        void resumeMyGame(button.dataset.gameId, button);
+        const list = button?.closest?.('#my-games-list, #online-games-list');
+        if (!button || !list || button.disabled) return;
+        void resumeMyGame(button.dataset.gameId, button, list.id);
     });
     document.addEventListener('click', event => {
         if (event.target.closest?.('#back-from-room, #back-from-lobby')) {
