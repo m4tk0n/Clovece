@@ -108,5 +108,3 @@ export function initGameScreen(deps) {
         }
         toast('Rychlost pohybu figurek: ' + (settings.moveSpeed === 'fast' ? 'Rychlá' : 'Normální'));
     });
-
-    // Online navigace je navázaná v hlavním inicializátoru, nezávisle na API bootstrapu.
