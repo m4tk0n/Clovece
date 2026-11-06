@@ -33,6 +33,8 @@ function loadOnlineGameRuntime() {
             import('./game-engine.js')
         ]).then(([board, app, engine]) => ({
             renderBoard: board.renderBoard,
+            ensureModeStyles: board.ensureModeStyles,
+            getBoardView: board.getBoardView,
             animateDice: app.animateDice,
             getForcedMove: engine.getForcedMove
         })).catch(error => {
@@ -243,6 +245,8 @@ async function renderOnlineGame(data) {
     const game = data.game;
     const runtime = await loadOnlineGameRuntime();
     if (requestId !== onlineRenderRequest) return;
+    await runtime.ensureModeStyles(runtime.getBoardView());
+    if (requestId !== onlineRenderRequest) return;
     const previousState = onlineState;
     const previousVersion = onlineStateVersion;
     const hasNewRoll = Boolean(
@@ -340,6 +344,8 @@ function renderGame(data) {
         return;
     }
 
+    onlineRenderRequest++;
+    onlineGameRuntimePromise = null;
     onlineMode = false;
     $('win-modal')?.classList.add('hidden');
     showScreen('room');
