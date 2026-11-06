@@ -47,6 +47,8 @@ function loadThreeRenderer() {
 function disposeThreeRenderer(stage) {
     if (!stage?._threeRendererModule) return;
     stage._threeRendererModule.dispose3DBoard(stage);
+    stage._threeRendererModule.release3DResources?.();
+    stage._threeRendererModule = null;
 }
 
 export function ensureModeStyles(mode) {
