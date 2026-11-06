@@ -2,12 +2,6 @@
    PRAVIDLA (#rules-screen)
    =================== */
 
-/* Tlačítko Zpět má jen šířku svého obsahu. */
-#rules-screen #back-rules-btn {
-    width: fit-content;
-    max-width: none;
-}
-
 .rules-text {
     max-height: 55vh;
     padding: 14px;
