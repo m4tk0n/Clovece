@@ -94,7 +94,24 @@ export function initNavigation() {
     bindClick('back-from-register', () => showScreen('main-menu'));
     bindClick('back-from-lobby', () => showScreen('main-menu'));
     bindClick('back-from-room', () => showScreen('lobby'));
-    bindClick('join-room-btn', () => showScreen('lobby'));
+    let onlineInitPromise = null;
+    const openOnlineLobby = async () => {
+        showScreen('lobby');
+        if (!onlineInitPromise) {
+            onlineInitPromise = import('./online.js')
+                .then(module => module.initOnline())
+                .catch(error => {
+                    onlineInitPromise = null;
+                    console.error('Online lobby se nepodařilo načíst:', error);
+                    window.alert('Online část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+                });
+        }
+        await onlineInitPromise;
+    };
+    bindClick('join-room-btn', openOnlineLobby);
+    if (new URLSearchParams(window.location.search).has('invite')) {
+        void openOnlineLobby();
+    }
     bindClick('settings-btn', openSettings);
     bindClick('rules-btn', () => showScreen('rules'));
     bindClick('back-settings-btn', () => showScreen('main-menu'));
