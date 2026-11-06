@@ -43,7 +43,19 @@ $assetVersion = static function (string $path): int {
             "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
             "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
             "./js/navigation.js": "./js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
-            "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>"
+            "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>",
+            "./js/game-screen.js": "./js/game-screen.js?v=<?= $assetVersion('js/game-screen.js') ?>",
+            "./js/online/api.js": "./js/online/api.js?v=<?= $assetVersion('js/online/api.js') ?>",
+            "./js/online/notifications.js": "./js/online/notifications.js?v=<?= $assetVersion('js/online/notifications.js') ?>",
+            "./js/online/chat-view.js": "./js/online/chat-view.js?v=<?= $assetVersion('js/online/chat-view.js') ?>",
+            "./js/online/my-games-view.js": "./js/online/my-games-view.js?v=<?= $assetVersion('js/online/my-games-view.js') ?>",
+            "./js/online/game-runtime.js": "./js/online/game-runtime.js?v=<?= $assetVersion('js/online/game-runtime.js') ?>",
+            "./js/online/game-view.js": "./js/online/game-view.js?v=<?= $assetVersion('js/online/game-view.js') ?>",
+            "./js/online/room-view.js": "./js/online/room-view.js?v=<?= $assetVersion('js/online/room-view.js') ?>",
+            "./js/online/room-actions.js": "./js/online/room-actions.js?v=<?= $assetVersion('js/online/room-actions.js') ?>",
+            "./js/online/game-controls.js": "./js/online/game-controls.js?v=<?= $assetVersion('js/online/game-controls.js') ?>",
+            "./js/online/lobby-controls.js": "./js/online/lobby-controls.js?v=<?= $assetVersion('js/online/lobby-controls.js') ?>",
+            "./js/online/room-controls.js": "./js/online/room-controls.js?v=<?= $assetVersion('js/online/room-controls.js') ?>"
         }
     }
     </script>
