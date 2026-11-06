@@ -7,18 +7,15 @@
     .game-title {
         font-size: 3rem;
     }
-    
+
     .glitch {
         font-size: 2.5rem;
     }
 
-
-
-    
     .game-footer {
         flex-direction: column;
     }
-    
+
     .players-panel {
         width: 100%;
     }
@@ -29,50 +26,46 @@
     .menu-bg {
         padding: 1rem;
     }
-    
+
     .menu-content {
         padding: 1rem;
     }
-    
+
     .game-header {
         flex-direction: column;
         gap: 15px;
         padding: 15px;
     }
-    
+
     .game-info {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .game-controls {
         width: 100%;
         justify-content: center;
     }
-    
+
     .game-btn {
         padding: 12px 20px;
         font-size: 0.8rem;
     }
 
-
-
-    
     .players-panel {
         flex-direction: column;
         align-items: center;
     }
 
-    
     .lobby-actions {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .join-room-form {
         flex-direction: column;
     }
-    
+
     .auth-form {
         width: 100%;
         max-width: 100%;
@@ -84,45 +77,41 @@
     .game-title {
         font-size: 2.5rem;
     }
-    
+
     .glitch {
         font-size: 2rem;
     }
 
-
-
-
-    
     .user-info {
         position: static;
         margin-bottom: 20px;
     }
-    
+
     .menu-buttons {
         gap: 10px;
     }
-    
+
     .menu-btn {
         padding: 12px 25px;
         font-size: 0.9rem;
     }
-    
+
     .kick-animation {
         gap: 30px;
     }
-    
+
     .kicker-piece,
     .kicked-piece {
         width: 40px;
         height: 40px;
         font-size: 1rem;
     }
-    
+
     .modal-content {
         padding: 2rem 1.5rem;
         margin: 20px;
     }
-    
+
     .modal-content h3 {
         font-size: 2rem;
     }
@@ -131,50 +120,43 @@
 /* Mobile Portrait */
 @media (max-width: 480px) {
 
-
-
-
-    
     .game-title {
         font-size: 2rem;
     }
-    
+
     .glitch {
         font-size: 1.5rem;
     }
-    
+
     .menu-btn {
         padding: 10px 20px;
         font-size: 0.8rem;
     }
-    
+
     .auth-form {
         padding: 1rem;
     }
-    
+
     .form-group input,
     .form-group select {
         padding: 10px 12px 10px 35px;
         font-size: 0.9rem;
     }
-    
+
     .form-group i {
         left: 10px;
         font-size: 0.9rem;
     }
-    
+
     .room-list {
         gap: 10px;
     }
 
-
-
-    
     .room-info {
         flex-direction: column;
         gap: 5px;
     }
-    
+
     .dice-loader .dice {
         width: 30px;
         height: 30px;
@@ -184,24 +166,20 @@
 /* Extra Small Devices */
 @media (max-width: 360px) {
 
-
-
-
-    
     .game-title {
         font-size: 1.5rem;
     }
-    
+
     .menu-btn {
         padding: 8px 15px;
         font-size: 0.7rem;
     }
-    
+
     .modal-content {
         padding: 1.5rem;
         margin: 10px;
     }
-    
+
     .modal-content h3 {
         font-size: 1.5rem;
     }
