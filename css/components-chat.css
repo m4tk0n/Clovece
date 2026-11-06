@@ -1,0 +1,90 @@
+/* Chat – komponenty pro příslušnou část aplikace. */
+
+.game-chat,
+.room-chat {
+    max-width: 600px;
+    margin: 2rem auto 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius);
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.game-chat h4,
+.room-chat h4 {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 15px;
+}
+
+.chat-messages {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius);
+}
+
+.chat-message {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.chat-message.system {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    font-style: italic;
+}
+
+.chat-message .message-sender {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.chat-form {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-form input {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.chat-form input:focus {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.chat-form input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.chat-form button {
+    padding: 10px 20px;
+    background: var(--gradient-1);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--white);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.chat-form button:hover {
+    background: linear-gradient(135deg, #ff8b94, #ee5a24);
+}

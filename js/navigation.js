@@ -27,6 +27,68 @@ const screenFiles = {
 };
 
 const screenLoads = new Map();
+const screenStyleLinks = new Map();
+
+const screenStyles = {
+    login: ['css/components.css', 'css/components-auth.css'],
+    register: ['css/components.css', 'css/components-auth.css'],
+    lobby: ['css/components.css', 'css/components-online.css', 'css/components-chat.css'],
+    room: ['css/components.css', 'css/components-online.css', 'css/components-chat.css'],
+    'player-selection': ['css/components.css', 'css/components-player-selection.css'],
+    settings: ['css/components.css', 'css/components-settings.css'],
+    rules: ['css/components.css', 'css/components-rules.css'],
+    game: ['css/components.css', 'css/components-game.css', 'css/components-chat.css', 'css/animations.css']
+};
+
+let cssAssetVersions = null;
+
+function getCssAssetVersion(path) {
+    if (!cssAssetVersions) {
+        try {
+            cssAssetVersions = JSON.parse(document.body.dataset.cssVersions || '{}');
+        } catch (error) {
+            console.warn('Verze CSS souborů se nepodařilo načíst:', error);
+            cssAssetVersions = {};
+        }
+    }
+    return cssAssetVersions[path] || 1;
+}
+
+async function ensureStylesheet(path) {
+    if (screenStyleLinks.has(path)) return screenStyleLinks.get(path);
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = path + '?v=' + encodeURIComponent(getCssAssetVersion(path));
+    link.dataset.screenStylesheet = path;
+
+    const loaded = new Promise((resolve, reject) => {
+        link.addEventListener('load', resolve, { once: true });
+        link.addEventListener('error', () => {
+            screenStyleLinks.delete(path);
+            link.remove();
+            reject(new Error('Nepodařilo se načíst CSS: ' + path));
+        }, { once: true });
+    });
+
+    screenStyleLinks.set(path, loaded);
+    document.head.append(link);
+    return loaded;
+}
+
+function releaseStylesheet(path) {
+    document.querySelector('link[data-screen-stylesheet="' + path + '"]')?.remove();
+    screenStyleLinks.delete(path);
+}
+
+async function prepareScreenStyles(name) {
+    const required = screenStyles[name] || [];
+    for (const path of screenStyleLinks.keys()) {
+        if (!required.includes(path)) releaseStylesheet(path);
+    }
+    await Promise.all(required.map(ensureStylesheet));
+}
+
 let navigationRequest = 0;
 
 export async function loadScreen(name) {
@@ -78,6 +140,15 @@ export async function showScreen(name) {
     } catch (error) {
         console.error('Obrazovku se nepodařilo načíst:', error);
         window.alert('Obrazovku se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        return false;
+    }
+
+    // Styly se načítají až podle cílové obrazovky.
+    try {
+        await prepareScreenStyles(name);
+    } catch (error) {
+        console.error('Styly obrazovky se nepodařilo načíst:', error);
+        window.alert('Vzhled obrazovky se nepodařilo načíst. Obnov stránku a zkus to znovu.');
         return false;
     }
 

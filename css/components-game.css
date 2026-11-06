@@ -1,0 +1,65 @@
+/* Game Buttons + Player Card – komponenty pro příslušnou část aplikace. */
+
+.game-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 25px;
+    font-family: var(--font-pixel);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--gradient-1);
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 3px 15px rgba(255, 107, 107, 0.4);
+}
+
+.game-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 25px rgba(255, 107, 107, 0.6);
+}
+
+.game-btn:active {
+    transform: translateY(0);
+}
+
+.game-btn.hidden {
+    display: none;
+}
+
+.game-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dice-btn {
+    background: var(--gradient-1);
+}
+
+.end-btn {
+    background: var(--gradient-2);
+}
+
+.game-btn.menu-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--white);
+}
+
+.game-btn.menu-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius-full);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+}

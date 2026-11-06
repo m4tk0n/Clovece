@@ -1,0 +1,119 @@
+/* Základní komponenty hlavního menu. */
+
+.menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 40px;
+    margin: 10px;
+    font-family: var(--font-pixel);
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    color: var(--white);
+    background: var(--gradient-1);
+    border: none;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 
+        0 5px 15px rgba(255, 107, 107, 0.4), 
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to right, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent
+    );
+    transform: translateX(-100%);
+    transition: transform var(--transition-medium);
+    z-index: -1;
+}
+
+.menu-btn:hover::before {
+    transform: translateX(100%);
+}
+
+.menu-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 8px 25px rgba(255, 107, 107, 0.6), 
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #ff8b94, #ee5a24);
+}
+
+.menu-btn:active {
+    transform: translateY(1px);
+}
+
+.menu-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.menu-btn.secondary {
+    background: var(--gradient-2);
+}
+
+.menu-btn.secondary:hover {
+    background: linear-gradient(135deg, #44a08d, #3a8f7f);
+}
+
+.menu-btn.small {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+}
+
+.menu-btn .fas {
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+.pulse {
+    animation: buttonPulse 2s ease-in-out infinite;
+}
+
+.glitch {
+    position: relative;
+    font-family: var(--font-title);
+    font-size: 3rem;
+    text-transform: uppercase;
+    color: var(--white);
+    text-shadow: 0 0 10px var(--primary);
+    animation: glitch-skew 4s infinite linear alternate-reverse;
+}
+
+.glitch::before,
+.glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch::before {
+    color: var(--primary);
+    animation: glitch-effect 3s infinite linear alternate-reverse;
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    transform: translateX(-2px);
+}
+
+.glitch::after {
+    color: var(--secondary);
+    animation: glitch-effect 2s infinite linear alternate-reverse;
+    clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+    transform: translateX(2px);
+}

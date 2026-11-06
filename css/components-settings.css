@@ -1,0 +1,94 @@
+/* Settings – komponenty pro příslušnou část aplikace. */
+
+.settings-container {
+    max-width: 500px;
+    margin: 0 auto 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2rem;
+    border-radius: var(--radius);
+    border: 2px solid rgba(78, 205, 196, 0.3);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    color: var(--white);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider-round {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 34px;
+    transition: background var(--transition-fast);
+}
+
+.slider-round::before {
+    position: absolute;
+    content: '';
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background: var(--gradient-1);
+    border-radius: 50%;
+    transition: transform var(--transition-fast);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch input:checked + .slider-round {
+    background: rgba(78, 205, 196, 0.3);
+}
+
+.toggle-switch input:checked + .slider-round::before {
+    transform: translateX(26px);
+    background: var(--gradient-2);
+}
+
+.settings-container select {
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 107, 107, 0.3);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-family: var(--font-pixel);
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.settings-container select:hover,
+.settings-container select:focus {
+    border-color: var(--primary);
+    background: rgba(255, 107, 107, 0.1);
+}
