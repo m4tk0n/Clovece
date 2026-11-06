@@ -114,3 +114,18 @@ test('AI decision exposes a readable explanation without changing the legal move
     assert.ok(decision.reason.length > 10);
     assert.equal(chooseAIMove(game), decision.pieceId);
 });
+
+
+test('AI explains why it finishes a piece instead of taking an optional capture', () => {
+    const game = createGame(1, 1, [], [], 40, { mustEnterHome: false }, 'medium');
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = game.trackLength + 2;
+    game.pieces[0].pieces[1].steps = 0;
+    game.pieces[1].pieces[0].steps = 21;
+
+    const decision = chooseAIMoveDecision(game);
+    assert.equal(decision.pieceId, 0);
+    assert.match(decision.reason, /vyhodit hráče/);
+    assert.match(decision.reason, /domečku/);
+});
