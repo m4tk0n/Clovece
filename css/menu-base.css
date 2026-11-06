@@ -151,6 +151,12 @@
     margin: 8px auto 0;
 }
 
+/* Modifikátor pro tlačítka, která mají být široká jen podle obsahu. */
+.menu-content > .menu-btn.fit-content {
+    width: fit-content;
+    max-width: none;
+}
+
 @media (max-width: 600px) {
     .menu-btn { min-height: 38px; font-size: 11px; }
 }
