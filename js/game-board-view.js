@@ -51,6 +51,36 @@ function disposeThreeRenderer(stage) {
     stage._threeRendererModule = null;
 }
 
+function ensureStylesheet(name, mode = 'game') {
+    if (modeStylesPromises.has(name)) return modeStylesPromises.get(name);
+    const startedAt = performance.now();
+    const link = document.createElement('link');
+    link.id = 'clovece-' + name + '-styles';
+    link.dataset.modeStyle = mode;
+    link.rel = 'stylesheet';
+    link.href = new URL('../css/' + name + '.css?v=20261106-3', import.meta.url).href;
+    const promise = new Promise((resolve, reject) => {
+        emitDebugLoad('css/' + name + '.css – načítání', '…');
+        link.onload = () => {
+            emitDebugLoad('css/' + name + '.css – načteno', 'OK', Math.round(performance.now() - startedAt));
+            resolve();
+        };
+        link.onerror = () => {
+            emitDebugLoad('css/' + name + '.css – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
+            link.remove();
+            modeStylesPromises.delete(name);
+            reject(new Error('Nepodařilo se načíst css/' + name + '.css'));
+        };
+        document.head.appendChild(link);
+    });
+    modeStylesPromises.set(name, promise);
+    return promise;
+}
+
+export function ensureGameStyles() {
+    return ensureStylesheet('game-premium');
+}
+
 export function ensureModeStyles(mode) {
     if (mode !== '2d' && mode !== '3d') throw new Error('Neznámý režim CSS: ' + mode);
     if (activeStylesMode !== mode) {
@@ -62,31 +92,11 @@ export function ensureModeStyles(mode) {
         }
         activeStylesMode = mode;
     }
-    return Promise.all(['game-premium', 'board-' + mode, 'dice-' + mode].map(name => {
-        if (modeStylesPromises.has(name)) return modeStylesPromises.get(name);
-        const startedAt = performance.now();
-        const link = document.createElement('link');
-        link.id = 'clovece-' + name + '-styles';
-        link.dataset.modeStyle = mode;
-        link.rel = 'stylesheet';
-        link.href = new URL('../css/' + name + '.css?v=20261106-2', import.meta.url).href;
-        const promise = new Promise((resolve, reject) => {
-            emitDebugLoad('css/' + name + '.css – načítání', '…');
-            link.onload = () => {
-                emitDebugLoad('css/' + name + '.css – načteno', 'OK', Math.round(performance.now() - startedAt));
-                resolve();
-            };
-            link.onerror = () => {
-                emitDebugLoad('css/' + name + '.css – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
-                link.remove();
-                modeStylesPromises.delete(name);
-                reject(new Error('Nepodařilo se načíst css/' + name + '.css'));
-            };
-            document.head.appendChild(link);
-        });
-        modeStylesPromises.set(name, promise);
-        return promise;
-    }));
+    return Promise.all([
+        ensureGameStyles(),
+        ensureStylesheet('board-' + mode, mode),
+        ensureStylesheet('dice-' + mode, mode)
+    ]);
 }
 
 export function releaseGameView() {
