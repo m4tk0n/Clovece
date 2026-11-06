@@ -371,7 +371,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
         let renderer=stage._renderer;
         if(!renderer){
             stage._scene=new T.Scene();stage._scene.background=new T.Color(0x18251e);
-            stage._camera=new T.PerspectiveCamera(34,1,.1,100);stage._camera.position.set(0,boardRadius*2.75,boardRadius*2.15);
+            stage._camera=new T.PerspectiveCamera(34,1,.1,100);stage._camera.position.set(11.882,18.142,-24.349);
             renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
             renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;
             renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;
@@ -382,7 +382,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-12;key.shadow.camera.right=12;
             key.shadow.camera.top=12;key.shadow.camera.bottom=-12;key.shadow.bias=-.0002;stage._scene.add(key);
             const fill=new T.DirectionalLight(0x9bbcff,1.5);fill.position.set(10,8,-10);stage._scene.add(fill);
-            stage._controls=new OrbitControls(stage._camera,renderer.domElement);stage._controls.target.set(0,.1,0);
+            stage._controls=new OrbitControls(stage._camera,renderer.domElement);stage._controls.target.set(0,-1.4703962334,0);
             stage._controls.enableDamping=true;stage._controls.dampingFactor=.07;
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.maxPolarAngle=Math.PI*.49;stage._controls.update();
