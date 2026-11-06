@@ -1,0 +1,122 @@
+name: Remote hosting smoke test
+
+on:
+  workflow_run:
+    workflows: ["Deploy na FTP"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-account-test:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check remote PHP and database schema
+        env:
+          BASE_URL: https://7x.wz.cz/clovece
+          REMOTE_TEST_TOKEN: ${{ secrets.REMOTE_TEST_TOKEN }}
+        run: |
+          if [ -z "$REMOTE_TEST_TOKEN" ]; then
+            echo "::error::Chybí GitHub Actions secret REMOTE_TEST_TOKEN."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST "$BASE_URL/remote-test.php" \
+            -H "Authorization: Bearer $REMOTE_TEST_TOKEN" \
+            --data "action=status" | tee remote-status.json
+          python -c "import json; d=json.load(open('remote-status.json')); assert d.get('success'), d"
+
+      - name: Test real registration, logout and login through online API
+        env:
+          BASE_URL: https://7x.wz.cz/clovece
+          REMOTE_TEST_TOKEN: ${{ secrets.REMOTE_TEST_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os, re, secrets, string, sys
+          import requests
+
+          base = os.environ["BASE_URL"].rstrip("/")
+          token = os.environ["REMOTE_TEST_TOKEN"]
+          api = base + "/online-api.php"
+          helper = base + "/remote-test.php"
+          session = requests.Session()
+          username = "ghatest_" + secrets.token_hex(6)
+          password = secrets.token_urlsafe(24)
+          cleanup_ok = False
+
+          def require(condition, message):
+              if not condition:
+                  raise RuntimeError(message)
+
+          def api_post(action, csrf, **fields):
+              response = session.post(api, data={"action": action, "csrf_token": csrf, **fields}, timeout=25)
+              try:
+                  data = response.json()
+              except ValueError:
+                  raise RuntimeError(f"{action}: API nevrátila JSON (HTTP {response.status_code})")
+              require(response.status_code == 200 and data.get("success") is True,
+                      f"{action}: HTTP {response.status_code}: {data}")
+              return data
+
+          try:
+              bootstrap_response = session.get(api, params={"action": "bootstrap"}, timeout=25)
+              require(bootstrap_response.status_code == 200, f"bootstrap HTTP {bootstrap_response.status_code}")
+              bootstrap = bootstrap_response.json()
+              require(bootstrap.get("success") is True and bootstrap.get("csrf_token"),
+                      f"bootstrap failed: {bootstrap}")
+              csrf = bootstrap["csrf_token"]
+
+              registered = api_post(
+                  "register", csrf,
+                  username=username,
+                  password=password,
+                  display_name="GitHub test",
+                  color="#ff6b6b",
+              )
+              require(registered.get("player", {}).get("username") == username,
+                      "Registrace nevrátila vytvořený účet.")
+              csrf = registered.get("csrf_token")
+              require(bool(csrf), "Registrace nevrátila CSRF token.")
+              print("PASS: registrace nového testovacího účtu")
+
+              logged_out = api_post("logout", csrf)
+              csrf = logged_out.get("csrf_token")
+              require(bool(csrf), "Odhlášení nevrátilo CSRF token.")
+              print("PASS: odhlášení po registraci")
+
+              logged_in = api_post("login", csrf, username=username, password=password)
+              require(logged_in.get("player", {}).get("username") == username,
+                      "Přihlášení nevrátilo očekávaný účet.")
+              csrf = logged_in.get("csrf_token")
+              require(bool(csrf), "Přihlášení nevrátilo CSRF token.")
+              print("PASS: přihlášení vytvořeným účtem")
+
+              verified = session.get(api, params={"action": "bootstrap"}, timeout=25).json()
+              require(verified.get("account", {}).get("username") == username,
+                      f"Bootstrap nepotvrdil přihlášený účet: {verified}")
+              print("PASS: bootstrap potvrzuje aktivní přihlášení")
+
+              api_post("logout", csrf)
+              print("PASS: závěrečné odhlášení")
+          finally:
+              cleanup = session.post(
+                  helper,
+                  headers={"Authorization": "Bearer " + token},
+                  data={"action": "cleanup", "username": username},
+                  timeout=25,
+              )
+              try:
+                  cleanup_data = cleanup.json()
+              except ValueError:
+                  cleanup_data = {"body": cleanup.text[:500]}
+              cleanup_ok = cleanup.status_code == 200 and cleanup_data.get("success") is True
+              print("CLEANUP:", cleanup_data)
+              if not cleanup_ok:
+                  print("::error::Testovací účet se nepodařilo automaticky odstranit.", file=sys.stderr)
+
+          require(cleanup_ok, "Úklid testovacího účtu selhal.")
+          print("PASS: testovací účet a identita byly odstraněny")
+          PY
