@@ -14,7 +14,7 @@ export function loadOnlineGameRuntime() {
             renderBoard: board.renderBoard,
             ensureModeStyles: board.ensureModeStyles,
             getBoardView: board.getBoardView,
-            animateDice: app.animateDice,
+            animateDice: (...args) => import('../dice.js').then(module => module.animateDice(...args)),
             getForcedMove: engine.getForcedMove
         })).catch(error => {
             runtimePromise = null;
