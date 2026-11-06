@@ -218,3 +218,24 @@ export function initPlayerSetup() {
 }
 
 export { updateSetup };
+
+
+/** Aktuální přepínače rozšířených pravidel sdílené UI a testovacím režimem. */
+export function getExtendedRules() {
+    return { ...extendedRules };
+}
+
+/** Testovací panel mění stejný objekt, který se předává do createGame(). */
+export function setExtendedRulesForTest(values = {}) {
+    for (const key of Object.keys(extendedRules)) {
+        if (typeof values[key] === 'boolean') extendedRules[key] = values[key];
+    }
+    document.querySelectorAll('[data-rule-toggle]').forEach(button => {
+        const key = button.dataset.ruleToggle;
+        if (!(key in extendedRules)) return;
+        button.setAttribute('aria-pressed', String(extendedRules[key]));
+        const label = button.querySelector('span');
+        if (label) label.textContent = extendedRules[key] ? 'ANO' : 'NE';
+    });
+    return getExtendedRules();
+}
