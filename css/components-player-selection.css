@@ -220,11 +220,13 @@
     display: none;
 }
 .extended-rule-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
+    width: 100%;
     min-height: 54px;
+    text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, .09);
 }
 .extended-rule-row:last-child {
@@ -259,6 +261,8 @@
     outline-offset: 3px;
 }
 .rule-switch {
+    justify-self: end;
+    margin-left: auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
