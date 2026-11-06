@@ -33,6 +33,26 @@ function mat(T,color,options={}) {
     return new T.MeshStandardMaterial({color,roughness:options.roughness??.48,metalness:options.metalness??.12,
         transparent:options.opacity!=null&&options.opacity<1,opacity:options.opacity??1});
 }
+function disposeMaterial(material) {
+    if (!material) return;
+    // Material.dispose() neuvolňuje automaticky textury, které materiál používá.
+    for (const value of Object.values(material)) {
+        if (value?.isTexture) value.dispose();
+    }
+    material.dispose();
+}
+
+function disposeObjectResources(root) {
+    root?.traverse(object => {
+        object.geometry?.dispose();
+        if (Array.isArray(object.material)) {
+            object.material.forEach(disposeMaterial);
+        } else {
+            disposeMaterial(object.material);
+        }
+    });
+}
+
 function add(T,parent,geometry,material,x,y,z,shadows=true) {
     const mesh=new T.Mesh(geometry,material);mesh.position.set(x,y,z);
     mesh.castShadow=shadows;mesh.receiveShadow=true;parent.add(mesh);return mesh;
@@ -188,8 +208,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.update();stage._boardRadius=boardRadius;
         }
-        if(stage._board){stage._scene.remove(stage._board);stage._board.traverse(object=>{
-            object.geometry?.dispose();if(Array.isArray(object.material))object.material.forEach(m=>m.dispose());else object.material?.dispose()})}
+        if(stage._board){stage._scene.remove(stage._board);disposeObjectResources(stage._board)}
         const built=buildScene(T,stage._scene,data);stage._board=built.board;stage._pickables=built.pickables;resize(stage);
     }catch(error){
         console.error('3D desku se nepodařilo vykreslit:',error);
@@ -205,7 +224,6 @@ export function dispose3DBoard(stage){
     if(stage._onPointerDown)stage._renderer?.domElement.removeEventListener('pointerdown',stage._onPointerDown);
     if(stage._onPointerUp)stage._renderer?.domElement.removeEventListener('pointerup',stage._onPointerUp);
     if(stage._onContextLost)stage._renderer?.domElement.removeEventListener('webglcontextlost',stage._onContextLost);
-    stage._controls?.dispose();stage._board?.traverse(object=>{
-        object.geometry?.dispose();if(Array.isArray(object.material))object.material.forEach(item=>item.dispose());else object.material?.dispose()});
+    stage._controls?.dispose();disposeObjectResources(stage._board);
     stage._renderer?.dispose();stage._renderer?.domElement.remove();
 }
