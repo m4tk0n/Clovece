@@ -27,6 +27,23 @@ function loadThree() {
     }
     return threePromise;
 }
+/** Ověří vytvoření skutečného WebGL rendereru; testovací kontext ihned uvolní. */
+export async function probe3D() {
+    const { THREE: T } = await loadThree();
+    const canvas = document.createElement('canvas');
+    let renderer = null;
+    try {
+        renderer = new T.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: 'low-power' });
+        const gl = renderer.getContext();
+        return Boolean(gl && !gl.isContextLost());
+    } finally {
+        if (renderer) {
+            renderer.dispose();
+            renderer.forceContextLoss?.();
+        }
+    }
+}
+
 export function release3DResources() {
     // Uvolníme vlastní referenci na knihovny; importní cache zůstává správou prohlížeče.
     threePromise = null;
