@@ -74,22 +74,10 @@
     opacity: .3;
     cursor: not-allowed;
 }
-.setup-summary {
-    margin: 20px 0 0;
-    padding: 18px 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border-radius: 16px;
-    background: rgba(198,169,107,.1);
-    border: 1px solid rgba(198,169,107,.25);
-    text-align: left;
-}
-.setup-summary strong { color: var(--table-gold); letter-spacing: .08em; }
-.setup-summary span { color: #d9e0d5; font-size: 13px; }
-.setup-board-note { width: 100%; color: var(--table-muted)!important; }
+
+
+
+
 .preview-players {
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
@@ -165,46 +153,16 @@
     letter-spacing:.12em;
 }
 .board-topline .board-kicker { color:var(--table-gold); }
-.board-appearance {
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    gap:5px;
-    margin-left:auto;
-    letter-spacing:0;
-}
-.board-appearance-label {
-    margin-right:4px;
-    color:#aeb9ac;
-    font-size:8px;
-}
-.board-appearance-option {
-    min-height:30px;
-    padding:6px 9px;
-    border:1px solid rgba(198,169,107,.38);
-    border-radius:8px;
-    background:rgba(255,255,255,.035);
-    color:#aeb9ac;
-    font:700 8px/1.2 "Press Start 2P",monospace;
-    letter-spacing:0;
-    opacity:1;
-}
-.board-appearance-option.is-active {
-    border-color:var(--table-gold);
-    background:rgba(198,169,107,.18);
-    color:var(--table-gold);
-}
-.board-appearance-option.is-unavailable {
-    border-style:dashed;
-    color:#758178;
-    cursor:not-allowed;
-}
+
+
+
+
+
 @media (max-width:520px) {
     .board-topline { align-items:flex-start; }
-    .board-appearance { gap:4px; }
-    .board-appearance-option { min-height:28px; padding:5px 6px; font-size:7px; }
-    .board-appearance-label { display:none; }
+
+
+
 }
 .premium-board {
     display:block;
@@ -213,13 +171,13 @@
     overflow:visible;
     filter: drop-shadow(0 16px 22px rgba(0,0,0,.24));
 }
-.board-bottomline { padding:12px 8px 3px; }
-.board-bottomline span:last-child { color:var(--player-color); text-align:right; }
+
+
 .board-piece { cursor:default; }
 .board-piece.piece-selectable { cursor:pointer; filter:url(#pieceGlow); }
 .board-piece.piece-selectable:hover { transform:translateY(-4px); }
 .piece-core { stroke:none; }
-.piece-shadow { fill:#000; fill-opacity:.45; }
+
 .track-space { pointer-events:none; }
 #game-screen .game-footer {
     max-width:1440px;
@@ -234,39 +192,14 @@
     gap:10px;
     align-content:start;
 }
-.premium-player-card {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:0;
-    padding:11px 13px;
-    border-radius:14px;
-    background:rgba(255,255,255,.045);
-    border:1px solid rgba(255,255,255,.09);
-    opacity:.72;
-}
-.premium-player-card.is-active {
-    opacity:1;
-    border-color:var(--player-color);
-    background:color-mix(in srgb,var(--player-color),transparent 89%);
-    box-shadow:0 0 22px color-mix(in srgb,var(--player-color),transparent 84%);
-}
-.player-card-orb {
-    flex:0 0 34px;
-    height:34px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    background:var(--player-color);
-    color:#fff;
-    font-weight:900;
-    font-size:10px;
-}
-.player-card-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; }
-.player-card-copy strong { color:#f5f0e4; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.player-card-copy small { color:#a6b1a7; font-size:8px; letter-spacing:.1em; }
-.player-card-progress { color:var(--player-color); font:700 22px/1 "Bangers",Impact,sans-serif; }
-.player-card-progress small { font:700 10px/1 sans-serif; color:#9eaa9f; }
+
+
+
+
+
+
+
+
 #game-screen .game-chat {
     display:none;
     max-width:none;
@@ -323,15 +256,14 @@
 @keyframes premiumBurst {
     0% { transform:scale(.2); opacity:1; }
     100% { transform:scale(1.6); opacity:0; }
-}
-#dice-animation.is-rolling .dice-3d { animation-duration:.65s; }
+
 @media(max-width:760px) {
     #game-screen { padding:8px 7px 20px; }
     #game-screen .game-header { padding:11px; }
     #game-screen .game-footer { grid-template-columns:1fr; }
     .premium-board-shell { padding:7px; border-radius:18px; }
     .board-topline,.board-bottomline { font-size:7px; }
-    .board-topline .board-mode { font-size:6px; }
+
     .setup-grid { grid-template-columns:1fr; }
     #game-screen .game-controls { width:100%; justify-content:flex-end; }
 }
@@ -366,19 +298,17 @@
 #game-screen .board-topline,#game-screen .board-bottomline {
     flex:0 0 auto; padding:2px 5px 5px; font-size:7px; letter-spacing:.07em;
 }
-#game-screen .board-topline .board-mode { font-size:6px; }
+
 #game-screen .premium-board { flex:1 1 auto; min-height:0; width:100%; height:0; object-fit:contain; }
-#game-screen .board-bottomline { padding:5px 5px 2px; }
+
 #game-screen .game-footer { flex:0 0 auto; width:100%; margin:6px auto 0; display:block; }
 #game-screen .players-panel { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
-#game-screen .premium-player-card {
-    min-height:34px; padding:5px 7px; gap:5px; border-radius:9px;
-}
-#game-screen .player-card-orb,#game-screen .player-card-copy small { display:none; }
-#game-screen .player-card-copy { min-width:0; gap:0; }
-#game-screen .player-card-copy strong { font-size:10px; line-height:1.2; }
-#game-screen .player-card-progress { flex:0 0 auto; font-size:18px; }
-#game-screen .player-card-progress small { font-size:9px; }
+
+
+
+
+
+
 
 @media (max-width:600px) {
     #game-screen:not(.hidden) { padding:5px 1px; }
@@ -393,8 +323,8 @@
     #game-screen .game-container { width:min(100%,calc(100dvh - 142px)); }
     #game-screen .premium-board-shell { padding:1px; }
     #game-screen .players-panel { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
-    #game-screen .premium-player-card { min-height:30px; padding:4px 7px; }
-    #game-screen .player-card-copy strong { font-size:10px; }
+
+
 }
 @media (max-height:620px) {
     #game-screen:not(.hidden) { padding-top:3px; padding-bottom:3px; }
@@ -404,110 +334,34 @@
     #game-screen .game-btn { min-height:28px; padding:3px 8px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 112px)); }
     #game-screen .game-footer { margin-top:3px; }
-    #game-screen .premium-player-card { min-height:26px; padding:3px 6px; }
-    #game-screen .player-card-progress { font-size:16px; }
-}
 
 
-/* Ivory casino-style dice with black pips */
-#dice-animation .dice-3d {
-    width: 132px;
-    height: 132px;
-    filter: drop-shadow(0 14px 18px rgba(0,0,0,.42));
-}
 
-#dice-animation .dice-3d .side {
-    box-sizing: border-box;
-    width: 132px;
-    height: 132px;
-    border: 1px solid #c9bea5;
-    border-radius: 22px;
-    background: linear-gradient(145deg, #fffef5 0%, #f4eedc 48%, #e4dac1 100%);
-    box-shadow:
-        inset 0 3px 5px rgba(255,255,255,.95),
-        inset 0 -5px 9px rgba(119,99,64,.18),
-        0 5px 12px rgba(0,0,0,.2);
-}
 
-#dice-animation .dice-3d .side span {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-size: 0;
-    background-repeat: no-repeat;
-}
 
-#dice-animation .dice-3d .side.one span {
-    background-image: radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px);
-}
 
-#dice-animation .dice-3d .side.two span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
 
-#dice-animation .dice-3d .side.three span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
 
-#dice-animation .dice-3d .side.four span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 75%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
 
-#dice-animation .dice-3d .side.five span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 75%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
 
-#dice-animation .dice-3d .side.six span {
-    background-image:
-        radial-gradient(circle at 25% 20%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 20%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 80%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 80%, #171717 0 7px, transparent 8px);
-}
 
-#dice-animation .dice-3d .side.one { transform: translateZ(66px); }
-#dice-animation .dice-3d .side.two { transform: translateX(66px) rotateY(90deg); }
-#dice-animation .dice-3d .side.three { transform: translateY(-66px) rotateX(90deg); }
-#dice-animation .dice-3d .side.four { transform: translateX(-66px) rotateY(-90deg); }
-#dice-animation .dice-3d .side.five { transform: translateY(66px) rotateX(-90deg); }
-#dice-animation .dice-3d .side.six { transform: translateZ(-66px) rotateY(180deg); }
+
+
+
+
+
+
 
 @media (max-width: 600px) {
-    #dice-animation .dice-3d {
-        width: 104px;
-        height: 104px;
-    }
-    #dice-animation .dice-3d .side {
-        width: 104px;
-        height: 104px;
-        border-radius: 18px;
-    }
-    #dice-animation .dice-3d .side span {
-        background-size: 100% 100%;
-    }
-    #dice-animation .dice-3d .side.one { transform: translateZ(52px); }
-    #dice-animation .dice-3d .side.two { transform: translateX(52px) rotateY(90deg); }
-    #dice-animation .dice-3d .side.three { transform: translateY(-52px) rotateX(90deg); }
-    #dice-animation .dice-3d .side.four { transform: translateX(-52px) rotateY(-90deg); }
-    #dice-animation .dice-3d .side.five { transform: translateY(52px) rotateX(-90deg); }
-    #dice-animation .dice-3d .side.six { transform: translateZ(-52px) rotateY(180deg); }
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -524,23 +378,9 @@
     pointer-events: none;
 }
 #dice-animation.hidden { display: none; }
-#dice-animation .dice-3d {
-    position: relative;
-    transform-style: preserve-3d;
-    transform-origin: center;
-    will-change: transform;
-}
-#dice-animation .dice-3d .side {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-#dice-animation.is-rolling .dice-3d {
-    animation: realDiceTumble 1.15s cubic-bezier(.12,.72,.18,1) forwards !important;
-}
+
+
+
 @keyframes realDiceTumble {
     0% {
         transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(.72);
@@ -586,67 +426,25 @@
 #dice-animation.hidden {
     display: none !important;
 }
-#dice-animation .dice-3d {
-    position: relative !important;
-    display: block !important;
-    flex: 0 0 auto !important;
-    width: 132px !important;
-    height: 132px !important;
-    margin: 0 !important;
-    transform-style: preserve-3d !important;
-    transform-origin: 50% 50% !important;
-    -webkit-transform-style: preserve-3d !important;
-    will-change: transform;
-}
-#dice-animation .dice-3d .side {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: 132px !important;
-    height: 132px !important;
-    box-sizing: border-box !important;
-    display: grid !important;
-    place-items: center !important;
-    border: 1px solid #c9bea5 !important;
-    border-radius: 21px !important;
-    background: linear-gradient(145deg,#fffef7 0%,#f3ecd9 52%,#ded2b6 100%) !important;
-    box-shadow: inset 0 3px 6px rgba(255,255,255,.95), inset 0 -5px 10px rgba(100,78,43,.2), 0 2px 5px rgba(0,0,0,.12) !important;
-    backface-visibility: hidden !important;
-    -webkit-backface-visibility: hidden !important;
-}
-#dice-animation .dice-3d .side.one { transform: translateZ(66px) !important; }
-#dice-animation .dice-3d .side.two { transform: rotateY(90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.three { transform: rotateX(90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.four { transform: rotateY(-90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.five { transform: rotateX(-90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.six { transform: rotateY(180deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side span {
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-    border-radius: inherit !important;
-}
-#dice-animation.is-rolling .dice-3d {
-    animation: realDiceTumble 1.35s cubic-bezier(.16,.72,.16,1) forwards !important;
-}
+
+
+
+
+
+
+
+
+
+
 @media (max-width: 600px) {
-    #dice-animation .dice-3d {
-        width: 108px !important;
-        height: 108px !important;
-    }
-    #dice-animation .dice-3d .side {
-        width: 108px !important;
-        height: 108px !important;
-        border-radius: 18px !important;
-    }
-    #dice-animation .dice-3d .side.one { transform: translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.two { transform: rotateY(90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.three { transform: rotateX(90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.four { transform: rotateY(-90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.five { transform: rotateX(-90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.six { transform: rotateY(180deg) translateZ(54px) !important; }
+
+
+
+
+
+
+
+
 }
 
 
@@ -770,13 +568,13 @@
     background: radial-gradient(circle at 35% 30%, #d64a40, #b3261e 65%);
 }
 #dice-animation .p1 { grid-area: 1 / 1; }
-#dice-animation .p2 { grid-area: 1 / 2; }
+
 #dice-animation .p3 { grid-area: 1 / 3; }
 #dice-animation .p4 { grid-area: 2 / 1; }
 #dice-animation .p5 { grid-area: 2 / 2; }
 #dice-animation .p6 { grid-area: 2 / 3; }
 #dice-animation .p7 { grid-area: 3 / 1; }
-#dice-animation .p8 { grid-area: 3 / 2; }
+
 #dice-animation .p9 { grid-area: 3 / 3; }
 
 @media (max-width: 600px) {
