@@ -5,7 +5,6 @@
 import { initDebugOverlay } from './debug-overlay.js';
 import { registerGameExtension } from './game-extensions.js';
 import { buildDebugMovePaths } from './game-board-debug.js';
-import { geometry } from './game-board-geometry.js';
 
 const log = initDebugOverlay();
 const format = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
