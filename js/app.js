@@ -275,9 +275,6 @@ function updateTurnControls() {
     $('end-turn-btn').classList.add('hidden');
 }
 
-n.duration);
-    });
-}
 function openKickModal(move) {
     modalOpen = true;
     const player = game.players[move.playerId];
