@@ -112,7 +112,8 @@ CREATE TABLE IF NOT EXISTS {DB_PREFIX}game_settings (
 INSERT INTO {DB_PREFIX}game_settings (room_id, setting_key, setting_value) VALUES
     (NULL, 'site_name', 'Člověče, nezlob se!'),
     (NULL, 'max_players', '8'),
-    (NULL, 'default_board', '4');
+    (NULL, 'default_board', '4')
+ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value);
 
 CREATE TABLE IF NOT EXISTS {DB_PREFIX}game_participants (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -216,4 +217,8 @@ CREATE TABLE IF NOT EXISTS {DB_PREFIX}cron_tasks (
 
 INSERT INTO {DB_PREFIX}schema_migrations (version, name)
 VALUES (1, 'initial_online_multiplayer_schema')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+INSERT INTO {DB_PREFIX}schema_migrations (version, name)
+VALUES (2, 'player_account_authentication')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
