@@ -190,3 +190,75 @@
     #main-menu .menu-buttons .menu-btn { min-height: 43px; padding-block: 9px; }
     #main-menu .credits { margin-top: 12px; }
 }
+
+
+/* ---------- Potvrzení opuštění na úvodní stránce ---------- */
+.exit-confirm {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+}
+.exit-confirm.hidden { display: none; }
+.exit-confirm__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 7, 8, .78);
+    backdrop-filter: blur(7px);
+}
+.exit-confirm__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 360px);
+    box-sizing: border-box;
+    padding: 28px 24px 22px;
+    border: 1px solid rgba(198, 169, 107, .58);
+    border-radius: 22px;
+    background: linear-gradient(155deg, rgba(29, 48, 41, .99), rgba(9, 17, 18, .99));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .62), inset 0 1px rgba(255, 255, 255, .09);
+    text-align: center;
+}
+.exit-confirm__icon {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 16px;
+    border: 1px solid rgba(198, 169, 107, .48);
+    border-radius: 17px;
+    background: rgba(198, 169, 107, .12);
+    color: var(--gold-light);
+    font-size: 23px;
+}
+.exit-confirm__dialog h2 {
+    margin: 0;
+    color: #f6edda;
+    font: 700 clamp(20px, 5vw, 24px)/1.2 var(--font-ui);
+}
+.exit-confirm__dialog p {
+    margin: 9px 0 22px;
+    color: var(--ink-soft);
+    font: 600 14px/1.4 var(--font-ui);
+}
+.exit-confirm__actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+.exit-confirm__actions .menu-btn {
+    flex: 1 1 0;
+    max-width: 130px;
+    min-height: 44px;
+    margin: 0;
+}
+.exit-confirm__actions #exit-confirm-yes {
+    border-color: rgba(220, 184, 111, .75);
+    background: linear-gradient(110deg, #a77b3c, #75552d);
+    color: #fff9eb;
+}
+@media (max-width: 420px) {
+    .exit-confirm { padding: 16px; }
+    .exit-confirm__dialog { padding: 24px 18px 19px; border-radius: 18px; }
+}
