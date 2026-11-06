@@ -13,6 +13,8 @@ const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 // Výchozí ANO zachovává dosavadní pravidla lokální hry.
 const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true, mustEnterHome: true };
+// Obrazovka výběru zůstává po opuštění v DOM; posluchače proto registrujeme jen jednou.
+const initializedSetupRoots = new WeakSet();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
 
 export function escapeHtml(value) {
@@ -137,6 +139,10 @@ export function getPlayerSetup() {
 }
 
 export function initPlayerSetup() {
+    const setupRoot = $('player-selection');
+    if (setupRoot && initializedSetupRoots.has(setupRoot)) return;
+    if (setupRoot) initializedSetupRoots.add(setupRoot);
+
     $('setup-grid')?.addEventListener('click', event => {
         const button = event.target.closest('[data-count-target][data-count-step]');
         if (!button || button.disabled) return;
