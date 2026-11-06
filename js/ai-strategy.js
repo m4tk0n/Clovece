@@ -201,7 +201,6 @@ function formatPercent(value) {
 
 function buildDecisionExplanation(game, selected, evaluated, dependencies) {
     const playerId = game.currentPlayer;
-    const player = game.players[playerId];
     const captureAlternative = evaluated.find(candidate =>
         candidate !== selected && candidate.move.captured && !candidate.move.captured.ownPiece
     );
@@ -234,11 +233,15 @@ function buildDecisionExplanation(game, selected, evaluated, dependencies) {
 
     if (captureAlternative) {
         const threat = selected.threat;
+        if (selected.afterSteps >= game.trackLength) {
+            return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
+                ', ale soupeři jsou daleko a moje figurka je už v domečku. Raději pojedu do domečku.';
+        }
         const riskText = threat < 0.01
-            ? 'Moje figurka je mimo bezprostřední dosah soupeřů'
-            : 'Riziko vyhození mé figurky je přibližně ' + formatPercent(threat) + ' %';
+            ? 'soupeři jsou daleko a moje figurka není v bezprostředním ohrožení'
+            : 'riziko vyhození mé figurky je přibližně ' + formatPercent(threat) + ' %';
         return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
-            ', ale ' + riskText.toLowerCase() + '. Raději zvolím bezpečnější postup.';
+            ', ale ' + riskText + '. Raději zvolím bezpečnější postup.';
     }
 
     if (selected.threat >= 0.10) {
