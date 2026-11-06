@@ -303,17 +303,6 @@ export async function animateThreeDice(value, fast = false, rotationPlan = null)
         shadow.scale.set(1.25, .34, 1);
         scene.add(shadow);
 
-        const targets = {
-            1: [0, 0, 0],
-            2: [0, -Math.PI / 2, 0],
-            3: [Math.PI / 2, 0, 0],
-            4: [-Math.PI / 2, 0, 0],
-            5: [0, Math.PI / 2, 0],
-            6: [0, Math.PI, 0]
-        };
-        const target = targets[Math.max(1, Math.min(6, Number(value) || 1))];
-        // Plán rotace vzniká v app.js a používá jej také CSS kostka.
-        // Základní náklon (-24°, -32°) odpovídá výchozímu pohledu CSS kostky.
         const plan = rotationPlan || {
             startX: 0, startY: 0, endX: 0, endY: 0,
             duration: fast ? 0 : 1500, fast
