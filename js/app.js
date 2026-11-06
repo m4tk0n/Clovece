@@ -824,8 +824,6 @@ export function initGame() {
         game = null;
         showScreen('main-menu');
     });
-    $('back-settings-btn')?.addEventListener('click', () => showScreen('main-menu'));
-    $('back-rules-btn')?.addEventListener('click', () => showScreen('main-menu'));
 
     const aiSpeedSelect = $('ai-speed');
     const animationsToggle = $('animations-toggle');
