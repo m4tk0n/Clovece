@@ -238,6 +238,7 @@ export function getTestGameState() {
     return {
         phase: game.phase,
         diceValue: game.diceValue,
+        rollSequence: game.testRollSequence || 0,
         currentPlayer: game.currentPlayer,
         currentPlayerName: game.players[game.currentPlayer]?.name ?? null,
         winner: game.winner,
