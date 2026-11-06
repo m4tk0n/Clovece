@@ -4,6 +4,7 @@
  */
 export {
     getBoardStyle,
+    getBoardView,
     buildBoardSceneData,
     renderBoard,
     ensureModeStyles,
