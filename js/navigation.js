@@ -81,6 +81,9 @@ export function initNavigation() {
     bindClick('back-from-register', () => showScreen('main-menu'));
     bindClick('back-from-lobby', () => showScreen('main-menu'));
     bindClick('back-from-room', () => showScreen('lobby'));
+    bindClick('join-room-btn', () => showScreen('lobby'));
+    bindClick('settings-btn', () => showScreen('settings'));
+    bindClick('rules-btn', () => showScreen('rules'));
 
     const logoutButton = document.getElementById('logout-btn');
     logoutButton?.addEventListener('click', () => {
