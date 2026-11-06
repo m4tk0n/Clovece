@@ -8,6 +8,7 @@ export function createGameLog(getGame) {
     let startLogEntry = null;
     
     function updateStartLog() {
+        const game = getGame();
         if (!game || !startLogEntry) return;
         const rounds = (game.startRolls || []).filter(round => round.length > 0);
         const summary = rounds.map((round, index) =>
@@ -64,6 +65,7 @@ export function createGameLog(getGame) {
     }
     
     function sendChatMessage(text) {
+        const game = getGame();
         if (!game) return;
         addChatEntry(game.players[game.currentPlayer].name, text);
     }
