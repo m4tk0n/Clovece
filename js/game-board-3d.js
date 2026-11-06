@@ -159,63 +159,103 @@ export async function animateThreeDice(value, fast = false) {
     Object.assign(overlay.style, {
         position: 'fixed', inset: '0', zIndex: '100000',
         display: 'grid', placeItems: 'center',
-        background: 'rgba(5, 14, 15, .56)', pointerEvents: 'none',
-        overflow: 'hidden'
+        background: 'radial-gradient(ellipse at 50% 45%, rgba(74, 91, 72, .42) 0%, rgba(5, 12, 11, .82) 62%, rgba(2, 7, 7, .91) 100%)',
+        pointerEvents: 'none', overflow: 'hidden'
     });
     document.body.appendChild(overlay);
 
     let renderer;
     let frame = 0;
     let settled = false;
+    const scene = new T.Scene();
     const finish = () => {
         if (settled) return;
         settled = true;
         if (frame) cancelAnimationFrame(frame);
+        scene.traverse(object => {
+            object.geometry?.dispose();
+            if (Array.isArray(object.material)) object.material.forEach(material => material.dispose());
+            else object.material?.dispose();
+        });
         renderer?.dispose();
         overlay.remove();
     };
 
     try {
-        const scene = new T.Scene();
         const camera = new T.PerspectiveCamera(34, window.innerWidth / Math.max(1, window.innerHeight), .1, 30);
         camera.position.set(0, 0, 6.2);
-        const ambient = new T.HemisphereLight(0xffffff, 0x4b463c, 2.1);
-        scene.add(ambient);
-        const key = new T.DirectionalLight(0xfff0d2, 3.4);
-        key.position.set(-3, 5, 6);
+        scene.add(new T.HemisphereLight(0xfff8e9, 0x292b27, 2.0));
+        const key = new T.DirectionalLight(0xffe8bd, 4.2);
+        key.position.set(-3.5, 5, 6);
         scene.add(key);
-        const rim = new T.DirectionalLight(0x9bbcff, 1.5);
-        rim.position.set(4, 1, -4);
+        const fill = new T.DirectionalLight(0xe2edff, 2.0);
+        fill.position.set(4, 1.5, 4);
+        scene.add(fill);
+        const rim = new T.DirectionalLight(0xd6a85d, 3.0);
+        rim.position.set(2, 3, -4);
         scene.add(rim);
+        const sparkle = new T.PointLight(0xffffff, 16, 8);
+        sparkle.position.set(-2, 1, 3);
+        scene.add(sparkle);
 
         renderer = new T.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 0);
         renderer.outputColorSpace = T.SRGBColorSpace;
         renderer.toneMapping = T.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
+        renderer.toneMappingExposure = 1.22;
         Object.assign(renderer.domElement.style, { width: '100%', height: '100%', display: 'block' });
         overlay.appendChild(renderer.domElement);
 
         const die = new T.Group();
         scene.add(die);
-        const body = new T.Mesh(
-            new T.BoxGeometry(1.55, 1.55, 1.55),
-            new T.MeshPhysicalMaterial({
-                color: 0xf3ead6, roughness: .24, metalness: .04,
-                clearcoat: .85, clearcoatRoughness: .16
-            })
-        );
+
+        // Zaoblené keramické tělo – geometrie je skutečně prostorová, ne plochá krychle.
+        const rounded = new T.Shape();
+        const half = .69, radius = .19;
+        rounded.moveTo(-half + radius, -half);
+        rounded.lineTo(half - radius, -half);
+        rounded.absarc(half - radius, -half + radius, radius, -Math.PI / 2, 0, false);
+        rounded.lineTo(half, half - radius);
+        rounded.absarc(half - radius, half - radius, radius, 0, Math.PI / 2, false);
+        rounded.lineTo(-half + radius, half);
+        rounded.absarc(-half + radius, half - radius, radius, Math.PI / 2, Math.PI, false);
+        rounded.lineTo(-half, -half + radius);
+        rounded.absarc(-half + radius, -half + radius, radius, Math.PI, Math.PI * 1.5, false);
+        const bodyGeometry = new T.ExtrudeGeometry(rounded, {
+            depth: 1.32, bevelEnabled: true, bevelSegments: 7,
+            steps: 1, bevelSize: .075, bevelThickness: .075, curveSegments: 12
+        });
+        bodyGeometry.center();
+        const bodyMaterial = new T.MeshPhysicalMaterial({
+            color: 0xf4ead5, roughness: .19, metalness: .08,
+            clearcoat: 1, clearcoatRoughness: .12,
+            reflectivity: .9
+        });
+        const body = new T.Mesh(bodyGeometry, bodyMaterial);
+        body.castShadow = true;
         die.add(body);
-        const edge = new T.LineSegments(
-            new T.EdgesGeometry(body.geometry),
-            new T.LineBasicMaterial({ color: 0xb5a47f, transparent: true, opacity: .7 })
-        );
+
+        // Jemný zlatý lem kopíruje obrys těla; nepřekrývá hrací plochy.
+        const gold = new T.MeshStandardMaterial({ color: 0xc69b52, metalness: .88, roughness: .2 });
+        const edgeGeometry = new T.EdgesGeometry(new T.BoxGeometry(1.39, 1.39, 1.39), 18);
+        const edge = new T.LineSegments(edgeGeometry, new T.LineBasicMaterial({
+            color: 0xd7b66f, transparent: true, opacity: .58
+        }));
         die.add(edge);
 
-        const pipGeometry = new T.SphereGeometry(.092, 20, 16);
-        const pipMaterial = new T.MeshStandardMaterial({ color: 0x29251f, roughness: .32 });
+        const pipGeometry = new T.SphereGeometry(.088, 28, 20);
+        const pipMaterial = new T.MeshPhysicalMaterial({
+            color: 0x25201b, roughness: .2, metalness: .12,
+            clearcoat: .9, clearcoatRoughness: .1
+        });
+        const redPipMaterial = new T.MeshPhysicalMaterial({
+            color: 0xb52b27, roughness: .18, metalness: .08,
+            clearcoat: 1, clearcoatRoughness: .08
+        });
+        const pipRings = new T.TorusGeometry(.092, .009, 8, 32);
+        const ringMaterial = new T.MeshStandardMaterial({ color: 0xb58b49, metalness: .86, roughness: .24 });
         const layouts = {
             1: [[0, 0]],
             2: [[-.34, .34], [.34, -.34]],
@@ -226,15 +266,16 @@ export async function animateThreeDice(value, fast = false) {
         };
         const addFacePips = (faceValue, axis) => {
             for (const [u, v] of layouts[faceValue]) {
-                const pip = new T.Mesh(pipGeometry, pipMaterial);
-                const d = .786;
-                if (axis === '+z') pip.position.set(u, v, d);
-                if (axis === '-z') pip.position.set(-u, v, -d);
-                if (axis === '+x') pip.position.set(d, v, -u);
-                if (axis === '-x') pip.position.set(-d, v, u);
-                if (axis === '+y') pip.position.set(u, d, -v);
-                if (axis === '-y') pip.position.set(u, -d, v);
-                die.add(pip);
+                const pip = new T.Mesh(pipGeometry, faceValue === 1 ? redPipMaterial : pipMaterial);
+                const ring = new T.Mesh(pipRings, ringMaterial);
+                const d = .704;
+                if (axis === '+z') { pip.position.set(u, v, d); ring.position.set(u, v, .696); }
+                if (axis === '-z') { pip.position.set(-u, v, -d); ring.position.set(-u, v, -.696); ring.rotation.y = Math.PI; }
+                if (axis === '+x') { pip.position.set(d, v, -u); ring.position.set(.696, v, -u); ring.rotation.y = Math.PI / 2; }
+                if (axis === '-x') { pip.position.set(-d, v, u); ring.position.set(-.696, v, u); ring.rotation.y = -Math.PI / 2; }
+                if (axis === '+y') { pip.position.set(u, d, -v); ring.position.set(u, .696, -v); ring.rotation.x = -Math.PI / 2; }
+                if (axis === '-y') { pip.position.set(u, -d, v); ring.position.set(u, -.696, v); ring.rotation.x = Math.PI / 2; }
+                die.add(ring, pip);
             }
         };
         addFacePips(1, '+z');
@@ -243,6 +284,15 @@ export async function animateThreeDice(value, fast = false) {
         addFacePips(5, '-x');
         addFacePips(3, '+y');
         addFacePips(4, '-y');
+
+        // Měkký stín pod kostkou a nenápadný zlatý odlesk v prostoru.
+        const shadow = new T.Mesh(
+            new T.CircleGeometry(.95, 64),
+            new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .28, depthWrite: false })
+        );
+        shadow.position.set(0, -1.15, -1.15);
+        shadow.scale.set(1.25, .34, 1);
+        scene.add(shadow);
 
         const targets = {
             1: [0, 0, 0],
@@ -266,7 +316,7 @@ export async function animateThreeDice(value, fast = false) {
             target[1] - Math.PI * 2 * turns,
             target[2] + Math.PI * 2 * (turns - 1)
         ];
-        const duration = fast ? 480 : 1500;
+        const duration = fast ? 480 : 1650;
         const started = performance.now();
         return await new Promise(resolve => {
             const animate = now => {
@@ -282,10 +332,12 @@ export async function animateThreeDice(value, fast = false) {
                     start[1] + (end[1] - start[1]) * eased,
                     start[2] + (end[2] - start[2]) * eased
                 );
-                const bounce = raw < .72 ? Math.sin(raw / .72 * Math.PI) * .62 : Math.sin((raw - .72) / .28 * Math.PI) * .10;
+                const bounce = raw < .72 ? Math.sin(raw / .72 * Math.PI) * .72 : Math.sin((raw - .72) / .28 * Math.PI) * .12;
                 die.position.y = Math.max(0, bounce);
                 const scale = raw < .12 ? .01 + (raw / .12) * .99 : 1;
                 die.scale.setScalar(scale);
+                shadow.material.opacity = .12 + (1 - Math.min(1, bounce)) * .22;
+                shadow.scale.x = 1.1 + bounce * .2;
                 if (raw >= 1) {
                     die.rotation.set(...target);
                     die.position.y = 0;
