@@ -3,26 +3,22 @@
  * Scéna se skládá výhradně z čistých herních dat; SVG rendereru se nedotýká.
  * Souřadnice herního modelu (720 × 720) převádíme do prostorové scény.
  */
+import { notifyGameExtensions } from './game-extensions.js';
+
 const UNIT = 1 / 42;
 let threePromise;
-function emitDebugLoad(name, status, duration) {
-    if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
-    window.dispatchEvent(new CustomEvent('clovece:debug-log', {
-        detail: { name, status, duration }
-    }));
-}
 function loadThree() {
     if (!threePromise) {
         const startedAt = performance.now();
-        emitDebugLoad('Three.js + OrbitControls – načítání', '…');
+        notifyGameExtensions('onResourceLoad', { name: 'Three.js + OrbitControls – načítání', status: '…' });
         threePromise = Promise.all([
             import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js'),
             import('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js')
         ]).then(([THREE, controls]) => {
-            emitDebugLoad('Three.js + OrbitControls – načteno', 'OK', Math.round(performance.now() - startedAt));
+            notifyGameExtensions('onResourceLoad', { name: 'Three.js + OrbitControls – načteno', status: 'OK', duration: Math.round(performance.now() - startedAt) });
             return { THREE, OrbitControls: controls.OrbitControls };
         }).catch(error => {
-            emitDebugLoad('Three.js + OrbitControls – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
+            notifyGameExtensions('onResourceLoad', { name: 'Three.js + OrbitControls – chyba načítání', status: 'CHYBA', duration: Math.round(performance.now() - startedAt) });
             threePromise = null;
             throw error;
         });
@@ -91,25 +87,12 @@ function createBoardShape(T,data) {
     shape.closePath();return shape;
 }
 
-function addFieldNumber(T,parent,label,x,y,z,size,color=0x18221e) {
-    const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
-    const ctx=canvas.getContext('2d');ctx.clearRect(0,0,128,128);
-    ctx.fillStyle='#'+color.toString(16).padStart(6,'0');
-    ctx.font='bold 68px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(label,64,66);
-    const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
-    const material=new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,side:T.DoubleSide});
-    const mesh=new T.Mesh(new T.PlaneGeometry(size,size),material);
-    mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y,z);mesh.renderOrder=5;parent.add(mesh);
-    return mesh;
-}
 
 function buildScene(T,scene,data) {
     const board=new T.Group();scene.add(board);
     const dark=mat(T,0x18221e,{roughness:.3,metalness:.48}),gold=mat(T,0xd4b36b,{roughness:.24,metalness:.72});
     const felt=mat(T,0x284337,{roughness:.82}),edge=mat(T,0x9caa9f,{roughness:.38,metalness:.2});
     const radius=data.boardRadius*UNIT;
-    const showFieldNumbers=new URLSearchParams(window.location.search).get('debug')==='1';
     add(T,board,new T.CylinderGeometry(radius,radius+.20,.48,128),dark,0,-.28,0);
     add(T,board,new T.CylinderGeometry(radius-.08,radius-.02,.12,128),gold,0,-.015,0);
     const top=new T.Mesh(new T.ExtrudeGeometry(createBoardShape(T,data),{depth:.28,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.12,bevelThickness:.08}),felt);
@@ -121,13 +104,11 @@ function buildScene(T,scene,data) {
         add(T,board,new T.CylinderGeometry(r,r+.02,.10,32),mat(T,cell.start?cell.color:0xd9d3c5,
             {roughness:cell.start?.38:.55,opacity:cell.start?1:Math.max(.42,cell.opacity)}),x,.34,z,false);
         if(cell.start)add(T,board,new T.CylinderGeometry(r*.30,r*.30,.018,24),mat(T,0xffffff,{roughness:.25}),x,.405,z,false);
-        if(showFieldNumbers)addFieldNumber(T,board,String(cell.index+1),x,.415,z,Math.max(.20,r*1.45));
     });
     data.lanes.forEach(lane=>lane.cells.forEach((cell,index)=>{
         const x=cell.x*UNIT,z=cell.z*UNIT,r=cell.radius*UNIT;
         add(T,board,new T.CylinderGeometry(r+.035,r+.04,.075,32),gold,x,.30,z,false);
         add(T,board,new T.CylinderGeometry(r,r+.01,.08,32),mat(T,lane.color,{roughness:.48,opacity:lane.occupied?.92:.30}),x,.36,z,false);
-        if(showFieldNumbers)addFieldNumber(T,board,'D'+(lane.slot+1)+'-'+(index+1),x,.415,z,Math.max(.19,r*1.45),0xffffff);
     }));
     data.bases.forEach(base=>{
         const x=base.x*UNIT,z=base.z*UNIT,r=base.radius*UNIT;
@@ -145,6 +126,7 @@ function buildScene(T,scene,data) {
         if(item.selectable)piece.traverse(child=>{if(child.isMesh)pickables.push(child)});board.add(piece);
     };
     data.bases.forEach(base=>base.pieces.forEach(addPawn));data.pieces.forEach(addPawn);
+    notifyGameExtensions('onBoardSceneBuilt', { THREE: T, board, data, unit: UNIT });
     return {board,pickables};
 }
 
@@ -402,11 +384,8 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             const fill=new T.DirectionalLight(0x9bbcff,1.5);fill.position.set(10,8,-10);stage._scene.add(fill);
             stage._controls=new OrbitControls(stage._camera,renderer.domElement);stage._controls.target.set(0,.1,0);
             stage._controls.enableDamping=true;stage._controls.dampingFactor=.07;
-            stage._onCameraChange=()=>emitCameraDebug(stage);
-            stage._controls.addEventListener('change',stage._onCameraChange);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.maxPolarAngle=Math.PI*.49;stage._controls.update();
-            emitCameraDebug(stage);
             stage._raycaster=new T.Raycaster();stage._pointer=new T.Vector2();
             stage._onContextLost=event=>{
                 event.preventDefault();
@@ -441,46 +420,30 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
         }else if(stage._boardRadius!==boardRadius){
             stage._camera.position.set(0,boardRadius*2.75,boardRadius*2.15);stage._controls.target.set(0,.1,0);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
-            stage._controls.update();emitCameraDebug(stage);stage._boardRadius=boardRadius;
+            stage._controls.update();stage._boardRadius=boardRadius;
         }
         if(stage._board){stage._scene.remove(stage._board);disposeObjectResources(stage._board)}
         const built=buildScene(T,stage._scene,data);stage._board=built.board;stage._pickables=built.pickables;resize(stage);
+        notifyGameExtensions('onBoardStageReady', stage);
     }catch(error){
         console.error('3D desku se nepodařilo vykreslit:',error);
         reportError(error);
     }
 }
-function emitCameraDebug(stage) {
-    if (new URLSearchParams(window.location.search).get('debug') !== '1' || !stage?._camera || !stage?._controls) return;
-    const camera = stage._camera.position;
-    const target = stage._controls.target;
-    const dx = camera.x - target.x;
-    const dy = camera.y - target.y;
-    const dz = camera.z - target.z;
-    const tilt = Math.atan2(Math.hypot(dx, dz), dy) * 180 / Math.PI;
-    window.dispatchEvent(new CustomEvent('clovece:debug-camera', {
-        detail: {
-            x: camera.x, y: camera.y, z: camera.z,
-            targetX: target.x, targetY: target.y, targetZ: target.z,
-            tilt
-        }
-    }));
-}
-
 function resize(stage){
     const width=Math.max(1,stage.clientWidth),height=Math.max(1,stage.clientHeight);
     stage._renderer.setSize(width,height,false);stage._camera.aspect=width/height;stage._camera.updateProjectionMatrix();
 }
 export function dispose3DBoard(stage){
-    if(!stage)return;if(stage._raf)cancelAnimationFrame(stage._raf);stage._resizeObserver?.disconnect();
-    if(new URLSearchParams(window.location.search).get('debug')==='1')window.dispatchEvent(new CustomEvent('clovece:debug-camera',{detail:{active:false}}));
+    if(!stage)return;
+    notifyGameExtensions('onBoardDispose', stage);
+    if(stage._raf)cancelAnimationFrame(stage._raf);stage._resizeObserver?.disconnect();
     if(stage._onPointerDown)stage._renderer?.domElement.removeEventListener('pointerdown',stage._onPointerDown);
     if(stage._onPointerUp)stage._renderer?.domElement.removeEventListener('pointerup',stage._onPointerUp);
     if(stage._onContextLost)stage._renderer?.domElement.removeEventListener('webglcontextlost',stage._onContextLost);
-    if(stage._onCameraChange)stage._controls?.removeEventListener('change',stage._onCameraChange);
     stage._controls?.dispose();disposeObjectResources(stage._board);
     stage._renderer?.dispose();stage._renderer?.domElement.remove();
-    stage._controls=null;stage._onCameraChange=null;stage._board=null;stage._pickables=null;stage._scene=null;stage._camera=null;
+    stage._controls=null;stage._board=null;stage._pickables=null;stage._scene=null;stage._camera=null;
     stage._raycaster=null;stage._pointer=null;stage._renderer=null;stage._raf=null;stage._animation=null;
     stage._resizeObserver=null;stage._onPointerDown=null;stage._onPointerUp=null;stage._onContextLost=null;
 }
