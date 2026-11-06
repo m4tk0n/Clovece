@@ -158,6 +158,11 @@ function saveStyle(style) {
     }
 }
 
+export async function animateThreeDice(value, fast = false) {
+    const module = await loadThreeRenderer();
+    return module.animateThreeDice(value, fast);
+}
+
 export function getBoardView() {
     return view3d ? '3d' : '2d';
 }
