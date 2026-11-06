@@ -6,7 +6,7 @@ import {
     createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
-import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
+import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView, animateThreeDice } from './game-board.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
@@ -291,6 +291,17 @@ export async function animateDice(value) {
         return;
     }
     if (document.documentElement.dataset.boardView !== mode) return;
+
+    if (mode === '3d') {
+        try {
+            play('dice-sound');
+            await animateThreeDice(diceValue, settings.moveSpeed === 'fast');
+            return;
+        } catch (error) {
+            // Pokud Three.js kostku nevykreslí, zachováme funkční CSS animaci.
+            console.error('Three.js kostku se nepodařilo animovat, používám CSS náhradu:', error);
+        }
+    }
 
     // Kostka používá CSS 3D transformace v obou režimech desky.
     // 2D režim tak nepotřebuje WebGL ani Three.js, ale zachovává plnou animaci šesti stran.
