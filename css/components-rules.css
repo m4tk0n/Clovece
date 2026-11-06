@@ -2,14 +2,9 @@
    PRAVIDLA (#rules-screen)
    =================== */
 
-/* Pravidla využijí dostupnou šířku. Výšku a posouvání řeší společné menu. */
-#rules-screen {
-    --panel-max: none;
-    --content-max: none;
-}
-
+/* Pravidla mají stejnou šířku panelu a obsahu jako ostatní menu.
+   Dlouhý text zvětší panel; posouvá se celá obrazovka. */
 .rules-content {
-    display: block;
     margin: 0 auto;
 }
 
