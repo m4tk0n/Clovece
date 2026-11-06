@@ -6,6 +6,11 @@ export const API_URL = 'online-api.php';
 let csrfToken = '';
 let bootstrapPromise = null;
 
+export function resetBootstrap() {
+    csrfToken = '';
+    bootstrapPromise = null;
+}
+
 export function bootstrapOnline() {
     if (!bootstrapPromise) {
         bootstrapPromise = (async () => {
