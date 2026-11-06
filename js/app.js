@@ -6,7 +6,7 @@ import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceT
 import { renderBoard, ensureModeStyles, getBoardView } from './game-board.js';
 import { showScreen, loadScreen } from './navigation.js';
 import { settings } from './settings.js';
-import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
+import { getPlayerSetup, initPlayerSetup, updateSetup, getExtendedRules, setExtendedRulesForTest } from './player-setup.js';
 import { createGameView } from './game-view.js';
 import { createGameLog } from './game-log.js';
 import { createTurnController } from './game-turn.js';
@@ -152,4 +152,115 @@ export async function openPlayerSelection() {
 export function initGame() {
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
+}
+
+
+/**
+ * Testovací režim používá stejný engine, renderer, kostku i tahový automat
+ * jako běžná místní hra. Aktivuje se pouze na URL s ?test=1.
+ */
+export async function startTestGame() {
+    await loadScreen('player-selection');
+    initPlayerSetup();
+    updateSetup();
+    const setup = getPlayerSetup();
+    await loadScreen('game');
+    const { initGameScreen } = await import('./game-screen.js');
+    initGameScreen({
+        turnController,
+        getAudioModule: () => audioModule,
+        settings,
+        sendChatMessage,
+        setGame: value => { game = value; },
+        showScreen,
+        restartGame,
+        toast
+    });
+
+    game = createGame(
+        setup.humanCount,
+        setup.aiCount,
+        setup.names,
+        setup.colors,
+        setup.selectedBoardSize,
+        setup.extendedRules
+    );
+    // V testovacím režimu hrají všichni účastníci automaticky.
+    // Nemění se pravidla ani herní engine, pouze příznak řízení hráče.
+    game.players.forEach(player => { player.isAI = true; });
+    game.phase = 'start-roll';
+    game.currentPlayer = 0;
+    game.startCandidates = game.players.map(player => player.id);
+    game.startRolls = [[]];
+    game.startWinner = null;
+
+    await ensureAudioModule();
+    turnController.resetForNewGame();
+    turnController.setGame(game);
+    resetGameLog();
+    await ensureModeStyles(getBoardView());
+    $('win-modal')?.classList.add('hidden');
+    $('kick-modal')?.classList.add('hidden');
+    $('game-menu')?.classList.add('hidden');
+    await showScreen('game');
+    showGame();
+    turnController.continueGame();
+    return getTestGameState();
+}
+
+export function pauseTestGame() {
+    if (!game) return false;
+    turnController.stopAI();
+    $('game-menu')?.classList.remove('hidden');
+    return true;
+}
+
+export function resumeTestGame() {
+    if (!game) return false;
+    $('game-menu')?.classList.add('hidden');
+    turnController.continueGame();
+    return true;
+}
+
+export function stopTestGame() {
+    turnController.stopAI();
+    game = null;
+    turnController.setGame(null);
+    $('game-menu')?.classList.add('hidden');
+    $('kick-modal')?.classList.add('hidden');
+    $('win-modal')?.classList.add('hidden');
+    showScreen('main-menu');
+    return true;
+}
+
+export function getTestGameState() {
+    if (!game) return null;
+    return {
+        phase: game.phase,
+        diceValue: game.diceValue,
+        currentPlayer: game.currentPlayer,
+        currentPlayerName: game.players[game.currentPlayer]?.name ?? null,
+        winner: game.winner,
+        rules: { ...game.rules },
+        boardSize: game.boardSize,
+        players: game.players.map(player => ({ id: player.id, name: player.name, color: player.color, isAI: player.isAI })),
+        pieces: game.pieces.map(group => group.pieces.map(piece => piece.steps))
+    };
+}
+
+export function updateTestRules(rules) {
+    setExtendedRulesForTest(rules);
+    return getExtendedRules();
+}
+
+if (new URLSearchParams(window.location.search).get('test') === '1') {
+    window.__cloveceTest = {
+        start: startTestGame,
+        pause: pauseTestGame,
+        resume: resumeTestGame,
+        stop: stopTestGame,
+        state: getTestGameState,
+        rules: getExtendedRules,
+        setRules: updateTestRules
+    };
 }
