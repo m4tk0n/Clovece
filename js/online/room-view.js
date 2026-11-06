@@ -11,14 +11,6 @@ export function renderRoomView(data, deps) {
     const game = data.game;
     const participants = data.participants || [];
 
-    if (['active', 'finished'].includes(game.status) && game.state) {
-        void renderOnlineGame(data).catch(error => {
-            console.error('Online herní runtime se nepodařilo načíst:', error);
-            notify('Hru se nepodařilo zobrazit: ' + error.message);
-        });
-        return;
-    }
-
     state.onlineRenderRequest++;
     resetOnlineGameRuntime();
     state.onlineMode = false;
