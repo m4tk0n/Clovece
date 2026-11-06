@@ -108,3 +108,4 @@ export function initGameScreen(deps) {
         }
         toast('Rychlost pohybu figurek: ' + (settings.moveSpeed === 'fast' ? 'Rychlá' : 'Normální'));
     });
+}
