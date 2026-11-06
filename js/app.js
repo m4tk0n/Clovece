@@ -273,6 +273,30 @@ function updateTurnControls() {
 let diceCurrentX = 0;
 let diceCurrentY = 0;
 
+const DICE_FACE_ROTATIONS = {
+    1: { x: 0, y: 0 }, 2: { x: 0, y: -90 }, 3: { x: -90, y: 0 },
+    4: { x: 90, y: 0 }, 5: { x: 0, y: 90 }, 6: { x: 0, y: 180 }
+};
+
+// Jeden plán rotace používá CSS kostka i Three.js kostka.
+function createDiceRotationPlan(value, fast) {
+    const target = DICE_FACE_ROTATIONS[value];
+    const spin = (current, base) => {
+        const turns = Math.ceil((current - base) / 360) + 2 + Math.floor(Math.random() * 2);
+        return base + turns * 360;
+    };
+    const plan = fast
+        ? { startX: target.x, startY: target.y, endX: target.x, endY: target.y, duration: 0, fast: true }
+        : {
+            startX: diceCurrentX, startY: diceCurrentY,
+            endX: spin(diceCurrentX, target.x), endY: spin(diceCurrentY, target.y),
+            duration: 1500, fast: false
+        };
+    diceCurrentX = plan.endX;
+    diceCurrentY = plan.endY;
+    return plan;
+}
+
 export async function animateDice(value) {
     const diceValue = Math.max(1, Math.min(6, Number(value) || 1));
     $('dice-value').textContent = diceValue;
@@ -292,10 +316,14 @@ export async function animateDice(value) {
     }
     if (document.documentElement.dataset.boardView !== mode) return;
 
+    // Oba režimy dostanou totožné cílové úhly, počet otoček a časování.
+    const fast = settings.moveSpeed === 'fast';
+    const rotationPlan = createDiceRotationPlan(diceValue, fast);
+
     if (mode === '3d') {
         try {
             play('dice-sound');
-            await animateThreeDice(diceValue, settings.moveSpeed === 'fast');
+            await animateThreeDice(diceValue, fast, rotationPlan);
             return;
         } catch (error) {
             // Pokud Three.js kostku nevykreslí, zachováme funkční CSS animaci.
@@ -307,35 +335,16 @@ export async function animateDice(value) {
     // 2D režim tak nepotřebuje WebGL ani Three.js, ale zachovává plnou animaci šesti stran.
     animation.dataset.mode = mode;
     delete animation.dataset.value;
-    const BASE = {
-        1: { x: 0, y: 0 },
-        2: { x: 0, y: -90 },
-        3: { x: -90, y: 0 },
-        4: { x: 90, y: 0 },
-        5: { x: 0, y: 90 },
-        6: { x: 0, y: 180 }
-    };
-
-    const spin = (current, base) => {
-        const turns = Math.ceil((current - base) / 360) + 2 + Math.floor(Math.random() * 2);
-        return base + turns * 360;
-    };
-
-    // Cílové natočení vždy končí správnou stěnou směrem k divákovi.
-    const target = BASE[diceValue];
 
     // Rychlý režim ukáže rovnou správnou stěnu bez roztočení kostky.
-    if (settings.moveSpeed === 'fast') {
+    if (fast) {
         animation.classList.remove('hidden');
         scene.classList.remove('rolling');
         cube.style.transition = 'none';
         cube.style.transform =
-            'rotateX(' + (target.x - 24) + 'deg) rotateY(' + (target.y - 32) + 'deg)';
+            'rotateX(' + (rotationPlan.endX - 24) + 'deg) rotateY(' + (rotationPlan.endY - 32) + 'deg)';
         void cube.offsetWidth;
         cube.style.transition = '';
-        diceCurrentX = target.x;
-        diceCurrentY = target.y;
-
         return new Promise(resolve => {
             window.setTimeout(() => {
                 animation.classList.add('hidden');
@@ -344,8 +353,8 @@ export async function animateDice(value) {
         });
     }
 
-    const nextX = spin(diceCurrentX, target.x);
-    const nextY = spin(diceCurrentY, target.y);
+    const nextX = rotationPlan.endX;
+    const nextY = rotationPlan.endY;
 
     // Nejdřív kostku zobrazíme a nastavíme její skutečnou výchozí polohu.
     // Teprve po vynuceném layoutu změníme transformaci, aby prohlížeč
@@ -354,7 +363,7 @@ export async function animateDice(value) {
     scene.classList.remove('rolling');
     cube.style.transition = 'none';
     cube.style.transform =
-        'rotateX(' + (diceCurrentX - 24) + 'deg) rotateY(' + (diceCurrentY - 32) + 'deg)';
+        'rotateX(' + (rotationPlan.startX - 24) + 'deg) rotateY(' + (rotationPlan.startY - 32) + 'deg)';
     void cube.offsetWidth;
 
     // Obnovíme plynulou rotaci a v dalším snímku spustíme několik otáček.
@@ -365,8 +374,6 @@ export async function animateDice(value) {
             'rotateX(' + (nextX - 24) + 'deg) rotateY(' + (nextY - 32) + 'deg)';
     });
 
-    diceCurrentX = nextX;
-    diceCurrentY = nextY;
     play('dice-sound');
 
     return new Promise(resolve => {
@@ -374,10 +381,9 @@ export async function animateDice(value) {
             scene.classList.remove('rolling');
             animation.classList.add('hidden');
             resolve();
-        }, 1500);
+        }, rotationPlan.duration);
     });
 }
-
 function openKickModal(move) {
     modalOpen = true;
     const player = game.players[move.playerId];
