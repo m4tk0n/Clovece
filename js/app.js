@@ -8,7 +8,8 @@ import {
 } from './game-engine.js';
 import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
 import { showScreen } from './navigation.js';
-import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
+import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
+import { settings, initSettings } from './settings.js';
 
 let game = null;
 let humanCount = 1;
@@ -17,21 +18,6 @@ let selectedBoardSize = 40;
 let aiTimer = null;
 let modalOpen = false;
 let moveAnimating = false;
-function loadSettings() {
-    try {
-        const saved = JSON.parse(localStorage.getItem('clovece-settings') || '{}');
-        return {
-            moveSpeed: (saved.moveSpeed || saved.aiSpeed) === 'fast' ? 'fast' : 'normal',
-            animations: saved.animations !== false,
-            sfx: saved.sfx !== false
-        };
-    } catch (error) {
-        console.warn('Nastavení se nepodařilo načíst:', error);
-        return { moveSpeed: 'normal', animations: true, sfx: true };
-    }
-}
-
-let settings = loadSettings();
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
@@ -723,59 +709,18 @@ export function initGame() {
         showScreen('main-menu');
     });
 
-    const aiSpeedSelect = $('ai-speed');
-    const animationsToggle = $('animations-toggle');
-    const sfxToggle = $('sfx-toggle');
-
-    if (aiSpeedSelect) aiSpeedSelect.value = settings.moveSpeed;
     const gameSpeedSelect = $('game-speed');
     if (gameSpeedSelect) gameSpeedSelect.value = settings.moveSpeed;
-    if (animationsToggle) animationsToggle.checked = settings.animations;
-    if (sfxToggle) sfxToggle.checked = settings.sfx;
+    initSettings();
 
-    const applyAnimationSetting = () => {
-        document.documentElement.classList.toggle('animations-disabled', !settings.animations);
-    };
-    applyAnimationSetting();
-    setSoundEffectsEnabled(settings.sfx);
-
-    aiSpeedSelect?.addEventListener('change', event => {
-        settings.moveSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
-        gameSpeedSelect && (gameSpeedSelect.value = settings.moveSpeed);
-        try { localStorage.setItem('clovece-settings', JSON.stringify(settings)); }
-        catch (error) { console.warn('Nastavení rychlosti pohybu se nepodařilo uložit:', error); }
-    });
     gameSpeedSelect?.addEventListener('change', event => {
         settings.moveSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
-        aiSpeedSelect && (aiSpeedSelect.value = settings.moveSpeed);
         try {
             localStorage.setItem('clovece-settings', JSON.stringify(settings));
         } catch (error) {
             console.warn('Rychlost hry se nepodařilo uložit:', error);
         }
         toast('Rychlost pohybu figurek: ' + (settings.moveSpeed === 'fast' ? 'Rychlá' : 'Normální'));
-    });
-    animationsToggle?.addEventListener('change', event => {
-        settings.animations = event.target.checked;
-        applyAnimationSetting();
-    });
-    sfxToggle?.addEventListener('change', event => {
-        settings.sfx = event.target.checked;
-        setSoundEffectsEnabled(settings.sfx);
-    });
-    $('save-settings-btn')?.addEventListener('click', () => {
-        settings.moveSpeed = aiSpeedSelect?.value === 'fast' ? 'fast' : 'normal';
-        settings.animations = animationsToggle?.checked !== false;
-        settings.sfx = sfxToggle?.checked !== false;
-        applyAnimationSetting();
-        setSoundEffectsEnabled(settings.sfx);
-        try {
-            localStorage.setItem('clovece-settings', JSON.stringify(settings));
-        } catch (error) {
-            console.warn('Nastavení se nepodařilo uložit:', error);
-        }
-        toast('Nastavení uloženo.');
-        showScreen('main-menu');
     });
 
     // Online navigace je navázaná v hlavním inicializátoru, nezávisle na API bootstrapu.
