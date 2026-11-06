@@ -112,7 +112,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                 
                 <div class="menu-buttons">
                     <button id="play-btn" class="menu-btn">
-                        <span>HRÁT</span>
+                        <span>MÍSTNÍ HRA</span>
                         <i class="fas fa-play"></i>
                     </button>
                     <button id="create-room-btn" class="menu-btn">
