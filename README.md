@@ -39,10 +39,17 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - js/game-engine.js – pravidla a stav hry
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
 - js/app.js – ovládání hry a AI
-- css/game-premium.css – vzhled herního plánu a rozhraní
+- css/game-premium.css – obecné rozhraní hry; samostatné CSS desky a kostky se načítá podle režimu
 - online-api.php – anonymní online API a serverově ověřované herní tahy
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
 - install/install.php – instalace databázových tabulek
+
+## Oddělené styly 2D/3D
+
+- `css/board-2d.css` a `css/dice-2d.css` obsahují pouze vzhled 2D desky a ploché animace kostky.
+- `css/board-3d.css` a `css/dice-3d.css` obsahují pouze vzhled 3D desky a prostorové animace kostky.
+- Při spuštění hry se načte pouze dvojice CSS odpovídající aktivnímu režimu. Při přepnutí režimu se předchozí dvojice odpojí.
+- Základní `game-premium.css` již neobsahuje grafická pravidla desky ani animace kostky.
 
 ## Instalace a nasazení
 

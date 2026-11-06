@@ -218,6 +218,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 9 | Výběr velikosti desky 40/48/80 v menu lokální hry | Implementováno ve větvi `feature/board-size-selector`; čeká na CI a nasazení |
 | 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; automatické kontroly a FTP deploy úspěšné; čeká na vizuální ověření |
 | 11 | Osmiúhelníková 80políčková trasa se třemi obvodovými poli na rameno a vnitřními návraty | Implementováno; test geometrie, herní testy a FTP deploy úspěšné; čeká na vizuální ověření |
+| 12 | Oddělení CSS 2D/3D desky a kostky s odloženým načítáním | Implementováno; čeká na CI a vizuální ověření |
 
 ## Pravidla hry
 
@@ -307,3 +308,16 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Nastavit 3D jako výchozí pohled; možnost přepnout na 2D zůstává dostupná.
 - [ ] Ověřit vykreslení, výběr figurek a výkon na mobilu a desktopu; doladit kameru a měřítko podle živého testu.
 - [ ] Ověřit kompatibilitu se všemi kombinacemi hráčů a velikostí desky v online místnosti.
+
+
+## Oddělení CSS herní desky a kostky – 2026-11-06
+
+- [x] Přesunout vzhled 2D SVG desky do `css/board-2d.css`.
+- [x] Zachovat samostatné `css/board-3d.css` a doplnit do něj pouze styly 3D desky a jejího HUD.
+- [x] Přesunout prostorovou animaci kostky do `css/dice-3d.css`.
+- [x] Připravit samostatný plochý vzhled a animaci kostky v `css/dice-2d.css`.
+- [x] Zajistit načítání pouze dvojice CSS aktivního režimu; při přepnutí předchozí dvojici odpojit.
+- [x] Odstranit grafické styly desky a kostky ze základního `css/game-premium.css`.
+- [x] Aktualizovat README, debug dokumentaci a historii verzí.
+- [ ] Vizuálně ověřit 2D a 3D desku i kostku na mobilu a desktopu.
+

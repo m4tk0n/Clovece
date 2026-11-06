@@ -34,11 +34,16 @@ Pokud prohlížeč nepodporuje Visual Viewport API, panel se připne 2 px od spo
 
 Protokol ukazuje, které moduly aplikace při startu skutečně importuje a které inicializační funkce spouští. Zda je některý modul zbytečný, nelze rozhodnout jen podle toho, že se načítá: může být potřeba až po otevření konkrétní obrazovky nebo při online hře. K takovému závěru je nutné prověřit jeho použití a závislosti v kódu. Protokol nesleduje jednotlivé obrázky, zvukové soubory ani všechny síťové požadavky. U CSS vloženého přímo do DOM uvádí jeho identifikátor, nikoli přenesený objem dat.
 
-### Odložené načítání 3D
+### Odložené načítání 2D/3D
 
-Při otevření webu ani při zobrazení obrazovky „Vytvoření hry“ se 3D renderer ani jeho stylesheet nenačítají. Volba 2D/3D se vyhodnotí až při prvním vykreslení skutečné hry. Pokud je zvolen režim 2D, načte se pouze SVG renderer. Pokud je zvoleno 3D, teprve tehdy se načte css/board-3d.css, modul js/game-board-3d.js a následně knihovna Three.js s OrbitControls.
+Při otevření webu ani při zobrazení obrazovky „Vytvoření hry“ se CSS herní desky ani kostky nenačítá. Volba režimu se vyhodnotí až při prvním vykreslení skutečné hry:
 
-V debug protokolu se proto board-3d.css a 3D renderer mají objevit až po spuštění hry v režimu 3D. Při 2D hře se objevit nemají.
+- **2D:** načte se pouze `css/board-2d.css` a `css/dice-2d.css`; desku vykresluje SVG renderer.
+- **3D:** načte se pouze `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
+- Při přepnutí režimu se stylesheety předchozího režimu odstraní a načte se pouze dvojice pro nový režim.
+- Při chybě 3D rendereru se aplikace vrátí do 2D a přepne také odpovídající CSS.
+
+V debug protokolu se musí objevit pouze soubory aktivního režimu. Načtení 2D CSS nesmí vyžadovat 3D renderer ani knihovnu Three.js a naopak 3D CSS se nesmí načíst při 2D hře.
 
 ## 2. Číslování polí na 3D desce
 

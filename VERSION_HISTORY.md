@@ -18,6 +18,27 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 ---
 
 
+## 1.00.00.06 – Oddělení stylů 2D a 3D desky a kostky
+
+**Datum:** 6. 11. 2026  
+**Typ:** Refaktoring CSS a odložené načítání
+
+- Vzhled 2D SVG desky je samostatně v `css/board-2d.css`.
+- Vzhled 3D desky a jejího HUD je samostatně v `css/board-3d.css`.
+- Plochá animace kostky je v `css/dice-2d.css`; prostorová animace je v `css/dice-3d.css`.
+- Při spuštění hry se načítá pouze dvojice CSS aktivního režimu; při přepnutí se předchozí dvojice odpojí.
+- Z `css/game-premium.css` byly odstraněny styly desky a animace kostky.
+- Pravidla hry, stav hry a geometrie desky se nemění.
+
+**Dotčené soubory:**
+- `css/game-premium.css`
+- `css/board-2d.css`, `css/board-3d.css`
+- `css/dice-2d.css`, `css/dice-3d.css`
+- `js/game-board-view.js`, `js/app.js`
+- `README.md`, `DEBUG.md`, `.github/ROADMAP.md`
+
+**Navazující změny:** žádné.
+
 ## 1.00.00.05 – Sjednocení okrajů při nízkém displeji
 
 **Datum:** 5. 11. 2026  

@@ -6,7 +6,7 @@ import {
     createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
-import { renderBoard } from './game-board.js';
+import { renderBoard, ensureModeStyles } from './game-board.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
@@ -273,7 +273,7 @@ function updateTurnControls() {
 let diceCurrentX = 0;
 let diceCurrentY = 0;
 
-export function animateDice(value) {
+export async function animateDice(value) {
     const diceValue = Math.max(1, Math.min(6, Number(value) || 1));
     $('dice-value').textContent = diceValue;
 
@@ -281,10 +281,36 @@ export function animateDice(value) {
     const scene = $('dice-scene');
     const cube = $('dice-3d');
 
-    if (!animation || !scene || !cube || !settings.animations) {
-        return Promise.resolve();
+    if (!animation || !scene || !cube || !settings.animations) return;
+
+    const mode = document.documentElement.dataset.boardView === '2d' ? '2d' : '3d';
+    try {
+        await ensureModeStyles(mode);
+    } catch (error) {
+        console.error('Styly kostky se nepodařilo načíst:', error);
+        return;
+    }
+    if (document.documentElement.dataset.boardView !== mode) return;
+
+    if (mode === '2d') {
+        animation.dataset.mode = '2d';
+        animation.dataset.value = String(diceValue);
+        animation.classList.remove('hidden');
+        scene.classList.remove('rolling');
+        cube.style.removeProperty('transform');
+        cube.style.removeProperty('transition');
+        void cube.offsetWidth;
+        scene.classList.add('rolling');
+        if (settings.moveSpeed !== 'fast') play('dice-sound');
+        const duration = settings.moveSpeed === 'fast' ? 450 : 780;
+        await new Promise(resolve => window.setTimeout(resolve, duration));
+        scene.classList.remove('rolling');
+        animation.classList.add('hidden');
+        return;
     }
 
+    animation.dataset.mode = '3d';
+    delete animation.dataset.value;
     const BASE = {
         1: { x: 0, y: 0 },
         2: { x: 0, y: -90 },

@@ -131,56 +131,12 @@
     width: min(100%,900px);
     margin: 0 auto;
 }
-.premium-board-shell {
-    width:100%;
-    padding: clamp(8px,2vw,20px);
-    border-radius: 28px;
-    background: linear-gradient(145deg,#263a32,#101a18 65%,#0a1110);
-    border: 1px solid rgba(198,169,107,.55);
-    box-shadow: 0 28px 80px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.1);
-}
-.board-topline,.board-bottomline {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    padding: 4px 8px 12px;
-    color:#aeb9ac;
-    font:700 9px/1.4 "Press Start 2P",monospace;
-    letter-spacing:.12em;
-}
-.board-topline .board-kicker { color:var(--table-gold); }
-
-@media (max-width:520px) {
-    .board-topline { align-items:flex-start; }
-
-}
-.premium-board {
-    display:block;
-    width:100%;
-    height:auto;
-    overflow:visible;
-    filter: drop-shadow(0 16px 22px rgba(0,0,0,.24));
-}
-
-.board-piece { cursor:default; }
-.board-piece.piece-selectable { cursor:pointer; filter:url(#pieceGlow); }
-.board-piece.piece-selectable:hover { transform:translateY(-4px); }
-.piece-core { stroke:none; }
-
-.track-space { pointer-events:none; }
 #game-screen .game-footer {
     max-width:1440px;
     margin:20px auto 0;
     display:grid;
     grid-template-columns:1fr;
     gap:18px;
-}
-.players-panel {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:10px;
-    align-content:start;
 }
 
 #game-screen .game-chat {
@@ -245,8 +201,6 @@
     #game-screen { padding:8px 7px 20px; }
     #game-screen .game-header { padding:11px; }
     #game-screen .game-footer { grid-template-columns:1fr; }
-    .premium-board-shell { padding:7px; border-radius:18px; }
-    .board-topline,.board-bottomline { font-size:7px; }
 
     .setup-grid { grid-template-columns:1fr; }
     #game-screen .game-controls { width:100%; justify-content:flex-end; }
@@ -274,15 +228,6 @@
     max-height:100%; aspect-ratio:1; margin:0 auto;
     display:flex; align-items:center; justify-content:center;
 }
-#game-screen .premium-board-shell {
-    box-sizing:border-box; display:flex; flex-direction:column;
-    width:100%; height:100%; min-height:0; padding:3px; border-radius:16px;
-}
-#game-screen .board-topline,#game-screen .board-bottomline {
-    flex:0 0 auto; padding:2px 5px 5px; font-size:7px; letter-spacing:.07em;
-}
-
-#game-screen .premium-board { flex:1 1 auto; min-height:0; width:100%; height:0; object-fit:contain; }
 
 #game-screen .game-footer { flex:0 0 auto; width:100%; margin:6px auto 0; display:block; }
 #game-screen .players-panel { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
@@ -298,8 +243,6 @@
     #game-screen .game-status { flex-basis:100%; font-size:9px; }
     #game-screen .game-btn { min-height:32px; padding:5px 8px; font-size:10px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 142px)); }
-    #game-screen .premium-board-shell { padding:1px; }
-    #game-screen .players-panel { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
 
 }
 @media (max-height:620px) {
@@ -310,202 +253,6 @@
     #game-screen .game-btn { min-height:28px; padding:3px 8px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 112px)); }
     #game-screen .game-footer { margin-top:3px; }
-}
-
-/* Real 3D dice roll: perspective, six cube faces and a multi-axis tumble */
-#dice-animation {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    display: grid;
-    place-items: center;
-    perspective: 900px;
-    perspective-origin: 50% 45%;
-    background: rgba(3, 9, 8, .48);
-    pointer-events: none;
-}
-#dice-animation.hidden { display: none; }
-
-/* Dice overlay positioning and 3D cube geometry correction */
-#dice-animation {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
-    perspective: 850px !important;
-    perspective-origin: 50% 50% !important;
-    overflow: hidden !important;
-    z-index: 99999 !important;
-    transform: none !important;
-}
-#dice-animation.hidden {
-    display: none !important;
-}
-
-@media (max-width: 600px) {
-
-}
-
-/* =========================================================
-   Ivory 3D dice – převzatá konstrukce a animace dodaná uživatelem
-   ========================================================= */
-#dice-animation {
-    --dice-size: 120px;
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    perspective: 700px !important;
-    perspective-origin: 50% 40% !important;
-    background: rgba(5, 14, 15, .56) !important;
-    z-index: 99999 !important;
-    pointer-events: none !important;
-}
-#dice-animation.hidden {
-    display: none !important;
-}
-#dice-animation .scene {
-    position: relative;
-    flex: 0 0 var(--dice-size);
-    width: var(--dice-size);
-    height: var(--dice-size);
-    perspective: 700px;
-    outline: none;
-}
-#dice-animation .shadow {
-    position: absolute;
-    left: 50%;
-    bottom: -34px;
-    width: 110px;
-    height: 22px;
-    margin-left: -55px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, .55);
-    filter: blur(8px);
-    transition: transform .9s ease-in-out, opacity .9s ease-in-out;
-}
-#dice-animation .scene.rolling .shadow {
-    animation: diceShadow 1.5s ease-in-out;
-}
-@keyframes diceShadow {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    40% { transform: scale(.55); opacity: .45; }
-    70% { transform: scale(.9); opacity: .9; }
-    85% { transform: scale(.8); opacity: .8; }
-}
-#dice-animation .jump {
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    -webkit-transform-style: preserve-3d;
-}
-#dice-animation .scene.rolling .jump {
-    animation: diceJump 1.5s cubic-bezier(.3, .1, .4, 1);
-}
-@keyframes diceJump {
-    0% { transform: translateY(0); }
-    38% { transform: translateY(-110px) scale(1.12); }
-    68% { transform: translateY(0) scale(1); }
-    80% { transform: translateY(-18px); }
-    90% { transform: translateY(0); }
-    95% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-}
-#dice-animation .cube {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    -webkit-transform-style: preserve-3d;
-    transform: rotateX(-24deg) rotateY(-32deg);
-    transform-origin: center;
-    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1);
-    will-change: transform;
-}
-#dice-animation .face {
-    position: absolute;
-    inset: 0;
-    box-sizing: border-box;
-    border-radius: 20px;
-    background: radial-gradient(circle at 30% 25%, #fffaf0 0%, #f3ead6 45%, #d9cba9 100%);
-    box-shadow:
-        inset 0 0 0 2px rgba(255, 255, 255, .35),
-        inset 0 -8px 16px rgba(120, 95, 40, .28),
-        inset 0 6px 12px rgba(255, 255, 255, .5);
-    display: grid;
-    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-    padding: 20px;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-#dice-animation .f1 { transform: rotateY(0deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f2 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .pip {
-    width: 78%;
-    height: 78%;
-    margin: auto;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #4a443b, #1c1a17 60%);
-    box-shadow: inset 0 2px 3px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .7);
-}
-#dice-animation .f1 .pip {
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 35% 30%, #d64a40, #b3261e 65%);
-}
-#dice-animation .p1 { grid-area: 1 / 1; }
-
-#dice-animation .p3 { grid-area: 1 / 3; }
-#dice-animation .p4 { grid-area: 2 / 1; }
-#dice-animation .p5 { grid-area: 2 / 2; }
-#dice-animation .p6 { grid-area: 2 / 3; }
-#dice-animation .p7 { grid-area: 3 / 1; }
-
-#dice-animation .p9 { grid-area: 3 / 3; }
-
-@media (max-width: 600px) {
-    #dice-animation { --dice-size: 104px; }
-    #dice-animation .face {
-        border-radius: 18px;
-        padding: 17px;
-    }
-    #dice-animation .shadow {
-        width: 96px;
-        margin-left: -48px;
-        bottom: -30px;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    #dice-animation .cube { transition-duration: .01ms; }
-    #dice-animation .scene.rolling .jump,
-    #dice-animation .scene.rolling .shadow { animation: none; }
-}
-
-/* Ensure the supplied multi-turn rotation is interpolated from its visible start pose. */
-#dice-animation .cube {
-    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1) !important;
-}
-#dice-animation .scene.rolling .cube {
-    will-change: transform;
 }
 
 /* Ovládání zvuku uvnitř hamburgerového menu */
@@ -570,81 +317,6 @@
 }
 .preview-player-name::placeholder { color: #a6b1a7; }
 
-/* Board corner HUD: turn count, active player and compact colored progress. */
-#game-screen .premium-board-shell { position:relative; }
-#game-screen .board-player-stats {
-    position:absolute;
-    left:12px;
-    bottom:12px;
-    z-index:3;
-    width:min(112px,22%);
-    box-sizing:border-box;
-    padding:7px 9px;
-    border:1px solid rgba(198,169,107,.32);
-    border-radius:10px;
-    background:rgba(7,15,13,.78);
-    box-shadow:0 5px 18px rgba(0,0,0,.28);
-    backdrop-filter:blur(5px);
-    pointer-events:none;
-}
-#game-screen .board-corner-info {
-    position:absolute;
-    right:12px;
-    bottom:12px;
-    z-index:3;
-    width:min(176px,30%);
-    box-sizing:border-box;
-    padding:8px 9px;
-    border:1px solid rgba(198,169,107,.42);
-    border-radius:10px;
-    background:rgba(7,15,13,.84);
-    box-shadow:0 5px 18px rgba(0,0,0,.32);
-    backdrop-filter:blur(5px);
-    pointer-events:none;
-}
-#game-screen .board-turn-count,
-#game-screen .board-current-player {
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    gap:6px;
-    min-width:0;
-}
-#game-screen .board-turn-count span,
-#game-screen .board-current-player span {
-    color:#aeb9ac;
-    font:700 7px/1.3 "Press Start 2P",monospace;
-    letter-spacing:.02em;
-}
-#game-screen .board-turn-count strong {
-    color:var(--table-gold);
-    font:700 17px/1 "Bangers",Impact,sans-serif;
-}
-#game-screen .board-current-player { margin-top:4px; }
-#game-screen .board-current-player strong {
-    overflow:hidden;
-    color:var(--player-color);
-    font-size:10px;
-    line-height:1.2;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-#game-screen .players-panel {
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:4px 9px;
-    margin:0;
-}
-#game-screen .board-player-stat {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-width:0;
-    color:var(--player-color);
-    font:700 12px/1.2 "Bangers",Impact,sans-serif;
-}
-#game-screen .board-player-stat strong { color:var(--player-color); font-size:13px; }
-
 /* Bottom chat panel replaces the old full-width player cards. */
 #game-screen .game-footer {
     flex:0 0 auto;
@@ -706,27 +378,6 @@
     padding:4px 10px;
 }
 @media(max-width:600px) {
-    #game-screen .board-player-stats {
-        left:5px;
-        bottom:5px;
-        width:min(82px,22%);
-        padding:5px 6px;
-        border-radius:7px;
-    }
-    #game-screen .board-corner-info {
-        right:5px;
-        bottom:5px;
-        width:min(142px,34%);
-        padding:5px 6px;
-        border-radius:7px;
-    }
-    #game-screen .board-turn-count span,
-    #game-screen .board-current-player span { font-size:5px; }
-    #game-screen .board-turn-count strong { font-size:14px; }
-    #game-screen .board-current-player strong { font-size:8px; }
-    #game-screen .players-panel { gap:3px 6px; margin-top:5px; }
-    #game-screen .board-player-stat { font-size:10px; }
-    #game-screen .board-player-stat strong { font-size:10px; }
     #game-screen .game-chat { min-height:66px; max-height:94px; padding:5px 7px; }
     #game-screen .game-chat .chat-messages { max-height:30px; font-size:9px; }
 }
@@ -734,8 +385,6 @@
     #game-screen .game-chat { min-height:58px; max-height:76px; padding:4px 7px; }
     #game-screen .game-chat h4 { margin-bottom:2px; }
     #game-screen .game-chat .chat-messages { max-height:20px; min-height:14px; }
-    #game-screen .board-corner-info,
-    #game-screen .board-player-stats { padding:4px 6px; }
 }
 
 /* Jednotné odsazení všech tří herních částí od okraje displeje. */
@@ -794,24 +443,6 @@
     margin-left: -1px;
     margin-right: 0;
 }
-
-/* Vnitřní rámeček vyplní rozšířený prostřední kontejner. */
-#game-screen .game-container > .premium-board-shell {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-}
-
-/* Hrany kostky: zachovat původní barvu ploch a odstranit tmavé spáry
-   nepatrným překrytím jednotlivých stěn. */
-#dice-animation .face { border: 0; }
-#dice-animation .f1 { transform: rotateY(0deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f2 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
 
 /* Chat a herní log sdílejí jeden seznam zpráv; nadpis se nezobrazuje. */
 #game-screen .game-chat h4 { display: none; }
