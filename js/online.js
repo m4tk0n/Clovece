@@ -211,46 +211,6 @@ export async function initOnline() {
         }
     });
 
-    $('add-ai-player-btn')?.addEventListener('click', async event => {
-        const button = event.currentTarget;
-        if (!onlineRuntimeState.currentGameId || button.disabled) return;
-        button.disabled = true;
-        try {
-            const result = await api('add_ai_player', { game_id: String(onlineRuntimeState.currentGameId) });
-            notify(result.display_name + ' byl přidán do místnosti.');
-            await refreshGame();
-        } catch (error) {
-            notify('AI hráče se nepodařilo přidat: ' + error.message);
-        } finally {
-            button.disabled = false;
-        }
-    });
-    $('copy-invite-btn')?.addEventListener('click', copyInvite);
-    $('room-start-game-btn')?.addEventListener('click', async () => {
-        if (!onlineRuntimeState.currentGameId) return;
-        try {
-            await api('start_game', { game_id: String(onlineRuntimeState.currentGameId) });
-            await refreshGame();
-        } catch (error) {
-            notify(error.message);
-        }
-    });
-    $('leave-room-btn')?.addEventListener('click', leaveRoom);
-    $('room-chat-form')?.addEventListener('submit', async event => {
-        event.preventDefault();
-        const input = $('room-chat-input');
-        const message = input?.value.trim();
-        if (!message || !onlineRuntimeState.currentGameId) return;
-
-        try {
-            await api('send_chat', { game_id: String(onlineRuntimeState.currentGameId), message });
-            input.value = '';
-            await refreshGame();
-        } catch (error) {
-            notify(error.message);
-        }
-    });
-
     window.joinRoom = joinRoom;
     document.addEventListener('visibilitychange', schedulePoll);
 
