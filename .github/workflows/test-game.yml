@@ -17,6 +17,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --experimental-default-type=module --check js/bootstrap.js
+          node --experimental-default-type=module --check js/navigation.js
           node --experimental-default-type=module --check js/app.js
           node --experimental-default-type=module --check js/dice.js
           node --experimental-default-type=module --check js/dice-rotation.js
