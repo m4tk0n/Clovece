@@ -15,25 +15,7 @@ jobs:
         with:
           node-version: 22
       - name: Check JavaScript syntax
-        run: |
-          node --experimental-default-type=module --check js/bootstrap.js
-          node --experimental-default-type=module --check js/navigation.js
-          node --experimental-default-type=module --check js/app.js
-          node --experimental-default-type=module --check js/dice.js
-          node --experimental-default-type=module --check js/dice-rotation.js
-          node --experimental-default-type=module --check js/settings.js
-          node --experimental-default-type=module --check js/player-setup.js
-          node --experimental-default-type=module --check js/game-log.js
-          node --experimental-default-type=module --check js/game-view.js
-          node --experimental-default-type=module --check js/game-turn.js
-          node --experimental-default-type=module --check js/online.js
-          node --experimental-default-type=module --check js/game-engine.js
-          node --experimental-default-type=module --check js/game-board-geometry.js
-          node --experimental-default-type=module --check js/game-board-scene.js
-          node --experimental-default-type=module --check js/game-board-2d.js
-          node --experimental-default-type=module --check js/game-board-view.js
-          node --experimental-default-type=module --check js/game-board.js
-          node --experimental-default-type=module --check js/game-board-3d.js
+        run: find js -type f -name '*.js' -print0 | xargs -0 -n1 node --experimental-default-type=module --check
       - name: Test game rules
         run: node --experimental-default-type=module --test tests/*.test.mjs
 
