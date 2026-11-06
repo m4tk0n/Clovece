@@ -16,6 +16,10 @@
     margin: 0 auto;
 }
 
+.rules-content > #back-rules-btn {
+    align-self: center;
+}
+
 .rules-text {
     flex: 1 1 auto;
     min-height: 0;
