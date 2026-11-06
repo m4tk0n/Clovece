@@ -20,6 +20,10 @@ let currentPlayerIndex = -1;
 let onlineMode = false;
 let onlineGameRuntimePromise = null;
 let onlineRenderRequest = 0;
+window.addEventListener('clovece:game-exit', () => {
+    onlineRenderRequest++;
+    onlineGameRuntimePromise = null;
+});
 
 function loadOnlineGameRuntime() {
     if (!onlineGameRuntimePromise) {
