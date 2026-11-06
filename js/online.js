@@ -2,9 +2,8 @@
  * Online lobby – napojení obrazovek na anonymní online API.
  * Samotné tahy se zatím nehrají online; serverová validace enginu je další krok.
  */
-import { showScreen, loadScreen } from './navigation.js';
-import { renderChat } from './online/chat-view.js';
-import { API_URL, api, bootstrapOnline } from './online/api.js';
+import { showScreen } from './navigation.js';
+import { api, bootstrapOnline } from './online/api.js';
 import { notify } from './online/notifications.js';
 import { renderMyGames } from './online/my-games-view.js';
 import { loadOnlineGameRuntime, resetOnlineGameRuntime } from './online/game-runtime.js';
