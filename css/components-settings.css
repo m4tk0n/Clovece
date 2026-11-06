@@ -77,9 +77,3 @@
 .settings-actions > .menu-btn {
     flex: 0 0 auto;
 }
-
-
-/* Obsah nastavení je nahoře, vodorovně vycentrovaný. */
-#settings-screen .menu-content {
-    margin: 0 auto;
-}
