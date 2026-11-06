@@ -80,6 +80,12 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <!-- Main Menu -->
     <div id="main-menu" class="menu-screen hidden">
         <div class="menu-bg">
+            <div class="auth-buttons">
+                <button id="login-menu-btn" class="menu-btn secondary">
+                    <span>PŘIHLÁSIT SE</span>
+                    <i class="fas fa-sign-in-alt"></i>
+                </button>
+            </div>
             <div class="menu-content">
                 <div id="user-info" class="user-info hidden">
                     <div class="user-avatar">
@@ -123,17 +129,6 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     <button id="rules-btn" class="menu-btn">
                         <span>PRAVIDLA</span>
                         <i class="fas fa-book"></i>
-                    </button>
-                </div>
-                
-                <div class="auth-buttons">
-                    <button id="login-menu-btn" class="menu-btn secondary">
-                        <span>PŘIHLÁSIT SE</span>
-                        <i class="fas fa-sign-in-alt"></i>
-                    </button>
-                    <button id="register-menu-btn" class="menu-btn secondary">
-                        <span>REGISTRACE</span>
-                        <i class="fas fa-user-plus"></i>
                     </button>
                 </div>
                 
