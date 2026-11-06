@@ -143,18 +143,13 @@
 .menu-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 
-/* Akční tlačítka na konci stránky (Uložit, Zpět, Začít hru ...): pod sebou, stejně široká. */
+/* Navigační a akční tlačítka mají vždy jen šířku svého obsahu.
+   Rozmístění tlačítek (vedle sebe / pod sebou) řeší kontejner stránky. */
 .menu-content > .menu-btn {
-    display: flex;
-    width: 100%;
-    max-width: 320px;
-    margin: 8px auto 0;
-}
-
-/* Modifikátor pro tlačítka, která mají být široká jen podle obsahu. */
-.menu-content > .menu-btn.fit-content {
+    display: inline-flex;
     width: fit-content;
     max-width: none;
+    margin: 8px 0;
 }
 
 @media (max-width: 600px) {
