@@ -152,7 +152,7 @@ function buildScene(T,scene,data) {
  * Samostatná fyzická kostka pro 3D režim.
  * Vykresluje se přes Three.js do průhledného překryvu nad celou obrazovkou.
  */
-export async function animateThreeDice(value, fast = false) {
+export async function animateThreeDice(value, fast = false, rotationPlan = null) {
     const { THREE: T } = await loadThree();
     const overlay = document.createElement('div');
     overlay.id = 'three-dice-overlay';
@@ -312,21 +312,37 @@ export async function animateThreeDice(value, fast = false) {
             6: [0, Math.PI, 0]
         };
         const target = targets[Math.max(1, Math.min(6, Number(value) || 1))];
-        const start = [
-            (Math.random() - .5) * Math.PI * 2,
-            (Math.random() - .5) * Math.PI * 2,
-            (Math.random() - .5) * Math.PI * 2
-        ];
+        // Plán rotace vzniká v app.js a používá jej také CSS kostka.
+        // Základní náklon (-24°, -32°) odpovídá výchozímu pohledu CSS kostky.
+        const plan = rotationPlan || {
+            startX: 0, startY: 0, endX: 0, endY: 0,
+            duration: fast ? 0 : 1500, fast
+        };
+        const toRadians = degrees => degrees * Math.PI / 180;
+        const start = [toRadians(plan.startX - 24), toRadians(plan.startY - 32), 0];
+        const end = [toRadians(plan.endX - 24), toRadians(plan.endY - 32), 0];
         die.rotation.set(...start);
-        die.scale.setScalar(.01);
-        const turns = fast ? 1 : 2 + Math.floor(Math.random() * 2);
-        const end = [
-            target[0] + Math.PI * 2 * turns,
-            target[1] - Math.PI * 2 * turns,
-            target[2] + Math.PI * 2 * (turns - 1)
-        ];
-        const duration = fast ? 720 : 2600;
+        die.scale.setScalar(plan.fast ? 1 : .01);
+        const duration = plan.duration;
+        const totalDuration = plan.fast ? 450 : duration;
         const started = performance.now();
+
+        // Stejná kubická Bézierova křivka jako CSS transition kostky v 2D.
+        const ease = progress => {
+            const x1 = .2, y1 = .7, x2 = .25, y2 = 1;
+            let low = 0, high = 1, t = progress;
+            for (let i = 0; i < 18; i++) {
+                t = (low + high) / 2;
+                const inverse = 1 - t;
+                const x = 3 * inverse * inverse * t * x1
+                    + 3 * inverse * t * t * x2 + t * t * t;
+                if (x < progress) low = t;
+                else high = t;
+            }
+            const inverse = 1 - t;
+            return 3 * inverse * inverse * t * y1
+                + 3 * inverse * t * t * y2 + t * t * t;
+        };
         return await new Promise(resolve => {
             const animate = now => {
                 if (!overlay.isConnected) {
@@ -334,20 +350,23 @@ export async function animateThreeDice(value, fast = false) {
                     resolve();
                     return;
                 }
-                const raw = Math.min(1, (now - started) / duration);
-                const eased = 1 - Math.pow(1 - raw, 3);
+                const elapsed = now - started;
+                const raw = duration === 0 ? 1 : Math.min(1, elapsed / duration);
+                const eased = ease(raw);
                 die.rotation.set(
                     start[0] + (end[0] - start[0]) * eased,
                     start[1] + (end[1] - start[1]) * eased,
                     start[2] + (end[2] - start[2]) * eased
                 );
-                const bounce = raw < .72 ? Math.sin(raw / .72 * Math.PI) * .72 : Math.sin((raw - .72) / .28 * Math.PI) * .12;
+                const bounce = plan.fast ? 0 : (raw < .72
+                    ? Math.sin(raw / .72 * Math.PI) * .72
+                    : Math.sin((raw - .72) / .28 * Math.PI) * .12);
                 die.position.y = Math.max(0, bounce);
-                const scale = raw < .12 ? .01 + (raw / .12) * .99 : 1;
+                const scale = plan.fast ? 1 : (raw < .12 ? .01 + (raw / .12) * .99 : 1);
                 die.scale.setScalar(scale);
                 shadow.material.opacity = .12 + (1 - Math.min(1, bounce)) * .22;
                 shadow.scale.x = 1.1 + bounce * .2;
-                if (raw >= 1) {
+                if (elapsed >= totalDuration) {
                     die.rotation.set(...target);
                     die.position.y = 0;
                     renderer.render(scene, camera);
