@@ -23,7 +23,3 @@ export function loadOnlineGameRuntime() {
     }
     return runtimePromise;
 }
-
-export function resetOnlineGameRuntime() {
-    runtimePromise = null;
-}
