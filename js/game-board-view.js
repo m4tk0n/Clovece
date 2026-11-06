@@ -19,7 +19,6 @@ const VIEW_KEY = 'clovece_board_view';
 let view3d = loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
-let activeStylesMode = null;
 const modeStylesPromises = new Map();
 
 function loadThreeRenderer() {
@@ -80,7 +79,6 @@ export function ensureGameStyles() {
 
 export function ensureModeStyles(mode) {
     if (mode !== '2d' && mode !== '3d') throw new Error('Neznámý režim CSS: ' + mode);
-    activeStylesMode = mode;
     return Promise.all([
         ensureGameStyles(),
         ensureStylesheet('board-' + mode, mode),
@@ -117,10 +115,26 @@ export async function prepareBoardRendering() {
     view3dUnavailable = !canUse3D;
     saveView();
     if (canUse3D) {
-        await Promise.all([ensureModeStyles('2d'), ensureModeStyles('3d')]);
+        try {
+            // Oba režimy jsou připravené před zobrazením desky, takže přepnutí
+            // nečeká na síť ani na načítání CSS.
+            await Promise.all([ensureModeStyles('2d'), ensureModeStyles('3d')]);
+        } catch (error) {
+            console.info('Styly 3D nejsou dostupné; používá se 2D.', error);
+            canUse3D = false;
+            view3d = false;
+            view3dUnavailable = true;
+            // Odstraníme jen neúspěšné 3D styly; 2D zůstane připravené.
+            for (const name of ['board-3d', 'dice-3d']) {
+                document.getElementById('clovece-' + name + '-styles')?.remove();
+                modeStylesPromises.delete(name);
+            }
+            await ensureModeStyles('2d');
+        }
     } else {
         await ensureModeStyles('2d');
     }
+    saveView();
     return canUse3D ? '3d' : '2d';
 }
 
@@ -143,7 +157,6 @@ export function releaseGameView() {
         }
     }
     modeStylesPromises.clear();
-    activeStylesMode = null;
     threeRendererPromise = null;
     document.documentElement.removeAttribute('data-board-view');
 }
@@ -320,6 +333,7 @@ export function renderBoard(container, game) {
                 console.error('Přepínám herní desku z 3D na 2D SVG:', error);
                 view3d = false;
                 view3dUnavailable = true;
+                saveView();
                 container.dataset.renderKey = '';
                 renderBoard(container, container._lastGame || game);
             });
@@ -328,6 +342,7 @@ export function renderBoard(container, game) {
             console.error('3D renderer se nepodařilo načíst:', error);
             view3d = false;
             view3dUnavailable = true;
+            saveView();
             container.dataset.renderKey = '';
             renderBoard(container, container._lastGame || game);
         });
