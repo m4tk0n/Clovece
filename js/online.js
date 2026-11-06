@@ -3,8 +3,11 @@
  * Samotné tahy se zatím nehrají online; serverová validace enginu je další krok.
  */
 import { showScreen, loadScreen } from './navigation.js';
-import { renderChat, renderGameChat } from './online/chat-view.js';
+import { renderChat } from './online/chat-view.js';
 import { renderMyGames } from './online/my-games-view.js';
+import { loadOnlineGameRuntime, resetOnlineGameRuntime } from './online/game-runtime.js';
+import { renderOnlineGame } from './online/game-view.js';
+import { renderRoomView } from './online/room-view.js';
 
 const $ = id => document.getElementById(id);
 const API_URL = 'online-api.php';
@@ -20,32 +23,26 @@ let onlineStateVersion = 0;
 let autoMoveVersion = -1;
 let currentPlayerIndex = -1;
 let onlineMode = false;
-let onlineGameRuntimePromise = null;
+let resetOnlineGameRuntime();
 let onlineRenderRequest = 0;
+const onlineRuntimeState = {
+    get onlineRenderRequest() { return onlineRenderRequest; },
+    set onlineRenderRequest(value) { onlineRenderRequest = value; },
+    get onlineState() { return onlineState; },
+    set onlineState(value) { onlineState = value; },
+    get onlineStateVersion() { return onlineStateVersion; },
+    set onlineStateVersion(value) { onlineStateVersion = value; },
+    get currentPlayerIndex() { return currentPlayerIndex; },
+    set currentPlayerIndex(value) { currentPlayerIndex = value; },
+    get onlineMode() { return onlineMode; },
+    set onlineMode(value) { onlineMode = value; },
+    get autoMoveVersion() { return autoMoveVersion; },
+    set autoMoveVersion(value) { autoMoveVersion = value; }
+};
 window.addEventListener('clovece:game-exit', () => {
     onlineRenderRequest++;
     onlineGameRuntimePromise = null;
 });
-
-function loadOnlineGameRuntime() {
-    if (!onlineGameRuntimePromise) {
-        onlineGameRuntimePromise = Promise.all([
-            import('./game-board.js'),
-            import('./dice.js'),
-            import('./game-engine.js')
-        ]).then(([board, app, engine]) => ({
-            renderBoard: board.renderBoard,
-            ensureModeStyles: board.ensureModeStyles,
-            getBoardView: board.getBoardView,
-            animateDice: app.animateDice,
-            getForcedMove: engine.getForcedMove
-        })).catch(error => {
-            onlineGameRuntimePromise = null;
-            throw error;
-        });
-    }
-    return onlineGameRuntimePromise;
-}
 
 async function api(action, values = {}) {
     await bootstrapPromise;
@@ -99,209 +96,19 @@ function schedulePoll() {
     pollTimer = window.setTimeout(refreshGame, document.hidden ? 8000 : 3000);
 }
 
-async function renderOnlineGame(data) {
-    const requestId = ++onlineRenderRequest;
-    await loadScreen('game');
-    if (requestId !== onlineRenderRequest) return;
-    await showScreen('game');
-    initOnlineGameControls();
-    const game = data.game;
-    const runtime = await loadOnlineGameRuntime();
-    if (requestId !== onlineRenderRequest) return;
-    try {
-        await runtime.ensureModeStyles(runtime.getBoardView());
-    } catch (error) {
-        console.error('Herní CSS online hry se nepodařilo připravit:', error);
-    }
-    if (requestId !== onlineRenderRequest) return;
-    const previousState = onlineState;
-    const previousVersion = onlineStateVersion;
-    const hasNewRoll = Boolean(
-        previousState &&
-        Number(game.state_version) > previousVersion &&
-        previousState.phase === 'roll' &&
-        ['move', 'no-move', 'roll'].includes(game.state.phase)
-    );
-
-    onlineState = game.state;
-    onlineStateVersion = Number(game.state_version);
-    currentPlayerIndex = Number(data.current_player_index);
-    onlineMode = true;
-
-    if (!onlineState) return;
-    runtime.renderBoard($('game-container'), onlineState);
-
-    // Animaci a zvuk spustíme pouze při přechodu po novém online hodu.
-    const forcedMove = hasNewRoll && currentPlayerIndex === Number(onlineState.currentPlayer)
-        ? runtime.getForcedMove(onlineState)
-        : null;
-    if (hasNewRoll && onlineState.diceValue) {
-        const rollVersion = onlineStateVersion;
-        void runtime.animateDice(onlineState.diceValue).then(() => {
-            if (forcedMove !== null && autoMoveVersion !== rollVersion) {
-                autoMoveVersion = rollVersion;
-                if (onlineStateVersion === rollVersion && onlineState?.phase === 'move') {
-                    void sendGameAction('move', forcedMove);
-                }
-            }
-        });
-    }
-
-    const player = onlineState.players[onlineState.currentPlayer];
-    const ownTurn = currentPlayerIndex === Number(onlineState.currentPlayer);
-    $('current-player-name').textContent = player.name;
-    $('current-player-display')?.style.setProperty('--player-color', player.color);
-    $('dice-value').textContent = onlineState.diceValue || '—';
-
-    let status = 'Čeká se na tah.';
-    if (onlineState.phase === 'start-roll') {
-        status = ownTurn ? 'Rozstřel: jsi na řadě. Hoď kostkou.' : 'Rozstřel: hází ' + player.name + '.';
-    } else if (onlineState.phase === 'roll') {
-        const pieces = onlineState.pieces?.[onlineState.currentPlayer]?.pieces || [];
-        const retry = pieces.length === 4 && pieces.every(piece => Number(piece.steps) === -1) && Number(onlineState.baseRollAttempts) > 0;
-        status = ownTurn ? 'Jsi na tahu. Hoď kostkou' + (retry ? ' (pokus ' + (Number(onlineState.baseRollAttempts) + 1) + '/3 o šestku)' : '') + '.' : 'Na tahu je ' + player.name + '.';
-    } else if (onlineState.phase === 'move') {
-        status = ownTurn ? 'Vyber figurku, kterou chceš posunout.' : player.name + ' vybírá figurku.';
-    } else if (onlineState.phase === 'no-move') {
-        status = ownTurn ? 'Nemáš platný tah. Přeskoč tah.' : player.name + ' nemá platný tah.';
-    } else if (onlineState.phase === 'finished') {
-        status = player.name + ' vyhrál.';
-    }
-    $('game-status').textContent = status;
-
-    const rollButton = $('roll-dice-btn');
-    const canRoll = ownTurn && ['start-roll', 'roll'].includes(onlineState.phase);
-    rollButton?.classList.toggle('hidden', !canRoll);
-    if (rollButton) {
-        rollButton.disabled = !canRoll;
-        const label = rollButton.querySelector('span');
-        if (label) label.textContent = onlineState.phase === 'start-roll' ? 'HODIT ROZSTŘEL' : 'HODIT';
-    }
-
-    const passButton = $('end-turn-btn');
-    passButton?.classList.toggle('hidden', !ownTurn || onlineState.phase !== 'no-move');
-    if (passButton) {
-        passButton.disabled = !ownTurn || onlineState.phase !== 'no-move';
-        const label = passButton.querySelector('span');
-        if (label) label.textContent = 'PŘESKOČIT TAH';
-    }
-
-    $('restart-btn')?.classList.add('hidden');
-    renderGameChat(data.chat || [], data.participants || [], data.moves || []);
-
-    const winModal = $('win-modal');
-    if (onlineState.winner !== null && winModal) {
-        const winner = onlineState.players[onlineState.winner];
-        $('winner-name').textContent = winner.name;
-        $('win-title').textContent = 'VÍTĚZSTVÍ!';
-        $('win-message').textContent = winner.name + ' dostal všechny čtyři figurky domů.';
-        winModal.classList.remove('hidden');
-    } else {
-        winModal?.classList.add('hidden');
-    }
-}
-
 function renderGame(data) {
     const game = data.game;
-    const participants = data.participants || [];
-
     if (['active', 'finished'].includes(game.status) && game.state) {
-        void renderOnlineGame(data).catch(error => {
+        void renderOnlineGame(data, {
+            state: onlineRuntimeState, loadScreen, showScreen, initOnlineGameControls,
+            loadOnlineGameRuntime, sendGameAction
+        }).catch(error => {
             console.error('Online herní runtime se nepodařilo načíst:', error);
             notify('Hru se nepodařilo zobrazit: ' + error.message);
         });
         return;
     }
-
-    onlineRenderRequest++;
-    onlineGameRuntimePromise = null;
-    onlineMode = false;
-    $('win-modal')?.classList.add('hidden');
-    showScreen('room');
-    $('room-code-display')?.replaceChildren(document.createTextNode(game.public_id));
-    if ($('room-invite-url')) $('room-invite-url').value = currentInviteUrl;
-
-    const status = game.status === 'waiting' ? 'Čeká na hráče' : game.status;
-    if ($('room-status-display')) {
-        $('room-status-display').textContent = status + ' · ' + participants.length + '/' + game.player_limit;
-    }
-
-    const list = $('participant-list');
-    if (list) {
-        const participantKey = JSON.stringify(participants.map(player => ({
-            id: player.id,
-            display_name: player.display_name,
-            color: player.color,
-            player_type: player.player_type
-        })));
-        if (list.dataset.renderKey !== participantKey) {
-            list.dataset.renderKey = participantKey;
-            list.replaceChildren();
-            participants.forEach(player => {
-            const row = document.createElement('div');
-            row.className = 'participant-item';
-            const dot = document.createElement('span');
-            dot.className = 'participant-color';
-            dot.style.backgroundColor = player.color === 'random' ? '#778196' : player.color;
-            const name = document.createElement('span');
-            name.textContent = player.display_name;
-            const type = document.createElement('small');
-            const ownerLabel = player.player_type === 'ai' ? 'POČÍTAČ'
-                : (Number(player.id) === Number(data.current_participant_id) ? 'TY' : 'HRÁČ');
-            type.textContent = player.color === 'random' && player.player_type !== 'ai' ? ownerLabel + ' · NÁHODNÁ' : ownerLabel;
-            row.append(dot, name, type);
-            list.appendChild(row);
-            });
-        }
-    }
-
-    const ownParticipant = participants.find(player =>
-        Number(player.id) === Number(data.current_participant_id)
-    );
-    const nameInput = $('room-player-name');
-    if (nameInput && document.activeElement !== nameInput && ownParticipant) {
-        nameInput.value = ownParticipant.display_name;
-    }
-
-    const colorSelect = $('room-player-color');
-    if (colorSelect && ownParticipant) {
-        const usedByOthers = new Set(participants
-            .filter(player => Number(player.id) !== Number(data.current_participant_id))
-            .map(player => player.color));
-        const colorKey = JSON.stringify({
-            ownColor: ownParticipant.color,
-            usedByOthers: [...usedByOthers].sort()
-        });
-        if (document.activeElement !== colorSelect && colorSelect.dataset.renderKey !== colorKey) {
-            colorSelect.dataset.renderKey = colorKey;
-            colorSelect.replaceChildren();
-            const randomOption = document.createElement('option');
-            randomOption.value = 'random';
-            randomOption.textContent = 'Náhodná';
-            randomOption.selected = ownParticipant.color === 'random';
-            colorSelect.appendChild(randomOption);
-
-            ["#E53935","#1E88E5","#43A047","#F9A825","#FB8C00","#8E24AA","#00ACC1","#D81B60"].forEach((color, index) => {
-                const option = document.createElement('option');
-                option.value = color;
-                option.textContent = ["Červená","Modrá","Zelená","Žlutá","Oranžová","Fialová","Tyrkysová","Růžová"][index];
-                option.disabled = usedByOthers.has(color);
-                option.selected = color === ownParticipant.color;
-                colorSelect.appendChild(option);
-            });
-        }
-        colorSelect.disabled = game.status !== 'waiting';
-    }
-    $('room-player-settings')?.classList.toggle('hidden', !ownParticipant);
-    $('random-room-color-btn')?.classList.toggle('hidden', game.status !== 'waiting');
-
-    $('ready-btn')?.classList.add('hidden');
-    $('add-ai-player-btn')?.classList.toggle('hidden', !data.is_creator || participants.length >= Number(game.player_limit) || game.status !== 'waiting');
-    $('room-start-game-btn')?.classList.toggle(
-        'hidden',
-        !data.is_creator || Number(data.human_count || 0) < 2 || participants.length < 2 || game.status !== 'waiting'
-    );
-    renderChat(data.chat || [], participants);
+    renderRoomView(data, { state: onlineRuntimeState, currentInviteUrl, showScreen });
 }
 
 async function sendGameAction(actionType, pieceId = null) {
