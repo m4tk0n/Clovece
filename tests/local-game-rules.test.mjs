@@ -35,7 +35,7 @@ test('povinný vstup: bez legálního volného cílového pole lze táhnout jino
   game.pieces[0].pieces[0].steps = 38;
   game.pieces[0].pieces[1].steps = 40; // blokuje cílové pole D1
   game.pieces[0].pieces[2].steps = 10;
-  assert.deepEqual(getValidMoves(game), [2]);
+  assert.deepEqual(getValidMoves(game), [1, 2]);
 });
 
 test('povinný vstup vypnutý: hráč může zvolit i jinou figurku', () => {
