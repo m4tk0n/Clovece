@@ -39,10 +39,12 @@
     flex-direction: column;
     width: 100%;
     max-width: var(--panel-max);
-    min-height: 0;
+    /* Panel vyplní volnou výšku krátké stránky, ale při delším obsahu
+       se nesmí zmenšit ani ořezávat – výšku a scroll řeší .menu-screen. */
+    min-height: auto;
     box-sizing: border-box;
     padding: var(--panel-pad);
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid rgba(198, 169, 107, .42);
     border-radius: var(--panel-radius);
     background: var(--surface-panel);
