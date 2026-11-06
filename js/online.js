@@ -29,7 +29,7 @@ function loadOnlineGameRuntime() {
     if (!onlineGameRuntimePromise) {
         onlineGameRuntimePromise = Promise.all([
             import('./game-board.js'),
-            import('./app.js'),
+            import('./dice.js'),
             import('./game-engine.js')
         ]).then(([board, app, engine]) => ({
             renderBoard: board.renderBoard,
