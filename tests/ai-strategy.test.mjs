@@ -4,7 +4,8 @@ import {
     createGame,
     getValidMoves,
     getPiecePosition,
-    chooseAIMove
+    chooseAIMove,
+    chooseAIMoveDecision
 } from '../js/game-engine.js';
 import {
     estimateCaptureProbability,
@@ -98,4 +99,18 @@ test('AI still obeys mandatory home entry when that rule is enabled', () => {
 
     assert.deepEqual(getValidMoves(game), [1]);
     assert.equal(chooseAIMove(game), 1);
+});
+
+
+test('AI decision exposes a readable explanation without changing the legal move', () => {
+    const game = createGame(1, 1, [], [], 40, {}, 'medium');
+    game.phase = 'move';
+    game.diceValue = 6;
+    const decision = chooseAIMoveDecision(game);
+
+    assert.ok(decision);
+    assert.ok(getValidMoves(game).includes(decision.pieceId));
+    assert.equal(typeof decision.reason, 'string');
+    assert.ok(decision.reason.length > 10);
+    assert.equal(chooseAIMove(game), decision.pieceId);
 });
