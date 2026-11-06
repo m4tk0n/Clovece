@@ -38,7 +38,9 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - index.php – vstupní bod, pseudo-CRON a obrazovky aplikace
 - js/game-engine.js – pravidla a stav hry
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
-- js/app.js – ovládání hry a AI
+- js/app.js – koordinace lokální hry a AI
+- js/dice.js – řízení hodu a volba 2D/3D animace kostky (načítá se až při použití lokální/online hry)
+- js/dice-rotation.js – společný rotační plán pro 2D a 3D kostku
 - css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
 - online-api.php – anonymní online API a serverově ověřované herní tahy
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
@@ -83,3 +85,11 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - Verze se používá u všech lokálních CSS odkazů, u lokálních JavaScriptových modulů v `importmap` i u vstupního `js/bootstrap.js`.
 - Externí knihovny a externí fonty mají vlastní URL a tímto mechanismem se neoznačují.
 - Pokud lokální soubor neexistuje nebo jeho čas změny nelze načíst, funkce použije záložní verzi `1`; chybějící soubor tím samozřejmě nebude nahrazen.
+
+
+## Oddělení logiky kostky
+
+- `js/dice-rotation.js` obsahuje pouze společné cílové úhly a plán rotace; nemá závislost na DOM ani na rendereru.
+- `js/dice.js` zajišťuje průběh hodu a podle aktivního režimu předá plán CSS animaci nebo 3D rendereru. Modul se importuje až při načtení herního runtime; v online režimu až při prvním hodu.
+- `js/game-board-3d.js` vykresluje prostorovou kostku přes Three.js. Samotné Three.js se nadále importuje až při prvním použití 3D rendereru.
+- `css/dice-2d.css` a `css/dice-3d.css` zůstávají oddělenými soubory vzhledu.
