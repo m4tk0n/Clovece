@@ -64,7 +64,6 @@ export function initSettings() {
     });
     sfxToggle?.addEventListener('change', event => {
         settings.sfx = event.target.checked;
-
     });
     $('save-settings-btn')?.addEventListener('click', () => {
         settings.moveSpeed = aiSpeedSelect?.value === 'fast' ? 'fast' : 'normal';
