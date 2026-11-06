@@ -5,5 +5,7 @@
 export {
     getBoardStyle,
     buildBoardSceneData,
-    renderBoard
+    renderBoard,
+    ensureModeStyles,
+    releaseGameView
 } from './game-board-view.js';
