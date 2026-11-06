@@ -39,3 +39,12 @@
 .toast.warning {
     border: 2px solid var(--accent);
 }
+
+/* Menu notifications appear immediately; game notifications keep their game behavior. */
+body:has(.menu-screen:not(.hidden)) .toast {
+    transform: translateX(-50%);
+    transition: none;
+}
+body:has(.menu-screen:not(.hidden)) .toast.show {
+    transform: translateX(-50%);
+}
