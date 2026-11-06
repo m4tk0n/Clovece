@@ -54,16 +54,8 @@ async function startApp() {
 
         trackedInit('initNavigation()', initNavigation);
 
-        // Zvuk je doplňková funkce. Jeho chyba nesmí zablokovat ovládání aplikace.
-        try {
-            const { initAudio } = await trackedImport('audio.js', './audio.js');
-            trackedInit('initAudio()', initAudio);
-        } catch (audioError) {
-            console.error('Zvukový modul se nepodařilo načíst:', audioError);
-            if (debugLog) {
-                debugLog('Zvukový modul selhal: ' + (audioError && audioError.message ? audioError.message : String(audioError)), 'CHYBA');
-            }
-        }
+        // Audio se načítá až při skutečném spuštění lokální hry.
+        // Menu, přihlášení, lobby ani výběr hráčů zvukový modul nepotřebují.
 
         function trackedInit(name, callback) {
             const startedAt = Date.now();

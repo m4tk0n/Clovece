@@ -1,6 +1,6 @@
 /**
  * Navigace mezi obrazovkami.
- * HTML všech obrazovek zůstává v index.html – nic se nenačítá přes fetch/AJAX.
+ * HTML jednotlivých obrazovek se načítá samostatně až při první návštěvě.
  */
 
 const screenIds = {
@@ -15,12 +15,78 @@ const screenIds = {
     game: 'game-screen'
 };
 
-export function showScreen(name) {
-    const id = screenIds[name];
-    if (!id) return;
+const screenFiles = {
+    login: 'login',
+    register: 'register',
+    lobby: 'lobby',
+    room: 'room',
+    'player-selection': 'player-selection',
+    settings: 'settings',
+    rules: 'rules',
+    game: 'game'
+};
 
-    const target = document.getElementById(id);
-    if (!target) return;
+const screenLoads = new Map();
+let navigationRequest = 0;
+
+export async function loadScreen(name) {
+    const id = screenIds[name];
+    if (!id) throw new Error('Neznámá obrazovka: ' + name);
+
+    const existing = document.getElementById(id);
+    if (existing) return existing;
+    if (name === 'main-menu') return null;
+
+    if (!screenLoads.has(name)) {
+        const container = document.getElementById('screen-container');
+        if (!container) throw new Error('Chybí kontejner obrazovek.');
+
+        const request = fetch('screen.php?screen=' + encodeURIComponent(screenFiles[name]), {
+            credentials: 'same-origin'
+        }).then(async response => {
+            if (!response.ok) {
+                throw new Error('Načtení obrazovky ' + name + ' selhalo (' + response.status + ').');
+            }
+            const html = await response.text();
+            const template = document.createElement('template');
+            template.innerHTML = html;
+            container.append(template.content);
+
+            const target = document.getElementById(id);
+            if (!target) throw new Error('V načteném HTML chybí #' + id + '.');
+            return target;
+        }).catch(error => {
+            screenLoads.delete(name);
+            throw error;
+        });
+
+        screenLoads.set(name, request);
+    }
+
+    return screenLoads.get(name);
+}
+
+export async function showScreen(name) {
+    const id = screenIds[name];
+    if (!id) return false;
+
+    const requestId = ++navigationRequest;
+    let target;
+
+    try {
+        target = await loadScreen(name);
+    } catch (error) {
+        console.error('Obrazovku se nepodařilo načíst:', error);
+        window.alert('Obrazovku se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        return false;
+    }
+
+    // Pokud uživatel během načítání přešel jinam, starší požadavek nesmí změnit obrazovku.
+    if (requestId !== navigationRequest) return false;
+
+    if (!target) target = document.getElementById(id);
+    if (!target) return false;
+
     const gameScreen = document.getElementById('game-screen');
     const playerSelection = document.getElementById('player-selection');
     const leavingGame = name !== 'game' && (
@@ -37,14 +103,13 @@ export function showScreen(name) {
             screen === target || screen.classList.contains('hidden')
         );
 
-    // Polling může showScreen() volat opakovaně. Aktivní obrazovku
-    // v takovém případě vůbec neskrýváme ani znovu nezobrazujeme.
-    if (alreadyActive) return;
+    if (alreadyActive) return true;
 
     screens.forEach(screen => {
         if (screen !== target) screen.classList.add('hidden');
     });
     target.classList.remove('hidden');
+    return true;
 }
 
 window.showScreen = showScreen;
@@ -57,7 +122,9 @@ function bindClick(id, callback) {
 export function initNavigation() {
     let localGameModulePromise = null;
     let localGameInitialized = false;
+
     const ensureLocalGame = async () => {
+        await loadScreen('player-selection');
         if (!localGameModulePromise) {
             localGameModulePromise = import('./app.js');
         }
@@ -68,6 +135,7 @@ export function initNavigation() {
         }
         return gameModule;
     };
+
     const openLocalGame = async () => {
         try {
             const gameModule = await ensureLocalGame();
@@ -77,50 +145,79 @@ export function initNavigation() {
             window.alert('Herní část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
         }
     };
+
     const openSettings = async () => {
         try {
+            await loadScreen('settings');
             const settingsModule = await import('./settings.js');
             settingsModule.initSettings();
-            showScreen('settings');
+            await showScreen('settings');
         } catch (error) {
             console.error('Nastavení se nepodařilo načíst:', error);
             window.alert('Nastavení se nepodařilo načíst. Obnov stránku a zkus to znovu.');
         }
     };
+
     bindClick('play-btn', openLocalGame);
     bindClick('create-room-btn', openLocalGame);
+    bindClick('login-menu-btn', () => void showScreen('login'));
+    bindClick('register-menu-btn', () => void showScreen('register'));
+
     window.addEventListener('clovece:game-exit', () => {
-        // Uvolníme referenci na namespace; importní cache prohlížeče nelze programově vymazat.
+        // Importní cache prohlížeče nelze programově vymazat.
         localGameModulePromise = null;
     });
-    bindClick('show-register', () => showScreen('register'));
-    bindClick('show-login', () => showScreen('login'));
-    bindClick('back-from-login', () => showScreen('main-menu'));
-    bindClick('back-from-register', () => showScreen('main-menu'));
-    bindClick('back-from-lobby', () => showScreen('main-menu'));
-    bindClick('back-from-room', () => showScreen('lobby'));
+
+    // Tlačítka uvnitř načítaných obrazovek obsluhujeme delegovaně.
+    const container = document.getElementById('screen-container');
+    container?.addEventListener('click', event => {
+        const button = event.target.closest('button[id]');
+        if (!button) return;
+
+        const destinations = {
+            'show-register': 'register',
+            'show-login': 'login',
+            'back-from-login': 'main-menu',
+            'back-from-register': 'main-menu',
+            'back-from-lobby': 'main-menu',
+            'back-from-room': 'lobby',
+            'back-settings-btn': 'main-menu',
+            'back-rules-btn': 'main-menu'
+        };
+        const destination = destinations[button.id];
+        if (destination) void showScreen(destination);
+    });
+
     let onlineInitPromise = null;
     const openOnlineLobby = async () => {
-        showScreen('lobby');
-        if (!onlineInitPromise) {
-            onlineInitPromise = import('./online.js')
-                .then(module => module.initOnline())
-                .catch(error => {
-                    onlineInitPromise = null;
-                    console.error('Online lobby se nepodařilo načíst:', error);
-                    window.alert('Online část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
-                });
+        try {
+            // Lobby se načítá samostatně; místnost až při vytvoření nebo připojení ke hře.
+            await loadScreen('lobby');
+            await showScreen('lobby');
+
+            if (!onlineInitPromise) {
+                onlineInitPromise = import('./online.js')
+                    .then(module => module.initOnline())
+                    .catch(error => {
+                        onlineInitPromise = null;
+                        console.error('Online lobby se nepodařilo načíst:', error);
+                        window.alert('Online část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+                    });
+            }
+            await onlineInitPromise;
+        } catch (error) {
+            console.error('Online obrazovky se nepodařilo načíst:', error);
+            window.alert('Online část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
         }
-        await onlineInitPromise;
     };
+
     bindClick('join-room-btn', openOnlineLobby);
     if (new URLSearchParams(window.location.search).has('invite')) {
         void openOnlineLobby();
     }
+
     bindClick('settings-btn', openSettings);
-    bindClick('rules-btn', () => showScreen('rules'));
-    bindClick('back-settings-btn', () => showScreen('main-menu'));
-    bindClick('back-rules-btn', () => showScreen('main-menu'));
+    bindClick('rules-btn', () => void showScreen('rules'));
 
     const logoutButton = document.getElementById('logout-btn');
     logoutButton?.addEventListener('click', () => {
@@ -128,22 +225,21 @@ export function initNavigation() {
         else console.warn('Funkce logout() zatím není v projektu implementována.');
     });
 
-    const joinButton = document.getElementById('join-room-btn-lobby');
-    const roomCodeInput = document.getElementById('room-code-input');
-
+    // Připojení přes kód/odkaz v lobby.
     const joinRoom = () => {
+        const roomCodeInput = document.getElementById('room-code-input');
         const roomCode = roomCodeInput?.value.trim();
         if (!roomCode) return;
         if (typeof window.joinRoom === 'function') window.joinRoom(roomCode);
         else console.warn('Funkce joinRoom() zatím není v projektu implementována.');
     };
-
-    joinButton?.addEventListener('click', joinRoom);
-    roomCodeInput?.addEventListener('keydown', event => {
-        if (event.key === 'Enter') {
+    container?.addEventListener('click', event => {
+        if (event.target.closest('#join-room-btn-lobby')) joinRoom();
+    });
+    container?.addEventListener('keydown', event => {
+        if (event.target.id === 'room-code-input' && event.key === 'Enter') {
             event.preventDefault();
             joinRoom();
         }
     });
 }
-
