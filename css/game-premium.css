@@ -75,9 +75,6 @@
     cursor: not-allowed;
 }
 
-
-
-
 .preview-players {
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
@@ -154,14 +151,8 @@
 }
 .board-topline .board-kicker { color:var(--table-gold); }
 
-
-
-
-
 @media (max-width:520px) {
     .board-topline { align-items:flex-start; }
-
-
 
 }
 .premium-board {
@@ -171,7 +162,6 @@
     overflow:visible;
     filter: drop-shadow(0 16px 22px rgba(0,0,0,.24));
 }
-
 
 .board-piece { cursor:default; }
 .board-piece.piece-selectable { cursor:pointer; filter:url(#pieceGlow); }
@@ -192,13 +182,6 @@
     gap:10px;
     align-content:start;
 }
-
-
-
-
-
-
-
 
 #game-screen .game-chat {
     display:none;
@@ -256,6 +239,7 @@
 @keyframes premiumBurst {
     0% { transform:scale(.2); opacity:1; }
     100% { transform:scale(1.6); opacity:0; }
+}
 
 @media(max-width:760px) {
     #game-screen { padding:8px 7px 20px; }
@@ -267,7 +251,6 @@
     .setup-grid { grid-template-columns:1fr; }
     #game-screen .game-controls { width:100%; justify-content:flex-end; }
 }
-
 
 /* Compact, no-scroll game layout */
 #game-screen:not(.hidden) {
@@ -304,12 +287,6 @@
 #game-screen .game-footer { flex:0 0 auto; width:100%; margin:6px auto 0; display:block; }
 #game-screen .players-panel { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
 
-
-
-
-
-
-
 @media (max-width:600px) {
     #game-screen:not(.hidden) { padding:5px 1px; }
     #game-screen .game-header {
@@ -324,7 +301,6 @@
     #game-screen .premium-board-shell { padding:1px; }
     #game-screen .players-panel { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
 
-
 }
 @media (max-height:620px) {
     #game-screen:not(.hidden) { padding-top:3px; padding-bottom:3px; }
@@ -335,35 +311,9 @@
     #game-screen .game-container { width:min(100%,calc(100dvh - 112px)); }
     #game-screen .game-footer { margin-top:3px; }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @media (max-width: 600px) {
 
-
-
-
-
-
-
-
-
 }
-
 
 /* Real 3D dice roll: perspective, six cube faces and a multi-axis tumble */
 #dice-animation {
@@ -378,8 +328,6 @@
     pointer-events: none;
 }
 #dice-animation.hidden { display: none; }
-
-
 
 @keyframes realDiceTumble {
     0% {
@@ -402,7 +350,6 @@
             scale(1);
     }
 }
-
 
 /* Dice overlay positioning and 3D cube geometry correction */
 #dice-animation {
@@ -427,26 +374,9 @@
     display: none !important;
 }
 
-
-
-
-
-
-
-
-
-
 @media (max-width: 600px) {
 
-
-
-
-
-
-
-
 }
-
 
 /* =========================================================
    Ivory 3D dice – převzatá konstrukce a animace dodaná uživatelem
@@ -595,7 +525,6 @@
     #dice-animation .scene.rolling .shadow { animation: none; }
 }
 
-
 /* Ensure the supplied multi-turn rotation is interpolated from its visible start pose. */
 #dice-animation .cube {
     transition: transform 1.5s cubic-bezier(.2, .7, .25, 1) !important;
@@ -603,7 +532,6 @@
 #dice-animation .scene.rolling .cube {
     will-change: transform;
 }
-
 
 /* Ovládání zvuku uvnitř hamburgerového menu */
 #game-menu .menu-audio-row {
@@ -647,7 +575,6 @@
     #game-menu .game-volume { width: 86px; }
 }
 
-
 /* Editable player and AI names in the game setup */
 .preview-player-name {
     min-width: 0;
@@ -667,7 +594,6 @@
     box-shadow: 0 0 0 2px color-mix(in srgb,var(--player-color),transparent 72%);
 }
 .preview-player-name::placeholder { color: #a6b1a7; }
-
 
 /* Board corner HUD: turn count, active player and compact colored progress. */
 #game-screen .premium-board-shell { position:relative; }
@@ -837,7 +763,6 @@
     #game-screen .board-player-stats { padding:4px 6px; }
 }
 
-
 /* Jednotné odsazení všech tří herních částí od okraje displeje. */
 #game-screen:not(.hidden) {
     box-sizing: border-box;
@@ -903,7 +828,6 @@
     margin: 0;
 }
 
-
 /* Hrany kostky: zachovat původní barvu ploch a odstranit tmavé spáry
    nepatrným překrytím jednotlivých stěn. */
 #dice-animation .face { border: 0; }
@@ -913,7 +837,6 @@
 #dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
 #dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
 #dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-
 
 /* Chat a herní log sdílejí jeden seznam zpráv; nadpis se nezobrazuje. */
 #game-screen .game-chat h4 { display: none; }
@@ -933,7 +856,6 @@
 @media(max-width:600px) {
     #game-screen .game-chat .chat-messages { max-height: none; min-height: 26px; }
 }
-
 
 /* Herní výpis má pevnou výšku přibližně na tři zprávy.
    Další obsah se posouvá uvnitř seznamu, nikdy neroztahuje panel nahoru. */
@@ -956,7 +878,6 @@
         max-height: 36px;
     }
 }
-
 
 /* Výpis chatu se kliknutím rozbalí nahoru; kliknutí mimo něj jej sbalí. */
 #game-screen .game-footer {
@@ -1014,7 +935,6 @@
     }
 }
 
-
 /* Player setup: keep the roster visible below the board-size selector. */
 #player-selection .player-preview {
     display: block;
@@ -1038,7 +958,6 @@
 #player-selection #random-player-colors-btn {
     margin-top: 14px;
 }
-
 
 /* Player-count controls stay centered and side by side, including narrow phones. */
 @media (max-width: 760px) {
@@ -1070,7 +989,6 @@
         flex-basis: 34px;
     }
 }
-
 
 /* Sestava u stolu: figurka, jméno a výběr barvy v jedné řadě. */
 #player-selection .preview-player {
