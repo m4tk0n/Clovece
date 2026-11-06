@@ -88,16 +88,17 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
             <label><input type="checkbox" data-test-rule="skipHomePieces" checked> Přeskakování v domečku</label>
             <label><input type="checkbox" data-test-rule="mustEnterHome" checked> Povinný vstup do domečku</label>
         </div>
-        <div class="test-controls">
-            <button id="test-start" type="button">START</button>
-            <button id="test-pause" type="button" disabled>PAUZA</button>
-            <button id="test-resume" type="button" disabled>POKRAČOVAT</button>
-            <button id="test-stop" type="button" disabled>STOP</button>
-            <button id="test-report" type="button" disabled>NAHLÁSIT CHYBU</button>
-        </div>
+
         <div class="test-log-heading"><strong>Průběh testu</strong><span id="test-step-count">0 událostí</span></div>
         <ol id="test-live-log" class="test-live-log" aria-live="polite"><li>Čekám na spuštění automatické hry.</li></ol>
         <p class="test-panel-note">Hra běží ve skutečném herním rozhraní. Pravidla se předávají přímo do herního enginu.</p>
+        <div class="test-controls" aria-label="Ovládání testu">
+            <button id="test-start" type="button">▶ START</button>
+            <button id="test-pause" type="button" disabled>Ⅱ PAUZA</button>
+            <button id="test-resume" type="button" disabled>▶ POKRAČOVAT</button>
+            <button id="test-stop" type="button" disabled>■ STOP</button>
+            <button id="test-report" type="button" disabled>⚑ CHYBA</button>
+        </div>
     </div>
 </aside>
 <?php endif; ?>
