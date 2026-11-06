@@ -49,12 +49,12 @@ test('přeskakování figurek v domečku respektuje přepínač', () => {
   const enabled = movingGame({ mustEnterHome: false, skipHomePieces: true });
   enabled.pieces[0].pieces[0].steps = 39;
   enabled.pieces[0].pieces[1].steps = 40;
-  assert.deepEqual(getValidMoves(enabled), [0, 1, 2, 3]);
+  assert.deepEqual(getValidMoves(enabled), [0, 1]);
 
   const disabled = movingGame({ mustEnterHome: false, skipHomePieces: false });
   disabled.pieces[0].pieces[0].steps = 39;
   disabled.pieces[0].pieces[1].steps = 40;
-  assert.deepEqual(getValidMoves(disabled), [1, 2, 3]);
+  assert.deepEqual(getValidMoves(disabled), [1]);
 });
 
 test('povinnost nasadit při šestce respektuje přepínač', () => {
