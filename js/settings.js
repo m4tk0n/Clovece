@@ -4,6 +4,8 @@
  */
 import { setSoundEffectsEnabled } from './audio.js';
 
+const $ = id => document.getElementById(id);
+
 function loadSettings() {
     try {
         const saved = JSON.parse(localStorage.getItem('clovece-settings') || '{}');
@@ -34,6 +36,7 @@ function showSettingsToast(message) {
 
 export function initSettings() {
     if (initialized) return;
+    initialized = true;
     const aiSpeedSelect = $('ai-speed');
     const animationsToggle = $('animations-toggle');
     const sfxToggle = $('sfx-toggle');
@@ -55,16 +58,6 @@ export function initSettings() {
         gameSpeedSelect && (gameSpeedSelect.value = settings.moveSpeed);
         try { localStorage.setItem('clovece-settings', JSON.stringify(settings)); }
         catch (error) { console.warn('Nastavení rychlosti pohybu se nepodařilo uložit:', error); }
-    });
-    gameSpeedSelect?.addEventListener('change', event => {
-        settings.moveSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
-        aiSpeedSelect && (aiSpeedSelect.value = settings.moveSpeed);
-        try {
-            localStorage.setItem('clovece-settings', JSON.stringify(settings));
-        } catch (error) {
-            console.warn('Rychlost hry se nepodařilo uložit:', error);
-        }
-        toast('Rychlost pohybu figurek: ' + (settings.moveSpeed === 'fast' ? 'Rychlá' : 'Normální'));
     });
     animationsToggle?.addEventListener('change', event => {
         settings.animations = event.target.checked;
