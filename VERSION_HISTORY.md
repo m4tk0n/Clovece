@@ -27,6 +27,7 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 - Lokální herní runtime se již neimportuje při startu hlavního menu; načte se až při vstupu do lokálního nastavení hry.
 - Online lobby již při startu neimportuje renderer desky, herní engine ani animaci kostky. Tyto moduly se načtou až při aktivní online hře.
 - `css/game-premium.css` se načítá až při zobrazení hry společně s CSS aktivního režimu.
+- Animace vyhození a vítězství byly přesunuty z globálního `css/animations.css` do herního `css/game-premium.css`.
 - Při odchodu z herní obrazovky se herní CSS odpojí, DOM desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
 - Prohlížeč neumožňuje standardním API odregistrovat importované ES moduly z modulové cache. Aplikace proto uvolňuje vlastní reference a aktivní prostředky, nikoli s garancí fyzického vymazání kódu z paměti.
 
