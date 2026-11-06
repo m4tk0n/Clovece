@@ -1,3 +1,19 @@
+## 1.00.00.10 – Pomalejší rotace a větší body 3D kostky
+
+**Datum:** 6. 11. 2026  
+**Typ:** Vizuální úprava
+
+- Zpomalení animace rotace: běžný hod z 1 650 na 2 600 ms, rychlý hod ze 480 na 720 ms.
+- Zvětšení prostorových bodů kostky přibližně o 27 % a odpovídající zvětšení jejich kovových kroužků.
+- Zachována velikost kostky, rozložení bodů, barvy, materiály a výsledná orientace všech šesti stran.
+
+**Dotčené soubory:**
+- `js/game-board-3d.js`
+
+**Ověření:** automatická kontrola změněných hodnot a načtení souboru z GitHubu; vizuální kontrola na zařízení nebyla provedena.
+
+---
+
 ## 1.00.00.09 – Sjednocení velikosti 2D a 3D kostky
 
 **Datum:** 6. 11. 2026  
