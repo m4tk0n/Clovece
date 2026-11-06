@@ -26,7 +26,7 @@ function loadThreeRenderer() {
     if (!threeRendererPromise) {
         const startedAt = performance.now();
         notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načítání', status: '…' });
-        threeRendererPromise = import('./game-board-3d.js?v=20261106-1').then(module => {
+        threeRendererPromise = import('./game-board-3d.js?v=20261107-1').then(module => {
             notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načteno', status: 'OK', duration: Math.round(performance.now() - startedAt) });
             return module;
         }).catch(error => {
