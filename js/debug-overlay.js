@@ -48,6 +48,53 @@ export function initDebugOverlay() {
     document.body.appendChild(panel);
 
     let expanded = false;
+    let isDragging = false;
+    let dragPointerId = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let dragged = false;
+
+    // Přetažení panelu za jeho informační část; tlačítko +/− zůstává klikací.
+    content.style.cursor = 'grab';
+    content.style.touchAction = 'none';
+    content.addEventListener('pointerdown', event => {
+        if (event.target === details || details.contains(event.target)) return;
+        if (event.button !== 0 && event.pointerType !== 'touch') return;
+        const rect = panel.getBoundingClientRect();
+        isDragging = true;
+        dragged = true;
+        dragPointerId = event.pointerId;
+        dragOffsetX = event.clientX - rect.left;
+        dragOffsetY = event.clientY - rect.top;
+        panel.style.left = Math.round(rect.left) + 'px';
+        panel.style.top = Math.round(rect.top) + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        content.style.cursor = 'grabbing';
+        content.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+    });
+    content.addEventListener('pointermove', event => {
+        if (!isDragging || event.pointerId !== dragPointerId) return;
+        const viewport = window.visualViewport;
+        const minX = viewport ? viewport.offsetLeft : 0;
+        const minY = viewport ? viewport.offsetTop : 0;
+        const maxX = minX + (viewport ? viewport.width : window.innerWidth) - panel.offsetWidth;
+        const maxY = minY + (viewport ? viewport.height : window.innerHeight) - panel.offsetHeight;
+        const left = Math.min(Math.max(minX, event.clientX - dragOffsetX), Math.max(minX, maxX));
+        const top = Math.min(Math.max(minY, event.clientY - dragOffsetY), Math.max(minY, maxY));
+        panel.style.left = Math.round(left) + 'px';
+        panel.style.top = Math.round(top) + 'px';
+    });
+    const stopDragging = event => {
+        if (!isDragging || (event && event.pointerId !== dragPointerId)) return;
+        isDragging = false;
+        dragPointerId = null;
+        content.style.cursor = 'grab';
+    };
+    content.addEventListener('pointerup', stopDragging);
+    content.addEventListener('pointercancel', stopDragging);
+    content.addEventListener('lostpointercapture', stopDragging);
     const entries = [];
     function renderLog() {
         details.textContent = entries.map((entry, index) => {
@@ -79,7 +126,18 @@ export function initDebugOverlay() {
 
     function updatePosition() {
         const viewport = window.visualViewport;
-        if (viewport) {
+        if (dragged) {
+            const minX = viewport ? viewport.offsetLeft : 0;
+            const minY = viewport ? viewport.offsetTop : 0;
+            const maxX = minX + (viewport ? viewport.width : window.innerWidth) - panel.offsetWidth;
+            const maxY = minY + (viewport ? viewport.height : window.innerHeight) - panel.offsetHeight;
+            const left = Math.min(Math.max(minX, panel.offsetLeft), Math.max(minX, maxX));
+            const top = Math.min(Math.max(minY, panel.offsetTop), Math.max(minY, maxY));
+            panel.style.left = format(left) + 'px';
+            panel.style.top = format(top) + 'px';
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+        } else if (viewport) {
             const top = Math.max(2, viewport.offsetTop + viewport.height - panel.offsetHeight - 2);
             panel.style.top = format(top) + 'px';
             panel.style.bottom = 'auto';
