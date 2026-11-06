@@ -5,7 +5,27 @@
 import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove } from './game-engine.js';
 import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
 import { showScreen } from './navigation.js';
-import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
+// Zvukový modul se načte až při skutečném spuštění hry.
+let audioModule = null;
+let audioModulePromise = null;
+
+async function ensureAudioModule() {
+    if (!audioModulePromise) {
+        audioModulePromise = import('./audio.js')
+            .then(module => {
+                module.initAudio();
+                module.setSoundEffectsEnabled(settings.sfx);
+                audioModule = module;
+                return module;
+            })
+            .catch(error => {
+                audioModulePromise = null;
+                console.error('Zvukový modul se nepodařilo načíst:', error);
+                return null;
+            });
+    }
+    return audioModulePromise;
+}
 import { settings } from './settings.js';
 import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
 import { createGameView } from './game-view.js';
@@ -79,6 +99,9 @@ async function startGame() {
         toast(error.message);
         return;
     }
+    // Zvuk se načte až nyní – po potvrzení konfigurace a při vstupu do hry.
+    await ensureAudioModule();
+
     turnController.resetForNewGame();
     resetGameLog();
     try {
@@ -118,7 +141,7 @@ export function initGame() {
     const volumeSlider = $('game-volume');
 
     const syncAudioControls = () => {
-        const state = getAudioState();
+        const state = audioModule?.getAudioState() || { volume: 0.7, muted: false };
         if (volumeSlider) volumeSlider.value = String(Math.round(state.volume * 100));
         if (audioToggle) {
             const icon = audioToggle.querySelector('i');
@@ -131,11 +154,13 @@ export function initGame() {
     };
 
     audioToggle?.addEventListener('click', () => {
-        toggleMasterMute();
+        if (!audioModule) return;
+        audioModule.toggleMasterMute();
         syncAudioControls();
     });
     volumeSlider?.addEventListener('input', event => {
-        setMasterVolume(Number(event.target.value) / 100);
+        if (!audioModule) return;
+        audioModule.setMasterVolume(Number(event.target.value) / 100);
         syncAudioControls();
     });
     syncAudioControls();
