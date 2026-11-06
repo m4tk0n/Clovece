@@ -698,6 +698,11 @@ function restartGame() {
     $('game-menu').classList.add('hidden');
 }
 
+export function openPlayerSelection() {
+    updateSetup();
+    showScreen('player-selection');
+}
+
 export function initGame() {
     $('setup-grid')?.addEventListener('click', event => {
         const button = event.target.closest('[data-count-target][data-count-step]');
@@ -875,14 +880,6 @@ export function initGame() {
     // Online navigace je navázaná v hlavním inicializátoru, nezávisle na API bootstrapu.
     $('join-room-btn')?.addEventListener('click', () => showScreen('lobby'));
 
-    $('play-btn')?.addEventListener('click', () => {
-        showScreen('player-selection');
-        updateSetup();
-    });
-    $('create-room-btn')?.addEventListener('click', () => {
-        showScreen('player-selection');
-        updateSetup();
-    });
     $('settings-btn')?.addEventListener('click', () => showScreen('settings'));
     $('rules-btn')?.addEventListener('click', () => showScreen('rules'));
 
