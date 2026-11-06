@@ -2,6 +2,7 @@
  * Průběh tahu, pohyb figurek, hody kostkou a řízení AI.
  * Herní stav je držen v tomto modulu; app.js předává pouze závislosti.
  */
+import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove,
@@ -234,9 +235,9 @@ export function createTurnController(deps) {
             return;
         }
     
-        const debugManualMoves = new URLSearchParams(window.location.search).get('debug') === '1';
         const forcedMove = getForcedMove(game);
-        if (forcedMove !== null && !debugManualMoves) {
+        const autoMoveForced = getGameExtensionValue('shouldAutoMoveForced', true, game);
+        if (forcedMove !== null && autoMoveForced) {
             performMove(forcedMove);
             return;
         }
