@@ -485,7 +485,7 @@ try {
             }
             $name = onlineCleanName($rawName);
             $color = $_POST['color'] ?? '';
-            $allowedColors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
+            $allowedColors = PLAYER_COLORS;
             if (!is_string($color) || !in_array($color, $allowedColors, true)) {
                 onlineFail('Vybraná barva hráče není platná.');
             }
