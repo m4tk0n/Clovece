@@ -31,12 +31,16 @@ export function initDebugOverlay() {
     summary.textContent = 'DEBUG';
     const viewportSummary = document.createElement('div');
     viewportSummary.textContent = 'VIDITELNÉ –';
+    const cameraSummary = document.createElement('div');
+    cameraSummary.textContent = '3D KAMERA –';
+    cameraSummary.style.cssText = 'display:none;color:#ffb45e';
     const metaSummary = document.createElement('div');
     metaSummary.style.cssText = 'display:none;color:#ff8888';
     const details = document.createElement('div');
     details.style.cssText = 'display:none;margin-top:5px;padding-top:5px;border-top:1px solid #a33;max-height:55vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere';
     content.appendChild(summary);
     content.appendChild(viewportSummary);
+    content.appendChild(cameraSummary);
     content.appendChild(metaSummary);
     content.appendChild(details);
     panel.appendChild(toggleButton);
@@ -122,6 +126,20 @@ export function initDebugOverlay() {
         renderLog();
         updateSummary();
     }
+
+    window.addEventListener('clovece:debug-camera', event => {
+        const camera = event.detail || {};
+        if (camera.active === false) {
+            cameraSummary.style.display = 'none';
+            return;
+        }
+        const fmt = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
+        if (![camera.x, camera.y, camera.z, camera.targetX, camera.targetY, camera.targetZ, camera.tilt].every(Number.isFinite)) return;
+        cameraSummary.textContent = '3D KAMERA X ' + fmt(camera.x) + ' Y ' + fmt(camera.y) + ' Z ' + fmt(camera.z) +
+            ' | NÁKLON ' + camera.tilt.toFixed(1) + '° | CÍL ' +
+            fmt(camera.targetX) + ' / ' + fmt(camera.targetY) + ' / ' + fmt(camera.targetZ);
+        cameraSummary.style.display = 'block';
+    });
 
     window.addEventListener('clovece:debug-log', event => {
         const detail = event.detail || {};
