@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Vstupní bod webu.
  * Spustí lehkou pseudo-CRON kontrolu (nejvýše jednou za 5 minut)
- * a následně zobrazí původní statickou aplikaci.
+ * a následně zobrazí základní shell aplikace.
  */
 
 require_once __DIR__ . '/cron/cron.php';
