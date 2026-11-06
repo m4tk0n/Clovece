@@ -30,6 +30,24 @@ CREATE TABLE IF NOT EXISTS {DB_PREFIX}player_identities (
     KEY idx_identity_last_seen (last_seen_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Přihlašovací účet je navázán na trvalou identitu zařízení/hráče.
+-- Heslo se ukládá výhradně jako výstup password_hash().
+CREATE TABLE IF NOT EXISTS {DB_PREFIX}player_accounts (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    identity_id BIGINT UNSIGNED NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    color_preference CHAR(7) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT '#ff6b6b',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP NULL DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_player_account_identity (identity_id),
+    UNIQUE KEY uq_player_account_username (username),
+    CONSTRAINT {DB_PREFIX}fk_account_identity
+        FOREIGN KEY (identity_id) REFERENCES {DB_PREFIX}player_identities (id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS {DB_PREFIX}player_devices (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     identity_id BIGINT UNSIGNED NOT NULL,
