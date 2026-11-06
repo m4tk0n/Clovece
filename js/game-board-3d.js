@@ -473,6 +473,7 @@ function resize(stage){
 }
 export function dispose3DBoard(stage){
     if(!stage)return;if(stage._raf)cancelAnimationFrame(stage._raf);stage._resizeObserver?.disconnect();
+    if(new URLSearchParams(window.location.search).get('debug')==='1')window.dispatchEvent(new CustomEvent('clovece:debug-camera',{detail:{active:false}}));
     if(stage._onPointerDown)stage._renderer?.domElement.removeEventListener('pointerdown',stage._onPointerDown);
     if(stage._onPointerUp)stage._renderer?.domElement.removeEventListener('pointerup',stage._onPointerUp);
     if(stage._onContextLost)stage._renderer?.domElement.removeEventListener('webglcontextlost',stage._onContextLost);
