@@ -12,7 +12,7 @@ Malý červený panel je připnutý ke spodnímu okraji právě viditelné čás
 
 Panel lze klepnutím rozbalit a dalším klepnutím opět sbalit. Rozbalený panel obsahuje chronologický protokol načítání a inicializace modulů. U každé operace je stav (`…` probíhá, `OK` dokončeno, `CHYBA` selhalo) a po dokončení také doba trvání v milisekundách. Panel lze ovládat také klávesami Enter a mezerník.
 
-Protokol sleduje načtení hlavních JavaScript modulů, spuštění jejich inicializačních funkcí a také CSS soubory. U CSS uvádí adresu, stav a dostupnou dobu načítání. Sleduje i později vložené stylesheety a elementy <style>. Načítání čtyř hlavních modulů probíhá souběžně, proto jejich pořadí dokončení nemusí odpovídat pořadí v seznamu. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
+Protokol sleduje načtení hlavních JavaScript modulů, spuštění jejich inicializačních funkcí a také CSS soubory. U CSS uvádí adresu, stav a dostupnou dobu načítání. Sleduje i později vložené stylesheety a elementy <style>. Načítání základních modulů navigace, zvuku a online lobby probíhá souběžně, proto jejich pořadí dokončení nemusí odpovídat pořadí v seznamu. Lokální herní runtime se načítá až po vstupu do nastavení nové hry; online herní runtime až po přechodu do aktivní online hry. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
 
 Zobrazuje:
 
@@ -34,11 +34,19 @@ Pokud prohlížeč nepodporuje Visual Viewport API, panel se připne 2 px od spo
 
 Protokol ukazuje, které moduly aplikace při startu skutečně importuje a které inicializační funkce spouští. Zda je některý modul zbytečný, nelze rozhodnout jen podle toho, že se načítá: může být potřeba až po otevření konkrétní obrazovky nebo při online hře. K takovému závěru je nutné prověřit jeho použití a závislosti v kódu. Protokol nesleduje jednotlivé obrázky, zvukové soubory ani všechny síťové požadavky. U CSS vloženého přímo do DOM uvádí jeho identifikátor, nikoli přenesený objem dat.
 
-### Odložené načítání 3D
+### Odložené načítání 2D/3D
 
-Při otevření webu ani při zobrazení obrazovky „Vytvoření hry“ se 3D renderer ani jeho stylesheet nenačítají. Volba 2D/3D se vyhodnotí až při prvním vykreslení skutečné hry. Pokud je zvolen režim 2D, načte se pouze SVG renderer. Pokud je zvoleno 3D, teprve tehdy se načte css/board-3d.css, modul js/game-board-3d.js a následně knihovna Three.js s OrbitControls.
+Při otevření webu se nenačítá lokální herní runtime, herní UI CSS ani renderer desky. Ten se importuje až při vstupu do lokálního nastavení hry; online herní moduly až při přechodu místnosti do aktivní hry. Při prvním vykreslení hry se načte také herní UI CSS a CSS aktivního režimu:
 
-V debug protokolu se proto board-3d.css a 3D renderer mají objevit až po spuštění hry v režimu 3D. Při 2D hře se objevit nemají.
+- **2D:** načte se `css/game-premium.css`, `css/board-2d.css` a `css/dice-2d.css`; desku vykresluje SVG renderer.
+- **3D:** načte se `css/game-premium.css`, `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
+- Při přepnutí režimu se stylesheety desky a kostky předchozího režimu odstraní a načte se odpovídající dvojice; společné `game-premium.css` zůstává připojené po dobu hry.
+- Herní animace vyhození a vítězství (`kickerMove`, `kickedMove`, `kickEffect`, `confettiFall`, `trophyShine`) jsou součástí `game-premium.css`, takže se nenačítají v hlavním menu. Globální `animations.css` si ponechává animace potřebné pro menu a úvodní načítání.
+- Při opuštění herní obrazovky se herní stylesheety odpojí, obsah desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače, animační smyčku i vlastní reference na scénu a načtené knihovny.
+- Již importované ES moduly nelze standardním API odebrat z modulové cache prohlížeče. Aplikace proto načítá herní moduly až při potřebě a po odchodu uvolní jejich aplikační reference a prostředky; fyzické vymazání kódu z paměti není garantovatelné.
+- Při chybě 3D rendereru se aplikace vrátí do 2D a přepne také odpovídající CSS.
+
+V debug protokolu se musí objevit pouze soubory aktivního režimu. Načtení 2D CSS nesmí vyžadovat 3D renderer ani knihovnu Three.js a naopak 3D CSS se nesmí načíst při 2D hře.
 
 ## 2. Číslování polí na 3D desce
 
