@@ -7,7 +7,6 @@ import { api, bootstrapOnline } from './online/api.js';
 import { notify } from './online/notifications.js';
 import { initOnlineLobbyControls } from './online/lobby-controls.js';
 import { createRoomActions } from './online/room-actions.js';
-import { renderRoomView } from './online/room-view.js';
 
 const $ = id => document.getElementById(id);
 
@@ -101,7 +100,12 @@ function renderGame(data) {
         });
         return;
     }
-    renderRoomView(data, { state: onlineRuntimeState, currentInviteUrl: onlineRuntimeState.currentInviteUrl, showScreen });
+    void import('./online/room-view.js').then(({ renderRoomView }) =>
+        renderRoomView(data, { state: onlineRuntimeState, currentInviteUrl: onlineRuntimeState.currentInviteUrl, showScreen })
+    ).catch(error => {
+        console.error('Online místnost se nepodařilo vykreslit:', error);
+        notify('Místnost se nepodařilo zobrazit: ' + error.message);
+    });
 }
 
 async function sendGameAction(actionType, pieceId = null) {
