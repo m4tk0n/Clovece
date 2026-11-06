@@ -10,7 +10,38 @@ import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from '.
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
 import { settings } from './settings.js';
-import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
+import { getPlayerSetup, initPlayerSetup, updateSetup, escapeHtml } from './player-setup.js';
+
+const $ = id => document.getElementById(id);
+const speedDelay = () => 950;
+
+let aiTimer = null;
+let modalOpen = false;
+let moveAnimating = false;
+
+// Kostka je samostatný modul; stáhne se až při prvním hodu.
+async function animateDice(value) {
+    const diceModule = await import('./dice.js');
+    return diceModule.animateDice(value, settings);
+}
+
+function isPaused() {
+    return !$('game-menu')?.classList.contains('hidden');
+}
+
+function toast(message) {
+    const element = $('toast');
+    const target = $('toast-message');
+    if (!element || !target) return;
+    target.textContent = message;
+    element.classList.remove('hidden');
+    clearTimeout(element._hideTimer);
+    element._hideTimer = setTimeout(() => element.classList.add('hidden'), 2800);
+}
+
+function play(id) {
+    if (typeof window.playSound === 'function') window.playSound(id);
+}
 
 let game = null;
 function showGame() {
