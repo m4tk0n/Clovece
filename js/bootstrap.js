@@ -47,14 +47,10 @@ async function startApp() {
 
         const [
             { initNavigation },
-            { initAudio },
-            { initGame },
-            { initOnline }
+            { initAudio }
         ] = await Promise.all([
             trackedImport('navigation.js', './navigation.js'),
-            trackedImport('audio.js', './audio.js'),
-            trackedImport('app.js', './app.js'),
-            trackedImport('online.js', './online.js')
+            trackedImport('audio.js', './audio.js')
         ]);
 
         function trackedInit(name, callback) {
@@ -82,14 +78,8 @@ async function startApp() {
         document.getElementById('loading-screen')?.classList.add('hidden');
         document.getElementById('main-menu')?.classList.remove('hidden');
 
-        // Online inicializace běží samostatně; její chyby se zaznamenají do panelu.
-        const onlineInit = trackedInit('initOnline()', initOnline);
-        if (onlineInit && typeof onlineInit.catch === 'function') {
-            onlineInit.catch(error => console.error('Chyba initOnline():', error));
-        }
         trackedInit('initNavigation()', initNavigation);
         trackedInit('initAudio()', initAudio);
-        trackedInit('initGame()', initGame);
     } catch (error) {
         console.error('Nepodařilo se inicializovat aplikaci:', error);
         if (debugLog) debugLog('Inicializace aplikace selhala: ' + (error && error.message ? error.message : String(error)), 'CHYBA');

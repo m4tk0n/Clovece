@@ -18,7 +18,8 @@ const VIEW_KEY = 'clovece_board_view';
 let view3d = loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
-let threeStylesPromise = null;
+let activeStylesMode = null;
+const modeStylesPromises = new Map();
 
 function emitDebugLoad(name, status, duration) {
     if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
@@ -46,25 +47,82 @@ function loadThreeRenderer() {
 function disposeThreeRenderer(stage) {
     if (!stage?._threeRendererModule) return;
     stage._threeRendererModule.dispose3DBoard(stage);
+    stage._threeRendererModule.release3DResources?.();
+    stage._threeRendererModule = null;
 }
 
-function ensureThreeStyles() {
-    if (threeStylesPromise) return threeStylesPromise;
-    threeStylesPromise = new Promise((resolve, reject) => {
-        const link = document.createElement('link');
-        link.id = 'clovece-three-board-styles';
-        link.rel = 'stylesheet';
-        link.href = new URL('../css/board-3d.css?v=20261105', import.meta.url).href;
-        link.onload = resolve;
+function ensureStylesheet(name, mode = 'game') {
+    if (modeStylesPromises.has(name)) return modeStylesPromises.get(name);
+    const startedAt = performance.now();
+    const link = document.createElement('link');
+    link.id = 'clovece-' + name + '-styles';
+    link.dataset.modeStyle = mode;
+    link.rel = 'stylesheet';
+    link.href = new URL('../css/' + name + '.css?v=20261106-3', import.meta.url).href;
+    const promise = new Promise((resolve, reject) => {
+        emitDebugLoad('css/' + name + '.css – načítání', '…');
+        link.onload = () => {
+            emitDebugLoad('css/' + name + '.css – načteno', 'OK', Math.round(performance.now() - startedAt));
+            resolve();
+        };
         link.onerror = () => {
+            emitDebugLoad('css/' + name + '.css – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
             link.remove();
-            threeStylesPromise = null;
-            reject(new Error('Nepodařilo se načíst css/board-3d.css'));
+            modeStylesPromises.delete(name);
+            reject(new Error('Nepodařilo se načíst css/' + name + '.css'));
         };
         document.head.appendChild(link);
     });
-    return threeStylesPromise;
+    modeStylesPromises.set(name, promise);
+    return promise;
 }
+
+export function ensureGameStyles() {
+    return ensureStylesheet('game-premium');
+}
+
+export function ensureModeStyles(mode) {
+    if (mode !== '2d' && mode !== '3d') throw new Error('Neznámý režim CSS: ' + mode);
+    if (activeStylesMode !== mode) {
+        if (activeStylesMode) {
+            for (const name of ['board-' + activeStylesMode, 'dice-' + activeStylesMode]) {
+                document.getElementById('clovece-' + name + '-styles')?.remove();
+                modeStylesPromises.delete(name);
+            }
+        }
+        activeStylesMode = mode;
+    }
+    return Promise.all([
+        ensureGameStyles(),
+        ensureStylesheet('board-' + mode, mode),
+        ensureStylesheet('dice-' + mode, mode)
+    ]);
+}
+
+export function releaseGameView() {
+    const container = document.getElementById('game-container');
+    const stage = container?.querySelector('.three-board-stage');
+    if (stage) disposeThreeRenderer(stage);
+    if (container) {
+        container.replaceChildren();
+        delete container._lastGame;
+        delete container._boardStyleBound;
+        delete container.dataset.renderKey;
+    }
+
+    document.getElementById('clovece-game-premium-styles')?.remove();
+    for (const mode of ['2d', '3d']) {
+        for (const name of ['board-' + mode, 'dice-' + mode]) {
+            document.getElementById('clovece-' + name + '-styles')?.remove();
+        }
+    }
+    modeStylesPromises.clear();
+    activeStylesMode = null;
+    threeRendererPromise = null;
+    document.documentElement.removeAttribute('data-board-view');
+}
+
+window.addEventListener('clovece:game-exit', releaseGameView);
 
 function loadView() {
     try {
@@ -98,6 +156,10 @@ function saveStyle(style) {
     } catch {
         // Úložiště nemusí být dostupné; vzhled platí aspoň do obnovení stránky.
     }
+}
+
+export function getBoardView() {
+    return view3d ? '3d' : '2d';
 }
 
 export function getBoardStyle() {
@@ -166,7 +228,9 @@ export function renderBoard(container, game) {
     container._lastGame = game;
 
     // Při online pollingu se stejný herní stav nevykresluje opakovaně.
-    const renderKey = boardStyle + (view3d ? '3d' : '2d') + JSON.stringify(game);
+    const mode = view3d ? '3d' : '2d';
+    document.documentElement.dataset.boardView = mode;
+    const renderKey = boardStyle + mode + JSON.stringify(game);
     if (container.dataset.renderKey === renderKey) return;
     container.dataset.renderKey = renderKey;
 
@@ -199,7 +263,7 @@ export function renderBoard(container, game) {
             });
         }
         // 3D renderer a jeho CSS se načtou až při skutečném vykreslení hry v 3D.
-        ensureThreeStyles().then(() => loadThreeRenderer()).then(module => {
+        ensureModeStyles('3d').then(() => loadThreeRenderer()).then(module => {
             if (!stage.isConnected || container.querySelector('.three-board-stage') !== stage || !view3d || container.dataset.renderKey !== renderKey) return;
             stage._threeRendererModule = module;
             module.render3DBoard(stage, buildBoardSceneData(container._lastGame || game), error => {
@@ -225,9 +289,17 @@ export function renderBoard(container, game) {
     const previousStage = container.querySelector('.three-board-stage');
     if (previousStage) disposeThreeRenderer(previousStage);
 
-    render2DBoard(container, game, boardStyle, {
-        switchCss: SWITCH_CSS,
-        switchMarkup: styleSwitchMarkup()
+    const renderSvg = () => {
+        if (document.documentElement.dataset.boardView !== '2d' || container.dataset.renderKey !== renderKey) return;
+        render2DBoard(container, game, boardStyle, {
+            switchCss: SWITCH_CSS,
+            switchMarkup: styleSwitchMarkup()
+        });
+    };
+    // SVG vykreslíme až po načtení jeho CSS, aby se na okamžik neukázala neostylovaná deska.
+    ensureModeStyles('2d').then(renderSvg).catch(error => {
+        console.error('Styly 2D režimu se nepodařilo načíst:', error);
+        renderSvg();
     });
 
 }

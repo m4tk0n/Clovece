@@ -1,0 +1,201 @@
+#dice-animation {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    perspective: 900px;
+    perspective-origin: 50% 45%;
+    background: rgba(3, 9, 8, .48);
+    pointer-events: none;
+}
+#dice-animation.hidden { display: none; }
+
+/* Dice overlay positioning and 3D cube geometry correction */
+#dice-animation {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    perspective: 850px !important;
+    perspective-origin: 50% 50% !important;
+    overflow: hidden !important;
+    z-index: 99999 !important;
+    transform: none !important;
+}
+#dice-animation.hidden {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+
+}
+
+/* =========================================================
+   Ivory 3D dice – převzatá konstrukce a animace dodaná uživatelem
+   ========================================================= */
+#dice-animation {
+    --dice-size: 120px;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    perspective: 700px !important;
+    perspective-origin: 50% 40% !important;
+    background: rgba(5, 14, 15, .56) !important;
+    z-index: 99999 !important;
+    pointer-events: none !important;
+}
+#dice-animation.hidden {
+    display: none !important;
+}
+#dice-animation .scene {
+    position: relative;
+    flex: 0 0 var(--dice-size);
+    width: var(--dice-size);
+    height: var(--dice-size);
+    perspective: 700px;
+    outline: none;
+}
+#dice-animation .shadow {
+    position: absolute;
+    left: 50%;
+    bottom: -34px;
+    width: 110px;
+    height: 22px;
+    margin-left: -55px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .55);
+    filter: blur(8px);
+    transition: transform .9s ease-in-out, opacity .9s ease-in-out;
+}
+#dice-animation .scene.rolling .shadow {
+    animation: diceShadow 1.5s ease-in-out;
+}
+@keyframes diceShadow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(.55); opacity: .45; }
+    70% { transform: scale(.9); opacity: .9; }
+    85% { transform: scale(.8); opacity: .8; }
+}
+#dice-animation .jump {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+}
+#dice-animation .scene.rolling .jump {
+    animation: diceJump 1.5s cubic-bezier(.3, .1, .4, 1);
+}
+@keyframes diceJump {
+    0% { transform: translateY(0); }
+    38% { transform: translateY(-110px) scale(1.12); }
+    68% { transform: translateY(0) scale(1); }
+    80% { transform: translateY(-18px); }
+    90% { transform: translateY(0); }
+    95% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
+#dice-animation .cube {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transform: rotateX(-24deg) rotateY(-32deg);
+    transform-origin: center;
+    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1);
+    will-change: transform;
+}
+#dice-animation .face {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border-radius: 20px;
+    background: radial-gradient(circle at 30% 25%, #fffaf0 0%, #f3ead6 45%, #d9cba9 100%);
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, .35),
+        inset 0 -8px 16px rgba(120, 95, 40, .28),
+        inset 0 6px 12px rgba(255, 255, 255, .5);
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    padding: 20px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+#dice-animation .f1 { transform: rotateY(0deg) translateZ(calc(var(--dice-size) / 2)); }
+#dice-animation .f6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2)); }
+#dice-animation .f2 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2)); }
+#dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2)); }
+#dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2)); }
+#dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2)); }
+#dice-animation .pip {
+    width: 78%;
+    height: 78%;
+    margin: auto;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #4a443b, #1c1a17 60%);
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .7);
+}
+#dice-animation .f1 .pip {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 35% 30%, #d64a40, #b3261e 65%);
+}
+#dice-animation .p1 { grid-area: 1 / 1; }
+
+#dice-animation .p3 { grid-area: 1 / 3; }
+#dice-animation .p4 { grid-area: 2 / 1; }
+#dice-animation .p5 { grid-area: 2 / 2; }
+#dice-animation .p6 { grid-area: 2 / 3; }
+#dice-animation .p7 { grid-area: 3 / 1; }
+
+#dice-animation .p9 { grid-area: 3 / 3; }
+
+@media (max-width: 600px) {
+    #dice-animation { --dice-size: 104px; }
+    #dice-animation .face {
+        border-radius: 18px;
+        padding: 17px;
+    }
+    #dice-animation .shadow {
+        width: 96px;
+        margin-left: -48px;
+        bottom: -30px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    #dice-animation .cube { transition-duration: .01ms; }
+    #dice-animation .scene.rolling .jump,
+    #dice-animation .scene.rolling .shadow { animation: none; }
+}
+
+/* Ensure the supplied multi-turn rotation is interpolated from its visible start pose. */
+#dice-animation .cube {
+    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1) !important;
+}
+#dice-animation .scene.rolling .cube {
+    will-change: transform;
+}
+#dice-animation .face{border:0}
+#dice-animation .f1{transform:rotateY(0deg) translateZ(calc(var(--dice-size)/2 + 1px))}
+#dice-animation .f6{transform:rotateY(180deg) translateZ(calc(var(--dice-size)/2 + 1px))}
+#dice-animation .f2{transform:rotateY(90deg) translateZ(calc(var(--dice-size)/2 + 1px))}
+#dice-animation .f5{transform:rotateY(-90deg) translateZ(calc(var(--dice-size)/2 + 1px))}
+#dice-animation .f3{transform:rotateX(90deg) translateZ(calc(var(--dice-size)/2 + 1px))}
+#dice-animation .f4{transform:rotateX(-90deg) translateZ(calc(var(--dice-size)/2 + 1px))}

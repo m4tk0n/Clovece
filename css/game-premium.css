@@ -74,22 +74,7 @@
     opacity: .3;
     cursor: not-allowed;
 }
-.setup-summary {
-    margin: 20px 0 0;
-    padding: 18px 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border-radius: 16px;
-    background: rgba(198,169,107,.1);
-    border: 1px solid rgba(198,169,107,.25);
-    text-align: left;
-}
-.setup-summary strong { color: var(--table-gold); letter-spacing: .08em; }
-.setup-summary span { color: #d9e0d5; font-size: 13px; }
-.setup-board-note { width: 100%; color: var(--table-muted)!important; }
+
 .preview-players {
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
@@ -146,81 +131,6 @@
     width: min(100%,900px);
     margin: 0 auto;
 }
-.premium-board-shell {
-    width:100%;
-    padding: clamp(8px,2vw,20px);
-    border-radius: 28px;
-    background: linear-gradient(145deg,#263a32,#101a18 65%,#0a1110);
-    border: 1px solid rgba(198,169,107,.55);
-    box-shadow: 0 28px 80px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.1);
-}
-.board-topline,.board-bottomline {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:12px;
-    padding: 4px 8px 12px;
-    color:#aeb9ac;
-    font:700 9px/1.4 "Press Start 2P",monospace;
-    letter-spacing:.12em;
-}
-.board-topline .board-kicker { color:var(--table-gold); }
-.board-appearance {
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    gap:5px;
-    margin-left:auto;
-    letter-spacing:0;
-}
-.board-appearance-label {
-    margin-right:4px;
-    color:#aeb9ac;
-    font-size:8px;
-}
-.board-appearance-option {
-    min-height:30px;
-    padding:6px 9px;
-    border:1px solid rgba(198,169,107,.38);
-    border-radius:8px;
-    background:rgba(255,255,255,.035);
-    color:#aeb9ac;
-    font:700 8px/1.2 "Press Start 2P",monospace;
-    letter-spacing:0;
-    opacity:1;
-}
-.board-appearance-option.is-active {
-    border-color:var(--table-gold);
-    background:rgba(198,169,107,.18);
-    color:var(--table-gold);
-}
-.board-appearance-option.is-unavailable {
-    border-style:dashed;
-    color:#758178;
-    cursor:not-allowed;
-}
-@media (max-width:520px) {
-    .board-topline { align-items:flex-start; }
-    .board-appearance { gap:4px; }
-    .board-appearance-option { min-height:28px; padding:5px 6px; font-size:7px; }
-    .board-appearance-label { display:none; }
-}
-.premium-board {
-    display:block;
-    width:100%;
-    height:auto;
-    overflow:visible;
-    filter: drop-shadow(0 16px 22px rgba(0,0,0,.24));
-}
-.board-bottomline { padding:12px 8px 3px; }
-.board-bottomline span:last-child { color:var(--player-color); text-align:right; }
-.board-piece { cursor:default; }
-.board-piece.piece-selectable { cursor:pointer; filter:url(#pieceGlow); }
-.board-piece.piece-selectable:hover { transform:translateY(-4px); }
-.piece-core { stroke:none; }
-.piece-shadow { fill:#000; fill-opacity:.45; }
-.track-space { pointer-events:none; }
 #game-screen .game-footer {
     max-width:1440px;
     margin:20px auto 0;
@@ -228,45 +138,7 @@
     grid-template-columns:1fr;
     gap:18px;
 }
-.players-panel {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:10px;
-    align-content:start;
-}
-.premium-player-card {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    min-width:0;
-    padding:11px 13px;
-    border-radius:14px;
-    background:rgba(255,255,255,.045);
-    border:1px solid rgba(255,255,255,.09);
-    opacity:.72;
-}
-.premium-player-card.is-active {
-    opacity:1;
-    border-color:var(--player-color);
-    background:color-mix(in srgb,var(--player-color),transparent 89%);
-    box-shadow:0 0 22px color-mix(in srgb,var(--player-color),transparent 84%);
-}
-.player-card-orb {
-    flex:0 0 34px;
-    height:34px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    background:var(--player-color);
-    color:#fff;
-    font-weight:900;
-    font-size:10px;
-}
-.player-card-copy { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; }
-.player-card-copy strong { color:#f5f0e4; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.player-card-copy small { color:#a6b1a7; font-size:8px; letter-spacing:.1em; }
-.player-card-progress { color:var(--player-color); font:700 22px/1 "Bangers",Impact,sans-serif; }
-.player-card-progress small { font:700 10px/1 sans-serif; color:#9eaa9f; }
+
 #game-screen .game-chat {
     display:none;
     max-width:none;
@@ -324,18 +196,15 @@
     0% { transform:scale(.2); opacity:1; }
     100% { transform:scale(1.6); opacity:0; }
 }
-#dice-animation.is-rolling .dice-3d { animation-duration:.65s; }
+
 @media(max-width:760px) {
     #game-screen { padding:8px 7px 20px; }
     #game-screen .game-header { padding:11px; }
     #game-screen .game-footer { grid-template-columns:1fr; }
-    .premium-board-shell { padding:7px; border-radius:18px; }
-    .board-topline,.board-bottomline { font-size:7px; }
-    .board-topline .board-mode { font-size:6px; }
+
     .setup-grid { grid-template-columns:1fr; }
     #game-screen .game-controls { width:100%; justify-content:flex-end; }
 }
-
 
 /* Compact, no-scroll game layout */
 #game-screen:not(.hidden) {
@@ -359,26 +228,9 @@
     max-height:100%; aspect-ratio:1; margin:0 auto;
     display:flex; align-items:center; justify-content:center;
 }
-#game-screen .premium-board-shell {
-    box-sizing:border-box; display:flex; flex-direction:column;
-    width:100%; height:100%; min-height:0; padding:3px; border-radius:16px;
-}
-#game-screen .board-topline,#game-screen .board-bottomline {
-    flex:0 0 auto; padding:2px 5px 5px; font-size:7px; letter-spacing:.07em;
-}
-#game-screen .board-topline .board-mode { font-size:6px; }
-#game-screen .premium-board { flex:1 1 auto; min-height:0; width:100%; height:0; object-fit:contain; }
-#game-screen .board-bottomline { padding:5px 5px 2px; }
+
 #game-screen .game-footer { flex:0 0 auto; width:100%; margin:6px auto 0; display:block; }
 #game-screen .players-panel { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
-#game-screen .premium-player-card {
-    min-height:34px; padding:5px 7px; gap:5px; border-radius:9px;
-}
-#game-screen .player-card-orb,#game-screen .player-card-copy small { display:none; }
-#game-screen .player-card-copy { min-width:0; gap:0; }
-#game-screen .player-card-copy strong { font-size:10px; line-height:1.2; }
-#game-screen .player-card-progress { flex:0 0 auto; font-size:18px; }
-#game-screen .player-card-progress small { font-size:9px; }
 
 @media (max-width:600px) {
     #game-screen:not(.hidden) { padding:5px 1px; }
@@ -391,10 +243,7 @@
     #game-screen .game-status { flex-basis:100%; font-size:9px; }
     #game-screen .game-btn { min-height:32px; padding:5px 8px; font-size:10px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 142px)); }
-    #game-screen .premium-board-shell { padding:1px; }
-    #game-screen .players-panel { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
-    #game-screen .premium-player-card { min-height:30px; padding:4px 7px; }
-    #game-screen .player-card-copy strong { font-size:10px; }
+
 }
 @media (max-height:620px) {
     #game-screen:not(.hidden) { padding-top:3px; padding-bottom:3px; }
@@ -404,408 +253,7 @@
     #game-screen .game-btn { min-height:28px; padding:3px 8px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 112px)); }
     #game-screen .game-footer { margin-top:3px; }
-    #game-screen .premium-player-card { min-height:26px; padding:3px 6px; }
-    #game-screen .player-card-progress { font-size:16px; }
 }
-
-
-/* Ivory casino-style dice with black pips */
-#dice-animation .dice-3d {
-    width: 132px;
-    height: 132px;
-    filter: drop-shadow(0 14px 18px rgba(0,0,0,.42));
-}
-
-#dice-animation .dice-3d .side {
-    box-sizing: border-box;
-    width: 132px;
-    height: 132px;
-    border: 1px solid #c9bea5;
-    border-radius: 22px;
-    background: linear-gradient(145deg, #fffef5 0%, #f4eedc 48%, #e4dac1 100%);
-    box-shadow:
-        inset 0 3px 5px rgba(255,255,255,.95),
-        inset 0 -5px 9px rgba(119,99,64,.18),
-        0 5px 12px rgba(0,0,0,.2);
-}
-
-#dice-animation .dice-3d .side span {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-size: 0;
-    background-repeat: no-repeat;
-}
-
-#dice-animation .dice-3d .side.one span {
-    background-image: radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px);
-}
-
-#dice-animation .dice-3d .side.two span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
-
-#dice-animation .dice-3d .side.three span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
-
-#dice-animation .dice-3d .side.four span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 75%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
-
-#dice-animation .dice-3d .side.five span {
-    background-image:
-        radial-gradient(circle at 25% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 25%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 50% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 75%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 75%, #171717 0 7px, transparent 8px);
-}
-
-#dice-animation .dice-3d .side.six span {
-    background-image:
-        radial-gradient(circle at 25% 20%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 20%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 50%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 25% 80%, #171717 0 7px, transparent 8px),
-        radial-gradient(circle at 75% 80%, #171717 0 7px, transparent 8px);
-}
-
-#dice-animation .dice-3d .side.one { transform: translateZ(66px); }
-#dice-animation .dice-3d .side.two { transform: translateX(66px) rotateY(90deg); }
-#dice-animation .dice-3d .side.three { transform: translateY(-66px) rotateX(90deg); }
-#dice-animation .dice-3d .side.four { transform: translateX(-66px) rotateY(-90deg); }
-#dice-animation .dice-3d .side.five { transform: translateY(66px) rotateX(-90deg); }
-#dice-animation .dice-3d .side.six { transform: translateZ(-66px) rotateY(180deg); }
-
-@media (max-width: 600px) {
-    #dice-animation .dice-3d {
-        width: 104px;
-        height: 104px;
-    }
-    #dice-animation .dice-3d .side {
-        width: 104px;
-        height: 104px;
-        border-radius: 18px;
-    }
-    #dice-animation .dice-3d .side span {
-        background-size: 100% 100%;
-    }
-    #dice-animation .dice-3d .side.one { transform: translateZ(52px); }
-    #dice-animation .dice-3d .side.two { transform: translateX(52px) rotateY(90deg); }
-    #dice-animation .dice-3d .side.three { transform: translateY(-52px) rotateX(90deg); }
-    #dice-animation .dice-3d .side.four { transform: translateX(-52px) rotateY(-90deg); }
-    #dice-animation .dice-3d .side.five { transform: translateY(52px) rotateX(-90deg); }
-    #dice-animation .dice-3d .side.six { transform: translateZ(-52px) rotateY(180deg); }
-}
-
-
-/* Real 3D dice roll: perspective, six cube faces and a multi-axis tumble */
-#dice-animation {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    display: grid;
-    place-items: center;
-    perspective: 900px;
-    perspective-origin: 50% 45%;
-    background: rgba(3, 9, 8, .48);
-    pointer-events: none;
-}
-#dice-animation.hidden { display: none; }
-#dice-animation .dice-3d {
-    position: relative;
-    transform-style: preserve-3d;
-    transform-origin: center;
-    will-change: transform;
-}
-#dice-animation .dice-3d .side {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-#dice-animation.is-rolling .dice-3d {
-    animation: realDiceTumble 1.15s cubic-bezier(.12,.72,.18,1) forwards !important;
-}
-@keyframes realDiceTumble {
-    0% {
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(.72);
-    }
-    18% {
-        transform: rotateX(210deg) rotateY(250deg) rotateZ(95deg) scale(1.08);
-    }
-    42% {
-        transform: rotateX(510deg) rotateY(610deg) rotateZ(210deg) scale(1);
-    }
-    72% {
-        transform: rotateX(680deg) rotateY(900deg) rotateZ(300deg) scale(1.04);
-    }
-    100% {
-        transform:
-            rotateX(calc(var(--dice-end-x, 0deg) + 720deg))
-            rotateY(calc(var(--dice-end-y, 0deg) + 1080deg))
-            rotateZ(360deg)
-            scale(1);
-    }
-}
-
-
-/* Dice overlay positioning and 3D cube geometry correction */
-#dice-animation {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
-    perspective: 850px !important;
-    perspective-origin: 50% 50% !important;
-    overflow: hidden !important;
-    z-index: 99999 !important;
-    transform: none !important;
-}
-#dice-animation.hidden {
-    display: none !important;
-}
-#dice-animation .dice-3d {
-    position: relative !important;
-    display: block !important;
-    flex: 0 0 auto !important;
-    width: 132px !important;
-    height: 132px !important;
-    margin: 0 !important;
-    transform-style: preserve-3d !important;
-    transform-origin: 50% 50% !important;
-    -webkit-transform-style: preserve-3d !important;
-    will-change: transform;
-}
-#dice-animation .dice-3d .side {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: 132px !important;
-    height: 132px !important;
-    box-sizing: border-box !important;
-    display: grid !important;
-    place-items: center !important;
-    border: 1px solid #c9bea5 !important;
-    border-radius: 21px !important;
-    background: linear-gradient(145deg,#fffef7 0%,#f3ecd9 52%,#ded2b6 100%) !important;
-    box-shadow: inset 0 3px 6px rgba(255,255,255,.95), inset 0 -5px 10px rgba(100,78,43,.2), 0 2px 5px rgba(0,0,0,.12) !important;
-    backface-visibility: hidden !important;
-    -webkit-backface-visibility: hidden !important;
-}
-#dice-animation .dice-3d .side.one { transform: translateZ(66px) !important; }
-#dice-animation .dice-3d .side.two { transform: rotateY(90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.three { transform: rotateX(90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.four { transform: rotateY(-90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.five { transform: rotateX(-90deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side.six { transform: rotateY(180deg) translateZ(66px) !important; }
-#dice-animation .dice-3d .side span {
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-    border-radius: inherit !important;
-}
-#dice-animation.is-rolling .dice-3d {
-    animation: realDiceTumble 1.35s cubic-bezier(.16,.72,.16,1) forwards !important;
-}
-@media (max-width: 600px) {
-    #dice-animation .dice-3d {
-        width: 108px !important;
-        height: 108px !important;
-    }
-    #dice-animation .dice-3d .side {
-        width: 108px !important;
-        height: 108px !important;
-        border-radius: 18px !important;
-    }
-    #dice-animation .dice-3d .side.one { transform: translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.two { transform: rotateY(90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.three { transform: rotateX(90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.four { transform: rotateY(-90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.five { transform: rotateX(-90deg) translateZ(54px) !important; }
-    #dice-animation .dice-3d .side.six { transform: rotateY(180deg) translateZ(54px) !important; }
-}
-
-
-/* =========================================================
-   Ivory 3D dice – převzatá konstrukce a animace dodaná uživatelem
-   ========================================================= */
-#dice-animation {
-    --dice-size: 120px;
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    perspective: 700px !important;
-    perspective-origin: 50% 40% !important;
-    background: rgba(5, 14, 15, .56) !important;
-    z-index: 99999 !important;
-    pointer-events: none !important;
-}
-#dice-animation.hidden {
-    display: none !important;
-}
-#dice-animation .scene {
-    position: relative;
-    flex: 0 0 var(--dice-size);
-    width: var(--dice-size);
-    height: var(--dice-size);
-    perspective: 700px;
-    outline: none;
-}
-#dice-animation .shadow {
-    position: absolute;
-    left: 50%;
-    bottom: -34px;
-    width: 110px;
-    height: 22px;
-    margin-left: -55px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, .55);
-    filter: blur(8px);
-    transition: transform .9s ease-in-out, opacity .9s ease-in-out;
-}
-#dice-animation .scene.rolling .shadow {
-    animation: diceShadow 1.5s ease-in-out;
-}
-@keyframes diceShadow {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    40% { transform: scale(.55); opacity: .45; }
-    70% { transform: scale(.9); opacity: .9; }
-    85% { transform: scale(.8); opacity: .8; }
-}
-#dice-animation .jump {
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    -webkit-transform-style: preserve-3d;
-}
-#dice-animation .scene.rolling .jump {
-    animation: diceJump 1.5s cubic-bezier(.3, .1, .4, 1);
-}
-@keyframes diceJump {
-    0% { transform: translateY(0); }
-    38% { transform: translateY(-110px) scale(1.12); }
-    68% { transform: translateY(0) scale(1); }
-    80% { transform: translateY(-18px); }
-    90% { transform: translateY(0); }
-    95% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-}
-#dice-animation .cube {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    -webkit-transform-style: preserve-3d;
-    transform: rotateX(-24deg) rotateY(-32deg);
-    transform-origin: center;
-    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1);
-    will-change: transform;
-}
-#dice-animation .face {
-    position: absolute;
-    inset: 0;
-    box-sizing: border-box;
-    border-radius: 20px;
-    background: radial-gradient(circle at 30% 25%, #fffaf0 0%, #f3ead6 45%, #d9cba9 100%);
-    box-shadow:
-        inset 0 0 0 2px rgba(255, 255, 255, .35),
-        inset 0 -8px 16px rgba(120, 95, 40, .28),
-        inset 0 6px 12px rgba(255, 255, 255, .5);
-    display: grid;
-    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-    padding: 20px;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-#dice-animation .f1 { transform: rotateY(0deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f2 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2)); }
-#dice-animation .pip {
-    width: 78%;
-    height: 78%;
-    margin: auto;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #4a443b, #1c1a17 60%);
-    box-shadow: inset 0 2px 3px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .7);
-}
-#dice-animation .f1 .pip {
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 35% 30%, #d64a40, #b3261e 65%);
-}
-#dice-animation .p1 { grid-area: 1 / 1; }
-#dice-animation .p2 { grid-area: 1 / 2; }
-#dice-animation .p3 { grid-area: 1 / 3; }
-#dice-animation .p4 { grid-area: 2 / 1; }
-#dice-animation .p5 { grid-area: 2 / 2; }
-#dice-animation .p6 { grid-area: 2 / 3; }
-#dice-animation .p7 { grid-area: 3 / 1; }
-#dice-animation .p8 { grid-area: 3 / 2; }
-#dice-animation .p9 { grid-area: 3 / 3; }
-
-@media (max-width: 600px) {
-    #dice-animation { --dice-size: 104px; }
-    #dice-animation .face {
-        border-radius: 18px;
-        padding: 17px;
-    }
-    #dice-animation .shadow {
-        width: 96px;
-        margin-left: -48px;
-        bottom: -30px;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    #dice-animation .cube { transition-duration: .01ms; }
-    #dice-animation .scene.rolling .jump,
-    #dice-animation .scene.rolling .shadow { animation: none; }
-}
-
-
-/* Ensure the supplied multi-turn rotation is interpolated from its visible start pose. */
-#dice-animation .cube {
-    transition: transform 1.5s cubic-bezier(.2, .7, .25, 1) !important;
-}
-#dice-animation .scene.rolling .cube {
-    will-change: transform;
-}
-
 
 /* Ovládání zvuku uvnitř hamburgerového menu */
 #game-menu .menu-audio-row {
@@ -849,7 +297,6 @@
     #game-menu .game-volume { width: 86px; }
 }
 
-
 /* Editable player and AI names in the game setup */
 .preview-player-name {
     min-width: 0;
@@ -869,82 +316,6 @@
     box-shadow: 0 0 0 2px color-mix(in srgb,var(--player-color),transparent 72%);
 }
 .preview-player-name::placeholder { color: #a6b1a7; }
-
-
-/* Board corner HUD: turn count, active player and compact colored progress. */
-#game-screen .premium-board-shell { position:relative; }
-#game-screen .board-player-stats {
-    position:absolute;
-    left:12px;
-    bottom:12px;
-    z-index:3;
-    width:min(112px,22%);
-    box-sizing:border-box;
-    padding:7px 9px;
-    border:1px solid rgba(198,169,107,.32);
-    border-radius:10px;
-    background:rgba(7,15,13,.78);
-    box-shadow:0 5px 18px rgba(0,0,0,.28);
-    backdrop-filter:blur(5px);
-    pointer-events:none;
-}
-#game-screen .board-corner-info {
-    position:absolute;
-    right:12px;
-    bottom:12px;
-    z-index:3;
-    width:min(176px,30%);
-    box-sizing:border-box;
-    padding:8px 9px;
-    border:1px solid rgba(198,169,107,.42);
-    border-radius:10px;
-    background:rgba(7,15,13,.84);
-    box-shadow:0 5px 18px rgba(0,0,0,.32);
-    backdrop-filter:blur(5px);
-    pointer-events:none;
-}
-#game-screen .board-turn-count,
-#game-screen .board-current-player {
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    gap:6px;
-    min-width:0;
-}
-#game-screen .board-turn-count span,
-#game-screen .board-current-player span {
-    color:#aeb9ac;
-    font:700 7px/1.3 "Press Start 2P",monospace;
-    letter-spacing:.02em;
-}
-#game-screen .board-turn-count strong {
-    color:var(--table-gold);
-    font:700 17px/1 "Bangers",Impact,sans-serif;
-}
-#game-screen .board-current-player { margin-top:4px; }
-#game-screen .board-current-player strong {
-    overflow:hidden;
-    color:var(--player-color);
-    font-size:10px;
-    line-height:1.2;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-}
-#game-screen .players-panel {
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:4px 9px;
-    margin:0;
-}
-#game-screen .board-player-stat {
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-width:0;
-    color:var(--player-color);
-    font:700 12px/1.2 "Bangers",Impact,sans-serif;
-}
-#game-screen .board-player-stat strong { color:var(--player-color); font-size:13px; }
 
 /* Bottom chat panel replaces the old full-width player cards. */
 #game-screen .game-footer {
@@ -1007,27 +378,6 @@
     padding:4px 10px;
 }
 @media(max-width:600px) {
-    #game-screen .board-player-stats {
-        left:5px;
-        bottom:5px;
-        width:min(82px,22%);
-        padding:5px 6px;
-        border-radius:7px;
-    }
-    #game-screen .board-corner-info {
-        right:5px;
-        bottom:5px;
-        width:min(142px,34%);
-        padding:5px 6px;
-        border-radius:7px;
-    }
-    #game-screen .board-turn-count span,
-    #game-screen .board-current-player span { font-size:5px; }
-    #game-screen .board-turn-count strong { font-size:14px; }
-    #game-screen .board-current-player strong { font-size:8px; }
-    #game-screen .players-panel { gap:3px 6px; margin-top:5px; }
-    #game-screen .board-player-stat { font-size:10px; }
-    #game-screen .board-player-stat strong { font-size:10px; }
     #game-screen .game-chat { min-height:66px; max-height:94px; padding:5px 7px; }
     #game-screen .game-chat .chat-messages { max-height:30px; font-size:9px; }
 }
@@ -1035,10 +385,7 @@
     #game-screen .game-chat { min-height:58px; max-height:76px; padding:4px 7px; }
     #game-screen .game-chat h4 { margin-bottom:2px; }
     #game-screen .game-chat .chat-messages { max-height:20px; min-height:14px; }
-    #game-screen .board-corner-info,
-    #game-screen .board-player-stats { padding:4px 6px; }
 }
-
 
 /* Jednotné odsazení všech tří herních částí od okraje displeje. */
 #game-screen:not(.hidden) {
@@ -1097,26 +444,6 @@
     margin-right: 0;
 }
 
-/* Vnitřní rámeček vyplní rozšířený prostřední kontejner. */
-#game-screen .game-container > .premium-board-shell {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: none;
-    margin: 0;
-}
-
-
-/* Hrany kostky: zachovat původní barvu ploch a odstranit tmavé spáry
-   nepatrným překrytím jednotlivých stěn. */
-#dice-animation .face { border: 0; }
-#dice-animation .f1 { transform: rotateY(0deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f6 { transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f2 { transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f5 { transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f3 { transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-#dice-animation .f4 { transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2 + 1px)); }
-
-
 /* Chat a herní log sdílejí jeden seznam zpráv; nadpis se nezobrazuje. */
 #game-screen .game-chat h4 { display: none; }
 #game-screen .game-chat .chat-messages {
@@ -1135,7 +462,6 @@
 @media(max-width:600px) {
     #game-screen .game-chat .chat-messages { max-height: none; min-height: 26px; }
 }
-
 
 /* Herní výpis má pevnou výšku přibližně na tři zprávy.
    Další obsah se posouvá uvnitř seznamu, nikdy neroztahuje panel nahoru. */
@@ -1158,7 +484,6 @@
         max-height: 36px;
     }
 }
-
 
 /* Výpis chatu se kliknutím rozbalí nahoru; kliknutí mimo něj jej sbalí. */
 #game-screen .game-footer {
@@ -1216,7 +541,6 @@
     }
 }
 
-
 /* Player setup: keep the roster visible below the board-size selector. */
 #player-selection .player-preview {
     display: block;
@@ -1240,7 +564,6 @@
 #player-selection #random-player-colors-btn {
     margin-top: 14px;
 }
-
 
 /* Player-count controls stay centered and side by side, including narrow phones. */
 @media (max-width: 760px) {
@@ -1272,7 +595,6 @@
         flex-basis: 34px;
     }
 }
-
 
 /* Sestava u stolu: figurka, jméno a výběr barvy v jedné řadě. */
 #player-selection .preview-player {
@@ -1311,4 +633,246 @@
         width: 28px;
         height: 28px;
     }
+}
+
+/* Animace vyhrazené herním událostem; načítají se až při vstupu do hry. */
+@keyframes kickerMove {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px); }
+    100% { transform: translateX(0); }
+}
+
+
+@keyframes kickedMove {
+    0% { transform: translateX(0); opacity: 1; }
+    50% { transform: translateX(-100px) rotate(360deg); opacity: 0.5; }
+    100% { transform: translateX(-200px) rotate(720deg); opacity: 0; }
+}
+
+
+@keyframes kickEffect {
+    0% { transform: scale(0); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.8; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+
+@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
+}
+
+
+@keyframes trophyShine {
+    0%, 100% { 
+        transform: scale(1); 
+        text-shadow: 0 0 30px var(--accent); 
+    }
+    50% { 
+        transform: scale(1.1); 
+        text-shadow: 0 0 50px var(--accent), 0 0 80px var(--accent); 
+    }
+}
+
+/* Herní modální okna – načítají se až při vstupu do hry. */
+/* ============================================
+   ČLOVĚČE NEZLOB SE - Modal Styles
+   ============================================ */
+
+/* Modal Base */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--darker);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    border: 3px solid var(--primary);
+    box-shadow: 
+        0 0 50px rgba(255, 107, 107, 0.3),
+        inset 0 0 30px rgba(255, 107, 107, 0.1);
+    animation: modalSlideIn 0.5s ease-out;
+}
+
+.modal-content h3 {
+    font-family: var(--font-title);
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--white);
+    text-shadow: 0 0 20px var(--primary);
+}
+
+.modal-content p {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+}
+
+/* Kick Modal */
+.kick-content {
+    position: relative;
+    overflow: hidden;
+}
+
+.kick-animation {
+    position: relative;
+    height: 200px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 50px;
+}
+
+.kicker-piece,
+.kicked-piece {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-full);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--font-pixel);
+    font-size: 1.5rem;
+    color: var(--white);
+    font-weight: bold;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.kicker-piece {
+    animation: kickerMove 1s ease-out forwards;
+}
+
+.kicked-piece {
+    animation: kickedMove 1s ease-out forwards;
+}
+
+.kick-effect {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(
+        circle,
+        var(--accent) 0%,
+        transparent 70%
+    );
+    border-radius: var(--radius-full);
+    opacity: 0;
+    animation: kickEffect 1s ease-out forwards;
+}
+
+/* Win Modal */
+.win-content {
+    position: relative;
+    overflow: hidden;
+}
+
+.win-animation {
+    position: relative;
+    height: 200px;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.trophy {
+    font-size: 5rem;
+    color: var(--accent);
+    text-shadow: 0 0 30px var(--accent);
+    animation: trophyShine 2s ease-in-out infinite;
+}
+
+.confetti {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.confetti::before,
+.confetti::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: var(--white);
+    border-radius: var(--radius-full);
+    animation: confettiFall 3s ease-in-out infinite;
+}
+
+.confetti::before {
+    top: -10px;
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.confetti::after {
+    top: -10px;
+    right: 20%;
+    animation-delay: 1s;
+}
+
+#win-title {
+    font-size: 3rem !important;
+    color: var(--accent) !important;
+    text-shadow: 0 0 30px var(--accent) !important;
+}
+
+#winner-name {
+    font-family: var(--font-title);
+    font-size: 2rem;
+    color: var(--white);
+    text-shadow: 0 0 20px var(--primary);
+}
+
+
+/* Pause menu controls */
+#game-menu .menu-audio-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    background: rgba(255,255,255,.045);
+    color: var(--white);
+    text-align: left;
+    font-size: .95rem;
+}
+#game-menu .menu-audio-row select {
+    min-width: 118px;
+    padding: 8px 10px;
+    border: 1px solid rgba(198,169,107,.55);
+    border-radius: 8px;
+    background: #18251e;
+    color: var(--white);
+    font: inherit;
+}
+#game-menu .game-audio-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }

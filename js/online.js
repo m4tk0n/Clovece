@@ -3,9 +3,6 @@
  * Samotné tahy se zatím nehrají online; serverová validace enginu je další krok.
  */
 import { showScreen } from './navigation.js';
-import { renderBoard } from './game-board.js';
-import { animateDice } from './app.js';
-import { getForcedMove } from './game-engine.js';
 
 const $ = id => document.getElementById(id);
 const API_URL = 'online-api.php';
@@ -21,6 +18,32 @@ let onlineStateVersion = 0;
 let autoMoveVersion = -1;
 let currentPlayerIndex = -1;
 let onlineMode = false;
+let onlineGameRuntimePromise = null;
+let onlineRenderRequest = 0;
+window.addEventListener('clovece:game-exit', () => {
+    onlineRenderRequest++;
+    onlineGameRuntimePromise = null;
+});
+
+function loadOnlineGameRuntime() {
+    if (!onlineGameRuntimePromise) {
+        onlineGameRuntimePromise = Promise.all([
+            import('./game-board.js'),
+            import('./app.js'),
+            import('./game-engine.js')
+        ]).then(([board, app, engine]) => ({
+            renderBoard: board.renderBoard,
+            ensureModeStyles: board.ensureModeStyles,
+            getBoardView: board.getBoardView,
+            animateDice: app.animateDice,
+            getForcedMove: engine.getForcedMove
+        })).catch(error => {
+            onlineGameRuntimePromise = null;
+            throw error;
+        });
+    }
+    return onlineGameRuntimePromise;
+}
 
 async function api(action, values = {}) {
     await bootstrapPromise;
@@ -217,8 +240,17 @@ function renderGameChat(messages, participants, moves = []) {
     }
 }
 
-function renderOnlineGame(data) {
+async function renderOnlineGame(data) {
+    const requestId = ++onlineRenderRequest;
     const game = data.game;
+    const runtime = await loadOnlineGameRuntime();
+    if (requestId !== onlineRenderRequest) return;
+    try {
+        await runtime.ensureModeStyles(runtime.getBoardView());
+    } catch (error) {
+        console.error('Herní CSS online hry se nepodařilo připravit:', error);
+    }
+    if (requestId !== onlineRenderRequest) return;
     const previousState = onlineState;
     const previousVersion = onlineStateVersion;
     const hasNewRoll = Boolean(
@@ -235,15 +267,15 @@ function renderOnlineGame(data) {
 
     if (!onlineState) return;
     showScreen('game');
-    renderBoard($('game-container'), onlineState);
+    runtime.renderBoard($('game-container'), onlineState);
 
     // Animaci a zvuk spustíme pouze při přechodu po novém online hodu.
     const forcedMove = hasNewRoll && currentPlayerIndex === Number(onlineState.currentPlayer)
-        ? getForcedMove(onlineState)
+        ? runtime.getForcedMove(onlineState)
         : null;
     if (hasNewRoll && onlineState.diceValue) {
         const rollVersion = onlineStateVersion;
-        void animateDice(onlineState.diceValue).then(() => {
+        void runtime.animateDice(onlineState.diceValue).then(() => {
             if (forcedMove !== null && autoMoveVersion !== rollVersion) {
                 autoMoveVersion = rollVersion;
                 if (onlineStateVersion === rollVersion && onlineState?.phase === 'move') {
@@ -312,10 +344,15 @@ function renderGame(data) {
     const participants = data.participants || [];
 
     if (['active', 'finished'].includes(game.status) && game.state) {
-        renderOnlineGame(data);
+        void renderOnlineGame(data).catch(error => {
+            console.error('Online herní runtime se nepodařilo načíst:', error);
+            notify('Hru se nepodařilo zobrazit: ' + error.message);
+        });
         return;
     }
 
+    onlineRenderRequest++;
+    onlineGameRuntimePromise = null;
     onlineMode = false;
     $('win-modal')?.classList.add('hidden');
     showScreen('room');
