@@ -21,6 +21,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lib/game-engine.php';
+require_once __DIR__ . '/lib/account-auth.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
@@ -267,12 +268,17 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 try {
     if ($action === 'bootstrap' && $method === 'GET') {
         $identity = onlineIdentity(true);
+        $account = onlineAuthAccount(onlineDb(), (int) $identity['id']);
+        if ($account) {
+            $account['id'] = (int) $account['id'];
+        }
         onlineRespond([
             'success' => true,
             'identity' => [
                 'id' => (int) $identity['id'],
                 'display_name' => $identity['display_name'],
             ],
+            'account' => $account,
             'csrf_token' => generateCsrfToken(),
         ]);
     }
@@ -291,6 +297,15 @@ try {
     $db = onlineDb();
 
     switch ($action) {
+        case 'register':
+            onlineAuthRegister($db, $identityId, $_POST);
+
+        case 'login':
+            onlineAuthLogin($db, $identityId, $_POST);
+
+        case 'logout':
+            onlineAuthLogout($db, $identityId);
+
         case 'create_transfer_code': {
             $transferCode = onlineRandomToken(32);
             $db->beginTransaction();
