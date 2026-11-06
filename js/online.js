@@ -5,7 +5,7 @@
 import { showScreen } from './navigation.js';
 import { api, bootstrapOnline } from './online/api.js';
 import { notify } from './online/notifications.js';
-import { renderMyGames } from './online/my-games-view.js';
+import { createRoomActions } from './online/room-actions.js';
 import { loadOnlineGameRuntime, resetOnlineGameRuntime } from './online/game-runtime.js';
 import { renderOnlineGame } from './online/game-view.js';
 import { renderRoomView } from './online/room-view.js';
@@ -14,12 +14,12 @@ const $ = id => document.getElementById(id);
 
 
 
-let currentGameId = null;
-let currentInviteUrl = '';
 let pollTimer = null;
 let pollInFlight = false;
 
 let onlineState = null;
+let currentGameId = null;
+let currentInviteUrl = '';
 let onlineStateVersion = 0;
 let autoMoveVersion = -1;
 let currentPlayerIndex = -1;
@@ -27,6 +27,10 @@ let onlineMode = false;
 
 let onlineRenderRequest = 0;
 const onlineRuntimeState = {
+    get currentGameId() { return currentGameId; },
+    set currentGameId(value) { currentGameId = value; },
+    get currentInviteUrl() { return currentInviteUrl; },
+    set currentInviteUrl(value) { currentInviteUrl = value; },
     get onlineRenderRequest() { return onlineRenderRequest; },
     set onlineRenderRequest(value) { onlineRenderRequest = value; },
     get onlineState() { return onlineState; },
@@ -40,6 +44,19 @@ const onlineRuntimeState = {
     get autoMoveVersion() { return autoMoveVersion; },
     set autoMoveVersion(value) { autoMoveVersion = value; }
 };
+const roomActions = createRoomActions({
+    $,
+    api,
+    notify,
+    session: onlineRuntimeState,
+    bootstrapOnline,
+    showScreen,
+    refreshGame,
+    openGame,
+    stopPolling
+});
+const { loadMyGames, resumeMyGame, savePlayerName, joinRoom, createRoom, copyInvite, leaveRoom } = roomActions;
+
 window.addEventListener('clovece:game-exit', () => {
     onlineRenderRequest++;
     resetOnlineGameRuntime();
@@ -54,7 +71,7 @@ function stopPolling() {
 
 function schedulePoll() {
     stopPolling();
-    if (!currentGameId) return;
+    if (!onlineRuntimeState.currentGameId) return;
     pollTimer = window.setTimeout(refreshGame, document.hidden ? 8000 : 3000);
 }
 
@@ -70,13 +87,13 @@ function renderGame(data) {
         });
         return;
     }
-    renderRoomView(data, { state: onlineRuntimeState, currentInviteUrl, showScreen });
+    renderRoomView(data, { state: onlineRuntimeState, onlineRuntimeState.currentInviteUrl, showScreen });
 }
 
 async function sendGameAction(actionType, pieceId = null) {
-    if (!currentGameId || !onlineState) return;
+    if (!onlineRuntimeState.currentGameId || !onlineState) return;
     const values = {
-        game_id: String(currentGameId),
+        game_id: String(onlineRuntimeState.currentGameId),
         expected_version: String(onlineStateVersion),
         request_id: crypto.randomUUID(),
         action_type: actionType,
@@ -93,10 +110,10 @@ async function sendGameAction(actionType, pieceId = null) {
 }
 
 async function refreshGame() {
-    if (!currentGameId || pollInFlight) return;
+    if (!onlineRuntimeState.currentGameId || pollInFlight) return;
     pollInFlight = true;
     try {
-        const data = await api('get_game', { game_id: String(currentGameId) });
+        const data = await api('get_game', { game_id: String(onlineRuntimeState.currentGameId) });
         renderGame(data);
     } catch (error) {
         notify(error.message);
@@ -108,155 +125,12 @@ async function refreshGame() {
 }
 
 async function openGame(gameId, inviteUrl = '') {
-    currentGameId = Number(gameId);
-    currentInviteUrl = inviteUrl;
+    onlineRuntimeState.currentGameId = Number(gameId);
+    onlineRuntimeState.currentInviteUrl = inviteUrl;
     showScreen('room');
     await refreshGame();
 }
 
-
-async function loadMyGames() {
-    const container = $('my-games-list');
-    if (!container) return;
-    try {
-        const result = await api('list_my_games');
-        renderMyGames(result.games || []);
-    } catch (error) {
-        container.textContent = 'Seznam her se nepodařilo načíst: ' + error.message;
-    }
-}
-
-async function resumeMyGame(gameId, button) {
-    if (button) button.disabled = true;
-    try {
-        const result = await api('resume_game', { game_id: String(gameId) });
-        const inviteUrl = result.invite_url
-            ? new URL(result.invite_url, window.location.href).toString()
-            : '';
-        const url = new URL(window.location.href);
-        url.searchParams.delete('invite');
-        history.replaceState({}, '', url);
-        await openGame(result.game_id, inviteUrl);
-    } catch (error) {
-        notify(error.message);
-        await loadMyGames();
-    } finally {
-        if (button) button.disabled = false;
-    }
-}
-
-async function savePlayerName() {
-    await bootstrapOnline();
-    const name = $('online-player-name')?.value.trim();
-    if (name) await api('set_name', { display_name: name });
-}
-
-function extractInviteToken(value) {
-    const text = String(value || '').trim();
-    if (!text) return '';
-
-    try {
-        const url = new URL(text, window.location.href);
-        const token = url.searchParams.get('invite');
-        if (token) return token;
-    } catch {
-        // Vstup může být přímo token, nikoli URL.
-    }
-
-    return /^[A-Za-z0-9_-]{40,60}$/.test(text) ? text : '';
-}
-
-async function joinRoom(value) {
-    const inviteToken = extractInviteToken(value);
-    if (!inviteToken) {
-        notify('Vlož celý pozvánkový odkaz nebo jeho token. Samotný starý kód místnosti není podporován.');
-        return;
-    }
-
-    try {
-        await savePlayerName();
-        const result = await api('join_game', { invite_token: inviteToken });
-        const url = new URL(window.location.href);
-        url.search = '';
-        url.searchParams.set('invite', inviteToken);
-        history.replaceState({}, '', url);
-        await openGame(result.game_id, url.toString());
-    } catch (error) {
-        notify(error.message);
-    }
-}
-
-async function createRoom(button = $('create-room-btn-lobby')) {
-    if (button?.dataset.creating === '1') return;
-
-    const select = $('online-player-limit');
-    const playerLimit = Number(select?.value || 4);
-    const label = button?.querySelector('span');
-    const originalLabel = label?.textContent || 'VYTVOŘIT NOVOU MÍSTNOST';
-
-    if (button) {
-        button.dataset.creating = '1';
-        button.disabled = true;
-        if (label) label.textContent = 'VYTVÁŘÍM MÍSTNOST…';
-    }
-
-    try {
-        await savePlayerName();
-        const result = await api('create_game', { player_limit: String(playerLimit) });
-        const inviteUrl = new URL(result.invite_url, window.location.href).toString();
-        await openGame(result.game_id, inviteUrl);
-        notify('Místnost byla vytvořena. Zkopíruj pozvánku a pošli ji ostatním hráčům.');
-    } catch (error) {
-        console.error('Vytvoření online místnosti selhalo:', error);
-        notify('Místnost se nepodařilo vytvořit: ' + error.message);
-    } finally {
-        if (button) {
-            button.disabled = false;
-            delete button.dataset.creating;
-        }
-        if (label) label.textContent = originalLabel;
-    }
-}
-
-async function copyInvite() {
-    if (!currentInviteUrl) {
-        notify('Pozvánkový odkaz zatím není k dispozici.');
-        return;
-    }
-
-    try {
-        await navigator.clipboard.writeText(currentInviteUrl);
-        notify('Pozvánkový odkaz zkopírován.');
-    } catch {
-        const field = $('room-invite-url');
-        if (field) {
-            field.value = currentInviteUrl;
-            field.focus();
-            field.select();
-            notify('Označil jsem odkaz. Zkopíruj ho pomocí nabídky telefonu.');
-        }
-    }
-}
-
-async function leaveRoom() {
-    if (!currentGameId) {
-        showScreen('lobby');
-        return;
-    }
-
-    try {
-        await api('leave_game', { game_id: String(currentGameId) });
-        currentGameId = null;
-        currentInviteUrl = '';
-        onlineState = null;
-        onlineMode = false;
-        stopPolling();
-        showScreen('lobby');
-        await loadMyGames();
-    } catch (error) {
-        notify(error.message);
-    }
-}
 
 let onlineGameControlsInitialized = false;
 
@@ -296,9 +170,9 @@ function initOnlineGameControls() {
         event.preventDefault();
         const input = $('chat-input');
         const message = input?.value.trim();
-        if (!message || !currentGameId) return;
+        if (!message || !onlineRuntimeState.currentGameId) return;
         try {
-            await api('send_chat', { game_id: String(currentGameId), message });
+            await api('send_chat', { game_id: String(onlineRuntimeState.currentGameId), message });
             input.value = '';
             await refreshGame();
         } catch (error) {
@@ -329,7 +203,7 @@ export async function initOnline() {
     // Tlačítko pro připojení obsluhuje navigation.js přes window.joinRoom().
     $('room-player-settings')?.addEventListener('submit', async event => {
         event.preventDefault();
-        if (!currentGameId) return;
+        if (!onlineRuntimeState.currentGameId) return;
         const name = $('room-player-name')?.value.trim();
         if (!name) {
             notify('Zadej zobrazované jméno.');
@@ -337,7 +211,7 @@ export async function initOnline() {
         }
         try {
             const result = await api('rename_participant', {
-                game_id: String(currentGameId),
+                game_id: String(onlineRuntimeState.currentGameId),
                 display_name: name
             });
             const identityName = $('online-player-name');
@@ -350,10 +224,10 @@ export async function initOnline() {
         }
     });
     $('room-player-color')?.addEventListener('change', async event => {
-        if (!currentGameId) return;
+        if (!onlineRuntimeState.currentGameId) return;
         try {
             await api('set_color', {
-                game_id: String(currentGameId),
+                game_id: String(onlineRuntimeState.currentGameId),
                 color: event.target.value
             });
             await refreshGame();
@@ -364,10 +238,10 @@ export async function initOnline() {
     });
     $('random-room-color-btn')?.addEventListener('click', async () => {
         const select = $('room-player-color');
-        if (!currentGameId || !select) return;
+        if (!onlineRuntimeState.currentGameId || !select) return;
         try {
             await api('set_color', {
-                game_id: String(currentGameId),
+                game_id: String(onlineRuntimeState.currentGameId),
                 color: 'random'
             });
             await refreshGame();
@@ -421,10 +295,10 @@ export async function initOnline() {
 
     $('add-ai-player-btn')?.addEventListener('click', async event => {
         const button = event.currentTarget;
-        if (!currentGameId || button.disabled) return;
+        if (!onlineRuntimeState.currentGameId || button.disabled) return;
         button.disabled = true;
         try {
-            const result = await api('add_ai_player', { game_id: String(currentGameId) });
+            const result = await api('add_ai_player', { game_id: String(onlineRuntimeState.currentGameId) });
             notify(result.display_name + ' byl přidán do místnosti.');
             await refreshGame();
         } catch (error) {
@@ -435,9 +309,9 @@ export async function initOnline() {
     });
     $('copy-invite-btn')?.addEventListener('click', copyInvite);
     $('room-start-game-btn')?.addEventListener('click', async () => {
-        if (!currentGameId) return;
+        if (!onlineRuntimeState.currentGameId) return;
         try {
-            await api('start_game', { game_id: String(currentGameId) });
+            await api('start_game', { game_id: String(onlineRuntimeState.currentGameId) });
             await refreshGame();
         } catch (error) {
             notify(error.message);
@@ -448,10 +322,10 @@ export async function initOnline() {
         event.preventDefault();
         const input = $('room-chat-input');
         const message = input?.value.trim();
-        if (!message || !currentGameId) return;
+        if (!message || !onlineRuntimeState.currentGameId) return;
 
         try {
-            await api('send_chat', { game_id: String(currentGameId), message });
+            await api('send_chat', { game_id: String(onlineRuntimeState.currentGameId), message });
             input.value = '';
             await refreshGame();
         } catch (error) {
