@@ -25,9 +25,9 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <title>Člověče, nezlob se! | Online Ludo Game</title>
     <link rel="stylesheet" href="css/variables.css?v=<?= $assetVersion('css/variables.css') ?>">
     <link rel="stylesheet" href="css/reset.css?v=<?= $assetVersion('css/reset.css') ?>">
-    <link rel="stylesheet" href="css/animations.css?v=<?= $assetVersion('css/animations.css') ?>">
+    <link rel="stylesheet" href="css/menu-animations.css?v=<?= $assetVersion('css/menu-animations.css') ?>">
+    <link rel="stylesheet" href="css/menu-components.css?v=<?= $assetVersion('css/menu-components.css') ?>">
     <link rel="stylesheet" href="css/layout.css?v=<?= $assetVersion('css/layout.css') ?>">
-    <link rel="stylesheet" href="css/components.css?v=<?= $assetVersion('css/components.css') ?>">
     <link rel="stylesheet" href="css/toast.css?v=<?= $assetVersion('css/toast.css') ?>">
     <link rel="stylesheet" href="css/responsive.css?v=<?= $assetVersion('css/responsive.css') ?>">
     <link rel="stylesheet" href="css/menu-premium.css?v=<?= $assetVersion('css/menu-premium.css') ?>">
