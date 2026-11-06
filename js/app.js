@@ -6,7 +6,8 @@ import {
     createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
-import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView, animateThreeDice } from './game-board.js';
+import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
+import { animateDice } from './dice.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
@@ -269,119 +270,7 @@ function updateTurnControls() {
     $('end-turn-btn').classList.add('hidden');
 }
 
-// Aktuální natočení kostky se uchovává mezi jednotlivými hody.
-let diceCurrentX = 0;
-let diceCurrentY = 0;
-
-const DICE_FACE_ROTATIONS = {
-    1: { x: 0, y: 0 }, 2: { x: 0, y: -90 }, 3: { x: -90, y: 0 },
-    4: { x: 90, y: 0 }, 5: { x: 0, y: 90 }, 6: { x: 0, y: 180 }
-};
-
-// Jeden plán rotace používá CSS kostka i Three.js kostka.
-function createDiceRotationPlan(value, fast) {
-    const target = DICE_FACE_ROTATIONS[value];
-    const spin = (current, base) => {
-        const turns = Math.ceil((current - base) / 360) + 2 + Math.floor(Math.random() * 2);
-        return base + turns * 360;
-    };
-    const plan = fast
-        ? { startX: target.x, startY: target.y, endX: target.x, endY: target.y, duration: 0, fast: true }
-        : {
-            startX: diceCurrentX, startY: diceCurrentY,
-            endX: spin(diceCurrentX, target.x), endY: spin(diceCurrentY, target.y),
-            duration: 1500, fast: false
-        };
-    diceCurrentX = plan.endX;
-    diceCurrentY = plan.endY;
-    return plan;
-}
-
-export async function animateDice(value) {
-    const diceValue = Math.max(1, Math.min(6, Number(value) || 1));
-    $('dice-value').textContent = diceValue;
-
-    const animation = $('dice-animation');
-    const scene = $('dice-scene');
-    const cube = $('dice-3d');
-
-    if (!animation || !scene || !cube || !settings.animations) return;
-
-    const mode = document.documentElement.dataset.boardView === '2d' ? '2d' : '3d';
-    try {
-        await ensureModeStyles(mode);
-    } catch (error) {
-        console.error('Styly kostky se nepodařilo načíst:', error);
-        return;
-    }
-    if (document.documentElement.dataset.boardView !== mode) return;
-
-    // Oba režimy dostanou totožné cílové úhly, počet otoček a časování.
-    const fast = settings.moveSpeed === 'fast';
-    const rotationPlan = createDiceRotationPlan(diceValue, fast);
-
-    if (mode === '3d') {
-        try {
-            play('dice-sound');
-            await animateThreeDice(diceValue, fast, rotationPlan);
-            return;
-        } catch (error) {
-            // Pokud Three.js kostku nevykreslí, zachováme funkční CSS animaci.
-            console.error('Three.js kostku se nepodařilo animovat, používám CSS náhradu:', error);
-        }
-    }
-
-    // Kostka používá CSS 3D transformace v obou režimech desky.
-    // 2D režim tak nepotřebuje WebGL ani Three.js, ale zachovává plnou animaci šesti stran.
-    animation.dataset.mode = mode;
-    delete animation.dataset.value;
-
-    // Rychlý režim ukáže rovnou správnou stěnu bez roztočení kostky.
-    if (fast) {
-        animation.classList.remove('hidden');
-        scene.classList.remove('rolling');
-        cube.style.transition = 'none';
-        cube.style.transform =
-            'rotateX(' + (rotationPlan.endX - 24) + 'deg) rotateY(' + (rotationPlan.endY - 32) + 'deg)';
-        void cube.offsetWidth;
-        cube.style.transition = '';
-        return new Promise(resolve => {
-            window.setTimeout(() => {
-                animation.classList.add('hidden');
-                resolve();
-            }, 450);
-        });
-    }
-
-    const nextX = rotationPlan.endX;
-    const nextY = rotationPlan.endY;
-
-    // Nejdřív kostku zobrazíme a nastavíme její skutečnou výchozí polohu.
-    // Teprve po vynuceném layoutu změníme transformaci, aby prohlížeč
-    // přehrál celý CSS transition i po předchozím display:none.
-    animation.classList.remove('hidden');
-    scene.classList.remove('rolling');
-    cube.style.transition = 'none';
-    cube.style.transform =
-        'rotateX(' + (rotationPlan.startX - 24) + 'deg) rotateY(' + (rotationPlan.startY - 32) + 'deg)';
-    void cube.offsetWidth;
-
-    // Obnovíme plynulou rotaci a v dalším snímku spustíme několik otáček.
-    cube.style.transition = '';
-    scene.classList.add('rolling');
-    requestAnimationFrame(() => {
-        cube.style.transform =
-            'rotateX(' + (nextX - 24) + 'deg) rotateY(' + (nextY - 32) + 'deg)';
-    });
-
-    play('dice-sound');
-
-    return new Promise(resolve => {
-        window.setTimeout(() => {
-            scene.classList.remove('rolling');
-            animation.classList.add('hidden');
-            resolve();
-        }, rotationPlan.duration);
+n.duration);
     });
 }
 function openKickModal(move) {
@@ -529,7 +418,7 @@ async function doStartingRoll(isAI = false) {
 
     const value = Math.floor(Math.random() * 6) + 1;
     game.diceValue = value;
-    await animateDice(value);
+    await animateDice(value, settings);
     if (!game || game.phase !== 'start-roll' || game.currentPlayer !== playerId || isPaused()) return;
 
     const roundIndex = game.startRolls.length - 1;
@@ -576,7 +465,7 @@ async function doRoll(isAI = false) {
     if (!isAI && game.players[game.currentPlayer].isAI) return;
 
     const result = rollDice(game);
-    await animateDice(result.value);
+    await animateDice(result.value, settings);
     if (!game || game.winner !== null || isPaused()) return;
 
     if (result.retrying) {
