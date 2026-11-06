@@ -1,0 +1,31 @@
+/* Rules – komponenty pro příslušnou část aplikace. */
+
+.rules-content {
+    max-width: 800px;
+}
+
+.rules-text {
+    text-align: left;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2rem;
+    border-radius: var(--radius);
+    border: 2px solid rgba(255, 230, 109, 0.3);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.rules-text h3 {
+    font-family: var(--font-pixel);
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin: 20px 0 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255, 230, 109, 0.3);
+}
+
+.rules-text p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 15px;
+}
