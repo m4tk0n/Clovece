@@ -10,16 +10,8 @@ const DICE_FACE_ROTATIONS = {
     4: { x: 90, y: 0 }, 5: { x: 0, y: 90 }, 6: { x: 0, y: 180 }
 };
 
-let diceCurrentX = 0;
-let diceCurrentY = 0;
-
-const DICE_FACE_ROTATIONS = {
-    1: { x: 0, y: 0 }, 2: { x: 0, y: -90 }, 3: { x: -90, y: 0 },
-    4: { x: 90, y: 0 }, 5: { x: 0, y: 90 }, 6: { x: 0, y: 180 }
-};
-
 // Jeden plán rotace používá CSS kostka i Three.js kostka.
-function createDiceRotationPlan(value, fast) {
+export function createDiceRotationPlan(value, fast) {
     const target = DICE_FACE_ROTATIONS[value];
     const spin = (current, base) => {
         const turns = Math.ceil((current - base) / 360) + 2 + Math.floor(Math.random() * 2);
