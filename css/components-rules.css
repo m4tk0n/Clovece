@@ -2,30 +2,20 @@
    PRAVIDLA (#rules-screen)
    =================== */
 
-/* Pravidla využijí dostupnou šířku i výšku obrazovky. */
+/* Pravidla využijí dostupnou šířku. Výšku a posouvání řeší společné menu. */
 #rules-screen {
     --panel-max: none;
     --content-max: none;
 }
 
-#rules-screen .menu-bg {
-    min-height: 100%;
-}
-
 .rules-content {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
+    display: block;
     margin: 0 auto;
 }
 
 .rules-text {
-    flex: 1;
-    min-height: 0;
-    max-height: none;
     padding: 14px;
-    overflow-y: auto;
+    overflow: visible;
     border: 1px solid var(--gold-line-soft);
     border-radius: 13px;
     background: rgba(0, 0, 0, .3);
