@@ -1,6 +1,6 @@
 /**
  * Potvrzení opuštění aplikace systémovým tlačítkem Zpět.
- * Aktivní je pouze na hlavní úvodní obrazovce.
+ * Dialog se zobrazuje pouze na hlavní úvodní obrazovce.
  */
 export function initExitGuard() {
     const mainMenu = document.getElementById('main-menu');
@@ -21,32 +21,31 @@ export function initExitGuard() {
         modal.setAttribute('aria-hidden', 'true');
     };
 
-    // Dvě položky stejné adresy umožní zachytit první systémové Zpět.
     const currentUrl = window.location.href;
+    // Počet pomocných položek historie vložených za aktuální načtení stránky.
+    let guardEntries = 2;
+
     window.history.pushState({ cloveceExitBase: true }, '', currentUrl);
     window.history.pushState({ cloveceExitGuard: true }, '', currentUrl);
 
     window.addEventListener('popstate', () => {
-        if (!isMainMenuVisible()) {
-            // Na ostatních obrazovkách potvrzení nezobrazujeme.
-            window.history.back();
-            return;
-        }
+        // Na ostatních obrazovkách ponecháme systémové Zpět bez vlastního dialogu.
+        if (!isMainMenuVisible()) return;
 
-        // Obnovíme ochrannou položku, aby NE ponechalo hráče na úvodní stránce.
+        // Na úvodní stránce obnovíme ochrannou položku a zobrazíme potvrzení.
         window.history.pushState({ cloveceExitGuard: true }, '', currentUrl);
+        guardEntries++;
         showModal();
     });
 
     noButton.addEventListener('click', () => {
         hideModal();
-        mainMenu.focus?.();
     });
 
     yesButton.addEventListener('click', () => {
         hideModal();
-        // Přeskočíme ochrannou i pomocnou položku a skutečně opustíme aplikaci.
-        window.history.go(-2);
+        // Přeskočíme všechny pomocné položky a vrátíme se na předchozí stránku.
+        window.history.go(-(guardEntries + 1));
     });
 
     modal.addEventListener('click', event => {
