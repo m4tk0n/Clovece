@@ -36,11 +36,13 @@ Protokol ukazuje, které moduly aplikace při startu skutečně importuje a kter
 
 ### Odložené načítání 2D/3D
 
-Při otevření webu ani při zobrazení obrazovky „Vytvoření hry“ se CSS herní desky ani kostky nenačítá. Volba režimu se vyhodnotí až při prvním vykreslení skutečné hry:
+Při otevření webu se nenačítá lokální herní runtime ani renderer desky. Ten se importuje až při vstupu do lokálního nastavení hry; online herní moduly až při přechodu místnosti do aktivní hry. Při prvním vykreslení hry se načte také herní UI CSS a CSS aktivního režimu:
 
-- **2D:** načte se pouze `css/board-2d.css` a `css/dice-2d.css`; desku vykresluje SVG renderer.
-- **3D:** načte se pouze `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
-- Při přepnutí režimu se stylesheety předchozího režimu odstraní a načte se pouze dvojice pro nový režim.
+- **2D:** načte se `css/game-premium.css`, `css/board-2d.css` a `css/dice-2d.css`; desku vykresluje SVG renderer.
+- **3D:** načte se `css/game-premium.css`, `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
+- Při přepnutí režimu se stylesheety desky a kostky předchozího režimu odstraní a načte se odpovídající dvojice; společné `game-premium.css` zůstává připojené po dobu hry.
+- Při opuštění herní obrazovky se herní stylesheety odpojí, obsah desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
+- Již importované ES moduly nelze standardním API odebrat z modulové cache prohlížeče. Aplikace proto načítá herní moduly až při potřebě a po odchodu uvolní jejich aplikační reference a prostředky; fyzické vymazání kódu z paměti není garantovatelné.
 - Při chybě 3D rendereru se aplikace vrátí do 2D a přepne také odpovídající CSS.
 
 V debug protokolu se musí objevit pouze soubory aktivního režimu. Načtení 2D CSS nesmí vyžadovat 3D renderer ani knihovnu Three.js a naopak 3D CSS se nesmí načíst při 2D hře.
