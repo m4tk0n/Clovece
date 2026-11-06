@@ -69,7 +69,7 @@
                 <span>RESTART</span>
                 <i class="fas fa-redo"></i>
             </button>
-            <button id="quit-btn" class="menu-btn secondary">
+            <button id="quit-btn" class="menu-btn">
                 <span>OPUSTIT HRU</span>
                 <i class="fas fa-door-open"></i>
             </button>
