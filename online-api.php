@@ -473,6 +473,79 @@ try {
             onlineRespond(['success' => true, 'game_id' => (int) $gameId, 'invite_url' => $inviteUrl]);
         }
 
+        case 'update_profile': {
+            $account = onlineAuthAccount($db, $identityId);
+            if (!$account) {
+                onlineFail('Úpravy profilu jsou dostupné pouze přihlášenému účtu.', 403);
+            }
+
+            $rawName = $_POST['display_name'] ?? '';
+            if (!is_string($rawName) || trim($rawName) === '') {
+                onlineFail('Zobrazované jméno nesmí být prázdné.');
+            }
+            $name = onlineCleanName($rawName);
+            $color = $_POST['color'] ?? '';
+            $allowedColors = ['#E53935', '#1E88E5', '#43A047', '#F9A825', '#FB8C00', '#8E24AA', '#00ACC1', '#D81B60'];
+            if (!is_string($color) || !in_array($color, $allowedColors, true)) {
+                onlineFail('Vybraná barva hráče není platná.');
+            }
+
+            $db->beginTransaction();
+            try {
+                $db->prepare(
+                    'UPDATE ' . onlineTable('player_identities') . '
+                     SET display_name = ?, last_seen_at = NOW() WHERE id = ?'
+                )->execute([$name, $identityId]);
+                $db->prepare(
+                    'UPDATE ' . onlineTable('player_accounts') . '
+                     SET color_preference = ? WHERE identity_id = ?'
+                )->execute([$color, $identityId]);
+                $db->prepare(
+                    'UPDATE ' . onlineTable('game_participants') . '
+                     SET display_name = ? WHERE identity_id = ? AND left_at IS NULL'
+                )->execute([$name, $identityId]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                throw $e;
+            }
+
+            onlineRespond([
+                'success' => true,
+                'account' => [
+                    'display_name' => $name,
+                    'color_preference' => $color,
+                ],
+            ]);
+        }
+
+        case 'profile_stats': {
+            if (!onlineAuthAccount($db, $identityId)) {
+                onlineFail('Statistiky jsou dostupné pouze přihlášenému účtu.', 403);
+            }
+            $stmt = $db->prepare(
+                'SELECT COUNT(DISTINCT g.id) AS games,
+                        COUNT(DISTINCT CASE
+                            WHEN JSON_UNQUOTE(JSON_EXTRACT(g.state_json, \'$.winner\')) = CAST(p.player_index AS CHAR)
+                            THEN g.id END) AS wins
+                 FROM ' . onlineTable('online_games') . ' g
+                 INNER JOIN ' . onlineTable('game_participants') . ' p ON p.game_id = g.id
+                 WHERE p.identity_id = ? AND g.status = \'finished\''
+            );
+            $stmt->execute([$identityId]);
+            $row = $stmt->fetch() ?: ['games' => 0, 'wins' => 0];
+            $games = (int) $row['games'];
+            $wins = (int) $row['wins'];
+            $losses = max(0, $games - $wins);
+            onlineRespond([
+                'success' => true,
+                'games' => $games,
+                'wins' => $wins,
+                'losses' => $losses,
+                'win_rate' => $games > 0 ? (int) round(($wins / $games) * 100) : 0,
+            ]);
+        }
+
         case 'set_name': {
             $name = onlineCleanName($_POST['display_name'] ?? '');
             $db->prepare('UPDATE ' . onlineTable('player_identities') . ' SET display_name = ?, last_seen_at = NOW() WHERE id = ?')
