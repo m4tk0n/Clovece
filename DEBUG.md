@@ -95,3 +95,13 @@ Aktuální debug režim nezobrazuje samostatný textový výpis všech souřadni
 ## 6. Vypnutí
 
 Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D polí, vizualizace legálních tahů a ruční výběr místo automatického vynuceného tahu se pak vypnou.
+
+
+## Oddělení debug režimu
+
+- `index.php` vkládá `js/debug-bootstrap.js` pouze při parametru `?debug=1`.
+- Běžný vstup `js/bootstrap.js` nezná debug režim a nenačítá diagnostické moduly.
+- Diagnostika je v `js/debug-bootstrap.js`, `js/debug-overlay.js` a `js/game-board-debug.js`.
+- Standardní herní moduly používají pouze obecné rozhraní `js/game-extensions.js`; bez registrovaného rozšíření nemá žádné diagnostické chování.
+- Číslování 2D/3D polí, trasy legálních tahů, diagnostika kamery a ruční potvrzení jediného možného tahu se připojují výhradně přes debug rozšíření.
+- Regresní kontrolu oddělení provádí `tests/debug-isolation.test.mjs`.

@@ -4,7 +4,6 @@
  */
 import { getPiecePosition, getHomeLaneIndex, getValidMoves } from './game-engine.js';
 import { CENTER, geometry, slotOf, slotAngle, polar, armPoint, laneRadius, trackPosition } from './game-board-geometry.js';
-import { buildDebugMovePaths } from './game-board-debug.js';
 
 export function buildBoardSceneData(game, style = 'classic') {
     const g = geometry(game, style);
@@ -89,8 +88,7 @@ export function buildBoardSceneData(game, style = 'classic') {
     return {
         style, slotCount: g.n, trackLength: game.trackLength,
         players: game.players.map(player => ({ id: player.id, color: player.color })),
-        track, lanes, bases, pieces,
-        debugPaths: buildDebugMovePaths(game, style)
+        track, lanes, bases, pieces
     };
 }
 
