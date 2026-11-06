@@ -121,7 +121,7 @@ async function startGame() {
     }
     $('win-modal').classList.add('hidden');
     $('kick-modal').classList.add('hidden');
-    showScreen('game');
+    await showScreen('game');
     showGame();
     turnController.continueGame();
 }
