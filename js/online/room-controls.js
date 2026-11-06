@@ -60,9 +60,6 @@ export function initOnlineRoomControls(deps) {
             }
         });
     
-    $('copy-invite-btn')?.addEventListener('click', copyInvite);
-    $('leave-room-btn')?.addEventListener('click', leaveRoom);
-
         $('add-ai-player-btn')?.addEventListener('click', async event => {
             const button = event.currentTarget;
             if (!session.currentGameId || button.disabled) return;
