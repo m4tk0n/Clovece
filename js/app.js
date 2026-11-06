@@ -3,7 +3,7 @@
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
 import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision } from './game-engine.js';
-import { renderBoard, ensureModeStyles, getBoardView } from './game-board.js';
+import { renderBoard, prepareBoardRendering } from './game-board.js';
 import { showScreen, loadScreen } from './navigation.js';
 import { settings } from './settings.js';
 import { getPlayerSetup, initPlayerSetup, updateSetup, getExtendedRules, setExtendedRulesForTest } from './player-setup.js';
@@ -126,9 +126,9 @@ async function startGame() {
     turnController.resetForNewGame();
     resetGameLog();
     try {
-        await ensureModeStyles(getBoardView());
+        await prepareBoardRendering();
     } catch (error) {
-        console.error('Herní CSS se nepodařilo připravit:', error);
+        console.error('Příprava zobrazení desky selhala; pokračuji v 2D:', error);
     }
     $('win-modal').classList.add('hidden');
     $('kick-modal').classList.add('hidden');
@@ -200,7 +200,7 @@ export async function startTestGame() {
     turnController.resetForNewGame();
     turnController.setGame(game);
     resetGameLog();
-    await ensureModeStyles(getBoardView());
+    await prepareBoardRendering();
     $('win-modal')?.classList.add('hidden');
     $('kick-modal')?.classList.add('hidden');
     $('game-menu')?.classList.add('hidden');
