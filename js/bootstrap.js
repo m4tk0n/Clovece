@@ -4,11 +4,13 @@
  */
 async function startApp() {
     try {
-        const { initExitGuard } = await import('./exit-guard.js');
-        initExitGuard();
-        const { initNavigation } = await import('./navigation.js');
         document.getElementById('loading-screen')?.classList.add('hidden');
         document.getElementById('main-menu')?.classList.remove('hidden');
+
+        const { initExitGuard } = await import('./exit-guard.js');
+        initExitGuard();
+
+        const { initNavigation } = await import('./navigation.js');
         initNavigation();
     } catch (error) {
         console.error('Nepodařilo se inicializovat aplikaci:', error);
