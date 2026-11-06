@@ -198,20 +198,28 @@ function bindStyleSwitch(container) {
     container._boardStyleBound = true;
 
     container.addEventListener('click', event => {
-        const styleButton = event.target.closest?.('[data-board-style]');
-        if (styleButton) {
-            const style = styleButton.dataset.boardStyle;
-            if (!STYLES.includes(style) || style === boardStyle) return;
-            boardStyle = style;
-            saveStyle(style);
+        // Najdřív hledáme přepínač režimu. Použijeme i composedPath(),
+        // aby delegace fungovala také při události z vnořeného/canvas prvku.
+        const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+        const viewButton = path.find(node => node instanceof Element && node.matches('[data-board-view]')) ||
+            event.target.closest?.('[data-board-view]');
+        if (viewButton && container.contains(viewButton)) {
+            event.preventDefault();
+            view3d = !view3d;
+            view3dUnavailable = false;
+            saveView();
             restyle(container);
             return;
         }
-        const viewButton = event.target.closest?.('[data-board-view]');
-        if (!viewButton) return;
-        view3d = !view3d;
-        view3dUnavailable = false;
-        saveView();
+
+        const styleButton = path.find(node => node instanceof Element && node.matches('[data-board-style]')) ||
+            event.target.closest?.('[data-board-style]');
+        if (!styleButton || !container.contains(styleButton)) return;
+        const style = styleButton.dataset.boardStyle;
+        if (!STYLES.includes(style) || style === boardStyle) return;
+        event.preventDefault();
+        boardStyle = style;
+        saveStyle(style);
         restyle(container);
     });
 }
@@ -261,6 +269,12 @@ export function renderBoard(container, game) {
                 button.classList.toggle('is-active', selected);
                 button.setAttribute('aria-pressed', String(selected));
             });
+            const viewButton = container.querySelector('[data-board-view]');
+            if (viewButton) {
+                viewButton.classList.toggle('is-active', view3d);
+                viewButton.setAttribute('aria-pressed', String(view3d));
+                viewButton.textContent = view3d ? '3D' : '2D';
+            }
         }
         // 3D renderer a jeho CSS se načtou až při skutečném vykreslení hry v 3D.
         ensureModeStyles('3d').then(() => loadThreeRenderer()).then(module => {
