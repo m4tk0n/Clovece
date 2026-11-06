@@ -48,12 +48,10 @@ async function startApp() {
         const [
             { initNavigation },
             { initAudio },
-            { initGame },
             { initOnline }
         ] = await Promise.all([
             trackedImport('navigation.js', './navigation.js'),
             trackedImport('audio.js', './audio.js'),
-            trackedImport('app.js', './app.js'),
             trackedImport('online.js', './online.js')
         ]);
 
@@ -89,7 +87,6 @@ async function startApp() {
         }
         trackedInit('initNavigation()', initNavigation);
         trackedInit('initAudio()', initAudio);
-        trackedInit('initGame()', initGame);
     } catch (error) {
         console.error('Nepodařilo se inicializovat aplikaci:', error);
         if (debugLog) debugLog('Inicializace aplikace selhala: ' + (error && error.message ? error.message : String(error)), 'CHYBA');
