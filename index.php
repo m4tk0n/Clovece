@@ -106,8 +106,12 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                 </div>
                 
                 <h1 class="game-title glitch">ČLOVĚČE, NEZLOB SE!</h1>
-                <div class="game-logo">
-                    <i class="fas fa-dice"></i>
+                <div class="game-logo" role="img" aria-label="Hrací kostka a dvě herní figurky">
+                    <i class="fas fa-dice game-logo-die" aria-hidden="true"></i>
+                    <span class="game-logo-pawns" aria-hidden="true">
+                        <i class="fas fa-chess-pawn game-logo-pawn game-logo-pawn-one"></i>
+                        <i class="fas fa-chess-pawn game-logo-pawn game-logo-pawn-two"></i>
+                    </span>
                 </div>
                 
                 <div class="menu-buttons">
