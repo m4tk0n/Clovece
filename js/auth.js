@@ -29,6 +29,9 @@ async function refreshAccountMenu() {
     if (avatarButton) {
         avatarButton.classList.toggle('hidden', !account);
         avatarButton.textContent = initial.toLocaleUpperCase('cs-CZ');
+        const userColor = account?.color_preference || '';
+        avatarButton.style.backgroundColor = userColor;
+        avatarButton.style.borderColor = userColor;
         avatarButton.setAttribute('aria-label', account ? 'Přihlášený uživatel: ' + accountName : 'Uživatelský účet');
         avatarButton.title = accountName;
     }
