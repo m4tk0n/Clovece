@@ -7,7 +7,6 @@ import {
     advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
 import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
-import { animateDice } from './dice.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
@@ -45,6 +44,12 @@ function escapeHtml(value) {
 
 const $ = id => document.getElementById(id);
 const speedDelay = () => 950;
+
+// Kostka je samostatný modul; stáhne se až při prvním hodu, ne při otevření nastavení.
+async function animateDice(value) {
+    const diceModule = await import('./dice.js');
+    return diceModule.animateDice(value, settings);
+}
 
 function isPaused() {
     return !$('game-menu')?.classList.contains('hidden');
