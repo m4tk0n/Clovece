@@ -180,6 +180,9 @@ export async function showScreen(name) {
         if (screen !== target) screen.classList.add('hidden');
     });
     target.classList.remove('hidden');
+    if (name === 'main-menu') {
+        window.dispatchEvent(new Event('clovece:main-menu-shown'));
+    }
     return true;
 }
 
