@@ -214,3 +214,11 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 - Řízení hodu a volba mezi CSS 2D a Three.js 3D přesunuty do samostatného `js/dice.js`.
 - Lokální hra předává nastavení kostky modulu; online režim načítá modul kostky samostatně a až při prvním hodu.
 - Opraveno předávání společného rotačního plánu přes `game-board-view.js` až do 3D rendereru.
+
+
+## 1.00.00.13 – Oddělení nastavení od herního runtime
+
+- Uživatelská nastavení přesunuta do `js/settings.js`.
+- Obrazovka Nastavení načítá samostatný modul bez importu `app.js`, herního enginu a rendereru desky.
+- Lokální hra sdílí stejný objekt nastavení; modul se inicializuje pouze jednou.
+- Rozšířena CI kontrola syntaxe o samostatné moduly kostky a nastavení.
