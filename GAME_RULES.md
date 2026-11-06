@@ -53,11 +53,13 @@
 ## 7. Cílová dráha
 - Po jednom oběhnutí hlavního okruhu pokračuje figurka do vlastní cílové dráhy D1, D2, D3 a D4.
 - Vstup do cílové dráhy i dojezd na D4 musí být přesný. Přestřelení D4 není možné.
-- V cílové dráze se vlastní figurky nesmějí přeskakovat. Každé mezilehlé pole v pořadí musí být volné.
-- Tah nesmí skončit na obsazeném cílovém poli.
+- Ve výchozím režimu se vlastní figurky v cílové dráze nesmějí přeskakovat; každé mezilehlé pole musí být volné.
+- Je-li v rozšířených pravidlech místní hry zapnuto **Přeskakování v domečku**, lze vlastní figurky v cílové dráze přeskočit. Hod kostkou ale vždy určuje přesnou cílovou pozici; například z D1 při hodu 2 lze skončit na D3, i když je D2 obsazené.
+- Tah nesmí skončit na obsazeném cílovém poli. Přeskočení je možné pouze přes mezilehlá obsazená pole, nikoli na obsazené cílové pole.
 - Pokud může některá figurka na hlavním okruhu aktuálním hodem přesně a volně vstoupit do cílové dráhy, je tento vstup povinný. Hráč nesmí táhnout jinou figurkou.
 - Povinnost vstupu do cíle neplatí, pokud je cesta blokována vlastní figurkou nebo přesný vstup není možný.
 - Cílová pole se nehromadí; na každém může stát nejvýše jedna figurka.
+- Volitelné pravidlo Přeskakování v domečku je v této verzi dostupné pouze pro místní hru. Online hra nadále používá dosavadní pravidlo bez přeskakování; online engine se touto změnou nemění.
 
 ## 8. Vyhazování
 - Při běžném pohybu se vyhazují pouze soupeřovy figurky.
