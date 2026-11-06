@@ -11,4 +11,4 @@ export {
     ensureModeStyles,
     releaseGameView,
     animateThreeDice
-} from './game-board-view.js?v=20261106-5';
+} from './game-board-view.js?v=20261107-1';
