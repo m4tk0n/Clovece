@@ -371,7 +371,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
         let renderer=stage._renderer;
         if(!renderer){
             stage._scene=new T.Scene();stage._scene.background=new T.Color(0x18251e);
-            stage._camera=new T.PerspectiveCamera(34,1,.1,100);stage._camera.position.set(11.882,18.142,-24.349);
+            stage._camera=new T.PerspectiveCamera(34,1,.1,100);stage._camera.position.set(11.7137125609,18.7023556648,-24.0041396353);
             renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
             renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.shadowMap.enabled=true;
             renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;
@@ -419,7 +419,7 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             renderer.domElement.addEventListener('pointerup',stage._onPointerUp);stage._boardRadius=boardRadius;
         }else if(stage._boardRadius!==boardRadius){
             // Zachovat stejný výchozí pohled i při změně varianty/velikosti desky.
-            stage._camera.position.set(11.882,18.142,-24.349);
+            stage._camera.position.set(11.7137125609,18.7023556648,-24.0041396353);
             stage._controls.target.set(0,0,0);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.update();stage._boardRadius=boardRadius;
