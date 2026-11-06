@@ -144,18 +144,6 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <div id="screen-container"></div>
 
 
-    <!-- Potvrzení opuštění aplikace při systémovém tlačítku Zpět -->
-    <div id="exit-confirm-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="exit-confirm-title" aria-describedby="exit-confirm-text">
-        <div class="exit-confirm-panel">
-            <h2 id="exit-confirm-title">OPUSTIT HRU?</h2>
-            <p id="exit-confirm-text">Přejete si opustit stránky Člověče, nezlob se?</p>
-            <div class="exit-confirm-actions">
-                <button id="exit-stay-btn" class="menu-btn secondary" type="button">NE</button>
-                <button id="exit-leave-btn" class="menu-btn" type="button">ANO</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Notification Toast -->
     <div id="toast" class="toast hidden">
         <span id="toast-message"></span>
