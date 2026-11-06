@@ -12,7 +12,7 @@ export async function renderOnlineGame(data, deps) {
     await loadScreen('game');
     if (requestId !== state.onlineRenderRequest) return;
     await showScreen('game');
-    initOnlineGameControls();
+    await initOnlineGameControls();
     const game = data.game;
     const runtime = await loadOnlineGameRuntime();
     if (requestId !== state.onlineRenderRequest) return;
