@@ -680,47 +680,47 @@ function initOnlineGameControls() {
     if (onlineGameControlsInitialized) return;
     onlineGameControlsInitialized = true;
 
-        $('roll-dice-btn')?.addEventListener('click', () => {
-            if (!onlineMode) return;
-            void sendGameAction(onlineState?.phase === 'start-roll' ? 'start_roll' : 'roll');
-        });
-        $('end-turn-btn')?.addEventListener('click', () => {
-            if (onlineMode) void sendGameAction('pass_turn');
-        });
-        $('game-container')?.addEventListener('click', event => {
-            if (!onlineMode || !onlineState || onlineState.phase !== 'move') return;
-            const piece = event.target.closest('[data-player][data-piece]');
-            if (!piece) return;
-            const playerId = Number(piece.dataset.player);
-            const pieceId = Number(piece.dataset.piece);
-            if (playerId !== currentPlayerIndex || playerId !== onlineState.currentPlayer) return;
-            void sendGameAction('move', pieceId);
-        });
-        $('quit-btn')?.addEventListener('click', event => {
-            if (!onlineMode) return;
-            event.stopImmediatePropagation();
-            void leaveRoom();
-        });
-        $('close-win-btn')?.addEventListener('click', event => {
-            if (!onlineMode) return;
-            event.stopImmediatePropagation();
-            void leaveRoom();
-        });
-    
-        $('chat-form')?.addEventListener('submit', async event => {
-            if (!onlineMode) return;
-            event.preventDefault();
-            const input = $('chat-input');
-            const message = input?.value.trim();
-            if (!message || !currentGameId) return;
-            try {
-                await api('send_chat', { game_id: String(currentGameId), message });
-                input.value = '';
-                await refreshGame();
-            } catch (error) {
-                notify(error.message);
-            }
-        });
+    $('roll-dice-btn')?.addEventListener('click', () => {
+        if (!onlineMode) return;
+        void sendGameAction(onlineState?.phase === 'start-roll' ? 'start_roll' : 'roll');
+    });
+    $('end-turn-btn')?.addEventListener('click', () => {
+        if (onlineMode) void sendGameAction('pass_turn');
+    });
+    $('game-container')?.addEventListener('click', event => {
+        if (!onlineMode || !onlineState || onlineState.phase !== 'move') return;
+        const piece = event.target.closest('[data-player][data-piece]');
+        if (!piece) return;
+        const playerId = Number(piece.dataset.player);
+        const pieceId = Number(piece.dataset.piece);
+        if (playerId !== currentPlayerIndex || playerId !== onlineState.currentPlayer) return;
+        void sendGameAction('move', pieceId);
+    });
+    $('quit-btn')?.addEventListener('click', event => {
+        if (!onlineMode) return;
+        event.stopImmediatePropagation();
+        void leaveRoom();
+    });
+    $('close-win-btn')?.addEventListener('click', event => {
+        if (!onlineMode) return;
+        event.stopImmediatePropagation();
+        void leaveRoom();
+    });
+
+    $('chat-form')?.addEventListener('submit', async event => {
+        if (!onlineMode) return;
+        event.preventDefault();
+        const input = $('chat-input');
+        const message = input?.value.trim();
+        if (!message || !currentGameId) return;
+        try {
+            await api('send_chat', { game_id: String(currentGameId), message });
+            input.value = '';
+            await refreshGame();
+        } catch (error) {
+            notify(error.message);
+        }
+    });
 }
 
 export async function initOnline() {
