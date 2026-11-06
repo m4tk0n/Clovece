@@ -15,18 +15,32 @@ export function initExitGuard() {
     let guardArmed = false;
     let allowExit = false;
 
+    const reportGuardState = reason => {
+        window.dispatchEvent(new CustomEvent('clovece:debug-exit-guard', {
+            detail: {
+                active: guardArmed && isMainMenuVisible(),
+                armed: guardArmed,
+                mainMenuVisible: isMainMenuVisible(),
+                modalOpen,
+                reason
+            }
+        }));
+    };
+
     const showModal = () => {
         if (modalOpen) return;
         modalOpen = true;
         modal.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
         noButton.focus();
+        reportGuardState('Otevřeno potvrzení opuštění');
     };
 
     const hideModal = () => {
         modalOpen = false;
         modal.classList.add('hidden');
         modal.setAttribute('aria-hidden', 'true');
+        reportGuardState('Potvrzení zavřeno');
     };
 
     // Každé načtení stránky dostane vlastní ochrannou položku.
@@ -40,21 +54,38 @@ export function initExitGuard() {
             window.location.href
         );
         guardArmed = true;
+        reportGuardState('Ochrana historie aktivována');
     };
 
     window.addEventListener('clovece:main-menu-shown', armHistoryGuard);
     armHistoryGuard();
+    reportGuardState('Inicializace Exit Guard');
+
+    // Změna viditelnosti menu mění skutečnou účinnost ochrany.
+    if (window.MutationObserver) {
+        const menuObserver = new MutationObserver(() => {
+            reportGuardState(isMainMenuVisible()
+                ? 'Hlavní menu je viditelné'
+                : 'Hlavní menu není viditelné');
+        });
+        menuObserver.observe(mainMenu, { attributes: true, attributeFilter: ['class'] });
+    }
 
     window.addEventListener('popstate', () => {
         guardArmed = false;
+        reportGuardState('Zachyceno systémové Zpět');
 
         if (allowExit) {
             allowExit = false;
+            reportGuardState('Povolen odchod uživatelem');
             return;
         }
 
         // Na ostatních obrazovkách systémové Zpět funguje běžně.
-        if (!isMainMenuVisible()) return;
+        if (!isMainMenuVisible()) {
+            reportGuardState('Mimo hlavní menu – ochrana se neuplatňuje');
+            return;
+        }
 
         // Znovu vložíme ochranu ještě před zobrazením potvrzení.
         armHistoryGuard();
@@ -67,6 +98,7 @@ export function initExitGuard() {
         hideModal();
         allowExit = true;
         guardArmed = false;
+        reportGuardState('Uživatel potvrdil opuštění');
         window.history.back();
     });
 
