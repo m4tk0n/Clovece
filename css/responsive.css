@@ -11,21 +11,9 @@
     .glitch {
         font-size: 2.5rem;
     }
-    
-    .board {
-        width: 500px;
-        height: 500px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(13, 1fr);
-        grid-template-rows: repeat(13, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(17, 1fr);
-        grid-template-rows: repeat(17, 1fr);
-    }
+
+
+
     
     .game-footer {
         flex-direction: column;
@@ -66,31 +54,15 @@
         padding: 12px 20px;
         font-size: 0.8rem;
     }
-    
-    .board {
-        width: 400px;
-        height: 400px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(11, 1fr);
-        grid-template-rows: repeat(11, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(15, 1fr);
-        grid-template-rows: repeat(15, 1fr);
-    }
+
+
+
     
     .players-panel {
         flex-direction: column;
         align-items: center;
     }
-    
-    .player-card {
-        width: 100%;
-        max-width: 300px;
-    }
+
     
     .lobby-actions {
         flex-direction: column;
@@ -116,27 +88,10 @@
     .glitch {
         font-size: 2rem;
     }
-    
-    .board {
-        width: 300px;
-        height: 300px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(9, 1fr);
-        grid-template-rows: repeat(9, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(13, 1fr);
-        grid-template-rows: repeat(13, 1fr);
-    }
-    
-    .piece {
-        width: 20px;
-        height: 20px;
-        font-size: 0.5rem;
-    }
+
+
+
+
     
     .user-info {
         position: static;
@@ -175,26 +130,10 @@
 
 /* Mobile Portrait */
 @media (max-width: 480px) {
-    .board {
-        width: 250px;
-        height: 250px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(8, 1fr);
-        grid-template-rows: repeat(8, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(11, 1fr);
-        grid-template-rows: repeat(11, 1fr);
-    }
-    
-    .piece {
-        width: 18px;
-        height: 18px;
-        font-size: 0.4rem;
-    }
+
+
+
+
     
     .game-title {
         font-size: 2rem;
@@ -227,20 +166,9 @@
     .room-list {
         gap: 10px;
     }
-    
-    .room-card {
-        padding: 10px;
-    }
-    
-    .room-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    
-    .room-name {
-        margin: 5px 0;
-    }
+
+
+
     
     .room-info {
         flex-direction: column;
@@ -255,26 +183,10 @@
 
 /* Extra Small Devices */
 @media (max-width: 360px) {
-    .board {
-        width: 200px;
-        height: 200px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(7, 1fr);
-        grid-template-rows: repeat(7, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(9, 1fr);
-        grid-template-rows: repeat(9, 1fr);
-    }
-    
-    .piece {
-        width: 15px;
-        height: 15px;
-        font-size: 0.3rem;
-    }
+
+
+
+
     
     .game-title {
         font-size: 1.5rem;
