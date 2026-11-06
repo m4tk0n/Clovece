@@ -39,7 +39,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - js/game-engine.js – pravidla a stav hry
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
 - js/app.js – ovládání hry a AI
-- css/game-premium.css – obecné rozhraní hry; samostatné CSS desky a kostky se načítá podle režimu
+- css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
 - online-api.php – anonymní online API a serverově ověřované herní tahy
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
 - install/install.php – instalace databázových tabulek
