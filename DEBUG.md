@@ -12,7 +12,7 @@ Malý červený panel je připnutý ke spodnímu okraji právě viditelné čás
 
 Panel lze klepnutím rozbalit a dalším klepnutím opět sbalit. Rozbalený panel obsahuje chronologický protokol načítání a inicializace modulů. U každé operace je stav (`…` probíhá, `OK` dokončeno, `CHYBA` selhalo) a po dokončení také doba trvání v milisekundách. Panel lze ovládat také klávesami Enter a mezerník.
 
-Protokol sleduje načtení hlavních JavaScript modulů, spuštění jejich inicializačních funkcí a také CSS soubory. U CSS uvádí adresu, stav a dostupnou dobu načítání. Sleduje i později vložené stylesheety a elementy <style>. Načítání základních modulů navigace, zvuku a online lobby probíhá souběžně, proto jejich pořadí dokončení nemusí odpovídat pořadí v seznamu. Lokální herní runtime se načítá až po vstupu do nastavení nové hry; online herní runtime až po přechodu do aktivní online hry. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
+Protokol sleduje načtení hlavních JavaScript modulů, spuštění jejich inicializačních funkcí a také CSS soubory. U CSS uvádí adresu, stav a dostupnou dobu načítání. Sleduje i později vložené stylesheety a elementy <style>. Při startu se souběžně načítá pouze navigace a zvuk. Online lobby se importuje až po kliknutí na ONLINE HRANÍ (nebo při otevření pozvánkového odkazu). Lokální herní runtime se načítá až po vstupu do lokální hry nebo nastavení; online herní runtime až po přechodu do aktivní online hry. Záznam „načteno“ znamená, že prohlížeč dokončil import modulu; sám o sobě neznamená, že každá jeho funkce nebo pozdější síťový požadavek již skončil.
 
 Zobrazuje:
 
