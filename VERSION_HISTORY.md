@@ -1,3 +1,22 @@
+## 1.00.00.22 – Povinnost vstoupit do domečku
+
+**Datum:** 6. 11. 2026  
+**Typ:** Nové rozšířené pravidlo místní hry
+
+- Do nabídky rozšířených pravidel přidána volba „Povinnost vstoupit do domečku“ s přepínačem ANO/NE a informační nápovědou.
+- Při zapnutí musí hráč využít alespoň jeden dostupný legální tah do volného cílového pole, pokud takový tah podle hodu a ostatních aktivních pravidel existuje.
+- Pokud legální vstup neexistuje, zůstávají dostupné ostatní legální tahy.
+- Při vypnutí může hráč zvolit jiný legální tah i tehdy, když má možnost vstoupit do domečku.
+- Výchozí stav je ANO. Pravidlo ovlivňuje pouze místní JavaScriptový engine; online hra zůstává beze změny.
+
+**Dotčené soubory:**
+- `screens/player-selection.php`, `js/player-setup.js`, `js/game-engine.js`
+- `GAME_RULES.md`, `.github/ROADMAP.md`
+
+**Ověření:** zdrojová kontrola; automatické a praktické testy čekají.
+
+---
+
 ## 1.00.00.21 – Přeskakování vlastních figurek v domečku
 
 **Datum:** 6. 11. 2026  

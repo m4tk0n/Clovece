@@ -31,7 +31,8 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
     const gameRules = {
         threeRolls: rules.threeRolls !== false,
         mustDeploy: rules.mustDeploy !== false,
-        skipHomePieces: rules.skipHomePieces !== false
+        skipHomePieces: rules.skipHomePieces !== false,
+        mustEnterHome: rules.mustEnterHome !== false
     };
     if (total < 2 || total > 8 || humanCount < 1 || aiCount < 0) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
@@ -168,7 +169,10 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
         candidates.push(piece.id);
     });
 
-    // Přesný a volný vstup do cílové dráhy má přednost před všemi ostatními tahy.
+    // Pokud je pravidlo zapnuté, legální vstup do domečku má přednost
+    // před všemi ostatními tahy. Při vypnutí zůstávají dostupné všechny kandidáty.
+    if (!game.rules.mustEnterHome) return candidates;
+
     const forcedHomeEntries = candidates.filter(pieceId => {
         const piece = playerPieces[pieceId];
         return piece.steps >= 0 && piece.steps < game.trackLength &&
