@@ -49,24 +49,19 @@
                 <section id="extended-rules-panel" class="extended-rules-panel hidden" aria-label="Volitelná pravidla hry">
                     <div class="extended-rule-row">
                         <div class="extended-rule-description">
-                            <span>Pravidlo 1</span>
-                            <button class="rule-info" type="button" aria-label="Informace k pravidlu 1" title="Ukázkové pravidlo. Popis bude doplněn.">i</button>
+                            <span>3 HODY</span>
+                            <button class="rule-info" type="button" data-rule-info aria-label="Nápověda: 3 hody" aria-expanded="false">i</button>
+                            <p class="rule-hint" hidden>Pokud má hráč všechny čtyři figurky v základně, může házet až třikrát. Jakmile hodí šestku, může nasadit figurku. Pokud šestka nepadne ani na třetí pokus, tah končí.</p>
                         </div>
-                        <button class="rule-switch" type="button" data-rule-toggle="rule1" aria-pressed="false"><span>NE</span></button>
+                        <button class="rule-switch" type="button" data-rule-toggle="threeRolls" aria-pressed="true"><span>ANO</span></button>
                     </div>
                     <div class="extended-rule-row">
                         <div class="extended-rule-description">
-                            <span>Pravidlo 2</span>
-                            <button class="rule-info" type="button" aria-label="Informace k pravidlu 2" title="Ukázkové pravidlo. Popis bude doplněn.">i</button>
+                            <span>POVINNOST NASADIT</span>
+                            <button class="rule-info" type="button" data-rule-info aria-label="Nápověda: Povinnost nasadit" aria-expanded="false">i</button>
+                            <p class="rule-hint" hidden>Pokud má hráč alespoň jednu figurku v základně a hodí šestku, musí nasadit figurku ze základny. Pokud je pravidlo vypnuté, může místo nasazení táhnout již nasazenou figurkou.</p>
                         </div>
-                        <button class="rule-switch" type="button" data-rule-toggle="rule2" aria-pressed="false"><span>NE</span></button>
-                    </div>
-                    <div class="extended-rule-row">
-                        <div class="extended-rule-description">
-                            <span>Pravidlo 3</span>
-                            <button class="rule-info" type="button" aria-label="Informace k pravidlu 3" title="Ukázkové pravidlo. Popis bude doplněn.">i</button>
-                        </div>
-                        <button class="rule-switch" type="button" data-rule-toggle="rule3" aria-pressed="false"><span>NE</span></button>
+                        <button class="rule-switch" type="button" data-rule-toggle="mustDeploy" aria-pressed="true"><span>ANO</span></button>
                     </div>
                 </section>
                 </div>
