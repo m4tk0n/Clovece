@@ -12,14 +12,14 @@
                 <div class="form-group">
                     <label for="profile-color">Moje barva hráče</label>
                     <select id="profile-color" name="color" class="color-select">
-                        <option value="#E53935">Červená</option>
-                        <option value="#1E88E5">Modrá</option>
-                        <option value="#43A047">Zelená</option>
-                        <option value="#F9A825">Žlutá</option>
-                        <option value="#FB8C00">Oranžová</option>
-                        <option value="#8E24AA">Fialová</option>
-                        <option value="#00ACC1">Tyrkysová</option>
-                        <option value="#D81B60">Růžová</option>
+                        <option value="#ff6b6b">Červená</option>
+                        <option value="#4ecdc4">Tyrkysová</option>
+                        <option value="#ffe66d">Žlutá</option>
+                        <option value="#a8e6cf">Zelená</option>
+                        <option value="#ff8b94">Růžová</option>
+                        <option value="#b4a7d6">Fialová</option>
+                        <option value="#d4a373">Oranžová</option>
+                        <option value="#9999ff">Modrá</option>
                     </select>
                     <span id="profile-color-preview" class="profile-color-preview" aria-hidden="true"></span>
                 </div>
