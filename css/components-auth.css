@@ -38,6 +38,12 @@
     font-size: 13px;
 }
 
+/* Tlačítko Zpět na přihlášení má mít jen šířku svého obsahu. */
+#login-screen #back-from-login {
+    width: fit-content;
+    max-width: none;
+}
+
 @media (max-width: 420px) {
     .auth-form { margin-bottom: 8px; padding: 10px; }
     .form-group { margin-bottom: 8px; }
