@@ -79,7 +79,8 @@ export function initNavigation() {
     };
     const openSettings = async () => {
         try {
-            await ensureLocalGame();
+            const settingsModule = await import('./settings.js');
+            settingsModule.initSettings();
             showScreen('settings');
         } catch (error) {
             console.error('Nastavení se nepodařilo načíst:', error);
