@@ -3,7 +3,8 @@
 > Závazná specifikace herních pravidel. Lokální JavaScriptový engine i serverový PHP engine musí pravidla vyhodnocovat shodně.
 
 ## 1. Rozsah
-- Stejná pravidla platí pro lokální i online hru, lidské i počítačové hráče a zobrazení 2D i 3D.
+- Základní herní pravidla platí pro lokální i online hru, lidské i počítačové hráče a zobrazení 2D i 3D.
+- Volitelná rozšířená pravidla mohou být dočasně dostupná pouze v jednom režimu; jejich rozsah je vždy výslovně uveden u konkrétního pravidla.
 - AI ani způsob zobrazení nesmějí měnit pravidla.
 - Herní logika je oddělena od vykreslování desky.
 - Tento dokument je jediným technickým zdrojem pravdy pro pravidla hry.
@@ -75,7 +76,8 @@
 - Hráč vyhrává, když všechny čtyři jeho figurky obsadí čtyři různá cílová pole D1–D4. Hra v tu chvíli končí.
 
 ## 10. Technické požadavky na implementaci
-- Lokální JavaScriptový engine a serverový PHP engine musí používat totožná pravidla pro validaci hodů, legálních tahů, nasazení, vyhazování, vstupu do cíle, bonusových hodů a ukončení tahu.
+- Lokální JavaScriptový engine a serverový PHP engine musí používat totožná základní pravidla pro validaci hodů, legálních tahů, nasazení, vyhazování, vstupu do cíle, bonusových hodů a ukončení tahu.
+- Každé volitelné rozšíření dostupné v obou režimech musí mít shodnou serverovou i klientskou implementaci. Rozšíření výslovně omezená na lokální hru se do online enginu nepřenášejí, dokud nebude jejich online podpora samostatně doplněna.
 - Server je autoritou pro online hru; klient nesmí být schopen vynutit neplatný tah.
 - Testy obou enginů musí pokrývat všechna pravidla uvedená výše.
 - Vzhled desky, animace, rychlost pohybu a režim 2D/3D nesmějí ovlivnit výsledek herní akce.
