@@ -2,8 +2,28 @@
    PRAVIDLA (#rules-screen)
    =================== */
 
+/* Pravidla využijí dostupnou šířku i výšku obrazovky. */
+#rules-screen {
+    --panel-max: none;
+    --content-max: none;
+}
+
+#rules-screen .menu-bg {
+    min-height: 100%;
+}
+
+.rules-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    margin: 0 auto;
+}
+
 .rules-text {
-    max-height: 55vh;
+    flex: 1;
+    min-height: 0;
+    max-height: none;
     padding: 14px;
     overflow-y: auto;
     border: 1px solid var(--gold-line-soft);
