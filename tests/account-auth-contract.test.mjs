@@ -41,10 +41,30 @@ test('main menu and dynamically loaded forms expose account actions', () => {
     const auth = read('js/auth.js');
     const login = read('screens/login.php');
     const register = read('screens/register.php');
-    assert.match(index, /id="register-menu-btn"/);
+    assert.doesNotMatch(index, /id="register-menu-btn"/);
     assert.match(index, /id="login-menu-btn"/);
+    assert.match(index, /id="account-avatar-btn"/);
+    assert.match(index, /data-account-action="profile"/);
+    assert.match(index, /data-account-action="games"/);
+    assert.match(index, /data-account-action="stats"/);
     assert.match(navigation, /import\('\.\/auth\.js'\)/);
     assert.match(auth, /addEventListener\('submit'/);
     assert.match(login, /id="login-form"/);
     assert.match(register, /id="register-form"/);
+});
+
+
+test('profile screen can update account details and display player statistics', () => {
+    const profile = read('screens/profile.php');
+    const controller = read('js/profile.js');
+    const api = read('online-api.php');
+    const screenRouter = read('screen.php');
+    assert.match(screenRouter, /'profile' => 'profile\.php'/);
+    assert.match(profile, /name="display_name"/);
+    assert.match(profile, /id="profile-color"/);
+    assert.match(profile, /id="profile-statistics"/);
+    assert.match(controller, /api\('update_profile'/);
+    assert.match(controller, /api\('profile_stats'/);
+    assert.match(api, /case 'update_profile'/);
+    assert.match(api, /case 'profile_stats'/);
 });
