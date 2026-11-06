@@ -5,6 +5,12 @@
 import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove } from './game-engine.js';
 import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
 import { showScreen } from './navigation.js';
+import { settings } from './settings.js';
+import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
+import { createGameView } from './game-view.js';
+import { createGameLog } from './game-log.js';
+import { createTurnController } from './game-turn.js';
+
 // Zvukový modul se načte až při skutečném spuštění hry.
 let audioModule = null;
 let audioModulePromise = null;
@@ -26,11 +32,6 @@ async function ensureAudioModule() {
     }
     return audioModulePromise;
 }
-import { settings } from './settings.js';
-import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
-import { createGameView } from './game-view.js';
-import { createGameLog } from './game-log.js';
-import { createTurnController } from './game-turn.js';
 
 const $ = id => document.getElementById(id);
 // Kostka je samostatný modul; stáhne se až při prvním hodu.
