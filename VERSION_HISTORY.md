@@ -235,3 +235,9 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 
 - Chat, slučování herních událostí a souhrn rozstřelu přesunuty do `js/game-log.js`.
 - Modul dostává stav hry přes getter a neimportuje `app.js`.
+
+
+## 1.00.00.16 – Oddělení herního zobrazení
+
+- Vykreslení statistik hráčů, desky a stavových ovládacích prvků přesunuto do `js/game-view.js`.
+- Modul dostává herní stav přes getter a vykreslovač desky přes parametr; neimportuje `app.js`.
