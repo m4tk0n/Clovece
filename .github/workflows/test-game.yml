@@ -30,6 +30,7 @@ jobs:
           extensions: pdo_mysql
       - name: Check PHP syntax
         run: |
+          php -l index.php
           php -l config.php
           php -l screen.php
           for file in screens/*.php; do php -l "$file"; done
