@@ -1,0 +1,39 @@
+/* Player Selection – komponenty pro příslušnou část aplikace. */
+
+.selection-container {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2rem;
+    border-radius: var(--radius);
+    border: 2px solid rgba(255, 107, 107, 0.3);
+}
+
+
+
+
+
+
+
+
+
+.player-preview {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--radius);
+}
+
+.player-preview h3 {
+    font-family: var(--font-pixel);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+
+.preview-players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
