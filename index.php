@@ -66,6 +66,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
             'css/components-chat.css' => $assetVersion('css/components-chat.css'),
             'css/components-settings.css' => $assetVersion('css/components-settings.css'),
             'css/components-rules.css' => $assetVersion('css/components-rules.css'),
+            'css/components-local-games.css' => $assetVersion('css/components-local-games.css'),
             'css/components-game.css' => $assetVersion('css/components-game.css'),
             'css/animations.css' => $assetVersion('css/animations.css')
         ]), ENT_QUOTES, 'UTF-8') ?>'>
@@ -115,8 +116,8 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                         <i class="fas fa-play"></i>
                     </button>
                     <button id="create-room-btn" class="menu-btn">
-                        <span>NOVÁ LOKÁLNÍ HRA</span>
-                        <i class="fas fa-plus"></i>
+                        <span>ROZEHRANÉ HRY</span>
+                        <i class="fas fa-folder-open"></i>
                     </button>
                     <button id="join-room-btn" class="menu-btn">
                         <span>ONLINE HRANÍ</span>
