@@ -50,7 +50,7 @@
                 <h3>Seznam místností</h3>
                 <div id="room-list" class="room-list"></div>
                 
-                <button id="back-from-lobby" class="menu-btn secondary">
+                <button id="back-from-lobby" class="menu-btn secondary fit-content">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
