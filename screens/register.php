@@ -40,7 +40,7 @@
                 <p class="auth-link">
                     Již máte účet? <button type="button" id="show-login" class="link-btn">Přihlašte se</button>
                 </p>
-                <button id="back-from-register" class="menu-btn secondary">
+                <button id="back-from-register" class="menu-btn">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
