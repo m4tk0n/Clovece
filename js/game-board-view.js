@@ -80,20 +80,34 @@ export function ensureGameStyles() {
 
 export function ensureModeStyles(mode) {
     if (mode !== '2d' && mode !== '3d') throw new Error('Neznámý režim CSS: ' + mode);
-    if (activeStylesMode !== mode) {
-        if (activeStylesMode) {
-            for (const name of ['board-' + activeStylesMode, 'dice-' + activeStylesMode]) {
-                document.getElementById('clovece-' + name + '-styles')?.remove();
-                modeStylesPromises.delete(name);
-            }
-        }
-        activeStylesMode = mode;
-    }
+    activeStylesMode = mode;
     return Promise.all([
         ensureGameStyles(),
         ensureStylesheet('board-' + mode, mode),
         ensureStylesheet('dice-' + mode, mode)
     ]);
+}
+
+/** Ověří reálnou možnost vytvořit Three.js renderer a přednačte styly režimů. */
+export async function prepareBoardRendering() {
+    view3d = false;
+    view3dUnavailable = false;
+    let canUse3D = false;
+    try {
+        const module = await loadThreeRenderer();
+        canUse3D = await module.probe3D();
+    } catch (error) {
+        console.info('3D není dostupné; používá se 2D.', error);
+    }
+    view3d = canUse3D;
+    view3dUnavailable = !canUse3D;
+    saveView();
+    if (canUse3D) {
+        await Promise.all([ensureModeStyles('2d'), ensureModeStyles('3d')]);
+    } else {
+        await ensureModeStyles('2d');
+    }
+    return canUse3D ? '3d' : '2d';
 }
 
 export function releaseGameView() {
