@@ -24,6 +24,14 @@
                             <input type="hidden" id="ai-players" min="0" max="7" value="1">
                         </div>
                     </div>
+                    <div class="board-size-control ai-difficulty-control">
+                        <label class="board-size-label" for="ai-difficulty">OBTÍŽNOST AI</label>
+                        <select id="ai-difficulty" class="ai-difficulty-select" aria-label="Obtížnost počítačových soupeřů">
+                            <option value="easy">Lehká</option>
+                            <option value="medium" selected>Střední</option>
+                            <option value="hard">Těžká</option>
+                        </select>
+                    </div>
                     <div class="board-size-control">
                         <span class="board-size-label">VELIKOST DESKY</span>
                         <div class="board-size-options" id="board-size-options" role="group" aria-label="Velikost hrací desky">
