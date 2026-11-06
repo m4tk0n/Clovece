@@ -55,6 +55,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 
 - Při otevření webu se nenačítá lokální herní runtime ani renderer desky; načtou se až při vstupu do lokálního nastavení hry nebo při otevření aktivní online hry.
 - `css/game-premium.css` se spolu s CSS desky a kostky připojí až při zobrazení hry. Načte se pouze sada pro právě zvolený režim 2D nebo 3D.
+- Herní animace vyhození a vítězství jsou v `css/game-premium.css`; globální `css/animations.css` obsahuje pouze animace potřebné i mimo hru, například pro úvodní obrazovku a menu.
 - Při odchodu z herní obrazovky se herní stylesheety odpojí, DOM desky se vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
 - Online lobby zůstává bez herního rendereru a bez importu lokálního herního runtime.
 - Prohlížeče nemají standardní API pro odregistrování již importovaného ES modulu z modulové cache. Po odchodu proto uvolňujeme reference a aktivní prostředky; nelze zaručit okamžité fyzické odstranění samotného kódu modulu z paměti.
