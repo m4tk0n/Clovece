@@ -60,14 +60,14 @@ export function ensureModeStyles(mode) {
         }
         activeStylesMode = mode;
     }
-    return Promise.all(['board-' + mode, 'dice-' + mode].map(name => {
+    return Promise.all(['game-premium', 'board-' + mode, 'dice-' + mode].map(name => {
         if (modeStylesPromises.has(name)) return modeStylesPromises.get(name);
         const startedAt = performance.now();
         const link = document.createElement('link');
         link.id = 'clovece-' + name + '-styles';
         link.dataset.modeStyle = mode;
         link.rel = 'stylesheet';
-        link.href = new URL('../css/' + name + '.css?v=20261106', import.meta.url).href;
+        link.href = new URL('../css/' + name + '.css?v=20261106-2', import.meta.url).href;
         const promise = new Promise((resolve, reject) => {
             emitDebugLoad('css/' + name + '.css – načítání', '…');
             link.onload = () => {
@@ -98,6 +98,7 @@ export function releaseGameView() {
         delete container.dataset.renderKey;
     }
 
+    document.getElementById('clovece-game-premium-styles')?.remove();
     for (const mode of ['2d', '3d']) {
         for (const name of ['board-' + mode, 'dice-' + mode]) {
             document.getElementById('clovece-' + name + '-styles')?.remove();
