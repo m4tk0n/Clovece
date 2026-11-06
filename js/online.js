@@ -6,10 +6,7 @@ import { showScreen, loadScreen } from './navigation.js';
 import { api, bootstrapOnline } from './online/api.js';
 import { notify } from './online/notifications.js';
 import { createRoomActions } from './online/room-actions.js';
-import { loadOnlineGameRuntime, resetOnlineGameRuntime } from './online/game-runtime.js';
-import { renderOnlineGame } from './online/game-view.js';
 import { renderRoomView } from './online/room-view.js';
-import { createOnlineGameControls } from './online/game-controls.js';
 
 const $ = id => document.getElementById(id);
 
@@ -57,13 +54,24 @@ const roomActions = createRoomActions({
     stopPolling
 });
 const { loadMyGames, resumeMyGame, savePlayerName, joinRoom, createRoom, copyInvite, leaveRoom } = roomActions;
-const initOnlineGameControls = createOnlineGameControls({
-    session: onlineRuntimeState, sendGameAction, leaveRoom, api, notify, refreshGame
-});
+let onlineGameControlsPromise = null;
+async function initOnlineGameControls() {
+    if (!onlineGameControlsPromise) {
+        onlineGameControlsPromise = import('./online/game-controls.js').then(({ createOnlineGameControls }) =>
+            createOnlineGameControls({
+                session: onlineRuntimeState, sendGameAction, leaveRoom, api, notify, refreshGame
+            })
+        ).catch(error => {
+            onlineGameControlsPromise = null;
+            throw error;
+        });
+    }
+    const initialize = await onlineGameControlsPromise;
+    initialize();
+}
 
 window.addEventListener('clovece:game-exit', () => {
     onlineRenderRequest++;
-    resetOnlineGameRuntime();
 });
 
 function stopPolling() {
@@ -82,10 +90,11 @@ function schedulePoll() {
 function renderGame(data) {
     const game = data.game;
     if (['active', 'finished'].includes(game.status) && game.state) {
-        void renderOnlineGame(data, {
-            state: onlineRuntimeState, loadScreen, showScreen, initOnlineGameControls,
-            loadOnlineGameRuntime, sendGameAction
-        }).catch(error => {
+        void import('./online/game-view.js').then(({ renderOnlineGame }) =>
+            renderOnlineGame(data, {
+                state: onlineRuntimeState, loadScreen, showScreen, initOnlineGameControls, sendGameAction
+            })
+        ).catch(error => {
             console.error('Online herní runtime se nepodařilo načíst:', error);
             notify('Hru se nepodařilo zobrazit: ' + error.message);
         });
