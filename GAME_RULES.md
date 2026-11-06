@@ -57,8 +57,11 @@
 - Ve výchozím režimu se vlastní figurky v cílové dráze nesmějí přeskakovat; každé mezilehlé pole musí být volné.
 - Je-li v rozšířených pravidlech místní hry zapnuto **Přeskakování v domečku**, lze vlastní figurky v cílové dráze přeskočit. Hod kostkou ale vždy určuje přesnou cílovou pozici; například z D1 při hodu 2 lze skončit na D3, i když je D2 obsazené.
 - Tah nesmí skončit na obsazeném cílovém poli. Přeskočení je možné pouze přes mezilehlá obsazená pole, nikoli na obsazené cílové pole.
-- Pokud může některá figurka na hlavním okruhu aktuálním hodem přesně a volně vstoupit do cílové dráhy, je tento vstup povinný. Hráč nesmí táhnout jinou figurkou.
-- Povinnost vstupu do cíle neplatí, pokud je cesta blokována vlastní figurkou nebo přesný vstup není možný.
+- V místní hře lze zapnout volitelné pravidlo **Povinnost vstoupit do domečku** (výchozí ANO). Je-li zapnuté a alespoň jedna figurka může podle aktuálního hodu legálně a přesně vstoupit do volného cílového pole, hráč musí zvolit některý takový tah a nesmí táhnout jinou figurkou.
+- Za legální vstup se považuje pouze tah, který splňuje všechna ostatní aktivní pravidla, včetně přesného počtu kroků, volného cílového pole a případného pravidla přeskakování vlastních figurek.
+- Pokud žádná figurka nemá legální vstup do cílové dráhy, povinnost se neuplatní a hráč může využít jiný legální tah.
+- Při vypnutí pravidla může hráč zvolit libovolný jiný legální tah, i když má možnost vstoupit do domečku.
+- Toto volitelné pravidlo je dostupné pouze pro místní hru. Online hra zůstává beze změny.
 - Cílová pole se nehromadí; na každém může stát nejvýše jedna figurka.
 - Volitelné pravidlo Přeskakování v domečku je v této verzi dostupné pouze pro místní hru. Online hra nadále používá dosavadní pravidlo bez přeskakování; online engine se touto změnou nemění.
 
