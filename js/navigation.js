@@ -21,6 +21,11 @@ export function showScreen(name) {
 
     const target = document.getElementById(id);
     if (!target) return;
+    const gameScreen = document.getElementById('game-screen');
+    const leavingGame = name !== 'game' && gameScreen && !gameScreen.classList.contains('hidden');
+    if (leavingGame) {
+        window.dispatchEvent(new Event('clovece:game-exit'));
+    }
 
     const screens = document.querySelectorAll('.menu-screen, .game-screen');
     const alreadyActive = !target.classList.contains('hidden') &&
@@ -46,6 +51,30 @@ function bindClick(id, callback) {
 }
 
 export function initNavigation() {
+    let localGameModulePromise = null;
+    let localGameInitialized = false;
+    const openLocalGame = async () => {
+        try {
+            if (!localGameModulePromise) {
+                localGameModulePromise = import('./app.js');
+            }
+            const gameModule = await localGameModulePromise;
+            if (!localGameInitialized) {
+                gameModule.initGame();
+                localGameInitialized = true;
+            }
+            gameModule.openPlayerSelection();
+        } catch (error) {
+            console.error('Herní modul se nepodařilo načíst:', error);
+            window.alert('Herní část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        }
+    };
+    bindClick('play-btn', openLocalGame);
+    bindClick('create-room-btn', openLocalGame);
+    window.addEventListener('clovece:game-exit', () => {
+        // Uvolníme referenci na namespace; importní cache prohlížeče nelze programově vymazat.
+        localGameModulePromise = null;
+    });
     bindClick('show-register', () => showScreen('register'));
     bindClick('show-login', () => showScreen('login'));
     bindClick('back-from-login', () => showScreen('main-menu'));
