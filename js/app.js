@@ -10,7 +10,6 @@ import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js'
 import { createGameView } from './game-view.js';
 import { createGameLog } from './game-log.js';
 import { createTurnController } from './game-turn.js';
-import { initGameScreen as initLocalGameScreen } from './game-screen.js';
 
 // Zvukový modul se načte až při skutečném spuštění hry.
 let audioModule = null;
@@ -90,7 +89,8 @@ const turnController = createTurnController({
 async function startGame() {
     try {
         await loadScreen('game');
-        initLocalGameScreen({
+        const { initGameScreen } = await import('./game-screen.js');
+        initGameScreen({
             turnController,
             getAudioModule: () => audioModule,
             settings,
