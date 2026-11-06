@@ -46,7 +46,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - js/game-log.js – herní chat, log událostí a rozstřel
 - js/game-view.js – vykreslení hráčů a stavu tahu
 - js/game-turn.js – pohyb figurek, hody, průběh tahů a AI
-- css/menu-components.css – základní komponenty hlavního menu, načítá se při startu
+- css/menu-components.css – statické komponenty hlavního menu, načítá se při startu
 - css/components.css – společné odkazy a drobné komponenty pro ostatní obrazovky
 - css/components-auth.css – přihlašovací a registrační formuláře
 - css/components-player-selection.css – výběr hráčů a náhled sestavy
@@ -55,7 +55,6 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - css/components-settings.css – ovládací prvky nastavení
 - css/components-rules.css – zobrazení pravidel
 - css/components-game.css – herní tlačítka a karty hráčů
-- css/menu-animations.css – animace načítané při startu mimo herní obrazovku
 - css/animations.css – herní animace, načítají se až při vstupu do hry
 - css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
 - online-api.php – anonymní online API a serverově ověřované herní tahy
@@ -73,9 +72,9 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 
 - Při otevření webu se načítá pouze navigace a zvuk. Lokální herní runtime se importuje až při vstupu do lokální hry nebo nastavení; online modul až po otevření lobby a renderer/engine až při aktivní online hře.
 - `css/game-premium.css` se připojí až při otevření výběru lokální hry. CSS desky a kostky se připojí až při spuštění hry a načte se pouze sada pro právě zvolený režim 2D nebo 3D.
-- `css/menu-animations.css` obsahuje pouze animace potřebné mimo hru a načítá se při startu.
+- Úvodní menu je statické; herní animace se načítají až při otevření herní obrazovky.
 - `css/animations.css` obsahuje herní animace a načítá se až při otevření herní obrazovky.
-- `css/menu-components.css` obsahuje pouze tlačítka a glitch vzhled hlavního menu.
+- `css/menu-components.css` obsahuje tlačítka a statické prvky hlavního menu.
 - Komponenty jsou rozdělené podle obrazovek do `components-auth.css`, `components-player-selection.css`, `components-online.css`, `components-chat.css`, `components-settings.css`, `components-rules.css` a `components-game.css`. Navigace načte pouze moduly potřebné pro právě otevřenou obrazovku a při přechodu je nepotřebné moduly odpojí.
 - Všechny dynamicky načítané CSS používají verzi z `filemtime()`, takže změna jednoho souboru nezneplatní cache ostatních.
 - Při odchodu z herní obrazovky se herní stylesheety odpojí, DOM desky se vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
