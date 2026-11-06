@@ -106,7 +106,6 @@
 .menu-btn {
     position: relative;
     z-index: 1;
-    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -123,14 +122,6 @@
     letter-spacing: .025em;
     text-transform: uppercase;
     cursor: pointer;
-}
-
-.menu-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(to right, transparent, rgba(255, 255, 255, .2), transparent);
 }
 
 .menu-btn.secondary {
