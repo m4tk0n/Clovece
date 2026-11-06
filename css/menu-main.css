@@ -151,8 +151,9 @@
     color: #fff9eb;
     font: 800 17px/1 var(--font-ui);
     text-transform: uppercase;
-    cursor: default;
+    cursor: pointer;
 }
+#main-menu .account-avatar:focus-visible { outline: 2px solid var(--gold-light); outline-offset: 3px; }
 
 #main-menu .account-avatar.hidden { display: none; }
 
