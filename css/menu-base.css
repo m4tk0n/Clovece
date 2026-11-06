@@ -241,3 +241,35 @@
     color: var(--white);
     text-shadow: 0 0 10px var(--primary);
 }
+
+
+/* Rolovací lišta obrazovek menu – explicitně pro WebKit (včetně starších Androidů). */
+.menu-screen {
+    scrollbar-face-color: var(--control-accent);
+    scrollbar-track-color: rgba(255, 255, 255, .08);
+}
+
+.menu-screen::-webkit-scrollbar,
+.menu-screen *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    -webkit-appearance: none;
+}
+
+.menu-screen::-webkit-scrollbar-track,
+.menu-screen *::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, .08);
+    border-radius: 8px;
+}
+
+.menu-screen::-webkit-scrollbar-thumb,
+.menu-screen *::-webkit-scrollbar-thumb {
+    background: var(--control-accent);
+    border: 1px solid rgba(8, 15, 19, .65);
+    border-radius: 8px;
+}
+
+.menu-screen::-webkit-scrollbar-thumb:active,
+.menu-screen *::-webkit-scrollbar-thumb:active {
+    background: #65ded5;
+}
