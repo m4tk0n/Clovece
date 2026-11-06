@@ -135,7 +135,7 @@ export function getPlayerSetup() {
     const colors = Array.from(preview.querySelectorAll('[data-color-key]'), select =>
         select.value === 'random' ? select.dataset.resolvedColor : select.value
     );
-    return { humanCount, aiCount, selectedBoardSize, names, colors, extendedRules: { ...extendedRules } };
+    return { humanCount, aiCount, selectedBoardSize, names, colors, aiDifficulty: $('ai-difficulty')?.value || 'medium', extendedRules: { ...extendedRules } };
 }
 
 export function initPlayerSetup() {

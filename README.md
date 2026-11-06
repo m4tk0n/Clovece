@@ -10,7 +10,7 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 
 - 2 až 8 hráčů v libovolné kombinaci lidí a AI
 - Podrobná a závazná pravidla hry včetně dostupných desek jsou vedena výhradně v [GAME_RULES.md](GAME_RULES.md)
-- Automatické tahy AI
+- Automatické tahy AI se třemi úrovněmi obtížnosti (lehká, střední, těžká); taktika a pravděpodobnostní model jsou popsány v [AI_STRATEGY.md](AI_STRATEGY.md)
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
 
@@ -37,6 +37,13 @@ Před nasazením pro běžné hraní je nutné dokončit test na WZ.cz ve dvou s
 
 Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné později připojit serverový herní engine bez přepisování celé hry.
 
+## Počítačová AI
+
+- Obtížnost místní AI se nastavuje při vytváření hry: lehká, střední nebo těžká.
+- Všechny úrovně vybírají pouze legální tahy herního enginu.
+- AI vyhodnocuje postup, dokončení figurek, vyhazování, riziko zásahu soupeřem a podle obtížnosti také očekávané pokračování po šestce.
+- Kompletní popis algoritmu, pravděpodobností, omezení a testů je v [AI_STRATEGY.md](AI_STRATEGY.md).
+
 ## Historie verzí
 
 Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HISTORY.md).
@@ -45,12 +52,13 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 
 - index.php – vstupní bod, pseudo-CRON a obrazovky aplikace
 - js/game-engine.js – pravidla a stav hry
+- js/ai-strategy.js – samostatné strategické vyhodnocení tahů AI a pravděpodobnost ohrožení
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
 - js/app.js – koordinace lokální hry a AI
 - js/dice.js – řízení hodu a volba 2D/3D animace kostky (načítá se až při použití lokální/online hry)
 - js/dice-rotation.js – společný rotační plán pro 2D a 3D kostku
 - js/settings.js – nastavení hry; načítá se samostatně z menu bez načtení herního enginu a rendereru
-- js/player-setup.js – výběr hráčů, barev a velikosti desky
+- js/player-setup.js – výběr hráčů, barev, velikosti desky a obtížnosti AI
 - js/game-log.js – herní chat, log událostí a rozstřel
 - js/game-view.js – vykreslení hráčů a stavu tahu
 - js/game-turn.js – pohyb figurek, hody, průběh tahů a AI
