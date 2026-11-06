@@ -7,18 +7,18 @@ import { renderMyGames } from './my-games-view.js';
 export function createRoomActions(deps) {
     const { $, api, notify, session, bootstrapOnline, showScreen, refreshGame, openGame, stopPolling } = deps;
 
-    async function loadMyGames() {
-        const container = $('my-games-list');
+    async function loadMyGames(containerId = 'my-games-list') {
+        const container = $(containerId);
         if (!container) return;
         try {
             const result = await api('list_my_games');
-            renderMyGames(result.games || []);
+            renderMyGames(result.games || [], containerId);
         } catch (error) {
             container.textContent = 'Seznam her se nepodařilo načíst: ' + error.message;
         }
     }
     
-    async function resumeMyGame(gameId, button) {
+    async function resumeMyGame(gameId, button, containerId = 'my-games-list') {
         if (button) button.disabled = true;
         try {
             const result = await api('resume_game', { game_id: String(gameId) });
@@ -31,7 +31,7 @@ export function createRoomActions(deps) {
             await openGame(result.game_id, inviteUrl);
         } catch (error) {
             notify(error.message);
-            await loadMyGames();
+            await loadMyGames(containerId);
         } finally {
             if (button) button.disabled = false;
         }
