@@ -292,24 +292,9 @@ export async function animateDice(value) {
     }
     if (document.documentElement.dataset.boardView !== mode) return;
 
-    if (mode === '2d') {
-        animation.dataset.mode = '2d';
-        animation.dataset.value = String(diceValue);
-        animation.classList.remove('hidden');
-        scene.classList.remove('rolling');
-        cube.style.removeProperty('transform');
-        cube.style.removeProperty('transition');
-        void cube.offsetWidth;
-        scene.classList.add('rolling');
-        if (settings.moveSpeed !== 'fast') play('dice-sound');
-        const duration = settings.moveSpeed === 'fast' ? 450 : 780;
-        await new Promise(resolve => window.setTimeout(resolve, duration));
-        scene.classList.remove('rolling');
-        animation.classList.add('hidden');
-        return;
-    }
-
-    animation.dataset.mode = '3d';
+    // Kostka používá CSS 3D transformace v obou režimech desky.
+    // 2D režim tak nepotřebuje WebGL ani Three.js, ale zachovává plnou animaci šesti stran.
+    animation.dataset.mode = mode;
     delete animation.dataset.value;
     const BASE = {
         1: { x: 0, y: 0 },
