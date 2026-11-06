@@ -13,7 +13,8 @@ const screenIds = {
     settings: 'settings-screen',
     rules: 'rules-screen',
     game: 'game-screen',
-    'local-games': 'local-games-screen'
+    'local-games': 'local-games-screen',
+    profile: 'profile-screen'
 };
 
 const screenFiles = {
@@ -25,7 +26,8 @@ const screenFiles = {
     settings: 'settings',
     rules: 'rules',
     game: 'game',
-    'local-games': 'local-games'
+    'local-games': 'local-games',
+    profile: 'profile'
 };
 
 const screenLoads = new Map();
@@ -40,7 +42,8 @@ const screenStyles = {
     settings: ['css/components-settings.css'],
     rules: ['css/components-rules.css'],
     game: ['css/components-game.css', 'css/components-chat.css', 'css/animations.css'],
-    'local-games': ['css/components-local-games.css']
+    'local-games': ['css/components-local-games.css'],
+    profile: ['css/components-auth.css', 'css/components-profile.css']
 };
 
 let cssAssetVersions = null;
@@ -220,6 +223,18 @@ export function initNavigation() {
         }
     };
 
+    const openProfile = async () => {
+        try {
+            await loadScreen('profile');
+            const profileModule = await import('./profile.js');
+            await showScreen('profile');
+            await profileModule.initProfile();
+        } catch (error) {
+            console.error('Profil se nepodařilo načíst:', error);
+            window.alert('Profil se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        }
+    };
+
     const openSettings = async () => {
         try {
             await loadScreen('settings');
@@ -250,6 +265,50 @@ export function initNavigation() {
     });
 
     bindClick('login-menu-btn', () => void showScreen('login'));
+    const accountAvatar = document.getElementById('account-avatar-btn');
+    const accountMenu = document.getElementById('account-menu');
+    const closeAccountMenu = () => {
+        accountMenu?.classList.add('hidden');
+        accountAvatar?.setAttribute('aria-expanded', 'false');
+    };
+    accountAvatar?.addEventListener('click', event => {
+        event.stopPropagation();
+        const opening = accountMenu?.classList.contains('hidden');
+        accountMenu?.classList.toggle('hidden', !opening);
+        accountAvatar.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    });
+    document.addEventListener('click', event => {
+        if (!event.target.closest('#auth-buttons')) closeAccountMenu();
+        const item = event.target.closest('[data-account-action]');
+        if (!item) return;
+        event.preventDefault();
+        const action = item.dataset.accountAction;
+        closeAccountMenu();
+        if (action === 'profile') void openProfile();
+        if (action === 'games') {
+            void (async () => {
+                const opened = await showScreen('local-games');
+                if (!opened) return;
+                try {
+                    const onlineModule = await import('./online.js');
+                    await onlineModule.initOnline({ gamesContainerId: 'online-games-list' });
+                } catch (error) {
+                    console.error('Seznam her se nepodařilo načíst:', error);
+                }
+            })();
+        }
+        if (action === 'stats') {
+            void (async () => {
+                await openProfile();
+                document.getElementById('profile-statistics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })();
+        }
+        if (action === 'settings') void openSettings();
+        if (action === 'logout' && typeof window.logout === 'function') void window.logout();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeAccountMenu();
+    });
     bindClick('register-menu-btn', () => void showScreen('register'));
 
     window.addEventListener('clovece:game-exit', () => {
