@@ -12,6 +12,7 @@ export function createTurnController(deps) {
     const speedDelay = () => 950;
     let game = null;
     let aiTimer = null;
+    let automationPaused = false;
     let modalOpen = false;
     let moveAnimating = false;
 
@@ -119,7 +120,7 @@ export function createTurnController(deps) {
     }
     
     function continueGame() {
-        if (!game || modalOpen || isPaused()) return;
+        if (!game || automationPaused || modalOpen || isPaused()) return;
         if (game.winner !== null) {
             showGame();
             showWin();
@@ -162,7 +163,7 @@ export function createTurnController(deps) {
         game.testRollSequence = (game.testRollSequence || 0) + 1;
         game.diceValue = value;
         await animateDice(value, settings);
-        if (!game || game.phase !== 'start-roll' || game.currentPlayer !== playerId || isPaused()) return;
+        if (!game || automationPaused || game.phase !== 'start-roll' || game.currentPlayer !== playerId || isPaused()) return;
     
         const roundIndex = game.startRolls.length - 1;
         game.startRolls[roundIndex].push({ playerId, value });
@@ -210,7 +211,7 @@ export function createTurnController(deps) {
         const result = rollDice(game);
         game.testRollSequence = (game.testRollSequence || 0) + 1;
         await animateDice(result.value, settings);
-        if (!game || game.winner !== null || isPaused()) return;
+        if (!game || automationPaused || game.winner !== null || isPaused()) return;
     
         if (result.retrying) {
             const retryText = result.value === 6
@@ -229,7 +230,7 @@ export function createTurnController(deps) {
             toast(game.players[game.currentPlayer].name + ' nemá platný tah.');
             showGame();
             setTimeout(() => {
-                if (game && game.phase === 'no-move' && !isPaused()) {
+                if (game && !automationPaused && game.phase === 'no-move' && !isPaused()) {
                     advanceTurn(game);
                     continueGame();
                 }
@@ -249,7 +250,7 @@ export function createTurnController(deps) {
             const selected = chooseAIMove(game);
             if (selected !== null) {
                 aiTimer = setTimeout(() => {
-                    if (!game || game.phase !== 'move' || isPaused()) return;
+                    if (!game || automationPaused || game.phase !== 'move' || isPaused()) return;
                     performMove(selected);
                 }, speedDelay());
             }
@@ -258,12 +259,12 @@ export function createTurnController(deps) {
     
     function scheduleAI() {
         clearTimeout(aiTimer);
-        if (!game || game.winner !== null || modalOpen || isPaused()) return;
+        if (!game || automationPaused || game.winner !== null || modalOpen || isPaused()) return;
         const player = game.players[game.currentPlayer];
         if (!player || !player.isAI) return;
     
         aiTimer = setTimeout(() => {
-            if (!game || modalOpen || moveAnimating || game.winner !== null || isPaused()) return;
+            if (!game || automationPaused || modalOpen || moveAnimating || game.winner !== null || isPaused()) return;
             if (game.phase === 'start-roll' || game.phase === 'roll') {
                 doRoll(true);
             } else if (game.phase === 'move') {
@@ -298,7 +299,18 @@ export function createTurnController(deps) {
         aiTimer = null;
     }
 
+    function pauseAI() {
+        automationPaused = true;
+        stopAI();
+    }
+
+    function resumeAI() {
+        automationPaused = false;
+        continueGame();
+    }
+
     function resetForNewGame() {
+        automationPaused = false;
         stopAI();
         modalOpen = false;
         moveAnimating = false;
@@ -307,6 +319,8 @@ export function createTurnController(deps) {
     return {
         setGame(value) { game = value; },
         stopAI,
+        pauseAI,
+        resumeAI,
         resetForNewGame,
         closeKickModal,
         continueGame,
