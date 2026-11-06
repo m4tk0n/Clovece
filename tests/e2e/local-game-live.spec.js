@@ -4,7 +4,7 @@ test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračován�
   const runtimeErrors = [];
   page.on('pageerror', error => runtimeErrors.push(error.message));
 
-  await page.goto('/?test=1');
+  await page.goto('?test=1');
   await expect(page.locator('#live-test-panel')).toBeVisible();
 
   const ruleNames = ['threeRolls', 'mustDeploy', 'skipHomePieces', 'mustEnterHome'];
