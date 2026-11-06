@@ -182,8 +182,18 @@ export async function animateThreeDice(value, fast = false) {
     };
 
     try {
-        const camera = new T.PerspectiveCamera(34, window.innerWidth / Math.max(1, window.innerHeight), .1, 30);
-        camera.position.set(0, 0, 6.2);
+        // Stejná výsledná velikost jako CSS kostka v režimu 2D (120 px / 104 px na mobilu).
+        // FOV odvodíme z rozměru geometrie, vzdálenosti kamery a výšky viewportu.
+        const diceSize = window.innerWidth <= 600 ? 104 : 120;
+        const cameraDistance = 6.2;
+        const diceWorldSize = 1.53;
+        const cameraFov = 2 * Math.atan(
+            (diceWorldSize * window.innerHeight) / (2 * cameraDistance * diceSize)
+        ) * 180 / Math.PI;
+        const camera = new T.PerspectiveCamera(
+            cameraFov, window.innerWidth / Math.max(1, window.innerHeight), .1, 30
+        );
+        camera.position.set(0, 0, cameraDistance);
         scene.add(new T.HemisphereLight(0xfff8e9, 0x292b27, 2.0));
         const key = new T.DirectionalLight(0xffe8bd, 4.2);
         key.position.set(-3.5, 5, 6);
