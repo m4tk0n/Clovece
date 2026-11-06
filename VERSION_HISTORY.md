@@ -1,3 +1,18 @@
+## 1.00.00.09 – Sjednocení velikosti 2D a 3D kostky
+
+**Datum:** 6. 11. 2026  
+**Typ:** Vizuální úprava
+
+- 3D kostka má stejnou cílovou velikost jako CSS kostka v režimu 2D: 120 px na větších displejích a 104 px na telefonech do šířky 600 px.
+- Měřítko Three.js vykreslení se vypočítává podle rozměru geometrie a výšky viewportu; prostorový vzhled, zaoblené hrany, materiály, barvy a animace zůstávají zachovány.
+
+**Dotčené soubory:**
+- `js/game-board-3d.js`
+
+**Ověření:** změna zdrojového kódu a návaznost velikostí ověřeny; vizuální kontrola na zařízení nebyla provedena.
+
+---
+
 ## 1.00.00.05 – Prémiová Three.js kostka pro 3D režim
 
 **Datum:** 6. 11. 2026  
