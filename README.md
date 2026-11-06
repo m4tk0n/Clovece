@@ -14,6 +14,14 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
 
+## Uživatelské účty
+
+- Registrace a přihlášení jsou součástí online API.
+- Účty jsou navázané na anonymní identitu zařízení; při registraci se zachová dosavadní identita a při přihlášení se převede do účtu.
+- Hesla se ukládají pomocí `password_hash()` a ověřují pomocí `password_verify()`.
+- Odhlášení odpojí pouze aktuální zařízení; ostatní přihlášená zařízení zůstanou připojena.
+- Nová tabulka `player_accounts` se vytvoří opětovným spuštěním `install/install.php`. Instalátor používá `CREATE TABLE IF NOT EXISTS` a nemaže existující tabulky.
+
 ## Online multiplayer – plán
 
 Online režim je implementovaný v základní podobě a probíhá ověřování na hostingu:
@@ -58,7 +66,9 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - css/menu-animations.css – animace načítané při startu mimo herní obrazovku
 - css/animations.css – herní animace, načítají se až při vstupu do hry
 - css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
-- online-api.php – anonymní online API a serverově ověřované herní tahy
+- online-api.php – online API, účty, anonymní identity a serverově ověřované herní tahy
+- lib/account-auth.php – registrace, přihlášení, odhlášení a sloučení identit
+- js/auth.js – obsluha přihlašovacích a registračních formulářů
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
 - install/install.php – instalace databázových tabulek
 
