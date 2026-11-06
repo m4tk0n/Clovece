@@ -1,0 +1,52 @@
+name: Živé testy místní hry
+
+on:
+  workflow_run:
+    workflows: ["Deploy na FTP"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL testované aplikace
+        required: true
+        default: https://7x.wz.cz/clovece/
+      slow_mo:
+        description: Zpomalení kroků v milisekundách
+        required: true
+        default: "500"
+
+permissions:
+  contents: read
+
+jobs:
+  browser-test:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Načíst repozitář
+        uses: actions/checkout@v4
+      - name: Nastavit Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalovat závislosti
+        run: npm install
+      - name: Nainstalovat Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Spustit vizuální test místní hry
+        env:
+          BASE_URL: ${{ github.event.inputs.base_url || 'https://7x.wz.cz/clovece/' }}
+          TEST_SLOW_MO: ${{ github.event.inputs.slow_mo || '500' }}
+        run: npx playwright test
+      - name: Uložit video, screenshoty, trace a report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-game-test-${{ github.run_number }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
