@@ -184,6 +184,16 @@
     .preview-player-orb { width: 28px; height: 28px; }
 }
 
+/* Samostatný řádek pro rozbalovací ovládání rozšířených pravidel. */
+.extended-rules-control {
+    display: flex;
+    flex: 0 0 100%;
+    flex-direction: column;
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+}
+
 /* ---------- Rozšířená pravidla místní hry ---------- */
 .extended-rules-toggle {
     width: 100%;
