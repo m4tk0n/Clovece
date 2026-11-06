@@ -24,7 +24,7 @@
                 </div>
             </section>
 
-            <button id="back-local-games-btn" class="menu-btn secondary fit-content">
+            <button id="back-local-games-btn" class="menu-btn">
                 <span>ZPĚT</span>
                 <i class="fas fa-arrow-left"></i>
             </button>
