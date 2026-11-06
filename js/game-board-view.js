@@ -87,6 +87,30 @@ export function ensureModeStyles(mode) {
     }));
 }
 
+export function releaseGameView() {
+    const container = document.getElementById('game-container');
+    const stage = container?.querySelector('.three-board-stage');
+    if (stage) disposeThreeRenderer(stage);
+    if (container) {
+        container.replaceChildren();
+        delete container._lastGame;
+        delete container._boardStyleBound;
+        delete container.dataset.renderKey;
+    }
+
+    for (const mode of ['2d', '3d']) {
+        for (const name of ['board-' + mode, 'dice-' + mode]) {
+            document.getElementById('clovece-' + name + '-styles')?.remove();
+        }
+    }
+    modeStylesPromises.clear();
+    activeStylesMode = null;
+    threeRendererPromise = null;
+    document.documentElement.removeAttribute('data-board-view');
+}
+
+window.addEventListener('clovece:game-exit', releaseGameView);
+
 function loadView() {
     try {
         const saved = window.localStorage.getItem(VIEW_KEY);
