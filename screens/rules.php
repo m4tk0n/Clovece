@@ -39,7 +39,7 @@
                     <p>Když při tomto dalším hodu padne znovu šestka a máte stále figurku v základně, musíte nasadit další figurku. Jestliže vaše první nasazená figurka stále stojí na startovním poli, vrátí se při novém nasazení do základny a nová figurka obsadí její místo.</p>
                     <p>To není chyba: podle těchto pravidel má nasazení při šestce přednost před pohybem ostatními figurkami. Za druhou šestku získáte opět další hod. Řetězení šestek může pokračovat, dokud nepadne jiný výsledek nebo nenastane výjimka podle pravidla tří pokusů.</p>
                 </div>
-                <button id="back-rules-btn" class="menu-btn secondary">
+                <button id="back-rules-btn" class="menu-btn secondary fit-content">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
