@@ -270,7 +270,6 @@ async function renderOnlineGame(data) {
     onlineMode = true;
 
     if (!onlineState) return;
-    showScreen('game');
     runtime.renderBoard($('game-container'), onlineState);
 
     // Animaci a zvuk spustíme pouze při přechodu po novém online hodu.
