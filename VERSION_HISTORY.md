@@ -17,6 +17,19 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 
 ---
 
+## 1.00.00.06 – Úplné uvolnění textur 3D desky
+
+**Datum:** 6. 11. 2026  
+**Typ:** Oprava správy grafických prostředků
+
+- Při překreslení 3D desky se nyní kromě geometrií a materiálů uvolňují také textury používané materiály.
+- Stejné úplné čištění probíhá při ukončení 3D rendereru a odchodu z herní obrazovky.
+- Oprava zabraňuje hromadění CanvasTexture objektů při opakovaném vykreslování desky, zejména v debug režimu s číslováním polí.
+
+**Dotčené soubory:**
+- `js/game-board-3d.js`
+
+
 
 ## 1.00.00.05 – Sjednocení okrajů při nízkém displeji
 
