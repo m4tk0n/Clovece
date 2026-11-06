@@ -33,7 +33,7 @@ if (!is_file($file) || !is_readable($file)) {
     exit('Obsah obrazovky není dostupný.');
 }
 
-$etag = '"' . hash('sha256', (string) filemtime($file) . ':' . (string) filesize($file)) . '"';
+$etag = '"' . hash_file('sha256', $file) . '"';
 header('Content-Type: text/html; charset=UTF-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: public, max-age=0, must-revalidate');
