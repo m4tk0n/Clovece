@@ -53,20 +53,33 @@ function bindClick(id, callback) {
 export function initNavigation() {
     let localGameModulePromise = null;
     let localGameInitialized = false;
+    const ensureLocalGame = async () => {
+        if (!localGameModulePromise) {
+            localGameModulePromise = import('./app.js');
+        }
+        const gameModule = await localGameModulePromise;
+        if (!localGameInitialized) {
+            gameModule.initGame();
+            localGameInitialized = true;
+        }
+        return gameModule;
+    };
     const openLocalGame = async () => {
         try {
-            if (!localGameModulePromise) {
-                localGameModulePromise = import('./app.js');
-            }
-            const gameModule = await localGameModulePromise;
-            if (!localGameInitialized) {
-                gameModule.initGame();
-                localGameInitialized = true;
-            }
+            const gameModule = await ensureLocalGame();
             gameModule.openPlayerSelection();
         } catch (error) {
             console.error('Herní modul se nepodařilo načíst:', error);
             window.alert('Herní část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        }
+    };
+    const openSettings = async () => {
+        try {
+            await ensureLocalGame();
+            showScreen('settings');
+        } catch (error) {
+            console.error('Nastavení se nepodařilo načíst:', error);
+            window.alert('Nastavení se nepodařilo načíst. Obnov stránku a zkus to znovu.');
         }
     };
     bindClick('play-btn', openLocalGame);
@@ -82,8 +95,10 @@ export function initNavigation() {
     bindClick('back-from-lobby', () => showScreen('main-menu'));
     bindClick('back-from-room', () => showScreen('lobby'));
     bindClick('join-room-btn', () => showScreen('lobby'));
-    bindClick('settings-btn', () => showScreen('settings'));
+    bindClick('settings-btn', openSettings);
     bindClick('rules-btn', () => showScreen('rules'));
+    bindClick('back-settings-btn', () => showScreen('main-menu'));
+    bindClick('back-rules-btn', () => showScreen('main-menu'));
 
     const logoutButton = document.getElementById('logout-btn');
     logoutButton?.addEventListener('click', () => {
