@@ -219,6 +219,7 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 | 10 | Vykreslení prázdných domečků a startovních polí pro neobsazené pozice desky | Implementováno; automatické kontroly a FTP deploy úspěšné; čeká na vizuální ověření |
 | 11 | Osmiúhelníková 80políčková trasa se třemi obvodovými poli na rameno a vnitřními návraty | Implementováno; test geometrie, herní testy a FTP deploy úspěšné; čeká na vizuální ověření |
 | 12 | Oddělení CSS 2D/3D desky a kostky s odloženým načítáním | Implementováno; čeká na CI a vizuální ověření |
+| 13 | Odložené načítání herního runtime a uvolnění CSS/3D prostředků po opuštění hry | Implementováno; čeká na CI a praktické ověření |
 
 ## Pravidla hry
 
@@ -309,6 +310,15 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [ ] Ověřit vykreslení, výběr figurek a výkon na mobilu a desktopu; doladit kameru a měřítko podle živého testu.
 - [ ] Ověřit kompatibilitu se všemi kombinacemi hráčů a velikostí desky v online místnosti.
 
+
+## Odložené načítání herních částí – 2026-11-06
+
+- [x] Nenačítat lokální herní runtime při otevření hlavního menu; importovat jej až při vstupu do lokálního nastavení hry.
+- [x] V online lobby neimportovat renderer desky, herní engine ani animaci kostky; načíst je až při aktivní online hře.
+- [x] Načítat `css/game-premium.css` až společně s CSS aktivní hry.
+- [x] Při odchodu z herní obrazovky odpojit herní CSS, vyčistit DOM desky a uvolnit prostředky 3D rendereru.
+- [x] Ponechat importní cache prohlížeče bez tvrzení, že lze ES moduly fyzicky odregistrovat; po odchodu se uvolní aplikační reference.
+- [ ] Ověřit na mobilu a desktopu start menu, lokální hru, online lobby, aktivní online hru, přepnutí 2D/3D a opuštění hry.
 
 ## Oddělení CSS herní desky a kostky – 2026-11-06
 
