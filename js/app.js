@@ -6,7 +6,7 @@ import {
     createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
-import { renderBoard, ensureModeStyles, getBoardView } from './game-board.js';
+import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
@@ -703,7 +703,12 @@ function restartGame() {
     $('game-menu').classList.add('hidden');
 }
 
-export function openPlayerSelection() {
+export async function openPlayerSelection() {
+    try {
+        await ensureGameStyles();
+    } catch (error) {
+        console.error('Styly výběru hry se nepodařilo načíst:', error);
+    }
     updateSetup();
     showScreen('player-selection');
 }
