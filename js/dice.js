@@ -99,7 +99,7 @@ export async function animateDice(value, settings = loadDiceSettings()) {
             'rotateX(' + (nextX - 24) + 'deg) rotateY(' + (nextY - 32) + 'deg)';
     });
 
-    play('dice-sound');
+    if (typeof window.playSound === 'function') window.playSound('dice-sound');
 
     return new Promise(resolve => {
         window.setTimeout(() => {
