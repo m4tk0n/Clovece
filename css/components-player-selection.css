@@ -183,3 +183,93 @@
     .preview-player { grid-template-columns: 28px minmax(0, 1fr) minmax(88px, auto); gap: 6px; padding: 3px 7px; }
     .preview-player-orb { width: 28px; height: 28px; }
 }
+
+/* ---------- Rozšířená pravidla místní hry ---------- */
+.extended-rules-toggle {
+    width: 100%;
+}
+.extended-rules-toggle[aria-expanded="true"] .fa-chevron-down {
+    transform: rotate(180deg);
+}
+.extended-rules-toggle .fa-chevron-down {
+    transition: transform .2s ease;
+}
+.extended-rules-panel {
+    display: grid;
+    gap: 0;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 8px 0 2px;
+    padding: 4px 14px;
+    border: 1px solid rgba(201, 164, 93, .38);
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(13, 27, 24, .98), rgba(7, 15, 14, .98));
+    box-shadow: inset 0 1px rgba(255, 255, 255, .05), 0 8px 22px rgba(0, 0, 0, .2);
+}
+.extended-rules-panel.hidden {
+    display: none;
+}
+.extended-rule-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 54px;
+    border-bottom: 1px solid rgba(255, 255, 255, .09);
+}
+.extended-rule-row:last-child {
+    border-bottom: 0;
+}
+.extended-rule-description {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    color: #f1eadb;
+    font: 600 13px/1.4 var(--font-ui);
+}
+.rule-info {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 19px;
+    width: 19px;
+    height: 19px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #1976d2;
+    color: #fff;
+    font: 700 13px/1 Arial, sans-serif;
+    cursor: help;
+}
+.rule-info:focus-visible,
+.rule-switch:focus-visible,
+.extended-rules-toggle:focus-visible {
+    outline: 2px solid #8bc5ff;
+    outline-offset: 3px;
+}
+.rule-switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 66px;
+    min-width: 66px;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .1);
+    color: #e7e7e7;
+    font: 700 11px/1 var(--font-ui);
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease;
+}
+.rule-switch[aria-pressed="true"] {
+    border-color: rgba(62, 190, 128, .75);
+    background: rgba(24, 133, 83, .3);
+    color: #8ff0b8;
+}
+@media (max-width: 420px) {
+    .extended-rules-panel { padding: 3px 10px; }
+    .extended-rule-row { min-height: 49px; }
+}
