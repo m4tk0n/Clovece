@@ -61,6 +61,31 @@ input[type="range"] {
     accent-color: var(--control-accent);
 }
 
+/* Zelený vzhled posuvníku stránky a všech rolovacích oblastí. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--control-accent) rgba(255, 255, 255, 0.08);
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: var(--control-accent);
+    border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #65ded5;
+}
+
 /* ============================================
    MENU – barvy, písmo a plochy (používá menu-base.css,
    menu-main.css a components-*.css). Mění se jen tady.
