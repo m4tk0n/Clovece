@@ -27,7 +27,6 @@ $assetVersion = static function (string $path): int {
     <link rel="stylesheet" href="css/animations.css?v=<?= $assetVersion('css/animations.css') ?>">
     <link rel="stylesheet" href="css/layout.css?v=<?= $assetVersion('css/layout.css') ?>">
     <link rel="stylesheet" href="css/components.css?v=<?= $assetVersion('css/components.css') ?>">
-    <link rel="stylesheet" href="css/modals.css?v=<?= $assetVersion('css/modals.css') ?>">
     <link rel="stylesheet" href="css/toast.css?v=<?= $assetVersion('css/toast.css') ?>">
     <link rel="stylesheet" href="css/responsive.css?v=<?= $assetVersion('css/responsive.css') ?>">
     <link rel="stylesheet" href="css/menu-premium.css?v=<?= $assetVersion('css/menu-premium.css') ?>">
