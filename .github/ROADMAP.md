@@ -307,3 +307,14 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Nastavit 3D jako výchozí pohled; možnost přepnout na 2D zůstává dostupná.
 - [ ] Ověřit vykreslení, výběr figurek a výkon na mobilu a desktopu; doladit kameru a měřítko podle živého testu.
 - [ ] Ověřit kompatibilitu se všemi kombinacemi hráčů a velikostí desky v online místnosti.
+
+## Odložené načítání a rozdělení CSS – 2026-11-06
+
+- [x] Z hlavního HTML odstranit statické načítání herního CSS a starého nepoužívaného CSS rendereru.
+- [x] Rozdělit CSS desky a kostky na samostatné varianty 2D a 3D.
+- [x] Načítat pouze CSS aktivního režimu až při skutečném spuštění hry.
+- [x] Lokální herní runtime importovat až po kliknutí na HRÁT nebo NOVÁ LOKÁLNÍ HRA.
+- [x] Online herní renderer, engine a animaci kostky importovat až po přechodu do aktivní online hry.
+- [x] Při opuštění hry odpojit herní stylesheety, vyčistit DOM desky a uvolnit prostředky 3D rendereru.
+- [x] Zachovat uvolnění textur 3D desky zavedené verzí 1.00.00.06.
+- [ ] Ověřit na mobilu a desktopu úvodní menu, lokální hru, online lobby, aktivní online hru, přepnutí 2D/3D a odchod ze hry.
