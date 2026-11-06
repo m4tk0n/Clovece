@@ -1,3 +1,23 @@
+## 1.00.00.24 – Jednotné místo nastavení 3D kamery
+
+**Datum:** 7. 11. 2026  
+**Typ:** Technické sjednocení nastavení 3D zobrazení
+
+- Výchozí pohled 3D hrací desky se nastavuje z jediné konfigurace v `js/game-camera-config.js`.
+- V tomto souboru jsou soustředěny náklon kamery (aktuálně 55°), vzdálenost, směr pohledu, cílový bod, zorný úhel i limity přiblížení a otáčení.
+- Funkce `configureBoardCamera()` předává tato nastavení Three.js kameře a ovládacím prvkům.
+- Renderer `js/game-board-3d.js` nastavení kamery pouze používá; nemá obsahovat vlastní kopie výchozích hodnot.
+- Výběr režimu 2D/3D, automatické ověření podpory a přepnutí při chybě zůstávají řízeny v `js/game-board-view.js`.
+
+**Kde se co nastavuje:**
+- Parametry 3D kamery a výchozího pohledu: `js/game-camera-config.js`.
+- Řízení režimu 2D/3D: `js/game-board-view.js`.
+- Samotné prostorové vykreslení desky: `js/game-board-3d.js`.
+
+**Ověření:** zdrojová kontrola konfigurace a jejího použití v rendereru; praktické ověření na telefonu nebylo provedeno.
+
+---
+
 ## 1.00.00.23 – Strategická AI se třemi úrovněmi obtížnosti
 
 **Datum:** 6. 11. 2026  
