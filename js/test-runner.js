@@ -161,6 +161,40 @@ if (panel) {
         const collapsed = panel.classList.toggle('is-collapsed');
         event.currentTarget.textContent = collapsed ? '+' : '−';
         event.currentTarget.setAttribute('aria-expanded', String(!collapsed));
+        event.currentTarget.setAttribute('aria-label', collapsed ? 'Rozbalit testovací panel' : 'Sbalit testovací panel');
+        event.currentTarget.title = collapsed ? 'Rozbalit panel' : 'Sbalit panel';
     });
+
+    // Panel lze přesouvat tažením za hlavičku; tlačítka v hlavičce zůstávají klikací.
+    const dragHandle = $('test-panel-drag-handle');
+    if (dragHandle) {
+        let drag = null;
+        dragHandle.addEventListener('pointerdown', event => {
+            if (event.target.closest('button')) return;
+            const rect = panel.getBoundingClientRect();
+            drag = { pointerId: event.pointerId, offsetX: event.clientX - rect.left, offsetY: event.clientY - rect.top };
+            panel.style.left = rect.left + 'px';
+            panel.style.top = rect.top + 'px';
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+            dragHandle.setPointerCapture(event.pointerId);
+            event.preventDefault();
+        });
+        dragHandle.addEventListener('pointermove', event => {
+            if (!drag || event.pointerId !== drag.pointerId) return;
+            const margin = 4;
+            const maxLeft = Math.max(margin, window.innerWidth - panel.offsetWidth - margin);
+            const maxTop = Math.max(margin, window.innerHeight - panel.offsetHeight - margin);
+            panel.style.left = Math.min(maxLeft, Math.max(margin, event.clientX - drag.offsetX)) + 'px';
+            panel.style.top = Math.min(maxTop, Math.max(margin, event.clientY - drag.offsetY)) + 'px';
+        });
+        const endDrag = event => {
+            if (!drag || event.pointerId !== drag.pointerId) return;
+            drag = null;
+            if (dragHandle.hasPointerCapture(event.pointerId)) dragHandle.releasePointerCapture(event.pointerId);
+        };
+        dragHandle.addEventListener('pointerup', endDrag);
+        dragHandle.addEventListener('pointercancel', endDrag);
+    }
     updateButtons();
 }
