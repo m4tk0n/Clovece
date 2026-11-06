@@ -22,6 +22,7 @@ jobs:
           node --experimental-default-type=module --check js/dice-rotation.js
           node --experimental-default-type=module --check js/settings.js
           node --experimental-default-type=module --check js/player-setup.js
+          node --experimental-default-type=module --check js/game-log.js
           node --experimental-default-type=module --check js/online.js
           node --experimental-default-type=module --check js/game-engine.js
           node --experimental-default-type=module --check js/game-board-geometry.js
