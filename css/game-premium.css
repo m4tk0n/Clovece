@@ -310,9 +310,6 @@
     #game-screen .game-btn { min-height:28px; padding:3px 8px; }
     #game-screen .game-container { width:min(100%,calc(100dvh - 112px)); }
     #game-screen .game-footer { margin-top:3px; }
-
-@media (max-width: 600px) {
-
 }
 
 /* Real 3D dice roll: perspective, six cube faces and a multi-axis tumble */
@@ -328,28 +325,6 @@
     pointer-events: none;
 }
 #dice-animation.hidden { display: none; }
-
-@keyframes realDiceTumble {
-    0% {
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(.72);
-    }
-    18% {
-        transform: rotateX(210deg) rotateY(250deg) rotateZ(95deg) scale(1.08);
-    }
-    42% {
-        transform: rotateX(510deg) rotateY(610deg) rotateZ(210deg) scale(1);
-    }
-    72% {
-        transform: rotateX(680deg) rotateY(900deg) rotateZ(300deg) scale(1.04);
-    }
-    100% {
-        transform:
-            rotateX(calc(var(--dice-end-x, 0deg) + 720deg))
-            rotateY(calc(var(--dice-end-y, 0deg) + 1080deg))
-            rotateZ(360deg)
-            scale(1);
-    }
-}
 
 /* Dice overlay positioning and 3D cube geometry correction */
 #dice-animation {
