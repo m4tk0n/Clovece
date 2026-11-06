@@ -1,44 +1,54 @@
 import { test, expect } from '@playwright/test';
 
-test('místní hra používá aktuální rozšířená pravidla a skutečné animace', async ({ page }) => {
+test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračování', async ({ page }) => {
   const runtimeErrors = [];
   page.on('pageerror', error => runtimeErrors.push(error.message));
 
-  await page.goto('/');
-  await expect(page.locator('#main-menu')).toBeVisible();
-
-  // Vstupujeme výhradně do místní hry. Test nevytváří online místnost ani účet.
-  await page.getByRole('button', { name: /MÍSTNÍ HRA/i }).click();
-  await expect(page.locator('#player-selection')).toBeVisible();
-
-  const rulesToggle = page.locator('#extended-rules-toggle');
-  await rulesToggle.click();
-  await expect(page.locator('#extended-rules-panel')).toBeVisible();
+  await page.goto('/?test=1');
+  await expect(page.locator('#live-test-panel')).toBeVisible();
 
   const ruleNames = ['threeRolls', 'mustDeploy', 'skipHomePieces', 'mustEnterHome'];
-  const activeRules = {};
   for (const name of ruleNames) {
-    const toggle = page.locator(`[data-rule-toggle="${name}"]`);
-    await expect(toggle).toBeVisible();
-    activeRules[name] = await toggle.getAttribute('aria-pressed');
-    expect(activeRules[name], `Rozšířené pravidlo ${name} musí být v aktuálním výchozím nastavení zapnuté.`).toBe('true');
+    await expect(page.locator('[data-test-rule="' + name + '"]')).toBeChecked();
   }
 
-  await page.getByRole('button', { name: /ZAČÍT HRU/i }).click();
+  // Přepnutí pravidla v testovacím panelu musí být předáno do stejného setup objektu.
+  await page.locator('[data-test-rule="threeRolls"]').uncheck();
+  await expect(page.locator('[data-test-rule="threeRolls"]')).not.toBeChecked();
+
+  await page.locator('#test-start').click();
   await expect(page.locator('#game-screen')).toBeVisible();
   await expect(page.locator('#game-container')).not.toBeEmpty();
+  await expect(page.locator('#test-status')).toHaveText('Probíhá');
+  await expect.poll(async () => page.locator('#test-live-log').innerText(), { timeout: 20000 })
+    .toContain('hodil');
 
-  // Zaznamenáme skutečné vizuální herní UI a necháme proběhnout úvodní hod.
-  await expect(page.locator('#dice-animation')).toBeAttached();
-  await page.waitForTimeout(2500);
-  await page.screenshot({ path: test.info().outputPath('game-running.png'), fullPage: true });
+  const activeRules = await page.evaluate(() => window.__cloveceTest.state().rules);
+  expect(activeRules).toEqual({
+    threeRolls: false,
+    mustDeploy: true,
+    skipHomePieces: true,
+    mustEnterHome: true
+  });
 
-  // Pauza a pokračování nesmí opustit herní obrazovku ani založit novou hru.
-  await page.locator('#menu-btn').click();
+  // Pauza pozastaví automatické tahy, aniž by opustila skutečnou herní obrazovku.
+  await page.locator('#test-pause').click();
+  await expect(page.locator('#test-status')).toHaveText('Pozastaveno');
   await expect(page.locator('#game-menu')).toBeVisible();
-  await page.locator('#resume-btn').click();
+  await page.waitForTimeout(2200);
+  const pausedState = await page.evaluate(() => window.__cloveceTest.state());
+
+  await page.locator('#test-resume').click();
+  await expect(page.locator('#test-status')).toHaveText('Probíhá');
   await expect(page.locator('#game-menu')).toBeHidden();
   await expect(page.locator('#game-screen')).toBeVisible();
+  await expect.poll(async () => page.locator('#test-live-log').innerText(), { timeout: 15000 })
+    .toContain('pokračuje ze stejného herního stavu');
 
-  expect(runtimeErrors, 'Prohlížeč během místní hry nesmí vyhodit neošetřenou JS chybu.').toEqual([]);
+  await page.screenshot({ path: test.info().outputPath('live-game-board.png'), fullPage: true });
+  await page.locator('#test-stop').click();
+  await expect(page.locator('#test-status')).toHaveText('Zastaveno');
+
+  expect(pausedState).toBeTruthy();
+  expect(runtimeErrors, 'Během automatické hry nesmí vzniknout neošetřená JS chyba.').toEqual([]);
 });
