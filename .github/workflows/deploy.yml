@@ -23,5 +23,11 @@ jobs:
             **/.github/**
             .env
             README.md
-            tests/**
+            tests/
+            package.json
+            package-lock.json
+            playwright.config.js
+            playwright-report/**
+            test-results/**
+            node_modules/****
             tests/
