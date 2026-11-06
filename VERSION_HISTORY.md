@@ -206,3 +206,11 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 - `README.md`
 
 **Navazující změny:** žádné.
+
+
+## 1.00.00.12 – Oddělení logiky kostky od app.js
+
+- Společné cílové úhly a plán rotace přesunuty do `js/dice-rotation.js`.
+- Řízení hodu a volba mezi CSS 2D a Three.js 3D přesunuty do samostatného `js/dice.js`.
+- Lokální hra předává nastavení kostky modulu; online režim načítá modul kostky samostatně a až při prvním hodu.
+- Opraveno předávání společného rotačního plánu přes `game-board-view.js` až do 3D rendereru.
