@@ -1,0 +1,41 @@
+name: Nahlásit chybu z testu
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: Nadpis chyby
+        required: true
+        type: string
+      details:
+        description: Popis, očekávaný a skutečný výsledek, aktivní pravidla a odkaz na artefakt testu
+        required: true
+        type: string
+      artifact_run_url:
+        description: Odkaz na běh testu nebo jeho video (volitelné)
+        required: false
+        type: string
+
+permissions:
+  issues: write
+
+jobs:
+  create-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vytvořit GitHub Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          ISSUE_TITLE: ${{ inputs.title }}
+          ISSUE_DETAILS: ${{ inputs.details }}
+          ARTIFACT_URL: ${{ inputs.artifact_run_url }}
+        run: |
+          {
+            printf '%s\n\n' "$ISSUE_DETAILS"
+            if [ -n "$ARTIFACT_URL" ]; then
+              printf '\n## Záznam testu\n%s\n' "$ARTIFACT_URL"
+            fi
+            printf '\n---\nNahlášeno ručním testovacím workflow.\n'
+          } > issue.md
+          gh issue create --repo "$REPOSITORY" --title "$ISSUE_TITLE" --body-file issue.md --label "bug"
