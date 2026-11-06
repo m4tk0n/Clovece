@@ -108,7 +108,7 @@ async function startGame() {
 
     try {
         const setup = getPlayerSetup();
-        game = createGame(setup.humanCount, setup.aiCount, setup.names, setup.colors, setup.selectedBoardSize, setup.extendedRules);
+        game = createGame(setup.humanCount, setup.aiCount, setup.names, setup.colors, setup.selectedBoardSize, setup.extendedRules, setup.aiDifficulty);
         turnController.setGame(game);
         game.phase = 'start-roll';
         game.currentPlayer = 0;
