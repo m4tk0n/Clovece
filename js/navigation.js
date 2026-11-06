@@ -191,8 +191,8 @@ export function initNavigation() {
     let onlineInitPromise = null;
     const openOnlineLobby = async () => {
         try {
-            // Online modul při inicializaci navazuje obsluhu lobby i místnosti.
-            await Promise.all([loadScreen('lobby'), loadScreen('room')]);
+            // Lobby se načítá samostatně; místnost až při vytvoření nebo připojení ke hře.
+            await loadScreen('lobby');
             await showScreen('lobby');
 
             if (!onlineInitPromise) {
