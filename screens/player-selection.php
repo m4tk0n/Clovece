@@ -2,7 +2,7 @@
     <div id="player-selection" class="menu-screen hidden">
         <div class="menu-bg">
             <div class="menu-content">
-                <h2 class="glitch" data-text="VYTVOŘENÍ HRY">VYTVOŘENÍ HRY</h2>
+                <h2 class="glitch" data-text="VYTVOŘENÍ MÍSTNÍ HRY">VYTVOŘENÍ MÍSTNÍ HRY</h2>
                 <div class="selection-container">
                     <div class="setup-grid" id="setup-grid">
                         <div class="setup-control">
