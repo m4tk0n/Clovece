@@ -169,9 +169,20 @@ function evaluateCandidate(originalGame, pieceId, dependencies, difficulty) {
         score += scoreNextBonusRoll(simulated, playerId, getValidMoves, getPiecePosition) * 0.72;
     }
 
+    const movedPiece = simulated.pieces[playerId].pieces[pieceId];
+    const movedPieceThreat = estimatePieceThreat(simulated, playerId, pieceId, getPiecePosition);
     return {
         pieceId,
         score,
+        move,
+        beforeSteps,
+        afterSteps: movedPiece.steps,
+        activeBefore,
+        activeAfter: simulated.pieces[playerId].pieces.filter(piece =>
+            piece.steps >= 0 && piece.steps < simulated.trackLength
+        ).length,
+        threat: movedPieceThreat,
+        expectedLoss,
         reason: move.captured && !move.captured.ownPiece
             ? 'vyhození soupeře'
             : move.finishedNow ? 'dokončení figurky'
@@ -184,7 +195,62 @@ function evaluateCandidate(originalGame, pieceId, dependencies, difficulty) {
  * Lehká = jednoduché priority; střední = pravděpodobnost ohrožení;
  * těžká = vyšší váha rizika a očekávaná hodnota pokračování po šestce.
  */
-export function chooseStrategicMove(game, dependencies, difficulty = 'medium') {
+function formatPercent(value) {
+    return Math.round(value * 1000) / 10;
+}
+
+function buildDecisionExplanation(game, selected, evaluated, dependencies) {
+    const playerId = game.currentPlayer;
+    const player = game.players[playerId];
+    const captureAlternative = evaluated.find(candidate =>
+        candidate !== selected && candidate.move.captured && !candidate.move.captured.ownPiece
+    );
+    const recentMove = game.lastMove;
+    const wasJustDeployed = recentMove?.playerId === playerId &&
+        recentMove.deployed && recentMove.pieceId === selected.pieceId;
+
+    if (selected.move.finishedNow) {
+        if (captureAlternative) {
+            return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
+                ', ale raději dokončím figurku v domečku. Hotová figurka už nemůže být vyhozena.';
+        }
+        return 'Raději pojedu do domečku. Dokončení figurky je jistý postup k vítězství.';
+    }
+
+    if (selected.move.captured && !selected.move.captured.ownPiece) {
+        return 'Vyhodím hráče ' + selected.move.captured.playerName +
+            '. Získám tím výhodu a soupeř musí figurku znovu nasadit.';
+    }
+
+    if (selected.move.deployed) {
+        const count = selected.activeAfter;
+        return 'Raději nasadím další figurku. Budu mít ' + count +
+            ' figurek na hracím poli a více možností pro další tahy.';
+    }
+
+    if (wasJustDeployed) {
+        return 'Raději pojedu právě nasazenou figurkou. Využiji její nasazení a rozšířím svůj postup po okruhu.';
+    }
+
+    if (captureAlternative) {
+        const threat = selected.threat;
+        const riskText = threat < 0.01
+            ? 'Moje figurka je mimo bezprostřední dosah soupeřů'
+            : 'Riziko vyhození mé figurky je přibližně ' + formatPercent(threat) + ' %';
+        return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
+            ', ale ' + riskText.toLowerCase() + '. Raději zvolím bezpečnější postup.';
+    }
+
+    if (selected.threat >= 0.10) {
+        return 'Volím tah, který nejlépe omezuje riziko ztráty figurek. Odhad ohrožení vybrané figurky je ' +
+            formatPercent(selected.threat) + ' %.';
+    }
+
+    return 'Volím tento tah podle postupu figurek, jejich bezpečí a možností dalších tahů.';
+}
+
+/** Vrátí vybraný tah včetně vysvětlení pro debug chat. */
+export function chooseStrategicDecision(game, dependencies, difficulty = 'medium') {
     const level = ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium';
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
@@ -193,5 +259,21 @@ export function chooseStrategicMove(game, dependencies, difficulty = 'medium') {
         evaluateCandidate(game, pieceId, dependencies, level)
     );
     evaluated.sort((a, b) => b.score - a.score || a.pieceId - b.pieceId);
-    return evaluated[0].pieceId;
+    const selected = evaluated[0];
+
+    return {
+        pieceId: selected.pieceId,
+        reason: buildDecisionExplanation(game, selected, evaluated, dependencies),
+        score: selected.score,
+        alternatives: evaluated.slice(1).map(candidate => ({
+            pieceId: candidate.pieceId,
+            score: candidate.score,
+            reason: candidate.reason
+        }))
+    };
+}
+
+/** Zachová původní API pro místa, která potřebují pouze ID figurky. */
+export function chooseStrategicMove(game, dependencies, difficulty = 'medium') {
+    return chooseStrategicDecision(game, dependencies, difficulty)?.pieceId ?? null;
 }
