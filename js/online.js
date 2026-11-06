@@ -140,7 +140,10 @@ async function refreshGame() {
 async function openGame(gameId, inviteUrl = '') {
     onlineRuntimeState.currentGameId = Number(gameId);
     onlineRuntimeState.currentInviteUrl = inviteUrl;
-    showScreen('room');
+    await loadScreen('room');
+    const { initOnlineRoomControls } = await import('./online/room-controls.js');
+    initOnlineRoomControls({ api, notify, session: onlineRuntimeState, refreshGame, copyInvite, leaveRoom });
+    await showScreen('room');
     await refreshGame();
 }
 
@@ -165,55 +168,6 @@ export async function initOnline() {
         void createRoom(button);
     }, true);
     // Tlačítko pro připojení obsluhuje navigation.js přes window.joinRoom().
-    $('room-player-settings')?.addEventListener('submit', async event => {
-        event.preventDefault();
-        if (!onlineRuntimeState.currentGameId) return;
-        const name = $('room-player-name')?.value.trim();
-        if (!name) {
-            notify('Zadej zobrazované jméno.');
-            return;
-        }
-        try {
-            const result = await api('rename_participant', {
-                game_id: String(onlineRuntimeState.currentGameId),
-                display_name: name
-            });
-            const identityName = $('online-player-name');
-            if (identityName) identityName.value = result.display_name;
-            await refreshGame();
-            notify('Tvoje jméno bylo změněno.');
-        } catch (error) {
-            notify(error.message);
-            await refreshGame();
-        }
-    });
-    $('room-player-color')?.addEventListener('change', async event => {
-        if (!onlineRuntimeState.currentGameId) return;
-        try {
-            await api('set_color', {
-                game_id: String(onlineRuntimeState.currentGameId),
-                color: event.target.value
-            });
-            await refreshGame();
-        } catch (error) {
-            notify(error.message);
-            await refreshGame();
-        }
-    });
-    $('random-room-color-btn')?.addEventListener('click', async () => {
-        const select = $('room-player-color');
-        if (!onlineRuntimeState.currentGameId || !select) return;
-        try {
-            await api('set_color', {
-                game_id: String(onlineRuntimeState.currentGameId),
-                color: 'random'
-            });
-            await refreshGame();
-        } catch (error) {
-            notify(error.message);
-            await refreshGame();
-        }
-    });
     $('create-transfer-code-btn')?.addEventListener('click', async event => {
         const button = event.currentTarget;
         if (button.disabled) return;
