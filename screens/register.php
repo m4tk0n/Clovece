@@ -6,7 +6,7 @@
                 <form id="register-form" class="auth-form">
                     <div class="form-group">
                         <label for="register-username">Uživatelské jméno (3-50 znaků)</label>
-                        <input type="text" id="register-username" name="username" required minlength="3" maxlength="50" autocomplete="username">
+                        <input type="text" id="register-username" name="username" required minlength="3" maxlength="50" pattern="[A-Za-zÀ-ž0-9_.-]+" title="Použij písmena, čísla, tečku, pomlčku nebo podtržítko." autocomplete="username">
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="form-group">
@@ -37,6 +37,7 @@
                         <i class="fas fa-user-plus"></i>
                     </button>
                 </form>
+                <p id="register-message" class="auth-message" role="status" aria-live="polite"></p>
                 <p class="auth-link">
                     Již máte účet? <button type="button" id="show-login" class="link-btn">Přihlašte se</button>
                 </p>
