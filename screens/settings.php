@@ -31,7 +31,7 @@
                         <span>ULOŽIT</span>
                         <i class="fas fa-save"></i>
                     </button>
-                    <button id="back-settings-btn" class="menu-btn secondary">
+                    <button id="back-settings-btn" class="menu-btn">
                         <span>ZPĚT</span>
                         <i class="fas fa-arrow-left"></i>
                     </button>
