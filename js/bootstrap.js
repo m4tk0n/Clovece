@@ -45,13 +45,25 @@ async function startApp() {
             }
         }
 
-        const [
-            { initNavigation },
-            { initAudio }
-        ] = await Promise.all([
-            trackedImport('navigation.js', './navigation.js'),
-            trackedImport('audio.js', './audio.js')
-        ]);
+        // Navigace je kritická: její inicializace nesmí být závislá na načtení zvuku.
+        // Promise.all by při chybě audio.js zabránilo navázání všech tlačítek.
+        const { initNavigation } = await trackedImport('navigation.js', './navigation.js');
+
+        document.getElementById('loading-screen')?.classList.add('hidden');
+        document.getElementById('main-menu')?.classList.remove('hidden');
+
+        trackedInit('initNavigation()', initNavigation);
+
+        // Zvuk je doplňková funkce. Jeho chyba nesmí zablokovat ovládání aplikace.
+        try {
+            const { initAudio } = await trackedImport('audio.js', './audio.js');
+            trackedInit('initAudio()', initAudio);
+        } catch (audioError) {
+            console.error('Zvukový modul se nepodařilo načíst:', audioError);
+            if (debugLog) {
+                debugLog('Zvukový modul selhal: ' + (audioError && audioError.message ? audioError.message : String(audioError)), 'CHYBA');
+            }
+        }
 
         function trackedInit(name, callback) {
             const startedAt = Date.now();
@@ -75,11 +87,6 @@ async function startApp() {
             }
         }
 
-        document.getElementById('loading-screen')?.classList.add('hidden');
-        document.getElementById('main-menu')?.classList.remove('hidden');
-
-        trackedInit('initNavigation()', initNavigation);
-        trackedInit('initAudio()', initAudio);
     } catch (error) {
         console.error('Nepodařilo se inicializovat aplikaci:', error);
         if (debugLog) debugLog('Inicializace aplikace selhala: ' + (error && error.message ? error.message : String(error)), 'CHYBA');
