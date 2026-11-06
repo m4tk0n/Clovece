@@ -86,6 +86,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     <span>PŘIHLÁSIT SE</span>
                     <i class="fas fa-sign-in-alt"></i>
                 </button>
+                <button id="account-avatar-btn" class="account-avatar hidden" type="button" aria-label="Uživatelský účet"></button>
             </div>
             <div class="menu-content">
                 <div id="user-info" class="user-info hidden">
