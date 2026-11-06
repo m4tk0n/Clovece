@@ -3,10 +3,11 @@
  * Síťové požadavky a životní cyklus relace zajišťuje online controller.
  */
 import { renderGameChat } from './chat-view.js';
+import { loadOnlineGameRuntime } from './game-runtime.js';
 const $ = id => document.getElementById(id);
 
 export async function renderOnlineGame(data, deps) {
-    const { state, loadScreen, showScreen, initOnlineGameControls, loadOnlineGameRuntime, sendGameAction } = deps;
+    const { state, loadScreen, showScreen, initOnlineGameControls, sendGameAction } = deps;
     const requestId = ++state.onlineRenderRequest;
     await loadScreen('game');
     if (requestId !== state.onlineRenderRequest) return;
