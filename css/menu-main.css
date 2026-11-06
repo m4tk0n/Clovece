@@ -12,20 +12,20 @@
     --content-max: 440px;
 
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    align-items: stretch;
+    justify-content: flex-start;
 }
 
 #main-menu .menu-bg {
-    flex: 0 0 auto;               /* panel zůstává samostatný; patička je mimo něj */
+    flex: 1 0 auto;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     border-color: rgba(198, 169, 107, .48);
     box-shadow: 0 26px 90px rgba(0, 0, 0, .5), inset 0 1px rgba(255, 255, 255, .09);
 }
 
-#main-menu .menu-content { padding: 0; }
+#main-menu .menu-content { padding: 0; margin-top: auto; margin-bottom: auto; }
 
 
 /* ---------- Nadpis a logo ---------- */
@@ -147,8 +147,9 @@
 /* ---------- Patička ---------- */
 #main-menu .credits {
     flex: 0 0 auto;
-    margin-top: 12px;
-    padding-bottom: 2px;
+    margin-top: 20px;
+    padding: 12px 8px 2px;
+    border-top: 1px solid rgba(198, 169, 107, .22);
     text-align: center;
     color: var(--ink-dim);
     font: 500 11px/1.4 var(--font-ui);
