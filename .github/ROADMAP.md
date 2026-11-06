@@ -4,7 +4,7 @@ Průběžný plán vývoje online multiplayeru a souvisejících funkcí.
 
 ## Pravidla práce
 
-- Pracujeme přímo ve větvi `main`.
+- Změny připravujeme v samostatné pracovní větvi a po kontrole je slučujeme do `main`.
 - Před každou změnou načteme aktuální verzi dotčených souborů z GitHubu.
 - Jeden update znamená jednu malou, samostatnou a ověřitelnou změnu.
 - Každý update má vlastní commit. Push do `main` automaticky spustí testy a FTP nasazení na WZ.cz.
@@ -61,6 +61,16 @@ Tyto body jsou výsledkem čtení repozitáře; databáze na produkčním hostin
 - [ ] Přidat indexy a vazby pro bezpečné mazání souvisejících dat.
 - [ ] Připravit verzované, opakovatelné databázové migrace.
 - [ ] Otestovat migraci na testovacích datech; nemažou se existující tabulky ani data.
+
+## Uživatelské účty – registrace a přihlášení
+
+- [x] Přidat účty navázané na anonymní identitu hráče.
+- [x] Přidat bezpečné hashování hesel, registraci, přihlášení a odhlášení.
+- [x] Při přihlášení sloučit anonymní identitu do účtu a zachovat přístup k rozehraným hrám.
+- [x] Napojit registrační a přihlašovací formuláře na online API.
+- [x] Zobrazovat stav účtu v hlavním menu.
+- [ ] Znovu spustit instalátor databáze na hostingu, aby vytvořil tabulku `player_accounts`.
+- [ ] Ověřit registraci, přihlášení, odhlášení a zachování hry na WZ.cz ve dvou zařízeních.
 
 ## Fáze 2 – Anonymní hráč a obnova hry
 
