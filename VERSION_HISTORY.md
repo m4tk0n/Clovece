@@ -229,3 +229,9 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 - Výběr počtu hráčů, jejich jmen a barev i výběr velikosti desky přesunut do `js/player-setup.js`.
 - `app.js` pouze převezme hotovou konfiguraci a vytvoří novou hru.
 - Modul výběru hráčů je samostatný a nepřebírá řízení herního kola.
+
+
+## 1.00.00.15 – Oddělení herního chatu a logu
+
+- Chat, slučování herních událostí a souhrn rozstřelu přesunuty do `js/game-log.js`.
+- Modul dostává stav hry přes getter a neimportuje `app.js`.
