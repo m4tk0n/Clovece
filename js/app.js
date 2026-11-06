@@ -54,30 +54,6 @@ const { showGame, renderPlayers, updateTurnControls } = createGameView({
 
 const { resetGameLog, updateStartLog, renderChat, addChatEntry, addGameLogEntry, sendChatMessage } = createGameLog(() => game);
 
-function updateTurnControls() {
-    if (!game) return;
-    const player = game.players[game.currentPlayer];
-    const isHuman = !player.isAI;
-    $('current-player-name').textContent = player.name;
-    $('current-player-display').style.setProperty('--player-color', player.color);
-    $('dice-value').textContent = game.diceValue || '—';
-    $('game-status').textContent = game.phase === 'start-roll'
-        ? (isHuman ? 'Rozstřel: hoď kostkou, až přijdeš na řadu.' : 'AI hází v rozstřelu…')
-        : game.phase === 'move'
-            ? (isHuman ? 'Vyber figurku, kterou chceš posunout.' : 'AI vybírá svůj tah…')
-            : game.phase === 'no-move'
-                ? 'Žádný možný tah.'
-                : game.phase === 'finished'
-                    ? 'Hra skončila.'
-                    : (isHuman ? 'Hoď kostkou a hraj.' : 'AI hází kostkou…');
-
-    const canRoll = isHuman && ['start-roll', 'roll'].includes(game.phase);
-    $('roll-dice-btn').classList.toggle('hidden', !canRoll);
-    $('roll-dice-btn').disabled = !canRoll;
-    const rollLabel = $('roll-dice-btn').querySelector('span');
-    if (rollLabel) rollLabel.textContent = game.phase === 'start-roll' ? 'HODIT ROZSTŘEL' : 'HODIT';
-    $('end-turn-btn').classList.add('hidden');
-}
 
 function openKickModal(move) {
     modalOpen = true;
