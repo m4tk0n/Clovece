@@ -1,0 +1,27 @@
+name: Test místní hry
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/game-engine.js'
+      - 'js/player-setup.js'
+      - 'screens/player-selection.php'
+      - 'tests/**'
+      - '.github/workflows/local-game-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  local-game-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Načíst repozitář
+        uses: actions/checkout@v4
+      - name: Nastavit Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Otestovat pravidla místní hry
+        run: node --experimental-default-type=module --test tests/*.test.mjs
