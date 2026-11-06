@@ -4,8 +4,8 @@
  */
 const $ = id => document.getElementById(id);
 
-export function renderMyGames(games) {
-    const container = $('my-games-list');
+export function renderMyGames(games, containerId = 'my-games-list') {
+    const container = $(containerId);
     if (!container) return;
 
     // Nemažeme a nevytváříme znovu seznam, pokud server vrátil stejná data.
