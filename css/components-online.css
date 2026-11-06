@@ -1,0 +1,128 @@
+/* Lobby + Room List + Room Screen + Participant List – komponenty pro příslušnou část aplikace. */
+
+.lobby-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin: 2rem 0;
+    align-items: center;
+}
+
+.join-room-form {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.join-room-form input {
+    flex: 1;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-family: var(--font-pixel);
+    font-size: 1rem;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.join-room-form input:focus {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.join-room-form input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.room-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+
+
+
+
+
+.room-info {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.room-status {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: var(--radius);
+    text-transform: uppercase;
+}
+
+.room-status.waiting {
+    background: rgba(255, 230, 109, 0.2);
+    color: var(--accent);
+}
+
+.room-status.playing {
+    background: rgba(78, 205, 196, 0.2);
+    color: var(--secondary);
+}
+
+#room-info {
+    margin-bottom: 2rem;
+}
+
+.room-code-display,
+.room-status-display {
+    font-family: var(--font-pixel);
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+.room-code-display .highlight,
+.room-status-display .highlight {
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(255, 230, 109, 0.5);
+}
+
+.participant-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 2rem 0;
+    max-width: 600px;
+}
+
+
+
+
+
+.participant-color {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-pixel);
+    font-size: 0.8rem;
+    color: var(--white);
+    font-weight: bold;
+}
+
+
+
+.room-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
