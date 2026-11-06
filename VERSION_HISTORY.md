@@ -1,3 +1,30 @@
+## 1.00.00.23 – Strategická AI se třemi úrovněmi obtížnosti
+
+**Datum:** 6. 11. 2026  
+**Typ:** Nová funkce – lokální počítačová AI
+
+- Přidán samostatný modul `js/ai-strategy.js` pro hodnocení legálních tahů.
+- AI vyhodnocuje postup, dokončení figurek, vyhození soupeře, ztracený postup soupeře a pravděpodobnost ohrožení vlastních figurek.
+- Pravděpodobnost zásahu počítá také s řetězením šestek; například vzdálenost 4 má pravděpodobnost 1/6 a vzdálenost 20 má pravděpodobnost 1/1296 za předpokladů modelu.
+- Přidány obtížnosti Lehká, Střední a Těžká. Výchozí je Střední.
+- Těžká AI vyhodnocuje očekávanou hodnotu pokračování po bonusové šestce pro všech šest možných dalších hodů.
+- Obtížnost se vybírá při vytváření místní hry a ukládá se do stavu hry jako `aiDifficulty`.
+- AI používá stejná pravidla a stejné legální tahy jako lidský hráč; nemá přístup k budoucím hodům.
+
+**Nové soubory:**
+- `AI_STRATEGY.md`
+- `js/ai-strategy.js`
+- `tests/ai-strategy.test.mjs`
+
+**Upravené soubory:**
+- `README.md`, `VERSION_HISTORY.md`, `.github/ROADMAP.md`
+- `js/game-engine.js`, `js/player-setup.js`, `js/app.js`
+- `screens/player-selection.php`, `css/components-player-selection.css`
+
+**Ověření:** přidány regresní testy; automatické spuštění testů a praktické ověření hry je nutné potvrdit po CI.
+
+---
+
 ## 1.00.00.22 – Povinnost vstoupit do domečku
 
 **Datum:** 6. 11. 2026  
