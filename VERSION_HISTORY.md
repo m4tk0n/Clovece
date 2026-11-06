@@ -241,3 +241,10 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 
 - Vykreslení statistik hráčů, desky a stavových ovládacích prvků přesunuto do `js/game-view.js`.
 - Modul dostává herní stav přes getter a vykreslovač desky přes parametr; neimportuje `app.js`.
+
+
+## 1.00.00.17 – Oddělení řízení tahů
+
+- Pohyb figurek, animace kroků, hody kostkou, rozstřel, automatické tahy AI a návaznost tahů přesunuty do `js/game-turn.js`.
+- Modul má vlastní stav právě probíhající hry a přijímá potřebné funkce jako závislosti.
+- `app.js` zůstává koordinátorem obrazovek a propojení jednotlivých modulů.
