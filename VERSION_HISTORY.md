@@ -1,3 +1,21 @@
+## 1.00.00.11 – Společná rotace kostky v režimech 2D a 3D
+
+**Datum:** 6. 11. 2026  
+**Typ:** Sjednocení animace
+
+- 2D CSS kostka a 3D Three.js kostka používají jeden společně vypočítaný plán rotace.
+- Sjednocen výchozí a cílový úhel, počet otoček, směr, délka běžné animace (1 500 ms) i časování rychlého režimu.
+- Three.js používá stejnou Bézierovu křivku jako CSS animace; zachovává si vlastní prostorové vykreslení, materiály a osvětlení.
+- Při chybě Three.js může CSS náhradní animace pokračovat podle stejného plánu.
+
+**Dotčené soubory:**
+- `js/app.js`
+- `js/game-board-3d.js`
+
+**Ověření:** zdrojové změny a návaznost sdílených parametrů; vizuální kontrola v prohlížeči ani na telefonu nebyla provedena.
+
+---
+
 ## 1.00.00.10 – Pomalejší rotace a větší body 3D kostky
 
 **Datum:** 6. 11. 2026  
