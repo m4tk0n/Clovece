@@ -8,9 +8,8 @@ export function loadOnlineGameRuntime() {
     if (!runtimePromise) {
         runtimePromise = Promise.all([
             import('./game-board.js'),
-            import('./dice.js'),
             import('./game-engine.js')
-        ]).then(([board, app, engine]) => ({
+        ]).then(([board, engine]) => ({
             renderBoard: board.renderBoard,
             ensureModeStyles: board.ensureModeStyles,
             getBoardView: board.getBoardView,
