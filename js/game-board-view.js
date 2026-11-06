@@ -7,6 +7,7 @@
  */
 import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js';
 import { render2DBoard } from './game-board-2d.js';
+import { notifyGameExtensions } from './game-extensions.js';
 
 const STYLE_KEY = 'clovece_board_style';
 const STYLES = ['classic', 'polygon'];
@@ -21,22 +22,15 @@ let threeRendererPromise = null;
 let activeStylesMode = null;
 const modeStylesPromises = new Map();
 
-function emitDebugLoad(name, status, duration) {
-    if (new URLSearchParams(window.location.search).get('debug') !== '1') return;
-    window.dispatchEvent(new CustomEvent('clovece:debug-log', {
-        detail: { name, status, duration }
-    }));
-}
-
 function loadThreeRenderer() {
     if (!threeRendererPromise) {
         const startedAt = performance.now();
-        emitDebugLoad('game-board-3d.js – načítání', '…');
+        notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načítání', status: '…' });
         threeRendererPromise = import('./game-board-3d.js').then(module => {
-            emitDebugLoad('game-board-3d.js – načteno', 'OK', Math.round(performance.now() - startedAt));
+            notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načteno', status: 'OK', duration: Math.round(performance.now() - startedAt) });
             return module;
         }).catch(error => {
-            emitDebugLoad('game-board-3d.js – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
+            notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – chyba načítání', status: 'CHYBA', duration: Math.round(performance.now() - startedAt) });
             threeRendererPromise = null;
             throw error;
         });
@@ -60,13 +54,13 @@ function ensureStylesheet(name, mode = 'game') {
     link.rel = 'stylesheet';
     link.href = new URL('../css/' + name + '.css?v=20261106-3', import.meta.url).href;
     const promise = new Promise((resolve, reject) => {
-        emitDebugLoad('css/' + name + '.css – načítání', '…');
+        notifyGameExtensions('onResourceLoad', { name: 'css/' + name + '.css – načítání', status: '…' });
         link.onload = () => {
-            emitDebugLoad('css/' + name + '.css – načteno', 'OK', Math.round(performance.now() - startedAt));
+            notifyGameExtensions('onResourceLoad', { name: 'css/' + name + '.css – načteno', status: 'OK', duration: Math.round(performance.now() - startedAt) });
             resolve();
         };
         link.onerror = () => {
-            emitDebugLoad('css/' + name + '.css – chyba načítání', 'CHYBA', Math.round(performance.now() - startedAt));
+            notifyGameExtensions('onResourceLoad', { name: 'css/' + name + '.css – chyba načítání', status: 'CHYBA', duration: Math.round(performance.now() - startedAt) });
             link.remove();
             modeStylesPromises.delete(name);
             reject(new Error('Nepodařilo se načíst css/' + name + '.css'));
