@@ -1,3 +1,22 @@
+## 1.00.00.21 – Přeskakování vlastních figurek v domečku
+
+**Datum:** 6. 11. 2026  
+**Typ:** Nové rozšířené pravidlo místní hry
+
+- Do nabídky rozšířených pravidel přidána volba „Přeskakování v domečku“ s přepínačem ANO/NE a informační nápovědou.
+- Při zapnutí lze přeskočit vlastní figurky na mezilehlých polích cílové dráhy.
+- Hod kostkou stále určuje přesný cílový krok; například z D1 při hodu 2 lze skončit na D3 i při obsazeném D2.
+- Na obsazené cílové pole vstoupit nelze.
+- Výchozí stav je ANO. Volba se předává pouze lokálnímu JavaScriptovému enginu; online hra zůstává beze změny.
+
+**Dotčené soubory:**
+- `screens/player-selection.php`, `js/player-setup.js`, `js/game-engine.js`
+- `GAME_RULES.md`, `.github/ROADMAP.md`
+
+**Ověření:** zdrojová změna; automatické a praktické testy čekají.
+
+---
+
 ## 1.00.00.20 – Nastavitelná rozšířená pravidla místní hry
 
 **Datum:** 6. 11. 2026  

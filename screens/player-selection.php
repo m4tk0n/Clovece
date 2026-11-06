@@ -62,6 +62,13 @@
                             <p class="rule-hint" hidden>Pokud má hráč alespoň jednu figurku v základně a hodí šestku, musí nasadit figurku ze základny. Pokud je pravidlo vypnuté, může místo nasazení táhnout již nasazenou figurkou.</p>
                         </div>
                         <button class="rule-switch" type="button" data-rule-toggle="mustDeploy" aria-pressed="true"><span>ANO</span></button>
+                    </div>                    <div class="extended-rule-row">
+                        <div class="extended-rule-description">
+                            <span>PŘESKAKOVÁNÍ V DOMEČKU</span>
+                            <button class="rule-info" type="button" data-rule-info aria-label="Nápověda: Přeskakování v domečku" aria-expanded="false">i</button>
+                            <p class="rule-hint" hidden>Vlastní figurky v domečku můžeš při pohybu přeskočit. Hod kostkou určuje přesnou cílovou pozici (například z D1 při hodu 2 na D3). Cílové políčko musí být volné; na obsazeném skončit nelze.</p>
+                        </div>
+                        <button class="rule-switch" type="button" data-rule-toggle="skipHomePieces" aria-pressed="true"><span>ANO</span></button>
                     </div>
                 </section>
                 </div>

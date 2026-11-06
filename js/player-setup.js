@@ -12,7 +12,7 @@ let previousTotalPlayerCount = 2;
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 // Výchozí ANO zachovává dosavadní pravidla lokální hry.
-const extendedRules = { threeRolls: true, mustDeploy: true };
+const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true };
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
 
 export function escapeHtml(value) {

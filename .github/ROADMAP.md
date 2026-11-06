@@ -332,3 +332,10 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 ## Odložené funkce
 
 - [ ] **Potvrzení opuštění aplikace:** případně později zvážit volitelné potvrzení při stisku systémového tlačítka Zpět na hlavním menu. Před implementací ověřit chování na mobilních prohlížečích. Funkce nyní není součástí aplikace.
+
+## Rozšířená pravidla místní hry – 2026-11-06
+
+- [x] Přidat volitelné pravidlo **Přeskakování v domečku**: vlastní figurky na mezilehlých cílových polích lze přeskočit, ale cílové pole musí být volné a počet kroků musí přesně odpovídat hodu kostkou.
+- [x] Nabídnout přepínač ANO/NE a informační nápovědu při vytváření místní hry; výchozí stav je ANO.
+- [x] Omezit toto nové pravidlo na lokální JavaScriptový engine; online pravidla a serverový engine zůstávají beze změny.
+- [ ] Prakticky ověřit tah z D1 přes obsazené D2 na volné D3 při hodu 2 a odmítnutí tahu na obsazené cílové pole.
