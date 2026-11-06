@@ -140,6 +140,20 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
         </div>
     </div>
 
+    <!-- Potvrzení opuštění aplikace při systémovém tlačítku Zpět na hlavním menu. -->
+    <div id="exit-confirm" class="exit-confirm hidden" aria-hidden="true">
+        <div class="exit-confirm__backdrop"></div>
+        <section class="exit-confirm__dialog" role="dialog" aria-modal="true" aria-labelledby="exit-confirm-title">
+            <div class="exit-confirm__icon"><i class="fas fa-door-open" aria-hidden="true"></i></div>
+            <h2 id="exit-confirm-title">Opravdu opustit</h2>
+            <p>Člověče, nezlob se</p>
+            <div class="exit-confirm__actions">
+                <button id="exit-confirm-yes" class="menu-btn" type="button">ANO</button>
+                <button id="exit-confirm-no" class="menu-btn secondary" type="button">NE</button>
+            </div>
+        </section>
+    </div>
+
     <!-- Obrazovky se načítají jednotlivě až při otevření. -->
     <div id="screen-container"></div>
 
