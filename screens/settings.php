@@ -26,14 +26,16 @@
                         </select>
                     </div>
                 </div>
-                <button id="save-settings-btn" class="menu-btn">
-                    <span>ULOŽIT</span>
-                    <i class="fas fa-save"></i>
-                </button>
-                <button id="back-settings-btn" class="menu-btn secondary">
-                    <span>ZPĚT</span>
-                    <i class="fas fa-arrow-left"></i>
-                </button>
+                <div class="settings-actions">
+                    <button id="save-settings-btn" class="menu-btn">
+                        <span>ULOŽIT</span>
+                        <i class="fas fa-save"></i>
+                    </button>
+                    <button id="back-settings-btn" class="menu-btn secondary">
+                        <span>ZPĚT</span>
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
