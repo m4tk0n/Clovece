@@ -14,3 +14,16 @@
 .link-btn:hover {
     color: var(--primary);
 }
+
+.color-select {
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    color: var(--white);
+    font-family: var(--font-main);
+    font-size: 1rem;
+    cursor: pointer;
+    outline: none;
+    transition: all var(--transition-fast);
+}
