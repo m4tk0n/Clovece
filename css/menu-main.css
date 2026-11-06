@@ -245,3 +245,56 @@
     #main-menu .menu-buttons .menu-btn { min-height: 43px; padding-block: 9px; }
     #main-menu .credits { margin-top: 12px; }
 }
+
+
+/* Rozbalovací nabídka uživatelského účtu */
+#main-menu .auth-buttons { position: absolute; }
+#main-menu .account-dropdown {
+    position: absolute;
+    top: calc(100% + 9px);
+    right: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    width: 218px;
+    max-width: calc(100vw - 28px);
+    padding: 7px;
+    border: 1px solid rgba(198, 169, 107, .42);
+    border-radius: 14px;
+    background: linear-gradient(155deg, #202a2b, #111a20);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .48), inset 0 1px rgba(255,255,255,.07);
+}
+#main-menu .account-dropdown.hidden { display: none; }
+#main-menu .account-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    width: 100%;
+    min-height: 42px;
+    margin: 0;
+    padding: 9px 11px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: #e8e9df;
+    font: 600 12px/1.3 var(--font-ui);
+    text-align: left;
+    cursor: pointer;
+}
+#main-menu .account-dropdown button:hover,
+#main-menu .account-dropdown button:focus-visible {
+    outline: none;
+    background: rgba(198, 169, 107, .14);
+}
+#main-menu .account-dropdown button i {
+    width: 17px;
+    color: var(--gold-light);
+    text-align: center;
+}
+#main-menu .account-dropdown-divider {
+    height: 1px;
+    margin: 5px 7px;
+    background: rgba(198, 169, 107, .2);
+}
+#main-menu .account-dropdown .account-logout { color: #ffb1a8; }
+#main-menu .account-dropdown .account-logout i { color: #ff9d91; }
