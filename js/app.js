@@ -143,12 +143,13 @@ function restartGame() {
 
 export async function openPlayerSelection() {
     await loadScreen('player-selection');
+    // Obrazovka se vkládá až při otevření, proto posluchače připojíme až po jejím načtení.
+    initPlayerSetup();
     updateSetup();
     await showScreen('player-selection');
 }
 
 export function initGame() {
-    initPlayerSetup();
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
 }
