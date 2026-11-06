@@ -883,10 +883,7 @@ export function initGame() {
     });
 
     // Online navigace je navázaná v hlavním inicializátoru, nezávisle na API bootstrapu.
-    $('join-room-btn')?.addEventListener('click', () => showScreen('lobby'));
 
-    $('settings-btn')?.addEventListener('click', () => showScreen('settings'));
-    $('rules-btn')?.addEventListener('click', () => showScreen('rules'));
 
     updateSetup();
 }
