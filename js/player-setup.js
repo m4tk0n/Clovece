@@ -8,6 +8,7 @@ const $ = id => document.getElementById(id);
 let humanCount = 1;
 let aiCount = 1;
 let selectedBoardSize = 40;
+let previousTotalPlayerCount = 2;
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 const extendedRules = { rule1: false, rule2: false, rule3: false };
@@ -59,9 +60,12 @@ function updateSetup() {
     });
 
     const availableBoardSizes = getAvailableBoardSizes(total);
-    if (!availableBoardSizes.includes(selectedBoardSize)) {
+    // Při snížení počtu hráčů vždy zvolíme nejmenší dostupnou desku.
+    // Při zvýšení zachováme ruční volbu, pokud je pro nový počet stále dostupná.
+    if (total < previousTotalPlayerCount || !availableBoardSizes.includes(selectedBoardSize)) {
         selectedBoardSize = availableBoardSizes[0] || 40;
     }
+    previousTotalPlayerCount = total;
     $('board-size-options')?.querySelectorAll('[data-board-size]').forEach(button => {
         const size = Number(button.dataset.boardSize);
         const active = size === selectedBoardSize;
