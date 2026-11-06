@@ -1,0 +1,65 @@
+/* Obrazovka rozehraných lokálních her */
+#local-games-screen {
+    --panel-max: 620px;
+    --content-max: 500px;
+}
+
+#local-games-screen .local-games-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#local-games-screen .local-games-empty {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 18px 0 22px;
+    padding: clamp(24px, 6vw, 42px) 20px;
+    border: 1px solid rgba(198, 169, 107, .22);
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .018));
+    box-shadow: inset 0 1px rgba(255, 255, 255, .045);
+    text-align: center;
+}
+
+#local-games-screen .local-games-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 66px;
+    height: 66px;
+    margin: 0 auto 16px;
+    border: 1px solid rgba(198, 169, 107, .38);
+    border-radius: 20px;
+    background: rgba(198, 169, 107, .09);
+    color: var(--gold-light);
+    font-size: 27px;
+}
+
+#local-games-screen .local-games-empty h3 {
+    margin: 0 0 9px;
+    font-size: 16px;
+}
+
+#local-games-screen .local-games-empty p {
+    max-width: 360px;
+    margin: 0 auto;
+    color: var(--ink-soft);
+    font: 500 12px/1.65 var(--font-ui);
+}
+
+@media (max-width: 420px) {
+    #local-games-screen .local-games-empty {
+        margin: 12px 0 16px;
+        padding: 25px 14px;
+    }
+
+    #local-games-screen .local-games-empty-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 17px;
+        font-size: 23px;
+    }
+
+    #local-games-screen .local-games-empty h3 { font-size: 14px; }
+    #local-games-screen .local-games-empty p { font-size: 11px; }
+}
