@@ -13,7 +13,7 @@ function setMessage(formName, message = '', type = '') {
     output.className = 'auth-message' + (type ? ' ' + type : '');
 }
 
-async function refreshAccountMenu() {
+export async function refreshAccountMenu() {
     const data = await bootstrapOnline();
     const account = data.account;
     const authButtons = document.getElementById('auth-buttons');
