@@ -33,7 +33,7 @@ function getAttackerProbability(game, attackerId, attackerPiece, targetPosition,
 
     // Figurka nesmí před dosažením cíle vstoupit do vlastního domečku.
     const remainingTrack = game.trackLength - attackerPiece.steps;
-    if (distance > remainingTrack) return 0;
+    if (distance >= remainingTrack) return 0;
 
     const rollsRequired = Math.ceil(distance / 6);
     const attackerPieces = game.pieces[attackerId].pieces;
