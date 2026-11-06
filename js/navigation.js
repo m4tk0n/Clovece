@@ -12,7 +12,8 @@ const screenIds = {
     'player-selection': 'player-selection',
     settings: 'settings-screen',
     rules: 'rules-screen',
-    game: 'game-screen'
+    game: 'game-screen',
+    'local-games': 'local-games-screen'
 };
 
 const screenFiles = {
@@ -23,7 +24,8 @@ const screenFiles = {
     'player-selection': 'player-selection',
     settings: 'settings',
     rules: 'rules',
-    game: 'game'
+    game: 'game',
+    'local-games': 'local-games'
 };
 
 const screenLoads = new Map();
@@ -37,7 +39,8 @@ const screenStyles = {
     'player-selection': ['css/components-player-selection.css'],
     settings: ['css/components-settings.css'],
     rules: ['css/components-rules.css'],
-    game: ['css/components-game.css', 'css/components-chat.css', 'css/animations.css']
+    game: ['css/components-game.css', 'css/components-chat.css', 'css/animations.css'],
+    'local-games': ['css/components-local-games.css']
 };
 
 let cssAssetVersions = null;
@@ -230,7 +233,7 @@ export function initNavigation() {
     };
 
     bindClick('play-btn', openLocalGame);
-    bindClick('create-room-btn', openLocalGame);
+    bindClick('create-room-btn', () => void showScreen('local-games'));
     bindClick('login-menu-btn', () => void showScreen('login'));
     bindClick('register-menu-btn', () => void showScreen('register'));
 
@@ -253,7 +256,8 @@ export function initNavigation() {
             'back-from-lobby': 'main-menu',
             'back-from-room': 'lobby',
             'back-settings-btn': 'main-menu',
-            'back-rules-btn': 'main-menu'
+            'back-rules-btn': 'main-menu',
+            'back-local-games-btn': 'main-menu'
         };
         const destination = destinations[button.id];
         if (destination) void showScreen(destination);
