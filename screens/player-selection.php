@@ -35,17 +35,17 @@
                     <div class="player-preview" id="player-preview">
                         <h3>SESTAVA U STOLU</h3>
                         <div class="preview-players" id="preview-players"></div>
-                        <button id="random-player-colors-btn" type="button" class="menu-btn secondary">
+                        <button id="random-player-colors-btn" type="button" class="menu-btn">
                             <span>NÁHODNĚ ROZDĚLIT BARVY</span>
                             <i class="fas fa-shuffle"></i>
                         </button>
                     </div>
                 </div>
-                <button id="start-game-btn" class="menu-btn secondary">
+                <button id="start-game-btn" class="menu-btn">
                     <span>ZAČÍT HRU</span>
                     <i class="fas fa-dice"></i>
                 </button>
-                <button id="back-to-menu-btn" class="menu-btn secondary">
+                <button id="back-to-menu-btn" class="menu-btn">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
