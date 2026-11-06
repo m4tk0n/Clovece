@@ -6,7 +6,7 @@
                 <form id="register-form" class="auth-form">
                     <div class="form-group">
                         <label for="register-username">Uživatelské jméno (3-50 znaků)</label>
-                        <input type="text" id="register-username" name="username" required minlength="3" maxlength="50" pattern="[A-Za-zÀ-ž0-9_.-]+" title="Použij písmena, čísla, tečku, pomlčku nebo podtržítko." autocomplete="username">
+                        <input type="text" id="register-username" name="username" required minlength="3" maxlength="50" autocomplete="username">
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="form-group">
