@@ -233,7 +233,18 @@ export function initNavigation() {
     };
 
     bindClick('play-btn', openLocalGame);
-    bindClick('create-room-btn', () => void showScreen('local-games'));
+    bindClick('create-room-btn', async () => {
+        const opened = await showScreen('local-games');
+        if (!opened) return;
+        try {
+            const onlineModule = await import('./online.js');
+            await onlineModule.initOnline({ gamesContainerId: 'online-games-list' });
+        } catch (error) {
+            console.error('Seznam online her se nepodařilo načíst:', error);
+            const list = document.getElementById('online-games-list');
+            if (list) list.textContent = 'Seznam online her se nepodařilo načíst.';
+        }
+    });
     bindClick('login-menu-btn', () => void showScreen('login'));
     bindClick('register-menu-btn', () => void showScreen('register'));
 
