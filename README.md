@@ -46,6 +46,10 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - js/game-log.js – herní chat, log událostí a rozstřel
 - js/game-view.js – vykreslení hráčů a stavu tahu
 - js/game-turn.js – pohyb figurek, hody, průběh tahů a AI
+- css/menu-components.css – základní komponenty hlavního menu, načítá se při startu
+- css/components.css – komponenty dalších obrazovek; načítá se až při jejich otevření
+- css/menu-animations.css – animace načítané při startu mimo herní obrazovku
+- css/animations.css – herní animace, načítají se až při vstupu do hry
 - css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
 - online-api.php – anonymní online API a serverově ověřované herní tahy
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
@@ -62,7 +66,9 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 
 - Při otevření webu se načítá pouze navigace a zvuk. Lokální herní runtime se importuje až při vstupu do lokální hry nebo nastavení; online modul až po otevření lobby a renderer/engine až při aktivní online hře.
 - `css/game-premium.css` se připojí až při otevření výběru lokální hry. CSS desky a kostky se připojí až při spuštění hry a načte se pouze sada pro právě zvolený režim 2D nebo 3D.
-- Herní animace vyhození a vítězství jsou v `css/game-premium.css`; globální `css/animations.css` obsahuje pouze animace potřebné i mimo hru, například pro úvodní obrazovku a menu.
+- `css/menu-animations.css` obsahuje pouze animace potřebné mimo hru a načítá se při startu.
+- `css/animations.css` obsahuje herní animace a načítá se až při otevření herní obrazovky.
+- `css/menu-components.css` obsahuje pouze tlačítka a glitch vzhled hlavního menu; `css/components.css` obsahuje ostatní komponenty a připojuje se až při otevření jiné obrazovky. Při návratu do hlavního menu se oba herní/screen stylesheety odpojí.
 - Při odchodu z herní obrazovky se herní stylesheety odpojí, DOM desky se vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
 - Online lobby zůstává bez herního rendereru a bez importu lokálního herního runtime.
 - Prohlížeče nemají standardní API pro odregistrování již importovaného ES modulu z modulové cache. Po odchodu proto uvolňujeme reference a aktivní prostředky; nelze zaručit okamžité fyzické odstranění samotného kódu modulu z paměti.
