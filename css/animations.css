@@ -133,40 +133,11 @@
 }
 
 /* Kick Animation */
-@keyframes kickerMove {
-    0% { transform: translateX(0); }
-    50% { transform: translateX(30px); }
-    100% { transform: translateX(0); }
-}
 
-@keyframes kickedMove {
-    0% { transform: translateX(0); opacity: 1; }
-    50% { transform: translateX(-100px) rotate(360deg); opacity: 0.5; }
-    100% { transform: translateX(-200px) rotate(720deg); opacity: 0; }
-}
 
-@keyframes kickEffect {
-    0% { transform: scale(0); opacity: 1; }
-    50% { transform: scale(1.5); opacity: 0.8; }
-    100% { transform: scale(2); opacity: 0; }
-}
 
 /* Win Animation */
-@keyframes confettiFall {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
-}
 
-@keyframes trophyShine {
-    0%, 100% { 
-        transform: scale(1); 
-        text-shadow: 0 0 30px var(--accent); 
-    }
-    50% { 
-        transform: scale(1.1); 
-        text-shadow: 0 0 50px var(--accent), 0 0 80px var(--accent); 
-    }
-}
 
 /* Path & Move Animations */
 @keyframes movePathFade {
