@@ -75,6 +75,33 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
             'css/components-game.css' => $assetVersion('css/components-game.css'),
             'css/animations.css' => $assetVersion('css/animations.css')
         ]), ENT_QUOTES, 'UTF-8') ?>'>
+<?php if ($testMode): ?>
+<aside id="live-test-panel" class="live-test-panel" aria-label="Automatické testování místní hry">
+    <div class="live-test-heading">
+        <div><strong>TESTOVACÍ LABORATOŘ</strong><span id="test-status">Připraveno</span></div>
+        <button id="test-panel-collapse" type="button" aria-expanded="true" aria-label="Sbalit testovací panel">−</button>
+    </div>
+    <div id="test-panel-content">
+        <div class="test-rule-grid">
+            <label><input type="checkbox" data-test-rule="threeRolls" checked> 3 hody</label>
+            <label><input type="checkbox" data-test-rule="mustDeploy" checked> Povinnost nasadit</label>
+            <label><input type="checkbox" data-test-rule="skipHomePieces" checked> Přeskakování v domečku</label>
+            <label><input type="checkbox" data-test-rule="mustEnterHome" checked> Povinný vstup do domečku</label>
+        </div>
+        <div class="test-controls">
+            <button id="test-start" type="button">START</button>
+            <button id="test-pause" type="button" disabled>PAUZA</button>
+            <button id="test-resume" type="button" disabled>POKRAČOVAT</button>
+            <button id="test-stop" type="button" disabled>STOP</button>
+            <button id="test-report" type="button" disabled>NAHLÁSIT CHYBU</button>
+        </div>
+        <div class="test-log-heading"><strong>Průběh testu</strong><span id="test-step-count">0 událostí</span></div>
+        <ol id="test-live-log" class="test-live-log" aria-live="polite"><li>Čekám na spuštění automatické hry.</li></ol>
+        <p class="test-panel-note">Hra běží ve skutečném herním rozhraní. Pravidla se předávají přímo do herního enginu.</p>
+    </div>
+</aside>
+<?php endif; ?>
+
 <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader">
