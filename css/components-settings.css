@@ -51,7 +51,7 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: var(--gradient-1);
+    background: var(--gradient-2);
     box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
 }
 .toggle-switch input:checked + .slider-round { background: rgba(78, 205, 196, .3); }
