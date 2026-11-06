@@ -73,7 +73,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
 <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader">
-            <h2 class="glitch">ČLOVĚČE NEZLOB SE</h2>
+            <h2 class="glitch">ČLOVĚČE, NEZLOB SE!</h2>
             <p>Načítání hry...</p>
         </div>
     </div>
@@ -105,7 +105,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     </button>
                 </div>
                 
-                <h1 class="game-title glitch">ČLOVĚČE NEZLOB SE</h1>
+                <h1 class="game-title glitch">ČLOVĚČE, NEZLOB SE!</h1>
                 <div class="game-logo">
                     <i class="fas fa-dice"></i>
                 </div>
