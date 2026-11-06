@@ -22,7 +22,7 @@
                 <p class="auth-link">
                     Nemáte účet? <button type="button" id="show-register" class="link-btn">Registrujte se</button>
                 </p>
-                <button id="back-from-login" class="menu-btn secondary fit-content">
+                <button id="back-from-login" class="menu-btn">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
