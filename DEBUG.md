@@ -58,6 +58,16 @@ Při zobrazení desky ve 3D se zobrazí čísla všech polí hlavního okruhu a 
 
 Číslování je implementováno v 3D rendereru. Ve 2D zobrazení se úplná čísla polí hlavního okruhu a cílových drah nevykreslují.
 
+## 3. Diagnostika 3D kamery
+
+V debug režimu se v panelu zobrazuje živá poloha 3D kamery a její náklon:
+
+- **X, Y, Z** – aktuální souřadnice pozice kamery v prostoru scény.
+- **NÁKLON** – úhel pohledu od svislé osy; 0° znamená pohled přímo shora.
+- **CÍL** – souřadnice bodu, na který kamera míří.
+
+Hodnoty se aktualizují při pohybu kamery, včetně ručního otáčení a přiblížení/oddálení. Souřadnice jsou uváděny na tři desetinná místa a úhel na jedno desetinné místo. Mimo 3D režim se údaje nezobrazují.
+
 ## 3. Vizualizace možných tahů ve 2D
 
 Při fázi výběru figurky se na 2D desce zobrazí barevné značky tras legálních tahů aktuálního hráče:
