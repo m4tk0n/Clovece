@@ -6,7 +6,7 @@
                 <form id="login-form" class="auth-form">
                     <div class="form-group">
                         <label for="login-username">Uživatelské jméno</label>
-                        <input type="text" id="login-username" name="username" required autocomplete="username">
+                        <input type="text" id="login-username" name="username" required maxlength="50" autocomplete="username">
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="form-group">
@@ -19,6 +19,7 @@
                         <i class="fas fa-sign-in-alt"></i>
                     </button>
                 </form>
+                <p id="login-message" class="auth-message" role="status" aria-live="polite"></p>
                 <p class="auth-link">
                     Nemáte účet? <button type="button" id="show-register" class="link-btn">Registrujte se</button>
                 </p>

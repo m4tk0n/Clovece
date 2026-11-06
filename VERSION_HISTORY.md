@@ -1,3 +1,27 @@
+## 1.00.00.18 – Registrace a přihlašování uživatelských účtů
+
+**Datum:** 6. 11. 2026  
+**Typ:** Nová funkce – uživatelské účty
+
+- Hlavní obrazovka nabízí samostatná tlačítka Registrace a Přihlásit se.
+- Registrační a přihlašovací formuláře komunikují s novými akcemi online API.
+- Hesla se ukládají pomocí `password_hash()` a kontrolují pomocí `password_verify()`.
+- Účet je navázán na dosavadní anonymní identitu zařízení.
+- Při přihlášení na jiném zařízení se anonymní identita sloučí s účtem; zachová se přístup k jeho rozehraným hrám.
+- Odhlášení převede pouze aktuální zařízení zpět na anonymní identitu.
+- Přidána tabulka `player_accounts`; opakovatelný instalátor ji vytvoří bez mazání existujících tabulek.
+
+**Dotčené soubory:**
+- `index.php`, `screens/login.php`, `screens/register.php`
+- `online-api.php`, `lib/account-auth.php`
+- `js/auth.js`, `js/navigation.js`, `js/online/api.js`
+- `install/schema.sql`, `css/components-auth.css`
+- `README.md`, `.github/ROADMAP.md`
+
+**Ověření:** automatická kontrola syntaxe a praktický test na WZ.cz zatím čekají. Po nasazení je nutné jednou znovu spustit `install/install.php`, aby vznikla nová tabulka.
+
+---
+
 ## 1.00.00.11 – Společná rotace kostky v režimech 2D a 3D
 
 **Datum:** 6. 11. 2026  

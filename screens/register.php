@@ -37,6 +37,7 @@
                         <i class="fas fa-user-plus"></i>
                     </button>
                 </form>
+                <p id="register-message" class="auth-message" role="status" aria-live="polite"></p>
                 <p class="auth-link">
                     Již máte účet? <button type="button" id="show-login" class="link-btn">Přihlašte se</button>
                 </p>

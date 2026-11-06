@@ -42,3 +42,15 @@
     .auth-form { margin-bottom: 8px; padding: 10px; }
     .form-group { margin-bottom: 8px; }
 }
+
+.auth-message {
+    min-height: 18px;
+    margin: 8px auto 12px;
+    max-width: 440px;
+    font-size: 13px;
+    text-align: center;
+}
+.auth-message:empty { display: none; }
+.auth-message.error { color: #ff9b9b; }
+.auth-message.success { color: #8ce4d3; }
+.auth-form button:disabled { opacity: .6; cursor: wait; }

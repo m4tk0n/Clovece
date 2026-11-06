@@ -245,6 +245,10 @@ export function initNavigation() {
             if (list) list.textContent = 'Seznam online her se nepodařilo načíst.';
         }
     });
+    void import('./auth.js').then(({ initAuth }) => initAuth()).catch(error => {
+        console.error('Autentizaci se nepodařilo inicializovat:', error);
+    });
+
     bindClick('login-menu-btn', () => void showScreen('login'));
     bindClick('register-menu-btn', () => void showScreen('register'));
 

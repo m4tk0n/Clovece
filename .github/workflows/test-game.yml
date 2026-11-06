@@ -37,5 +37,6 @@ jobs:
           php -l install/install.php
           php -l online-api.php
           php -l lib/game-engine.php
+          php -l lib/account-auth.php
           php -l tests/online-engine.test.php
           php tests/online-engine.test.php
