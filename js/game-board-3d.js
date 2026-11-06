@@ -367,7 +367,7 @@ export async function animateThreeDice(value, fast = false, rotationPlan = null)
                 shadow.material.opacity = .12 + (1 - Math.min(1, bounce)) * .22;
                 shadow.scale.x = 1.1 + bounce * .2;
                 if (elapsed >= totalDuration) {
-                    die.rotation.set(...target);
+                    die.rotation.set(...end);
                     die.position.y = 0;
                     renderer.render(scene, camera);
                     finish();
