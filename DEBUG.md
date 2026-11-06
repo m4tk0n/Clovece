@@ -42,7 +42,7 @@ Při otevření webu se nenačítá lokální herní runtime, herní UI CSS ani 
 - **3D:** načte se `css/game-premium.css`, `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
 - Při přepnutí režimu se stylesheety desky a kostky předchozího režimu odstraní a načte se odpovídající dvojice; společné `game-premium.css` zůstává připojené po dobu hry.
 - Herní animace vyhození a vítězství (`kickerMove`, `kickedMove`, `kickEffect`, `confettiFall`, `trophyShine`) jsou součástí `game-premium.css`, takže se nenačítají v hlavním menu. Globální `animations.css` si ponechává animace potřebné pro menu a úvodní načítání.
-- Při opuštění herní obrazovky se herní stylesheety odpojí, obsah desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
+- Při opuštění herní obrazovky se herní stylesheety odpojí, obsah desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače, animační smyčku i vlastní reference na scénu a načtené knihovny.
 - Již importované ES moduly nelze standardním API odebrat z modulové cache prohlížeče. Aplikace proto načítá herní moduly až při potřebě a po odchodu uvolní jejich aplikační reference a prostředky; fyzické vymazání kódu z paměti není garantovatelné.
 - Při chybě 3D rendereru se aplikace vrátí do 2D a přepne také odpovídající CSS.
 
