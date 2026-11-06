@@ -82,10 +82,6 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <div id="main-menu" class="menu-screen hidden">
         <div class="menu-bg">
             <div class="auth-buttons" id="auth-buttons">
-                <button id="register-menu-btn" class="menu-btn secondary">
-                    <span>REGISTROVAT</span>
-                    <i class="fas fa-user-plus"></i>
-                </button>
                 <button id="login-menu-btn" class="menu-btn secondary">
                     <span>PŘIHLÁSIT SE</span>
                     <i class="fas fa-sign-in-alt"></i>
@@ -99,7 +95,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     <div class="user-details">
                         <span class="user-name" id="user-display-name">Hráč</span>
                         <div class="user-stats">
-                            <span id="user-wins">0</span> výher | 
+                            <span id="user-wins">0</span> výher |
                             <span id="user-games">0</span> her
                         </div>
                     </div>
@@ -108,7 +104,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
-                
+
                 <h1 class="game-title glitch">ČLOVĚČE, NEZLOB SE!</h1>
                 <div class="game-logo" role="img" aria-label="Hrací kostka a dvě herní figurky">
                     <i class="fas fa-dice game-logo-die" aria-hidden="true"></i>
@@ -117,7 +113,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                         <i class="fas fa-chess-pawn game-logo-pawn game-logo-pawn-two"></i>
                     </span>
                 </div>
-                
+
                 <div class="menu-buttons">
                     <button id="play-btn" class="menu-btn">
                         <span>MÍSTNÍ HRA</span>
@@ -140,7 +136,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                         <i class="fas fa-book"></i>
                     </button>
                 </div>
-                
+
             </div>
             <div class="credits">
                 <p>Vytvořeno s <i class="fas fa-heart"></i> pro zábavu</p>
