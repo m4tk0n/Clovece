@@ -252,6 +252,9 @@ export function createTurnController(deps) {
         const forcedMove = getForcedMove(game);
         const autoMoveForced = getGameExtensionValue('shouldAutoMoveForced', true, game);
         if (forcedMove !== null && autoMoveForced) {
+            if (isAI && debugAI) {
+                addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
+            }
             performMove(forcedMove);
             return;
         }
