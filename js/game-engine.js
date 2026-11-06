@@ -28,7 +28,11 @@ export function getAvailableBoardSizes(playerCount) {
 
 export function createGame(humanCount, aiCount, names = [], colors = [], boardSize = null, rules = {}) {
     const total = humanCount + aiCount;
-    const gameRules = { threeRolls: rules.threeRolls !== false, mustDeploy: rules.mustDeploy !== false };
+    const gameRules = {
+        threeRolls: rules.threeRolls !== false,
+        mustDeploy: rules.mustDeploy !== false,
+        skipHomePieces: rules.skipHomePieces !== false
+    };
     if (total < 2 || total > 8 || humanCount < 1 || aiCount < 0) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
     }
@@ -148,7 +152,11 @@ export function getValidMoves(game, playerId = game.currentPlayer) {
                     (game.players[playerId].start + nextSteps) % game.trackLength;
             }
 
-            // V cílové dráze se nesmí přeskočit žádná vlastní figurka.
+            // Volitelné pravidlo dovoluje přeskočit vlastní figurky v domečku,
+            // ale cílové pole musí zůstat volné.
+            if (game.rules.skipHomePieces) return other.steps === nextSteps;
+
+            // Při vypnutém pravidle blokuje vlastní figurka i mezilehlá pole.
             const firstHomeStep = Math.max(game.trackLength, piece.steps + 1);
             for (let step = firstHomeStep; step <= nextSteps; step++) {
                 if (other.steps === step) return true;
