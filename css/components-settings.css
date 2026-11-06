@@ -76,8 +76,4 @@
 }
 .settings-actions > .menu-btn {
     flex: 0 0 auto;
-    width: fit-content;
-    max-width: none;
-    min-width: 0;
-    margin: 0;
 }
