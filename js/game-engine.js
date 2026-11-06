@@ -2,6 +2,7 @@
  * Člověče, nezlob se! – čisté herní jádro.
  * Nezávislé na DOM a serveru, připravené pro pozdější autoritativní online API.
  */
+import { chooseStrategicMove } from './ai-strategy.js';
 
 export const PLAYER_COLORS = [
     '#E53935', '#1E88E5', '#43A047', '#F9A825',
@@ -26,7 +27,7 @@ export function getAvailableBoardSizes(playerCount) {
         .map(config => config.trackLength);
 }
 
-export function createGame(humanCount, aiCount, names = [], colors = [], boardSize = null, rules = {}) {
+export function createGame(humanCount, aiCount, names = [], colors = [], boardSize = null, rules = {}, aiDifficulty = 'medium') {
     const total = humanCount + aiCount;
     const gameRules = {
         threeRolls: rules.threeRolls !== false,
@@ -70,6 +71,7 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
     return {
         players,
         rules: gameRules,
+        aiDifficulty: ['easy', 'medium', 'hard'].includes(aiDifficulty) ? aiDifficulty : 'medium',
         trackLength,
         boardSize: trackLength,
         slotCount,
@@ -340,33 +342,10 @@ export function advanceTurn(game) {
     game.turnNumber++;
 }
 
-export function chooseAIMove(game) {
-    const valid = getValidMoves(game);
-    if (!valid.length) return null;
-
-    const playerId = game.currentPlayer;
-    const candidates = valid.map(pieceId => {
-        const piece = game.pieces[playerId].pieces[pieceId];
-        const next = piece.steps < 0 ? 0 : piece.steps + game.diceValue;
-        const destination = next < game.trackLength
-            ? (game.players[playerId].start + next) % game.trackLength
-            : null;
-        let score = next;
-
-        if (piece.steps < 0) score += 18;
-        if (next === game.trackLength + 3) score += 1000;
-        if (destination !== null) {
-            game.pieces.forEach((group, enemyId) => {
-                if (enemyId === playerId) return;
-                group.pieces.forEach(enemy => {
-                    if (enemy.steps >= 0 && enemy.steps < game.trackLength &&
-                        getPiecePosition(game, enemyId, enemy) === destination) score += 90;
-                });
-            });
-        }
-        return { pieceId, score };
-    });
-
-    candidates.sort((a, b) => b.score - a.score);
-    return candidates[0].pieceId;
+export function chooseAIMove(game, difficulty = game.aiDifficulty || 'medium') {
+    return chooseStrategicMove(game, {
+        getValidMoves,
+        getPiecePosition,
+        movePiece
+    }, difficulty);
 }
