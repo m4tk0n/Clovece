@@ -67,3 +67,35 @@ test('unknown AI difficulty safely falls back to medium', () => {
     const game = createGame(1, 1, [], [], 40, {}, 'impossible');
     assert.equal(game.aiDifficulty, 'medium');
 });
+
+test('a distant target cannot be hit after the attacker has reached the end of its track', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = 20;
+    game.pieces[1].pieces[0].steps = game.trackLength - 1;
+    assert.equal(estimatePieceThreat(game, 0, 0, getPiecePosition), 0);
+});
+
+test('AI may prefer a valuable capture over a non-mandatory home entry', () => {
+    const game = createGame(1, 1, [], [], 40, { mustEnterHome: false });
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = 0;
+    game.pieces[0].pieces[1].steps = game.trackLength - 1;
+    game.pieces[1].pieces[0].steps = 21; // The capture target is at field 1.
+
+    const legal = getValidMoves(game);
+    assert.deepEqual(legal, [0, 1]);
+    assert.equal(chooseAIMove(game), 0);
+});
+
+test('AI still obeys mandatory home entry when that rule is enabled', () => {
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = 0;
+    game.pieces[0].pieces[1].steps = game.trackLength - 1;
+    game.pieces[1].pieces[0].steps = 21;
+
+    assert.deepEqual(getValidMoves(game), [1]);
+    assert.equal(chooseAIMove(game), 1);
+});
