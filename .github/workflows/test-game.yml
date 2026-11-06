@@ -48,6 +48,7 @@ jobs:
       - name: Check PHP syntax
         run: |
           php -l config.php
+          php -l screen.php
           php -l install/install.php
           php -l online-api.php
           php -l lib/game-engine.php
