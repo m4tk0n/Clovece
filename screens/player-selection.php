@@ -41,10 +41,6 @@
                         </button>
                     </div>
                 </div>
-                <button id="start-game-btn" class="menu-btn">
-                    <span>ZAČÍT HRU</span>
-                    <i class="fas fa-dice"></i>
-                </button>
                 <button id="extended-rules-toggle" class="menu-btn extended-rules-toggle" type="button" aria-expanded="false" aria-controls="extended-rules-panel">
                     <span>ROZŠÍŘENÁ PRAVIDLA</span>
                     <i class="fas fa-chevron-down" aria-hidden="true"></i>
@@ -72,6 +68,10 @@
                         <button class="rule-switch" type="button" data-rule-toggle="rule3" aria-pressed="false"><span>NE</span></button>
                     </div>
                 </section>
+                <button id="start-game-btn" class="menu-btn">
+                    <span>ZAČÍT HRU</span>
+                    <i class="fas fa-dice"></i>
+                </button>
                 <button id="back-to-menu-btn" class="menu-btn">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
