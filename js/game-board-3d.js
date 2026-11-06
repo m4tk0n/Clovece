@@ -418,7 +418,9 @@ export async function render3DBoard(stage,data,onError=()=>{}) {
             renderer.domElement.addEventListener('pointerdown',stage._onPointerDown);
             renderer.domElement.addEventListener('pointerup',stage._onPointerUp);stage._boardRadius=boardRadius;
         }else if(stage._boardRadius!==boardRadius){
-            stage._camera.position.set(0,boardRadius*2.75,boardRadius*2.15);stage._controls.target.set(0,.1,0);
+            // Zachovat stejný výchozí pohled i při změně varianty/velikosti desky.
+            stage._camera.position.set(11.882,18.142,-24.349);
+            stage._controls.target.set(0,-1.4703962334,0);
             stage._controls.minDistance=boardRadius*1.25;stage._controls.maxDistance=boardRadius*4;
             stage._controls.update();stage._boardRadius=boardRadius;
         }
