@@ -71,6 +71,10 @@ export function initNavigation() {
     };
     bindClick('play-btn', openLocalGame);
     bindClick('create-room-btn', openLocalGame);
+    window.addEventListener('clovece:game-exit', () => {
+        // Uvolníme referenci na namespace; importní cache prohlížeče nelze programově vymazat.
+        localGameModulePromise = null;
+    });
     bindClick('show-register', () => showScreen('register'));
     bindClick('show-login', () => showScreen('login'));
     bindClick('back-from-login', () => showScreen('main-menu'));
