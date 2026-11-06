@@ -5,11 +5,12 @@
 import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
-        getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove,
+        getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
         settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry
     } = deps;
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
+    const debugAI = new URLSearchParams(window.location.search).get('debug') === '1';
     let game = null;
     let aiTimer = null;
     let automationPaused = false;
@@ -50,6 +51,16 @@ export function createTurnController(deps) {
         return new Promise(resolve => window.setTimeout(resolve, ms));
     }
     
+    function chooseAndLogAIMove() {
+        const decision = chooseAIMoveDecision
+            ? chooseAIMoveDecision(game)
+            : { pieceId: chooseAIMove(game), reason: '' };
+        if (debugAI && decision?.reason) {
+            addGameLogEntry('AI rozhodování', decision.reason);
+        }
+        return decision?.pieceId ?? null;
+    }
+
     function performMove(pieceId) {
         if (!game || moveAnimating) return;
         const before = snapshotPieceSteps();
@@ -241,13 +252,16 @@ export function createTurnController(deps) {
         const forcedMove = getForcedMove(game);
         const autoMoveForced = getGameExtensionValue('shouldAutoMoveForced', true, game);
         if (forcedMove !== null && autoMoveForced) {
+            if (isAI && debugAI) {
+                addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
+            }
             performMove(forcedMove);
             return;
         }
     
         showGame();
         if (isAI) {
-            const selected = chooseAIMove(game);
+            const selected = chooseAndLogAIMove();
             if (selected !== null) {
                 aiTimer = setTimeout(() => {
                     if (!game || automationPaused || game.phase !== 'move' || isPaused()) return;
@@ -268,7 +282,7 @@ export function createTurnController(deps) {
             if (game.phase === 'start-roll' || game.phase === 'roll') {
                 doRoll(true);
             } else if (game.phase === 'move') {
-                const selected = chooseAIMove(game);
+                const selected = chooseAndLogAIMove();
                 if (selected !== null) performMove(selected);
             }
         }, speedDelay());

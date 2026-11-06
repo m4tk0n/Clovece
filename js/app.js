@@ -2,7 +2,7 @@
  * Člověče, nezlob se! – herní rozhraní a lokální AI.
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
-import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove } from './game-engine.js';
+import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision } from './game-engine.js';
 import { renderBoard, ensureModeStyles, getBoardView } from './game-board.js';
 import { showScreen, loadScreen } from './navigation.js';
 import { settings } from './settings.js';
@@ -74,6 +74,7 @@ const turnController = createTurnController({
     rollDice,
     advanceTurn,
     chooseAIMove,
+    chooseAIMoveDecision,
     settings,
     animateDice,
     isPaused,

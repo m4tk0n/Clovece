@@ -2,7 +2,7 @@
  * Člověče, nezlob se! – čisté herní jádro.
  * Nezávislé na DOM a serveru, připravené pro pozdější autoritativní online API.
  */
-import { chooseStrategicMove } from './ai-strategy.js';
+import { chooseStrategicMove, chooseStrategicDecision } from './ai-strategy.js';
 
 export const PLAYER_COLORS = [
     '#E53935', '#1E88E5', '#43A047', '#F9A825',
@@ -342,10 +342,12 @@ export function advanceTurn(game) {
     game.turnNumber++;
 }
 
+const aiDependencies = { getValidMoves, getPiecePosition, movePiece };
+
+export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'medium') {
+    return chooseStrategicDecision(game, aiDependencies, difficulty);
+}
+
 export function chooseAIMove(game, difficulty = game.aiDifficulty || 'medium') {
-    return chooseStrategicMove(game, {
-        getValidMoves,
-        getPiecePosition,
-        movePiece
-    }, difficulty);
+    return chooseStrategicMove(game, aiDependencies, difficulty);
 }
