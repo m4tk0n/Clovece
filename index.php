@@ -81,7 +81,11 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <!-- Main Menu -->
     <div id="main-menu" class="menu-screen hidden">
         <div class="menu-bg">
-            <div class="auth-buttons">
+            <div class="auth-buttons" id="auth-buttons">
+                <button id="register-menu-btn" class="menu-btn secondary">
+                    <span>REGISTROVAT</span>
+                    <i class="fas fa-user-plus"></i>
+                </button>
                 <button id="login-menu-btn" class="menu-btn secondary">
                     <span>PŘIHLÁSIT SE</span>
                     <i class="fas fa-sign-in-alt"></i>
