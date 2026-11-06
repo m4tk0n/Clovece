@@ -144,7 +144,6 @@ export function createRoomActions(deps) {
             session.onlineMode = false;
             stopPolling();
             showScreen('lobby');
-            await loadMyGames();
         } catch (error) {
             notify(error.message);
         }
