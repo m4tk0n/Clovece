@@ -27,6 +27,43 @@ const screenFiles = {
 };
 
 const screenLoads = new Map();
+const screenStyleLinks = new Map();
+
+async function ensureStylesheet(path) {
+    if (screenStyleLinks.has(path)) return screenStyleLinks.get(path);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = path;
+    link.dataset.screenStylesheet = path;
+    const loaded = new Promise((resolve, reject) => {
+        link.addEventListener('load', resolve, { once: true });
+        link.addEventListener('error', () => {
+            screenStyleLinks.delete(path);
+            link.remove();
+            reject(new Error('Nepodařilo se načíst CSS: ' + path));
+        }, { once: true });
+    });
+    screenStyleLinks.set(path, loaded);
+    document.head.append(link);
+    return loaded;
+}
+
+function releaseStylesheet(path) {
+    document.querySelector('link[data-screen-stylesheet="' + path + '"]')?.remove();
+    screenStyleLinks.delete(path);
+}
+
+async function prepareScreenStyles(name) {
+    if (name === 'main-menu') {
+        releaseStylesheet('css/components.css');
+        releaseStylesheet('css/animations.css');
+        return;
+    }
+    await ensureStylesheet('css/components.css');
+    if (name === 'game') await ensureStylesheet('css/animations.css');
+    else releaseStylesheet('css/animations.css');
+}
+
 let navigationRequest = 0;
 
 export async function loadScreen(name) {
@@ -78,6 +115,15 @@ export async function showScreen(name) {
     } catch (error) {
         console.error('Obrazovku se nepodařilo načíst:', error);
         window.alert('Obrazovku se nepodařilo načíst. Obnov stránku a zkus to znovu.');
+        return false;
+    }
+
+    // Styly se načítají až podle cílové obrazovky.
+    try {
+        await prepareScreenStyles(name);
+    } catch (error) {
+        console.error('Styly obrazovky se nepodařilo načíst:', error);
+        window.alert('Vzhled obrazovky se nepodařilo načíst. Obnov stránku a zkus to znovu.');
         return false;
     }
 
