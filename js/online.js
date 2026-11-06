@@ -2,7 +2,7 @@
  * Online lobby – napojení obrazovek na anonymní online API.
  * Samotné tahy se zatím nehrají online; serverová validace enginu je další krok.
  */
-import { showScreen } from './navigation.js';
+import { showScreen, loadScreen } from './navigation.js';
 
 const $ = id => document.getElementById(id);
 const API_URL = 'online-api.php';
@@ -242,6 +242,10 @@ function renderGameChat(messages, participants, moves = []) {
 
 async function renderOnlineGame(data) {
     const requestId = ++onlineRenderRequest;
+    await loadScreen('game');
+    if (requestId !== onlineRenderRequest) return;
+    await showScreen('game');
+    initOnlineGameControls();
     const game = data.game;
     const runtime = await loadOnlineGameRuntime();
     if (requestId !== onlineRenderRequest) return;
@@ -671,6 +675,56 @@ async function leaveRoom() {
     }
 }
 
+let onlineGameControlsInitialized = false;
+
+function initOnlineGameControls() {
+    if (onlineGameControlsInitialized) return;
+    onlineGameControlsInitialized = true;
+
+        $('roll-dice-btn')?.addEventListener('click', () => {
+            if (!onlineMode) return;
+            void sendGameAction(onlineState?.phase === 'start-roll' ? 'start_roll' : 'roll');
+        });
+        $('end-turn-btn')?.addEventListener('click', () => {
+            if (onlineMode) void sendGameAction('pass_turn');
+        });
+        $('game-container')?.addEventListener('click', event => {
+            if (!onlineMode || !onlineState || onlineState.phase !== 'move') return;
+            const piece = event.target.closest('[data-player][data-piece]');
+            if (!piece) return;
+            const playerId = Number(piece.dataset.player);
+            const pieceId = Number(piece.dataset.piece);
+            if (playerId !== currentPlayerIndex || playerId !== onlineState.currentPlayer) return;
+            void sendGameAction('move', pieceId);
+        });
+        $('quit-btn')?.addEventListener('click', event => {
+            if (!onlineMode) return;
+            event.stopImmediatePropagation();
+            void leaveRoom();
+        });
+        $('close-win-btn')?.addEventListener('click', event => {
+            if (!onlineMode) return;
+            event.stopImmediatePropagation();
+            void leaveRoom();
+        });
+        $('leave-room-btn')?.addEventListener('click', leaveRoom);
+    
+        $('chat-form')?.addEventListener('submit', async event => {
+            if (!onlineMode) return;
+            event.preventDefault();
+            const input = $('chat-input');
+            const message = input?.value.trim();
+            if (!message || !currentGameId) return;
+            try {
+                await api('send_chat', { game_id: String(currentGameId), message });
+                input.value = '';
+                await refreshGame();
+            } catch (error) {
+                notify(error.message);
+            }
+        });
+}
+
 export async function initOnline() {
     $('my-games-list')?.addEventListener('click', event => {
         const button = event.target.closest?.('[data-game-id]');
@@ -807,49 +861,6 @@ export async function initOnline() {
             notify(error.message);
         }
     });
-    $('roll-dice-btn')?.addEventListener('click', () => {
-        if (!onlineMode) return;
-        void sendGameAction(onlineState?.phase === 'start-roll' ? 'start_roll' : 'roll');
-    });
-    $('end-turn-btn')?.addEventListener('click', () => {
-        if (onlineMode) void sendGameAction('pass_turn');
-    });
-    $('game-container')?.addEventListener('click', event => {
-        if (!onlineMode || !onlineState || onlineState.phase !== 'move') return;
-        const piece = event.target.closest('[data-player][data-piece]');
-        if (!piece) return;
-        const playerId = Number(piece.dataset.player);
-        const pieceId = Number(piece.dataset.piece);
-        if (playerId !== currentPlayerIndex || playerId !== onlineState.currentPlayer) return;
-        void sendGameAction('move', pieceId);
-    });
-    $('quit-btn')?.addEventListener('click', event => {
-        if (!onlineMode) return;
-        event.stopImmediatePropagation();
-        void leaveRoom();
-    });
-    $('close-win-btn')?.addEventListener('click', event => {
-        if (!onlineMode) return;
-        event.stopImmediatePropagation();
-        void leaveRoom();
-    });
-    $('leave-room-btn')?.addEventListener('click', leaveRoom);
-
-    $('chat-form')?.addEventListener('submit', async event => {
-        if (!onlineMode) return;
-        event.preventDefault();
-        const input = $('chat-input');
-        const message = input?.value.trim();
-        if (!message || !currentGameId) return;
-        try {
-            await api('send_chat', { game_id: String(currentGameId), message });
-            input.value = '';
-            await refreshGame();
-        } catch (error) {
-            notify(error.message);
-        }
-    });
-
     $('room-chat-form')?.addEventListener('submit', async event => {
         event.preventDefault();
         const input = $('room-chat-input');
