@@ -61,6 +61,27 @@ Tlačítko „Nahlásit chybu“ připraví GitHub Issue s protokolem, konfigura
 - Vzdálený živý panel i příjem příkazů musí být chráněné náhodným tokenem s omezenou platností.
 - Pokud není živý přenos dostupný, test nesmí tvrdit, že uživatel sleduje živý obraz; nabídne video a artefakty po dokončení.
 
-## Stav implementace
+## Aktuální implementace
 
-Tento dokument definuje cílové chování. Stávající Node.js testy ověřují herní engine a rozšířená pravidla, ale zatím samy neposkytují živý obraz prohlížeče, vzdálené Pause/Resume ani odesílání GitHub Issue. Tyto části je nutné implementovat a ověřit samostatně.
+### Živá testovací laboratoř v aplikaci
+
+Otevři aplikaci s parametrem ?test=1, například https://7x.wz.cz/clovece/?test=1.
+
+- Panel spouští automatickou místní partii přímo v aktuálním prohlížeči.
+- Viditelná je skutečná herní deska, animace kostky, pohyb figurek a běžné herní modály.
+- Všichni účastníci testovací partie jsou řízeni AI, ale používají produkční herní engine a renderer.
+- Čtyři přepínače pravidel ovládají tentýž objekt nastavení jako výběr místní hry; konfigurace se předá přímo do createGame().
+- Pause zastaví další automatické tahy, Resume pokračuje ze zachovaného stavu, Stop ukončí pouze testovací místní hru.
+- Panel zapisuje hody, změny hráčů, fáze a pozice figurek.
+- Tato obrazovka je lokální v daném prohlížeči; není to vzdálené vysílání cizího běhu do druhého zařízení.
+
+### Automatizace a záznam
+
+- Playwright spouští browser smoke test po úspěšném workflow Deploy na FTP, případně ručně přes GitHub Actions.
+- Video, screenshoty, Playwright trace a HTML report se ukládají jako artefakt běhu na 14 dní.
+- Workflow Nahlásit chybu z testu vytvoří GitHub Issue po ručním zadání názvu a popisu. Tlačítko v testovacím panelu zkopíruje diagnostický protokol a otevře tento workflow.
+- Testovací režim nepoužívá online API, nevytváří online místnosti ani nemaže produkční data.
+
+### Zbývající ověření
+
+Po nasazení je nutné spustit Playwright workflow a ověřit chování na skutečném hostingu a mobilním prohlížeči. Samotné zapsání souborů do GitHubu není důkazem, že hosting již nové soubory nasadil nebo že browser test prošel.
