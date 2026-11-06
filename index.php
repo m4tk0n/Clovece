@@ -14,7 +14,6 @@ $assetVersion = static function (string $path): int {
     $file = __DIR__ . '/' . ltrim($path, '/');
     return is_file($file) ? (int) filemtime($file) : 1;
 };
-$debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +41,6 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
             "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
             "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
             "./js/navigation.js": "./js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
-            "./js/exit-guard.js": "./js/exit-guard.js?v=<?= $assetVersion('js/exit-guard.js') ?>",
             "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>",
             "./js/game-screen.js": "./js/game-screen.js?v=<?= $assetVersion('js/game-screen.js') ?>",
             "./js/online/api.js": "./js/online/api.js?v=<?= $assetVersion('js/online/api.js') ?>",
@@ -140,20 +138,6 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
         </div>
     </div>
 
-    <!-- Potvrzení opuštění aplikace při systémovém tlačítku Zpět na hlavním menu. -->
-    <div id="exit-confirm" class="exit-confirm hidden" aria-hidden="true">
-        <div class="exit-confirm__backdrop"></div>
-        <section class="exit-confirm__dialog" role="dialog" aria-modal="true" aria-labelledby="exit-confirm-title">
-            <div class="exit-confirm__icon"><i class="fas fa-door-open" aria-hidden="true"></i></div>
-            <h2 id="exit-confirm-title">Opravdu opustit</h2>
-            <p>Člověče, nezlob se</p>
-            <div class="exit-confirm__actions">
-                <button id="exit-confirm-yes" class="menu-btn" type="button">ANO</button>
-                <button id="exit-confirm-no" class="menu-btn secondary" type="button">NE</button>
-            </div>
-        </section>
-    </div>
-
     <!-- Obrazovky se načítají jednotlivě až při otevření. -->
     <div id="screen-container"></div>
 
@@ -169,9 +153,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     <audio id="win-sound" src="https://assets.mixkit.co/active_storage/sfx/284/284-preview.mp3" preload="none"></audio>
     <audio id="move-sound" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="none"></audio>
     <!-- JavaScript -->
-    <?php if ($debugMode): ?>
     <script type="module" src="js/debug-bootstrap.js?v=<?= $assetVersion('js/debug-bootstrap.js') ?>"></script>
-    <?php endif; ?>
     <script type="module" src="js/bootstrap.js?v=<?= $assetVersion('js/bootstrap.js') ?>"></script>
 </body>
 </html>
