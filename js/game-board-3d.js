@@ -238,8 +238,7 @@ export async function animateThreeDice(value, fast = false) {
         die.add(body);
 
         // Jemný zlatý lem kopíruje obrys těla; nepřekrývá hrací plochy.
-        const gold = new T.MeshStandardMaterial({ color: 0xc69b52, metalness: .88, roughness: .2 });
-        const edgeGeometry = new T.EdgesGeometry(new T.BoxGeometry(1.39, 1.39, 1.39), 18);
+        const edgeGeometry = new T.EdgesGeometry(bodyGeometry, 35);
         const edge = new T.LineSegments(edgeGeometry, new T.LineBasicMaterial({
             color: 0xd7b66f, transparent: true, opacity: .58
         }));
@@ -269,12 +268,12 @@ export async function animateThreeDice(value, fast = false) {
                 const pip = new T.Mesh(pipGeometry, faceValue === 1 ? redPipMaterial : pipMaterial);
                 const ring = new T.Mesh(pipRings, ringMaterial);
                 const d = .704;
-                if (axis === '+z') { pip.position.set(u, v, d); ring.position.set(u, v, .696); }
-                if (axis === '-z') { pip.position.set(-u, v, -d); ring.position.set(-u, v, -.696); ring.rotation.y = Math.PI; }
-                if (axis === '+x') { pip.position.set(d, v, -u); ring.position.set(.696, v, -u); ring.rotation.y = Math.PI / 2; }
-                if (axis === '-x') { pip.position.set(-d, v, u); ring.position.set(-.696, v, u); ring.rotation.y = -Math.PI / 2; }
-                if (axis === '+y') { pip.position.set(u, d, -v); ring.position.set(u, .696, -v); ring.rotation.x = -Math.PI / 2; }
-                if (axis === '-y') { pip.position.set(u, -d, v); ring.position.set(u, -.696, v); ring.rotation.x = Math.PI / 2; }
+                if (axis === '+z') { pip.position.set(u, v, d); ring.position.set(u, v, .738); }
+                if (axis === '-z') { pip.position.set(-u, v, -d); ring.position.set(-u, v, -.738); ring.rotation.y = Math.PI; }
+                if (axis === '+x') { pip.position.set(d, v, -u); ring.position.set(.738, v, -u); ring.rotation.y = Math.PI / 2; }
+                if (axis === '-x') { pip.position.set(-d, v, u); ring.position.set(-.738, v, u); ring.rotation.y = -Math.PI / 2; }
+                if (axis === '+y') { pip.position.set(u, d, -v); ring.position.set(u, .738, -v); ring.rotation.x = -Math.PI / 2; }
+                if (axis === '-y') { pip.position.set(u, -d, v); ring.position.set(u, -.738, v); ring.rotation.x = Math.PI / 2; }
                 die.add(ring, pip);
             }
         };
