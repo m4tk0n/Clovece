@@ -39,6 +39,8 @@ $assetVersion = static function (string $path): int {
             "./js/debug-overlay.js": "./js/debug-overlay.js?v=<?= $assetVersion('js/debug-overlay.js') ?>",
             "./js/app.js": "./js/app.js?v=<?= $assetVersion('js/app.js') ?>",
             "./js/audio.js": "./js/audio.js?v=<?= $assetVersion('js/audio.js') ?>",
+            "./js/dice.js": "./js/dice.js?v=<?= $assetVersion('js/dice.js') ?>",
+            "./js/dice-rotation.js": "./js/dice-rotation.js?v=<?= $assetVersion('js/dice-rotation.js') ?>",
             "./js/game-board.js": "./js/game-board.js?v=<?= $assetVersion('js/game-board.js') ?>",
             "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
             "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
