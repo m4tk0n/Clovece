@@ -12,8 +12,8 @@
                 <p>Rozehrané lokální hry se zde budou zobrazovat, abys mohl kdykoliv pokračovat.</p>
             </div>
 
-            <button id="back-local-games-btn" class="menu-btn secondary">
-                <span>ZPĚT DO MENU</span>
+            <button id="back-local-games-btn" class="menu-btn secondary fit-content">
+                <span>ZPĚT</span>
                 <i class="fas fa-arrow-left"></i>
             </button>
         </div>
