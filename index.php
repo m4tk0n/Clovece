@@ -14,6 +14,7 @@ $assetVersion = static function (string $path): int {
     $file = __DIR__ . '/' . ltrim($path, '/');
     return is_file($file) ? (int) filemtime($file) : 1;
 };
+$debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
 ?>
 
 <!DOCTYPE html>
@@ -153,7 +154,9 @@ $assetVersion = static function (string $path): int {
     <audio id="win-sound" src="https://assets.mixkit.co/active_storage/sfx/284/284-preview.mp3" preload="none"></audio>
     <audio id="move-sound" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="none"></audio>
     <!-- JavaScript -->
+    <?php if ($debugMode): ?>
     <script type="module" src="js/debug-bootstrap.js?v=<?= $assetVersion('js/debug-bootstrap.js') ?>"></script>
+    <?php endif; ?>
     <script type="module" src="js/bootstrap.js?v=<?= $assetVersion('js/bootstrap.js') ?>"></script>
 </body>
 </html>
