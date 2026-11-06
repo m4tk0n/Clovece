@@ -287,3 +287,20 @@
     .extended-rules-panel { padding: 3px 10px; }
     .extended-rule-row { min-height: 49px; }
 }
+
+
+/* ---------- Nápověda k jednotlivým rozšířeným pravidlům ---------- */
+.extended-rule-description { position: relative; flex-wrap: wrap; }
+.rule-info {
+    flex: 0 0 21px; width: 21px; height: 21px;
+    border: 1px solid rgba(139, 197, 255, .65);
+    background: rgba(25, 118, 210, .22); color: #a9d7ff; font-size: 13px;
+}
+.rule-info[aria-expanded="true"] { background: #1976d2; color: #fff; }
+.rule-hint {
+    flex: 0 0 100%; box-sizing: border-box; margin: 3px 0 9px; padding: 10px 12px;
+    border: 1px solid rgba(139, 197, 255, .3); border-radius: 10px;
+    background: rgba(25, 60, 83, .35); color: #dceeff;
+    font: 400 12px/1.55 var(--font-ui);
+}
+.rule-hint[hidden] { display: none; }
