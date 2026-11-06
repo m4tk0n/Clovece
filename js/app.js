@@ -3,7 +3,7 @@
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
 import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove } from './game-engine.js';
-import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
+import { renderBoard, ensureModeStyles, getBoardView } from './game-board.js';
 import { showScreen, loadScreen } from './navigation.js';
 import { settings } from './settings.js';
 import { getPlayerSetup, initPlayerSetup, updateSetup } from './player-setup.js';
@@ -142,11 +142,6 @@ function restartGame() {
 }
 
 export async function openPlayerSelection() {
-    try {
-        await ensureGameStyles();
-    } catch (error) {
-        console.error('Styly výběru hry se nepodařilo načíst:', error);
-    }
     await loadScreen('player-selection');
     updateSetup();
     await showScreen('player-selection');

@@ -42,7 +42,6 @@
     border-radius: 34px;
     background: rgba(255, 255, 255, .2);
     cursor: pointer;
-    transition: background var(--transition-fast);
 }
 .slider-round::before {
     content: '';
@@ -54,7 +53,6 @@
     border-radius: 50%;
     background: var(--gradient-1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
-    transition: transform var(--transition-fast);
 }
 .toggle-switch input:checked + .slider-round { background: rgba(78, 205, 196, .3); }
 .toggle-switch input:checked + .slider-round::before { transform: translateX(26px); background: var(--gradient-2); }

@@ -72,7 +72,10 @@ function ensureStylesheet(name, mode = 'game') {
 }
 
 export function ensureGameStyles() {
-    return ensureStylesheet('game-premium');
+    return Promise.all([
+        ensureStylesheet('game-base'),
+        ensureStylesheet('game-premium')
+    ]);
 }
 
 export function ensureModeStyles(mode) {
@@ -104,6 +107,7 @@ export function releaseGameView() {
         delete container.dataset.renderKey;
     }
 
+    document.getElementById('clovece-game-base-styles')?.remove();
     document.getElementById('clovece-game-premium-styles')?.remove();
     for (const mode of ['2d', '3d']) {
         for (const name of ['board-' + mode, 'dice-' + mode]) {
