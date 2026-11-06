@@ -249,8 +249,8 @@ test('a piece may jump over own pieces but may not land on them on the main trac
     assert.deepEqual(getValidMoves(game), [0]);
 });
 
-test('a piece cannot jump over own pieces in the home lane', () => {
-    const game = createGame(1, 1);
+test('a piece cannot jump over own pieces in the home lane when the skip rule is disabled', () => {
+    const game = createGame(1, 1, [], [], 40, { skipHomePieces: false });
     const laneStart = game.trackLength;
     game.pieces[0].pieces[0].steps = laneStart;
     game.pieces[0].pieces[1].steps = laneStart + 1;
