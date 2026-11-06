@@ -49,6 +49,7 @@ jobs:
         run: |
           php -l config.php
           php -l screen.php
+          for file in screens/*.php; do php -l "$file"; done
           php -l install/install.php
           php -l online-api.php
           php -l lib/game-engine.php
