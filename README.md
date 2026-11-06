@@ -51,6 +51,14 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - Při spuštění hry se načte pouze dvojice CSS odpovídající aktivnímu režimu. Při přepnutí režimu se předchozí dvojice odpojí.
 - Základní `game-premium.css` již neobsahuje grafická pravidla desky ani animace kostky.
 
+## Odložené načítání herních částí
+
+- Při otevření webu se nenačítá lokální herní runtime ani renderer desky; načtou se až při vstupu do lokálního nastavení hry nebo při otevření aktivní online hry.
+- `css/game-premium.css` se spolu s CSS desky a kostky připojí až při zobrazení hry. Načte se pouze sada pro právě zvolený režim 2D nebo 3D.
+- Při odchodu z herní obrazovky se herní stylesheety odpojí, DOM desky se vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
+- Online lobby zůstává bez herního rendereru a bez importu lokálního herního runtime.
+- Prohlížeče nemají standardní API pro odregistrování již importovaného ES modulu z modulové cache. Po odchodu proto uvolňujeme reference a aktivní prostředky; nelze zaručit okamžité fyzické odstranění samotného kódu modulu z paměti.
+
 ## Instalace a nasazení
 
 1. Nastav databázové údaje v .env.
