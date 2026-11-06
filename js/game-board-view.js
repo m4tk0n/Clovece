@@ -18,7 +18,6 @@ const VIEW_KEY = 'clovece_board_view';
 let view3d = loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
-let threeStylesPromise = null;
 let activeStylesMode = null;
 const modeStylesPromises = new Map();
 
@@ -249,10 +248,17 @@ export function renderBoard(container, game) {
     const previousStage = container.querySelector('.three-board-stage');
     if (previousStage) disposeThreeRenderer(previousStage);
 
-    ensureModeStyles('2d').catch(error => console.error('Styly 2D režimu se nepodařilo načíst:', error));
-    render2DBoard(container, game, boardStyle, {
-        switchCss: SWITCH_CSS,
-        switchMarkup: styleSwitchMarkup()
+    const renderSvg = () => {
+        if (document.documentElement.dataset.boardView !== '2d' || container.dataset.renderKey !== renderKey) return;
+        render2DBoard(container, game, boardStyle, {
+            switchCss: SWITCH_CSS,
+            switchMarkup: styleSwitchMarkup()
+        });
+    };
+    // SVG vykreslíme až po načtení jeho CSS, aby se na okamžik neukázala neostylovaná deska.
+    ensureModeStyles('2d').then(renderSvg).catch(error => {
+        console.error('Styly 2D režimu se nepodařilo načíst:', error);
+        renderSvg();
     });
 
 }
