@@ -17,7 +17,7 @@
                         <option value="7">7 hráčů</option>
                         <option value="8">8 hráčů</option>
                     </select>
-                    <button id="create-room-btn-lobby" class="menu-btn pulse">
+                    <button id="create-room-btn-lobby" class="menu-btn">
                         <span>VYTVOŘIT NOVOU MÍSTNOST</span>
                         <i class="fas fa-plus"></i>
                     </button>
@@ -34,7 +34,7 @@
                 <section class="identity-transfer">
                     <h3>Přenos identity na jiné zařízení</h3>
                     <p>Na původním zařízení vytvoř kód. Na novém zařízení ho zadej zde. Platí 15 minut a lze ho použít pouze jednou.</p>
-                    <button id="create-transfer-code-btn" type="button" class="menu-btn secondary">
+                    <button id="create-transfer-code-btn" type="button" class="menu-btn">
                         <span>VYTVOŘIT PŘENOSOVÝ KÓD</span>
                         <i class="fas fa-key"></i>
                     </button>
@@ -50,7 +50,7 @@
                 <h3>Seznam místností</h3>
                 <div id="room-list" class="room-list"></div>
                 
-                <button id="back-from-lobby" class="menu-btn secondary fit-content">
+                <button id="back-from-lobby" class="menu-btn">
                     <span>ZPĚT</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
