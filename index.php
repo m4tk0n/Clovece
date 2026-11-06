@@ -42,6 +42,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
             "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
             "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
             "./js/navigation.js": "./js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
+            "./js/exit-guard.js": "./js/exit-guard.js?v=<?= $assetVersion('js/exit-guard.js') ?>",
             "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>",
             "./js/game-screen.js": "./js/game-screen.js?v=<?= $assetVersion('js/game-screen.js') ?>",
             "./js/online/api.js": "./js/online/api.js?v=<?= $assetVersion('js/online/api.js') ?>",
