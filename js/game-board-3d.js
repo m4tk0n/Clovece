@@ -29,6 +29,10 @@ function loadThree() {
     }
     return threePromise;
 }
+export function release3DResources() {
+    // Uvolníme vlastní referenci na načtené knihovny; importní cache prohlížeče zůstává jeho správou.
+    threePromise = null;
+}
 function mat(T,color,options={}) {
     return new T.MeshStandardMaterial({color,roughness:options.roughness??.48,metalness:options.metalness??.12,
         transparent:options.opacity!=null&&options.opacity<1,opacity:options.opacity??1});
@@ -208,4 +212,7 @@ export function dispose3DBoard(stage){
     stage._controls?.dispose();stage._board?.traverse(object=>{
         object.geometry?.dispose();if(Array.isArray(object.material))object.material.forEach(item=>item.dispose());else object.material?.dispose()});
     stage._renderer?.dispose();stage._renderer?.domElement.remove();
+    stage._controls=null;stage._board=null;stage._pickables=null;stage._scene=null;stage._camera=null;
+    stage._raycaster=null;stage._pointer=null;stage._renderer=null;stage._raf=null;stage._animation=null;
+    stage._resizeObserver=null;stage._onPointerDown=null;stage._onPointerUp=null;stage._onContextLost=null;
 }
