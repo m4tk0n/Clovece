@@ -245,7 +245,11 @@ async function renderOnlineGame(data) {
     const game = data.game;
     const runtime = await loadOnlineGameRuntime();
     if (requestId !== onlineRenderRequest) return;
-    await runtime.ensureModeStyles(runtime.getBoardView());
+    try {
+        await runtime.ensureModeStyles(runtime.getBoardView());
+    } catch (error) {
+        console.error('Herní CSS online hry se nepodařilo připravit:', error);
+    }
     if (requestId !== onlineRenderRequest) return;
     const previousState = onlineState;
     const previousVersion = onlineStateVersion;
