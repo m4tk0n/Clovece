@@ -9,7 +9,7 @@
                         Pozvánka: <span id="room-code-display" class="highlight"></span>
                     </div>
                     <input id="room-invite-url" type="url" readonly aria-label="Pozvánkový odkaz">
-                    <button id="copy-invite-btn" type="button" class="menu-btn secondary">
+                    <button id="copy-invite-btn" type="button" class="menu-btn">
                         <span>ZKOPÍROVAT POZVÁNKU</span>
                         <i class="fas fa-copy"></i>
                     </button>
@@ -23,13 +23,13 @@
                 <form id="room-player-settings" class="room-actions hidden">
                     <label for="room-player-name">Tvoje zobrazované jméno</label>
                     <input id="room-player-name" type="text" maxlength="50" autocomplete="nickname" required>
-                    <button type="submit" class="menu-btn secondary">
+                    <button type="submit" class="menu-btn">
                         <span>ZMĚNIT JMÉNO</span>
                         <i class="fas fa-user-pen"></i>
                     </button>
                     <label for="room-player-color">Tvoje barva figurek</label>
                     <select id="room-player-color" class="color-select"></select>
-                    <button id="random-room-color-btn" type="button" class="menu-btn secondary">
+                    <button id="random-room-color-btn" type="button" class="menu-btn">
                         <span>NASTAVIT NÁHODNOU</span>
                         <i class="fas fa-shuffle"></i>
                     </button>
@@ -50,7 +50,7 @@
                         <i class="fas fa-play"></i>
                     </button>
                     
-                    <button id="leave-room-btn" class="menu-btn secondary">
+                    <button id="leave-room-btn" class="menu-btn">
                         <span>OPUSTIT MÍSTNOST</span>
                         <i class="fas fa-door-closed"></i>
                     </button>
@@ -61,13 +61,13 @@
                     <div id="room-chat-messages" class="chat-messages"></div>
                     <form id="room-chat-form" class="chat-form">
                         <input type="text" id="room-chat-input" placeholder="Napište zprávu..." maxlength="1000" autocomplete="off">
-                        <button type="submit" class="menu-btn small">
+                        <button type="submit" class="menu-btn">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </form>
                 </div>
                 
-                <button id="back-from-room" class="menu-btn secondary">
+                <button id="back-from-room" class="menu-btn">
                     <span>ZPĚT DO LOBBY</span>
                     <i class="fas fa-arrow-left"></i>
                 </button>
