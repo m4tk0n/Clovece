@@ -340,10 +340,11 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Omezit toto nové pravidlo na lokální JavaScriptový engine; online pravidla a serverový engine zůstávají beze změny.
 - [ ] Prakticky ověřit tah z D1 přes obsazené D2 na volné D3 při hodu 2 a odmítnutí tahu na obsazené cílové pole.
 
-### Připravované pravidlo – Povinnost vstoupit do domečku
+### Povinnost vstoupit do domečku
 
-- [ ] Přidat volitelné pravidlo **Povinnost vstoupit do domečku** pro místní hru.
-- [ ] Výchozí nastavení přepínače: **ANO**.
-- [ ] Pokud má hráč alespoň jeden legální tah, kterým může podle přesného hodu vstoupit figurkou do volného cílového pole domečku, musí tento tah využít.
-- [ ] Povinnost vyhodnocovat pouze podle skutečně legálních tahů a ostatních aktivních pravidel; pokud žádný legální vstup do domečku neexistuje, hráč může provést jiný legální tah.
-- [ ] Nabídnout přepínač ANO/NE při vytváření místní hry; online pravidla a serverový engine zůstávají beze změny.
+- [x] Přidat volitelné pravidlo **Povinnost vstoupit do domečku** pro místní hru.
+- [x] Výchozí nastavení přepínače je **ANO**.
+- [x] Pokud existuje alespoň jeden legální tah do volného cílového pole podle přesného hodu a ostatních aktivních pravidel, hráč musí tento vstup využít.
+- [x] Pokud žádný legální vstup neexistuje, hráč může provést jiný legální tah.
+- [x] Nabídnout přepínač ANO/NE při vytváření místní hry; online pravidla a serverový engine zůstávají beze změny.
+- [ ] Prakticky ověřit povinný vstup, možnost jiného tahu při vypnutém pravidle a situaci bez legálního vstupu.
