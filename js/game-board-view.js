@@ -97,7 +97,7 @@ export async function prepareBoardRendering() {
     let probeContext = null;
     try {
         // Three.js r180 vyžaduje WebGL 2. Bez něj vůbec nenačítáme 3D moduly.
-        probeContext = probeCanvas.getContext('webgl2', { failIfMajorPerformanceCaveat: true });
+        probeContext = probeCanvas.getContext('webgl2', { failIfMajorPerformanceCaveat: false });
         canUse3D = Boolean(probeContext && !probeContext.isContextLost());
     } catch (error) {
         canUse3D = false;
