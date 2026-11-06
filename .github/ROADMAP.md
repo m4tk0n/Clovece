@@ -318,3 +318,7 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [x] Při opuštění hry odpojit herní stylesheety, vyčistit DOM desky a uvolnit prostředky 3D rendereru.
 - [x] Zachovat uvolnění textur 3D desky zavedené verzí 1.00.00.06.
 - [ ] Ověřit na mobilu a desktopu úvodní menu, lokální hru, online lobby, aktivní online hru, přepnutí 2D/3D a odchod ze hry.
+
+## Odložené funkce
+
+- [ ] **Potvrzení opuštění aplikace:** případně později zvážit volitelné potvrzení při stisku systémového tlačítka Zpět na hlavním menu. Před implementací ověřit chování na mobilních prohlížečích. Funkce nyní není součástí aplikace.
