@@ -36,14 +36,14 @@ $assetVersion = static function (string $path): int {
     {
         "imports": {
             "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-            "/js/debug-overlay.js": "js/debug-overlay.js?v=<?= $assetVersion('js/debug-overlay.js') ?>",
-            "/js/app.js": "/js/app.js?v=<?= $assetVersion('js/app.js') ?>",
-            "/js/audio.js": "/js/audio.js?v=<?= $assetVersion('js/audio.js') ?>",
-            "/js/game-board.js": "/js/game-board.js?v=<?= $assetVersion('js/game-board.js') ?>",
-            "/js/game-engine.js": "/js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
-            "/js/lazy-load.js": "/js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
-            "/js/navigation.js": "/js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
-            "/js/online.js": "/js/online.js?v=<?= $assetVersion('js/online.js') ?>"
+            "./js/debug-overlay.js": "./js/debug-overlay.js?v=<?= $assetVersion('js/debug-overlay.js') ?>",
+            "./js/app.js": "./js/app.js?v=<?= $assetVersion('js/app.js') ?>",
+            "./js/audio.js": "./js/audio.js?v=<?= $assetVersion('js/audio.js') ?>",
+            "./js/game-board.js": "./js/game-board.js?v=<?= $assetVersion('js/game-board.js') ?>",
+            "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
+            "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
+            "./js/navigation.js": "./js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
+            "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>"
         }
     }
     </script>
