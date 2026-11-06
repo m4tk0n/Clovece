@@ -184,17 +184,3 @@
     .preview-player-orb { width: 28px; height: 28px; }
 }
 
-/* Tato obrazovka začíná nahoře. Při větším obsahu roste panel
-   podle obsahu a scrollování zajišťuje celá obrazovka menu. */
-#player-selection .menu-bg {
-    /* Krátký obsah: panel vyplní celou obrazovku.
-       Dlouhý obsah: panel se roztáhne podle obsahu. */
-    flex: 1 0 auto;
-    height: auto;
-    min-height: 100%;
-    overflow: visible;
-}
-
-#player-selection .menu-content {
-    margin: 0 auto;
-}
