@@ -31,9 +31,6 @@ export function initDebugOverlay() {
     summary.textContent = 'DEBUG';
     const viewportSummary = document.createElement('div');
     viewportSummary.textContent = 'VIDITELNÉ –';
-    const guardSummary = document.createElement('div');
-    guardSummary.textContent = 'EXIT GUARD –';
-    guardSummary.style.cssText = 'color:#ffb45e';
     const cameraSummary = document.createElement('div');
     cameraSummary.textContent = '3D KAMERA –';
     cameraSummary.style.cssText = 'display:none;color:#ffb45e';
@@ -43,7 +40,6 @@ export function initDebugOverlay() {
     details.style.cssText = 'display:none;margin-top:5px;padding-top:5px;border-top:1px solid #a33;max-height:55vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere';
     content.appendChild(summary);
     content.appendChild(viewportSummary);
-    content.appendChild(guardSummary);
     content.appendChild(cameraSummary);
     content.appendChild(metaSummary);
     content.appendChild(details);
@@ -130,17 +126,6 @@ export function initDebugOverlay() {
         renderLog();
         updateSummary();
     }
-
-    window.addEventListener('clovece:debug-exit-guard', event => {
-        const state = event.detail || {};
-        const active = state.active === true;
-        const modalOpen = state.modalOpen === true;
-        guardSummary.textContent = 'EXIT GUARD ' +
-            (active ? 'AKTIVNÍ' : 'NEAKTIVNÍ') +
-            (modalOpen ? ' | POTVRZENÍ OTEVŘENO' : '') +
-            ' | ' + (state.reason || 'bez důvodu');
-        guardSummary.style.color = active ? '#65e58b' : '#ffb45e';
-    });
 
     window.addEventListener('clovece:debug-camera', event => {
         const camera = event.detail || {};
