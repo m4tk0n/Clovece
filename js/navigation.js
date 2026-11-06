@@ -30,14 +30,14 @@ const screenLoads = new Map();
 const screenStyleLinks = new Map();
 
 const screenStyles = {
-    login: ['css/components.css', 'css/components-auth.css'],
-    register: ['css/components.css', 'css/components-auth.css'],
-    lobby: ['css/components.css', 'css/components-online.css', 'css/components-chat.css'],
-    room: ['css/components.css', 'css/components-online.css', 'css/components-chat.css'],
-    'player-selection': ['css/components.css', 'css/components-player-selection.css'],
-    settings: ['css/components.css', 'css/components-settings.css'],
-    rules: ['css/components.css', 'css/components-rules.css'],
-    game: ['css/components.css', 'css/components-game.css', 'css/components-chat.css', 'css/animations.css']
+    login: ['css/components-auth.css'],
+    register: ['css/components-auth.css'],
+    lobby: ['css/components-online.css'],
+    room: ['css/components-online.css'],
+    'player-selection': ['css/components-player-selection.css'],
+    settings: ['css/components-settings.css'],
+    rules: ['css/components-rules.css'],
+    game: ['css/components-game.css', 'css/components-chat.css', 'css/animations.css']
 };
 
 let cssAssetVersions = null;
