@@ -36,7 +36,7 @@ Protokol ukazuje, které moduly aplikace při startu skutečně importuje a kter
 
 ### Odložené načítání 2D/3D
 
-Při otevření webu se nenačítá lokální herní runtime, herní UI CSS ani renderer desky. Ten se importuje až při vstupu do lokálního nastavení hry; online herní moduly až při přechodu místnosti do aktivní hry. Při prvním vykreslení hry se načte také herní UI CSS a CSS aktivního režimu:
+Při otevření webu se nenačítá lokální herní runtime, herní UI CSS ani renderer desky. Ten se importuje až při vstupu do lokálního nastavení hry; online herní moduly až při přechodu místnosti do aktivní hry. Při otevření výběru lokální hry se načte pouze herní UI CSS. Při spuštění hry se doplní CSS aktivního režimu:
 
 - **2D:** načte se `css/game-premium.css`, `css/board-2d.css` a `css/dice-2d.css`; desku vykresluje SVG renderer.
 - **3D:** načte se `css/game-premium.css`, `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
