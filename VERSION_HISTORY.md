@@ -17,6 +17,46 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 
 ---
 
+
+## 1.00.00.08 – Odložené načítání herního runtime a uvolnění prostředků
+
+**Datum:** 6. 11. 2026  
+**Typ:** Optimalizace načítání a životního cyklu hry  
+**Navazuje na:** verzi 1.00.00.07
+
+- Lokální herní runtime se neimportuje při startu hlavního menu; načte se až při vstupu do lokálního nastavení hry.
+- Online lobby při startu neimportuje renderer desky, herní engine ani animaci kostky. Tyto moduly se načtou až při aktivní online hře.
+- Herní CSS se připojí až při zobrazení hry společně se styly aktivního režimu.
+- Při odchodu z herní obrazovky se herní stylesheety odpojí, DOM desky vyčistí a 3D renderer uvolní grafické prostředky i vlastní reference.
+- ES moduly nelze standardním API odebrat z modulové cache prohlížeče; uvolňují se aplikační reference a aktivní prostředky.
+
+**Dotčené soubory:**
+- `index.php`
+- `js/bootstrap.js`, `js/navigation.js`, `js/app.js`, `js/online.js`
+- `js/game-board.js`, `js/game-board-view.js`, `js/game-board-3d.js`
+- `README.md`, `DEBUG.md`, `.github/ROADMAP.md`
+
+**Ověření:** čeká na automatické testy a praktické ověření v prohlížeči.
+
+## 1.00.00.07 – Oddělení CSS 2D a 3D desky a kostky
+
+**Datum:** 6. 11. 2026  
+**Typ:** Refaktoring CSS a odložené načítání
+
+- Vzhled 2D SVG desky je samostatně v `css/board-2d.css`.
+- Vzhled 3D desky a jejího HUD je v `css/board-3d.css`.
+- Plochá animace kostky je v `css/dice-2d.css`; prostorová animace je v `css/dice-3d.css`.
+- Při spuštění hry se načítá pouze dvojice CSS odpovídající aktivnímu režimu; při přepnutí se předchozí dvojice odpojí.
+- Z `css/game-premium.css` byly odstraněny grafické styly desky a animace kostky.
+
+**Dotčené soubory:**
+- `css/game-premium.css`, `css/board-2d.css`, `css/board-3d.css`, `css/dice-2d.css`, `css/dice-3d.css`
+- `js/game-board-view.js`, `js/app.js`
+- `README.md`, `DEBUG.md`, `.github/ROADMAP.md`
+
+**Ověření:** čeká na automatické testy a vizuální kontrolu.
+
+
 ## 1.00.00.06 – Úplné uvolnění textur 3D desky
 
 **Datum:** 6. 11. 2026  
