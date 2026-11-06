@@ -91,7 +91,7 @@ export function initGameScreen(deps) {
     $('quit-btn')?.addEventListener('click', () => {
         turnController.stopAI();
         $('game-menu').classList.add('hidden');
-        game = null;
+        setGame(null);
         turnController.setGame(null);
         showScreen('main-menu');
     });
