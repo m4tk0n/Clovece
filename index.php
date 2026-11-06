@@ -137,10 +137,10 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     </button>
                 </div>
                 
-                <div class="credits">
-                    <p>Vytvořeno s <i class="fas fa-heart"></i> pro zábavu</p>
-                </div>
             </div>
+        </div>
+        <div class="credits">
+            <p>Vytvořeno s <i class="fas fa-heart"></i> pro zábavu</p>
         </div>
     </div>
 
