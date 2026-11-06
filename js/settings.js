@@ -2,7 +2,7 @@
  * Uživatelská nastavení hry.
  * Samostatný modul lze načíst z menu bez načtení herního enginu a rendereru.
  */
-import { setSoundEffectsEnabled } from './audio.js';
+// Nastavení zvukových efektů se pouze uloží; audio.js patří až do spuštěné hry.
 
 const $ = id => document.getElementById(id);
 
@@ -51,8 +51,7 @@ export function initSettings() {
         document.documentElement.classList.toggle('animations-disabled', !settings.animations);
     };
     applyAnimationSetting();
-    setSoundEffectsEnabled(settings.sfx);
-    
+
     aiSpeedSelect?.addEventListener('change', event => {
         settings.moveSpeed = event.target.value === 'fast' ? 'fast' : 'normal';
         gameSpeedSelect && (gameSpeedSelect.value = settings.moveSpeed);
@@ -65,14 +64,14 @@ export function initSettings() {
     });
     sfxToggle?.addEventListener('change', event => {
         settings.sfx = event.target.checked;
-        setSoundEffectsEnabled(settings.sfx);
+
     });
     $('save-settings-btn')?.addEventListener('click', () => {
         settings.moveSpeed = aiSpeedSelect?.value === 'fast' ? 'fast' : 'normal';
         settings.animations = animationsToggle?.checked !== false;
         settings.sfx = sfxToggle?.checked !== false;
         applyAnimationSetting();
-        setSoundEffectsEnabled(settings.sfx);
+
         try {
             localStorage.setItem('clovece-settings', JSON.stringify(settings));
         } catch (error) {
