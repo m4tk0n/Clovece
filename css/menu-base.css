@@ -58,7 +58,7 @@
     z-index: 10;
     width: 100%;
     max-width: var(--content-max);
-    margin: auto;
+    margin: 0 auto;
     text-align: center;
 }
 
