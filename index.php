@@ -62,7 +62,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     }
     </script>
 </head>
-<body>
+<body data-components-css-version="<?= $assetVersion('css/components.css') ?>" data-animations-css-version="<?= $assetVersion('css/animations.css') ?>">
 <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader">
