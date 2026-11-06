@@ -146,6 +146,10 @@ function saveStyle(style) {
     }
 }
 
+export function getBoardView() {
+    return view3d ? '3d' : '2d';
+}
+
 export function getBoardStyle() {
     return boardStyle;
 }
