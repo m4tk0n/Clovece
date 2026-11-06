@@ -33,7 +33,10 @@ async function ensureStylesheet(path) {
     if (screenStyleLinks.has(path)) return screenStyleLinks.get(path);
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = path;
+    const version = path === 'css/components.css'
+        ? document.body.dataset.componentsCssVersion
+        : document.body.dataset.animationsCssVersion;
+    link.href = path + '?v=' + encodeURIComponent(version || '1');
     link.dataset.screenStylesheet = path;
     const loaded = new Promise((resolve, reject) => {
         link.addEventListener('load', resolve, { once: true });
