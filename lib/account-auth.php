@@ -53,22 +53,22 @@ function onlineAuthMergeIdentity(PDO $db, int $sourceId, int $targetId): void
     )->execute([$targetId, $sourceId]);
 
     $db->prepare(
-        'UPDATE ' . onlineTable('game_participants')
+        'UPDATE ' . onlineTable('game_participants') . '
          SET identity_id = ? WHERE identity_id = ?'
     )->execute([$targetId, $sourceId]);
 
     $db->prepare(
-        'UPDATE ' . onlineTable('online_games')
+        'UPDATE ' . onlineTable('online_games') . '
          SET created_by_identity_id = ? WHERE created_by_identity_id = ?'
     )->execute([$targetId, $sourceId]);
 
     $db->prepare(
-        'UPDATE ' . onlineTable('game_invites')
+        'UPDATE ' . onlineTable('game_invites') . '
          SET created_by_identity_id = ? WHERE created_by_identity_id = ?'
     )->execute([$targetId, $sourceId]);
 
     $db->prepare(
-        'UPDATE ' . onlineTable('player_devices')
+        'UPDATE ' . onlineTable('player_devices') . '
          SET identity_id = ? WHERE identity_id = ?'
     )->execute([$targetId, $sourceId]);
 
