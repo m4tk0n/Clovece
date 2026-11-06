@@ -43,6 +43,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - js/dice-rotation.js – společný rotační plán pro 2D a 3D kostku
 - js/settings.js – nastavení hry; načítá se samostatně z menu bez načtení herního enginu a rendereru
 - js/player-setup.js – výběr hráčů, barev a velikosti desky
+- js/game-log.js – herní chat, log událostí a rozstřel
 - css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
 - online-api.php – anonymní online API a serverově ověřované herní tahy
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
