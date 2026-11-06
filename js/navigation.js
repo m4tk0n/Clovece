@@ -331,7 +331,8 @@ export function initNavigation() {
             'back-from-room': 'lobby',
             'back-settings-btn': 'main-menu',
             'back-rules-btn': 'main-menu',
-            'back-local-games-btn': 'main-menu'
+            'back-local-games-btn': 'main-menu',
+            'back-profile-btn': 'main-menu'
         };
         const destination = destinations[button.id];
         if (destination) void showScreen(destination);
