@@ -706,7 +706,6 @@ function initOnlineGameControls() {
             event.stopImmediatePropagation();
             void leaveRoom();
         });
-        $('leave-room-btn')?.addEventListener('click', leaveRoom);
     
         $('chat-form')?.addEventListener('submit', async event => {
             if (!onlineMode) return;
@@ -860,6 +859,7 @@ export async function initOnline() {
             notify(error.message);
         }
     });
+    $('leave-room-btn')?.addEventListener('click', leaveRoom);
     $('room-chat-form')?.addEventListener('submit', async event => {
         event.preventDefault();
         const input = $('room-chat-input');
