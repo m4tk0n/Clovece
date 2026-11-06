@@ -62,7 +62,17 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
     }
     </script>
 </head>
-<body data-components-css-version="<?= $assetVersion('css/components.css') ?>" data-animations-css-version="<?= $assetVersion('css/animations.css') ?>">
+<body data-css-versions='<?= htmlspecialchars(json_encode([
+            'css/components.css' => $assetVersion('css/components.css'),
+            'css/components-auth.css' => $assetVersion('css/components-auth.css'),
+            'css/components-player-selection.css' => $assetVersion('css/components-player-selection.css'),
+            'css/components-online.css' => $assetVersion('css/components-online.css'),
+            'css/components-chat.css' => $assetVersion('css/components-chat.css'),
+            'css/components-settings.css' => $assetVersion('css/components-settings.css'),
+            'css/components-rules.css' => $assetVersion('css/components-rules.css'),
+            'css/components-game.css' => $assetVersion('css/components-game.css'),
+            'css/animations.css' => $assetVersion('css/animations.css')
+        ]), ENT_QUOTES, 'UTF-8') ?>'>
 <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader">
