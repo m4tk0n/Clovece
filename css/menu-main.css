@@ -135,6 +135,27 @@
     letter-spacing: .04em;
 }
 
+#main-menu .account-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(220, 184, 111, .8);
+    border-radius: 50%;
+    background: linear-gradient(145deg, #a77b3c, #75552d);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .25);
+    color: #fff9eb;
+    font: 800 17px/1 var(--font-ui);
+    text-transform: uppercase;
+    cursor: default;
+}
+
+#main-menu .account-avatar.hidden { display: none; }
+
 
 /* ---------- Přihlášený hráč (viditelné jen když není .hidden) ---------- */
 #main-menu .user-info {
