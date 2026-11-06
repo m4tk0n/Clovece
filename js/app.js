@@ -157,8 +157,3 @@ export function initGame() {
     $('start-game-btn')?.addEventListener('click', startGame);
     $('back-to-menu-btn')?.addEventListener('click', () => showScreen('main-menu'));
 }
-
-let gameScreenInitialized = false;
-
-
-}
