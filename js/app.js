@@ -2,7 +2,7 @@
  * Člověče, nezlob se! – herní rozhraní a lokální AI.
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.
  */
-import { createGame } from './game-engine.js';
+import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove } from './game-engine.js';
 import { renderBoard, ensureModeStyles, ensureGameStyles, getBoardView } from './game-board.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState } from './audio.js';
@@ -47,12 +47,12 @@ const { showGame, renderPlayers, updateTurnControls } = createGameView({
 const { resetGameLog, updateStartLog, renderChat, addChatEntry, addGameLogEntry, sendChatMessage } = createGameLog(() => game);
 
 const turnController = createTurnController({
-    getValidMoves: (await import('./game-engine.js')).getValidMoves,
-    getForcedMove: (await import('./game-engine.js')).getForcedMove,
-    movePiece: (await import('./game-engine.js')).movePiece,
-    rollDice: (await import('./game-engine.js')).rollDice,
-    advanceTurn: (await import('./game-engine.js')).advanceTurn,
-    chooseAIMove: (await import('./game-engine.js')).chooseAIMove,
+    getValidMoves,
+    getForcedMove,
+    movePiece,
+    rollDice,
+    advanceTurn,
+    chooseAIMove,
     settings,
     animateDice,
     isPaused,
@@ -182,11 +182,11 @@ export function initGame() {
     });
     $('resume-btn')?.addEventListener('click', () => {
         $('game-menu').classList.add('hidden');
-        continueGame();
+        turnController.continueGame();
     });
     $('restart-btn')?.addEventListener('click', restartGame);
     $('quit-btn')?.addEventListener('click', () => {
-        clearTimeout(aiTimer);
+        turnController.stopAI();
         $('game-menu').classList.add('hidden');
         game = null;
         turnController.setGame(null);
