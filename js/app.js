@@ -210,14 +210,14 @@ export async function startTestGame() {
 
 export function pauseTestGame() {
     if (!game) return false;
+    // Pozastaví pouze automatické tahy testu; herní menu zůstane skryté,
+    // aby testovací panel nezakrýval hrací desku.
     turnController.stopAI();
-    $('game-menu')?.classList.remove('hidden');
     return true;
 }
 
 export function resumeTestGame() {
     if (!game) return false;
-    $('game-menu')?.classList.add('hidden');
     turnController.continueGame();
     return true;
 }
