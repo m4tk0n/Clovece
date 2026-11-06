@@ -10,6 +10,7 @@ let aiCount = 1;
 let selectedBoardSize = 40;
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
+const extendedRules = { rule1: false, rule2: false, rule3: false };
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
 
 export function escapeHtml(value) {
@@ -127,45 +128,64 @@ export function getPlayerSetup() {
     const colors = Array.from(preview.querySelectorAll('[data-color-key]'), select =>
         select.value === 'random' ? select.dataset.resolvedColor : select.value
     );
-    return { humanCount, aiCount, selectedBoardSize, names, colors };
+    return { humanCount, aiCount, selectedBoardSize, names, colors, extendedRules: { ...extendedRules } };
 }
 
 export function initPlayerSetup() {
-        $('setup-grid')?.addEventListener('click', event => {
-            const button = event.target.closest('[data-count-target][data-count-step]');
-            if (!button || button.disabled) return;
-    
-            const input = $(button.dataset.countTarget);
-            if (!input) return;
-            const step = Number(button.dataset.countStep);
-            const current = Number(input.value) || 0;
-            input.value = String(current + step);
-            updateSetup();
+    $('setup-grid')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-count-target][data-count-step]');
+        if (!button || button.disabled) return;
+
+        const input = $(button.dataset.countTarget);
+        if (!input) return;
+        const step = Number(button.dataset.countStep);
+        const current = Number(input.value) || 0;
+        input.value = String(current + step);
+        updateSetup();
+    });
+    $('board-size-options')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-board-size]');
+        if (!button || button.disabled) return;
+        selectedBoardSize = Number(button.dataset.boardSize);
+        updateSetup();
+    });
+    $('preview-players')?.addEventListener('input', event => {
+        const input = event.target.closest('[data-name-key]');
+        if (!input) return;
+        customPlayerNames.set(input.dataset.nameKey, input.value.trim());
+    });
+    $('preview-players')?.addEventListener('change', event => {
+        const select = event.target.closest('[data-color-key]');
+        if (!select) return;
+
+        customPlayerColors.set(select.dataset.colorKey, select.value);
+        updateSetup();
+    });
+    $('random-player-colors-btn')?.addEventListener('click', () => {
+        $('preview-players')?.querySelectorAll('[data-color-key]').forEach(select => {
+            customPlayerColors.set(select.dataset.colorKey, 'random');
         });
-        $('board-size-options')?.addEventListener('click', event => {
-            const button = event.target.closest('[data-board-size]');
-            if (!button || button.disabled) return;
-            selectedBoardSize = Number(button.dataset.boardSize);
-            updateSetup();
-        });
-        $('preview-players')?.addEventListener('input', event => {
-            const input = event.target.closest('[data-name-key]');
-            if (!input) return;
-            customPlayerNames.set(input.dataset.nameKey, input.value.trim());
-        });
-        $('preview-players')?.addEventListener('change', event => {
-            const select = event.target.closest('[data-color-key]');
-            if (!select) return;
-    
-            customPlayerColors.set(select.dataset.colorKey, select.value);
-            updateSetup();
-        });
-        $('random-player-colors-btn')?.addEventListener('click', () => {
-            $('preview-players')?.querySelectorAll('[data-color-key]').forEach(select => {
-                customPlayerColors.set(select.dataset.colorKey, 'random');
-            });
-            updateSetup();
-        });
+        updateSetup();
+    });
+
+    $('extended-rules-toggle')?.addEventListener('click', () => {
+        const button = $('extended-rules-toggle');
+        const panel = $('extended-rules-panel');
+        if (!button || !panel) return;
+        const expanded = button.getAttribute('aria-expanded') !== 'true';
+        button.setAttribute('aria-expanded', String(expanded));
+        panel.classList.toggle('hidden', !expanded);
+    });
+    $('extended-rules-panel')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-rule-toggle]');
+        if (!button) return;
+        const key = button.dataset.ruleToggle;
+        if (!Object.prototype.hasOwnProperty.call(extendedRules, key)) return;
+        extendedRules[key] = !extendedRules[key];
+        button.setAttribute('aria-pressed', String(extendedRules[key]));
+        button.querySelector('span').textContent = extendedRules[key] ? 'ANO' : 'NE';
+    });
+
     updateSetup();
 }
 
