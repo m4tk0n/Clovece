@@ -129,6 +129,10 @@ export function initDebugOverlay() {
 
     window.addEventListener('clovece:debug-camera', event => {
         const camera = event.detail || {};
+        if (camera.active === false) {
+            cameraSummary.style.display = 'none';
+            return;
+        }
         const fmt = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
         if (![camera.x, camera.y, camera.z, camera.targetX, camera.targetY, camera.targetZ, camera.tilt].every(Number.isFinite)) return;
         cameraSummary.textContent = '3D KAMERA X ' + fmt(camera.x) + ' Y ' + fmt(camera.y) + ' Z ' + fmt(camera.z) +
