@@ -15,6 +15,7 @@ $screens = [
     'rules' => 'rules.php',
     'game' => 'game.php',
     'local-games' => 'local-games.php',
+    'profile' => 'profile.php',
 ];
 
 $name = isset($_GET['screen']) && is_string($_GET['screen'])
