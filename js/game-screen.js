@@ -36,6 +36,7 @@ export function initGameScreen(deps) {
         syncAudioControls();
     });
     volumeSlider?.addEventListener('input', event => {
+        const audioModule = getAudioModule();
         if (!audioModule) return;
         audioModule.setMasterVolume(Number(event.target.value) / 100);
         syncAudioControls();
