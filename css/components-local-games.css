@@ -4,7 +4,12 @@
     --content-max: 500px;
 }
 
+#local-games-screen .menu-bg {
+    overflow: visible;
+}
+
 #local-games-screen .local-games-content {
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
