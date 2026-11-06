@@ -1,3 +1,15 @@
+## 1.00.00.05 – Prémiová Three.js kostka pro 3D režim
+
+**Datum:** 6. 11. 2026  
+**Typ:** Vizuální úprava
+
+- Kostka v režimu 3D má samostatný Three.js vzhled, odlišný od CSS kostky v režimu 2D.
+- Zaoblené keramické tělo, kovové detaily, lesklé body, prostorové nasvícení a stín.
+- 2D kostka zůstává beze změny.
+
+**Dotčené soubory:**
+- `js/game-board-3d.js`
+
 # Historie verzí projektu Člověče, nezlob se!
 
 Tento dokument eviduje změny aplikace v pořadí, v jakém byly zařazeny do projektu. Každá nová úprava dostane vlastní čtyřdílné číslo verze.
