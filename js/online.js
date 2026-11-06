@@ -9,6 +9,7 @@ import { createRoomActions } from './online/room-actions.js';
 import { loadOnlineGameRuntime, resetOnlineGameRuntime } from './online/game-runtime.js';
 import { renderOnlineGame } from './online/game-view.js';
 import { renderRoomView } from './online/room-view.js';
+import { createOnlineGameControls } from './online/game-controls.js';
 
 const $ = id => document.getElementById(id);
 
@@ -56,6 +57,9 @@ const roomActions = createRoomActions({
     stopPolling
 });
 const { loadMyGames, resumeMyGame, savePlayerName, joinRoom, createRoom, copyInvite, leaveRoom } = roomActions;
+const initOnlineGameControls = createOnlineGameControls({
+    session: onlineRuntimeState, sendGameAction, leaveRoom, api, notify, refreshGame
+});
 
 window.addEventListener('clovece:game-exit', () => {
     onlineRenderRequest++;
@@ -131,55 +135,6 @@ async function openGame(gameId, inviteUrl = '') {
     await refreshGame();
 }
 
-
-let onlineGameControlsInitialized = false;
-
-function initOnlineGameControls() {
-    if (onlineGameControlsInitialized) return;
-    onlineGameControlsInitialized = true;
-
-    $('roll-dice-btn')?.addEventListener('click', () => {
-        if (!onlineMode) return;
-        void sendGameAction(onlineState?.phase === 'start-roll' ? 'start_roll' : 'roll');
-    });
-    $('end-turn-btn')?.addEventListener('click', () => {
-        if (onlineMode) void sendGameAction('pass_turn');
-    });
-    $('game-container')?.addEventListener('click', event => {
-        if (!onlineMode || !onlineState || onlineState.phase !== 'move') return;
-        const piece = event.target.closest('[data-player][data-piece]');
-        if (!piece) return;
-        const playerId = Number(piece.dataset.player);
-        const pieceId = Number(piece.dataset.piece);
-        if (playerId !== currentPlayerIndex || playerId !== onlineState.currentPlayer) return;
-        void sendGameAction('move', pieceId);
-    });
-    $('quit-btn')?.addEventListener('click', event => {
-        if (!onlineMode) return;
-        event.stopImmediatePropagation();
-        void leaveRoom();
-    });
-    $('close-win-btn')?.addEventListener('click', event => {
-        if (!onlineMode) return;
-        event.stopImmediatePropagation();
-        void leaveRoom();
-    });
-
-    $('chat-form')?.addEventListener('submit', async event => {
-        if (!onlineMode) return;
-        event.preventDefault();
-        const input = $('chat-input');
-        const message = input?.value.trim();
-        if (!message || !onlineRuntimeState.currentGameId) return;
-        try {
-            await api('send_chat', { game_id: String(onlineRuntimeState.currentGameId), message });
-            input.value = '';
-            await refreshGame();
-        } catch (error) {
-            notify(error.message);
-        }
-    });
-}
 
 export async function initOnline() {
     $('my-games-list')?.addEventListener('click', event => {
