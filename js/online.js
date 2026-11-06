@@ -153,14 +153,14 @@ async function openGame(gameId, inviteUrl = '') {
 }
 
 
-export async function initOnline({ gamesContainerId = 'my-games-list' } = {}) {
+export async function initOnline({ gamesContainerId = null } = {}) {
     initOnlineLobbyControls({ resumeMyGame, loadMyGames, createRoom, api, notify, joinRoom, schedulePoll });
 
     try {
         const identity = await bootstrapOnline();
         const nameField = $('online-player-name');
         if (nameField && !nameField.value) nameField.value = identity.identity?.display_name || 'Hráč';
-        await loadMyGames(gamesContainerId);
+        if (gamesContainerId) await loadMyGames(gamesContainerId);
         const invite = new URLSearchParams(window.location.search).get('invite');
         if (invite) {
             showScreen('lobby');
