@@ -127,7 +127,7 @@ if (panel) {
         updateButtons();
     });
     buttons.report.addEventListener('click', async () => {
-        const issueWindow = window.open('https://github.com/m4tk0n/Clovece/actions/workflows/report-test-issue.yml', '_blank', 'noopener');
+        window.open('https://github.com/m4tk0n/Clovece/actions/workflows/report-test-issue.yml', '_blank');
         const state = getTestGameState();
         const report = [
             '# Hlášení chyby – Člověče, nezlob se!',
@@ -152,7 +152,7 @@ if (panel) {
         try {
             await navigator.clipboard.writeText(report);
             addLog('Protokol zkopírován. Otevři formulář GitHub Issue a vlož jej do popisu.');
-            if (!issueWindow) addLog('Prohlížeč zablokoval nové okno. Otevři GitHub Actions ručně.');
+
         } catch (error) {
             addLog('Kopírování protokolu se nepodařilo: ' + error.message);
         }
