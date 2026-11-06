@@ -23,7 +23,7 @@ let onlineStateVersion = 0;
 let autoMoveVersion = -1;
 let currentPlayerIndex = -1;
 let onlineMode = false;
-let resetOnlineGameRuntime();
+
 let onlineRenderRequest = 0;
 const onlineRuntimeState = {
     get onlineRenderRequest() { return onlineRenderRequest; },
@@ -41,7 +41,7 @@ const onlineRuntimeState = {
 };
 window.addEventListener('clovece:game-exit', () => {
     onlineRenderRequest++;
-    onlineGameRuntimePromise = null;
+    resetOnlineGameRuntime();
 });
 
 async function api(action, values = {}) {
