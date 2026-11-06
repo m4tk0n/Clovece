@@ -222,3 +222,10 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 - Obrazovka Nastavení načítá samostatný modul bez importu `app.js`, herního enginu a rendereru desky.
 - Lokální hra sdílí stejný objekt nastavení; modul se inicializuje pouze jednou.
 - Rozšířena CI kontrola syntaxe o samostatné moduly kostky a nastavení.
+
+
+## 1.00.00.14 – Oddělení výběru hráčů
+
+- Výběr počtu hráčů, jejich jmen a barev i výběr velikosti desky přesunut do `js/player-setup.js`.
+- `app.js` pouze převezme hotovou konfiguraci a vytvoří novou hru.
+- Modul výběru hráčů je samostatný a nepřebírá řízení herního kola.
