@@ -7,8 +7,8 @@ let runtimePromise = null;
 export function loadOnlineGameRuntime() {
     if (!runtimePromise) {
         runtimePromise = Promise.all([
-            import('./game-board.js'),
-            import('./game-engine.js')
+            import('../game-board.js'),
+            import('../game-engine.js')
         ]).then(([board, engine]) => ({
             renderBoard: board.renderBoard,
             ensureModeStyles: board.ensureModeStyles,
