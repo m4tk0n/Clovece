@@ -4,20 +4,22 @@
  */
 import { showScreen, loadScreen } from './navigation.js';
 import { renderChat } from './online/chat-view.js';
+import { API_URL, api, bootstrapOnline } from './online/api.js';
+import { notify } from './online/notifications.js';
 import { renderMyGames } from './online/my-games-view.js';
 import { loadOnlineGameRuntime, resetOnlineGameRuntime } from './online/game-runtime.js';
 import { renderOnlineGame } from './online/game-view.js';
 import { renderRoomView } from './online/room-view.js';
 
 const $ = id => document.getElementById(id);
-const API_URL = 'online-api.php';
 
-let csrfToken = '';
+
+
 let currentGameId = null;
 let currentInviteUrl = '';
 let pollTimer = null;
 let pollInFlight = false;
-let bootstrapPromise = Promise.resolve();
+
 let onlineState = null;
 let onlineStateVersion = 0;
 let autoMoveVersion = -1;
@@ -43,45 +45,6 @@ window.addEventListener('clovece:game-exit', () => {
     onlineRenderRequest++;
     resetOnlineGameRuntime();
 });
-
-async function api(action, values = {}) {
-    await bootstrapPromise;
-    if (!csrfToken) throw new Error('Online identita není připravená. Obnov stránku.');
-    const body = new URLSearchParams({ action, ...values });
-    if (csrfToken) body.set('csrf_token', csrfToken);
-
-    const response = await fetch(API_URL, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body
-    });
-
-    let result;
-    try {
-        result = await response.json();
-    } catch {
-        throw new Error('Server vrátil neplatnou odpověď.');
-    }
-
-    if (!response.ok || result.success !== true) {
-        throw new Error(result.error || 'Požadavek se nepodařilo dokončit.');
-    }
-    return result;
-}
-
-function notify(message) {
-    const toast = $('toast');
-    const target = $('toast-message');
-    if (toast && target) {
-        target.textContent = message;
-        toast.classList.remove('hidden');
-        clearTimeout(toast._hideTimer);
-        toast._hideTimer = setTimeout(() => toast.classList.add('hidden'), 3200);
-    } else {
-        window.alert(message);
-    }
-}
 
 function stopPolling() {
     if (pollTimer !== null) {
@@ -184,7 +147,7 @@ async function resumeMyGame(gameId, button) {
 }
 
 async function savePlayerName() {
-    await bootstrapPromise;
+    await bootstrapOnline();
     const name = $('online-player-name')?.value.trim();
     if (name) await api('set_name', { display_name: name });
 }
@@ -500,24 +463,10 @@ export async function initOnline() {
     window.joinRoom = joinRoom;
     document.addEventListener('visibilitychange', schedulePoll);
 
-    bootstrapPromise = (async () => {
-        const response = await fetch(API_URL + '?action=bootstrap', {
-            credentials: 'same-origin',
-            cache: 'no-store'
-        });
-        const data = await response.json();
-        if (!response.ok || data.success !== true) {
-            throw new Error(data.error || 'Nepodařilo se připravit anonymní identitu.');
-        }
-        csrfToken = data.csrf_token || '';
-        if (!csrfToken) throw new Error('Server neposlal bezpečnostní token.');
-        const nameField = $('online-player-name');
-        if (nameField && !nameField.value) nameField.value = data.identity?.display_name || 'Hráč';
-        return data;
-    })();
-
     try {
-        await bootstrapPromise;
+        const identity = await bootstrapOnline();
+        const nameField = $('online-player-name');
+        if (nameField && !nameField.value) nameField.value = identity.identity?.display_name || 'Hráč';
         await loadMyGames();
         const invite = new URLSearchParams(window.location.search).get('invite');
         if (invite) {
