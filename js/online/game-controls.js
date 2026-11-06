@@ -43,9 +43,9 @@ export function createOnlineGameControls(deps) {
             event.preventDefault();
             const input = $('chat-input');
             const message = input?.value.trim();
-            if (!message || !onlineRuntimeState.session.currentGameId) return;
+            if (!message || !session.currentGameId) return;
             try {
-                await api('send_chat', { game_id: String(onlineRuntimeState.session.currentGameId), message });
+                await api('send_chat', { game_id: String(session.currentGameId), message });
                 input.value = '';
                 await refreshGame();
             } catch (error) {
