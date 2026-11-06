@@ -36,13 +36,13 @@ Protokol ukazuje, které moduly aplikace při startu skutečně importuje a kter
 
 ### Odložené načítání 2D/3D
 
-Při otevření webu se nenačítá lokální herní runtime, herní UI CSS ani renderer desky. Ten se importuje až při vstupu do lokálního nastavení hry; online herní moduly až při přechodu místnosti do aktivní hry. Při otevření výběru lokální hry se načte pouze herní UI CSS. Při spuštění hry se doplní CSS aktivního režimu:
+Při otevření webu se načítá pouze navigace, zvuk a základní CSS menu. Lokální herní runtime a společné herní UI CSS se načtou až po kliknutí na HRÁT, NOVÁ LOKÁLNÍ HRA nebo NASTAVENÍ. Při vstupu do výběru hry se načte pouze `game-premium.css`; CSS desky a kostky i konkrétní renderer se načtou až při spuštění hry. Online modul se importuje až po otevření lobby a online herní runtime až při přechodu místnosti do aktivní hry:
 
-- **2D:** načte se `css/game-premium.css`, `css/board-2d.css` a `css/dice-2d.css`; desku vykresluje SVG renderer.
-- **3D:** načte se `css/game-premium.css`, `css/board-3d.css` a `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
+- **2D:** `game-premium.css` už je načtený z výběru hry; při spuštění hry se doplní `css/board-2d.css` a `css/dice-2d.css` a použije se SVG renderer.
+- **3D:** `game-premium.css` už je načtený z výběru hry; při spuštění hry se doplní `css/board-3d.css`, `css/dice-3d.css`, modul `js/game-board-3d.js` a následně Three.js s OrbitControls.
 - Při přepnutí režimu se stylesheety desky a kostky předchozího režimu odstraní a načte se odpovídající dvojice; společné `game-premium.css` zůstává připojené po dobu hry.
 - Herní animace vyhození a vítězství (`kickerMove`, `kickedMove`, `kickEffect`, `confettiFall`, `trophyShine`) jsou součástí `game-premium.css`, takže se nenačítají v hlavním menu. Globální `animations.css` si ponechává animace potřebné pro menu a úvodní načítání.
-- Při opuštění herní obrazovky se herní stylesheety odpojí, obsah desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače, animační smyčku i vlastní reference na scénu a načtené knihovny.
+- Při opuštění výběru hry nebo herní obrazovky se herní stylesheety odpojí, obsah desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače, animační smyčku i vlastní reference na scénu a načtené knihovny.
 - Již importované ES moduly nelze standardním API odebrat z modulové cache prohlížeče. Aplikace proto načítá herní moduly až při potřebě a po odchodu uvolní jejich aplikační reference a prostředky; fyzické vymazání kódu z paměti není garantovatelné.
 - Při chybě 3D rendereru se aplikace vrátí do 2D a přepne také odpovídající CSS.
 
