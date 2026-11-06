@@ -21,6 +21,11 @@ export function showScreen(name) {
 
     const target = document.getElementById(id);
     if (!target) return;
+    const gameScreen = document.getElementById('game-screen');
+    const leavingGame = name !== 'game' && gameScreen && !gameScreen.classList.contains('hidden');
+    if (leavingGame) {
+        window.dispatchEvent(new Event('clovece:game-exit'));
+    }
 
     const screens = document.querySelectorAll('.menu-screen, .game-screen');
     const alreadyActive = !target.classList.contains('hidden') &&
