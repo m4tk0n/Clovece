@@ -9,5 +9,6 @@ export {
     buildBoardSceneData,
     renderBoard,
     ensureModeStyles,
-    releaseGameView
+    releaseGameView,
+    animateThreeDice
 } from './game-board-view.js';
