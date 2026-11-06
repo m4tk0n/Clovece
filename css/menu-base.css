@@ -34,14 +34,16 @@
 
 .menu-bg {
     position: relative;
-    flex: 1 0 auto;
+    /* Krátký obsah: minimálně výška dostupné obrazovky.
+       Dlouhý obsah: přirozená výška podle obsahu, bez pevného
+       natažení na výšku viewportu. */
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     width: 100%;
     max-width: var(--panel-max);
-    /* Panel vyplní volnou výšku krátké stránky, ale při delším obsahu
-       se nesmí zmenšit ani ořezávat – výšku a scroll řeší .menu-screen. */
-    min-height: auto;
+    height: max-content;
+    min-height: 100%;
     box-sizing: border-box;
     padding: var(--panel-pad);
     overflow: visible;
