@@ -7,30 +7,15 @@
     .game-title {
         font-size: 3rem;
     }
-    
+
     .glitch {
         font-size: 2.5rem;
     }
-    
-    .board {
-        width: 500px;
-        height: 500px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(13, 1fr);
-        grid-template-rows: repeat(13, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(17, 1fr);
-        grid-template-rows: repeat(17, 1fr);
-    }
-    
+
     .game-footer {
         flex-direction: column;
     }
-    
+
     .players-panel {
         width: 100%;
     }
@@ -41,66 +26,46 @@
     .menu-bg {
         padding: 1rem;
     }
-    
+
     .menu-content {
         padding: 1rem;
     }
-    
+
     .game-header {
         flex-direction: column;
         gap: 15px;
         padding: 15px;
     }
-    
+
     .game-info {
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .game-controls {
         width: 100%;
         justify-content: center;
     }
-    
+
     .game-btn {
         padding: 12px 20px;
         font-size: 0.8rem;
     }
-    
-    .board {
-        width: 400px;
-        height: 400px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(11, 1fr);
-        grid-template-rows: repeat(11, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(15, 1fr);
-        grid-template-rows: repeat(15, 1fr);
-    }
-    
+
     .players-panel {
         flex-direction: column;
         align-items: center;
     }
-    
-    .player-card {
-        width: 100%;
-        max-width: 300px;
-    }
-    
+
     .lobby-actions {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .join-room-form {
         flex-direction: column;
     }
-    
+
     .auth-form {
         width: 100%;
         max-width: 100%;
@@ -112,62 +77,41 @@
     .game-title {
         font-size: 2.5rem;
     }
-    
+
     .glitch {
         font-size: 2rem;
     }
-    
-    .board {
-        width: 300px;
-        height: 300px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(9, 1fr);
-        grid-template-rows: repeat(9, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(13, 1fr);
-        grid-template-rows: repeat(13, 1fr);
-    }
-    
-    .piece {
-        width: 20px;
-        height: 20px;
-        font-size: 0.5rem;
-    }
-    
+
     .user-info {
         position: static;
         margin-bottom: 20px;
     }
-    
+
     .menu-buttons {
         gap: 10px;
     }
-    
+
     .menu-btn {
         padding: 12px 25px;
         font-size: 0.9rem;
     }
-    
+
     .kick-animation {
         gap: 30px;
     }
-    
+
     .kicker-piece,
     .kicked-piece {
         width: 40px;
         height: 40px;
         font-size: 1rem;
     }
-    
+
     .modal-content {
         padding: 2rem 1.5rem;
         margin: 20px;
     }
-    
+
     .modal-content h3 {
         font-size: 2rem;
     }
@@ -175,78 +119,44 @@
 
 /* Mobile Portrait */
 @media (max-width: 480px) {
-    .board {
-        width: 250px;
-        height: 250px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(8, 1fr);
-        grid-template-rows: repeat(8, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(11, 1fr);
-        grid-template-rows: repeat(11, 1fr);
-    }
-    
-    .piece {
-        width: 18px;
-        height: 18px;
-        font-size: 0.4rem;
-    }
-    
+
     .game-title {
         font-size: 2rem;
     }
-    
+
     .glitch {
         font-size: 1.5rem;
     }
-    
+
     .menu-btn {
         padding: 10px 20px;
         font-size: 0.8rem;
     }
-    
+
     .auth-form {
         padding: 1rem;
     }
-    
+
     .form-group input,
     .form-group select {
         padding: 10px 12px 10px 35px;
         font-size: 0.9rem;
     }
-    
+
     .form-group i {
         left: 10px;
         font-size: 0.9rem;
     }
-    
+
     .room-list {
         gap: 10px;
     }
-    
-    .room-card {
-        padding: 10px;
-    }
-    
-    .room-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    
-    .room-name {
-        margin: 5px 0;
-    }
-    
+
     .room-info {
         flex-direction: column;
         gap: 5px;
     }
-    
+
     .dice-loader .dice {
         width: 30px;
         height: 30px;
@@ -255,41 +165,21 @@
 
 /* Extra Small Devices */
 @media (max-width: 360px) {
-    .board {
-        width: 200px;
-        height: 200px;
-    }
-    
-    .board-4 {
-        grid-template-columns: repeat(7, 1fr);
-        grid-template-rows: repeat(7, 1fr);
-    }
-    
-    .board-8 {
-        grid-template-columns: repeat(9, 1fr);
-        grid-template-rows: repeat(9, 1fr);
-    }
-    
-    .piece {
-        width: 15px;
-        height: 15px;
-        font-size: 0.3rem;
-    }
-    
+
     .game-title {
         font-size: 1.5rem;
     }
-    
+
     .menu-btn {
         padding: 8px 15px;
         font-size: 0.7rem;
     }
-    
+
     .modal-content {
         padding: 1.5rem;
         margin: 10px;
     }
-    
+
     .modal-content h3 {
         font-size: 1.5rem;
     }
