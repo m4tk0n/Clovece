@@ -18,6 +18,8 @@ jobs:
         run: |
           node --experimental-default-type=module --check js/bootstrap.js
           node --experimental-default-type=module --check js/app.js
+          node --experimental-default-type=module --check js/dice.js
+          node --experimental-default-type=module --check js/dice-rotation.js
           node --experimental-default-type=module --check js/online.js
           node --experimental-default-type=module --check js/game-engine.js
           node --experimental-default-type=module --check js/game-board-geometry.js
