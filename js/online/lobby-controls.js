@@ -12,14 +12,9 @@ export function initOnlineLobbyControls(deps) {
 
     document.addEventListener('click', event => {
         const button = event.target.closest?.('[data-game-id]');
-        const list = button?.closest?.('#my-games-list, #online-games-list');
+        const list = button?.closest?.('#online-games-list');
         if (!button || !list || button.disabled) return;
         void resumeMyGame(button.dataset.gameId, button, list.id);
-    });
-    document.addEventListener('click', event => {
-        if (event.target.closest?.('#back-from-room, #back-from-lobby')) {
-            window.setTimeout(() => void loadMyGames(), 0);
-        }
     });
 
     // Delegované navázání: funguje i při změně vnitřní struktury tlačítka.
