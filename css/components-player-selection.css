@@ -63,10 +63,8 @@
     color: #fff;
     font: 700 26px/1 Arial, sans-serif;
     cursor: pointer;
-    transition: background .15s ease, transform .15s ease, opacity .15s ease;
 }
-.setup-stepper-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .2); transform: translateY(-1px); }
-.setup-stepper-btn:active:not(:disabled) { transform: translateY(1px); }
+.setup-stepper-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .2); }
 .setup-stepper-btn:disabled { opacity: .3; cursor: not-allowed; }
 
 
@@ -98,7 +96,6 @@
     color: #eee5d1;
     font: 700 19px/1 var(--font-title);
     cursor: pointer;
-    transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 .board-size-btn.is-active {
     border-color: #e4bd70;
