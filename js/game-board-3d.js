@@ -147,6 +147,164 @@ function buildScene(T,scene,data) {
     data.bases.forEach(base=>base.pieces.forEach(addPawn));data.pieces.forEach(addPawn);
     return {board,pickables};
 }
+
+/**
+ * Samostatná fyzická kostka pro 3D režim.
+ * Vykresluje se přes Three.js do průhledného překryvu nad celou obrazovkou.
+ */
+export async function animateThreeDice(value, fast = false) {
+    const { THREE: T } = await loadThree();
+    const overlay = document.createElement('div');
+    overlay.id = 'three-dice-overlay';
+    Object.assign(overlay.style, {
+        position: 'fixed', inset: '0', zIndex: '100000',
+        display: 'grid', placeItems: 'center',
+        background: 'rgba(5, 14, 15, .56)', pointerEvents: 'none',
+        overflow: 'hidden'
+    });
+    document.body.appendChild(overlay);
+
+    let renderer;
+    let frame = 0;
+    let settled = false;
+    const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (frame) cancelAnimationFrame(frame);
+        renderer?.dispose();
+        overlay.remove();
+    };
+
+    try {
+        const scene = new T.Scene();
+        const camera = new T.PerspectiveCamera(34, window.innerWidth / Math.max(1, window.innerHeight), .1, 30);
+        camera.position.set(0, 0, 6.2);
+        const ambient = new T.HemisphereLight(0xffffff, 0x4b463c, 2.1);
+        scene.add(ambient);
+        const key = new T.DirectionalLight(0xfff0d2, 3.4);
+        key.position.set(-3, 5, 6);
+        scene.add(key);
+        const rim = new T.DirectionalLight(0x9bbcff, 1.5);
+        rim.position.set(4, 1, -4);
+        scene.add(rim);
+
+        renderer = new T.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        renderer.outputColorSpace = T.SRGBColorSpace;
+        renderer.toneMapping = T.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.15;
+        Object.assign(renderer.domElement.style, { width: '100%', height: '100%', display: 'block' });
+        overlay.appendChild(renderer.domElement);
+
+        const die = new T.Group();
+        scene.add(die);
+        const body = new T.Mesh(
+            new T.BoxGeometry(1.55, 1.55, 1.55),
+            new T.MeshPhysicalMaterial({
+                color: 0xf3ead6, roughness: .24, metalness: .04,
+                clearcoat: .85, clearcoatRoughness: .16
+            })
+        );
+        die.add(body);
+        const edge = new T.LineSegments(
+            new T.EdgesGeometry(body.geometry),
+            new T.LineBasicMaterial({ color: 0xb5a47f, transparent: true, opacity: .7 })
+        );
+        die.add(edge);
+
+        const pipGeometry = new T.SphereGeometry(.092, 20, 16);
+        const pipMaterial = new T.MeshStandardMaterial({ color: 0x29251f, roughness: .32 });
+        const layouts = {
+            1: [[0, 0]],
+            2: [[-.34, .34], [.34, -.34]],
+            3: [[-.34, .34], [0, 0], [.34, -.34]],
+            4: [[-.34, .34], [.34, .34], [-.34, -.34], [.34, -.34]],
+            5: [[-.34, .34], [.34, .34], [0, 0], [-.34, -.34], [.34, -.34]],
+            6: [[-.34, .38], [.34, .38], [-.34, 0], [.34, 0], [-.34, -.38], [.34, -.38]]
+        };
+        const addFacePips = (faceValue, axis) => {
+            for (const [u, v] of layouts[faceValue]) {
+                const pip = new T.Mesh(pipGeometry, pipMaterial);
+                const d = .786;
+                if (axis === '+z') pip.position.set(u, v, d);
+                if (axis === '-z') pip.position.set(-u, v, -d);
+                if (axis === '+x') pip.position.set(d, v, -u);
+                if (axis === '-x') pip.position.set(-d, v, u);
+                if (axis === '+y') pip.position.set(u, d, -v);
+                if (axis === '-y') pip.position.set(u, -d, v);
+                die.add(pip);
+            }
+        };
+        addFacePips(1, '+z');
+        addFacePips(6, '-z');
+        addFacePips(2, '+x');
+        addFacePips(5, '-x');
+        addFacePips(3, '+y');
+        addFacePips(4, '-y');
+
+        const targets = {
+            1: [0, 0, 0],
+            2: [0, -Math.PI / 2, 0],
+            3: [Math.PI / 2, 0, 0],
+            4: [-Math.PI / 2, 0, 0],
+            5: [0, Math.PI / 2, 0],
+            6: [0, Math.PI, 0]
+        };
+        const target = targets[Math.max(1, Math.min(6, Number(value) || 1))];
+        const start = [
+            (Math.random() - .5) * Math.PI * 2,
+            (Math.random() - .5) * Math.PI * 2,
+            (Math.random() - .5) * Math.PI * 2
+        ];
+        die.rotation.set(...start);
+        die.scale.setScalar(.01);
+        const turns = fast ? 1 : 2 + Math.floor(Math.random() * 2);
+        const end = [
+            target[0] + Math.PI * 2 * turns,
+            target[1] - Math.PI * 2 * turns,
+            target[2] + Math.PI * 2 * (turns - 1)
+        ];
+        const duration = fast ? 480 : 1500;
+        const started = performance.now();
+        return await new Promise(resolve => {
+            const animate = now => {
+                if (!overlay.isConnected) {
+                    finish();
+                    resolve();
+                    return;
+                }
+                const raw = Math.min(1, (now - started) / duration);
+                const eased = 1 - Math.pow(1 - raw, 3);
+                die.rotation.set(
+                    start[0] + (end[0] - start[0]) * eased,
+                    start[1] + (end[1] - start[1]) * eased,
+                    start[2] + (end[2] - start[2]) * eased
+                );
+                const bounce = raw < .72 ? Math.sin(raw / .72 * Math.PI) * .62 : Math.sin((raw - .72) / .28 * Math.PI) * .10;
+                die.position.y = Math.max(0, bounce);
+                const scale = raw < .12 ? .01 + (raw / .12) * .99 : 1;
+                die.scale.setScalar(scale);
+                if (raw >= 1) {
+                    die.rotation.set(...target);
+                    die.position.y = 0;
+                    renderer.render(scene, camera);
+                    finish();
+                    resolve();
+                    return;
+                }
+                renderer.render(scene, camera);
+                frame = requestAnimationFrame(animate);
+            };
+            frame = requestAnimationFrame(animate);
+        });
+    } catch (error) {
+        finish();
+        throw error;
+    }
+}
+
 export async function render3DBoard(stage,data,onError=()=>{}) {
     if(!stage)return;
     const reportError=error=>{
