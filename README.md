@@ -41,6 +41,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - js/app.js – koordinace lokální hry a AI
 - js/dice.js – řízení hodu a volba 2D/3D animace kostky (načítá se až při použití lokální/online hry)
 - js/dice-rotation.js – společný rotační plán pro 2D a 3D kostku
+- js/settings.js – nastavení hry; načítá se samostatně z menu bez načtení herního enginu a rendereru
 - css/game-premium.css – herní rozhraní a animace herních událostí; načítá se až při vstupu do hry společně se styly desky a kostky
 - online-api.php – anonymní online API a serverově ověřované herní tahy
 - api.php – původní API pro starý registrační datový model (online režim ho nepoužívá)
@@ -93,3 +94,9 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 - `js/dice.js` zajišťuje průběh hodu a podle aktivního režimu předá plán CSS animaci nebo 3D rendereru. Modul se importuje až při načtení herního runtime; v online režimu až při prvním hodu.
 - `js/game-board-3d.js` vykresluje prostorovou kostku přes Three.js. Samotné Three.js se nadále importuje až při prvním použití 3D rendereru.
 - `css/dice-2d.css` a `css/dice-3d.css` zůstávají oddělenými soubory vzhledu.
+
+
+## Samostatné načítání nastavení
+
+- Otevření obrazovky Nastavení načte pouze `js/settings.js` a potřebný zvukový modul. Nemusí kvůli tomu načítat `app.js`, herní engine ani renderer desky.
+- Lokální herní runtime (`app.js`) se načte až při vstupu do výběru hry; modul kostky (`dice.js`) až při prvním hodu.
