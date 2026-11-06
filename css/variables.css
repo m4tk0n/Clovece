@@ -6,6 +6,7 @@
     /* Primary Colors */
     --primary: #ff6b6b;
     --secondary: #4ecdc4;
+    --control-accent: #4ecdc4;
     --accent: #ffe66d;
     --dark: #1a1a2e;
     --darker: #16213e;
@@ -53,6 +54,11 @@
     --radius: 10px;
     --radius-lg: 20px;
     --radius-full: 50%;
+}
+
+/* Všechny posuvníky používají jednotnou zelenou barvu. */
+input[type="range"] {
+    accent-color: var(--control-accent);
 }
 
 /* ============================================
