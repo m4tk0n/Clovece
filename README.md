@@ -46,8 +46,8 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 
 ## Oddělené styly 2D/3D
 
-- `css/board-2d.css` a `css/dice-2d.css` obsahují pouze vzhled 2D desky a ploché animace kostky.
-- `css/board-3d.css` a `css/dice-3d.css` obsahují pouze vzhled 3D desky a prostorové animace kostky.
+- `css/board-2d.css` a `css/dice-2d.css` obsahují vzhled 2D desky a CSS 3D animaci šestistranné kostky bez WebGL.
+- `css/board-3d.css` obsahuje vzhled 3D desky; kostka v tomto režimu se vykresluje a animuje samostatně pomocí Three.js.
 - Při spuštění hry se načte pouze dvojice CSS odpovídající aktivnímu režimu. Při přepnutí režimu se předchozí dvojice odpojí.
 - Základní `game-premium.css` již neobsahuje grafická pravidla desky ani animace kostky.
 
@@ -70,7 +70,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 ## Technologie
 
 - HTML5, CSS3, JavaScript ES modules
-- Samostatný SVG renderer pro pevný 2D pohled shora a samostatný Three.js renderer, který vytváří vlastní 3D scénu přímo z herních dat; SVG se do 3D režimu vůbec nezapojuje
+- Samostatný SVG renderer pro pevný 2D pohled shora a samostatný Three.js renderer pro 3D desku i prostorovou animaci kostky; SVG se do 3D režimu vůbec nezapojuje
 - 3D kamera začíná shora a podporuje naklonění, otáčení a přiblížení; SVG režim zůstává vždy bez náklonu a perspektivy
 - Varianty desky classic a polygon
 - PHP a MySQL pro budoucí online režim
