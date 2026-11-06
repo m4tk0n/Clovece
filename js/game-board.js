@@ -8,6 +8,7 @@ export {
     ensureGameStyles,
     buildBoardSceneData,
     renderBoard,
+    prepareBoardRendering,
     ensureModeStyles,
     releaseGameView,
     animateThreeDice
