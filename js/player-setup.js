@@ -11,7 +11,8 @@ let selectedBoardSize = 40;
 let previousTotalPlayerCount = 2;
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
-const extendedRules = { rule1: false, rule2: false, rule3: false };
+// Výchozí ANO zachovává dosavadní pravidla lokální hry.
+const extendedRules = { threeRolls: true, mustDeploy: true };
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
 
 export function escapeHtml(value) {
@@ -181,6 +182,18 @@ export function initPlayerSetup() {
         panel.classList.toggle('hidden', !expanded);
     });
     $('extended-rules-panel')?.addEventListener('click', event => {
+        const info = event.target.closest('[data-rule-info]');
+        if (info) {
+            const row = info.closest('.extended-rule-row');
+            const hint = row?.querySelector('.rule-hint');
+            if (!hint) return;
+            const opening = hint.hidden;
+            document.querySelectorAll('.rule-hint').forEach(item => { item.hidden = true; });
+            document.querySelectorAll('[data-rule-info]').forEach(item => item.setAttribute('aria-expanded', 'false'));
+            hint.hidden = !opening;
+            info.setAttribute('aria-expanded', String(opening));
+            return;
+        }
         const button = event.target.closest('[data-rule-toggle]');
         if (!button) return;
         const key = button.dataset.ruleToggle;
@@ -191,6 +204,11 @@ export function initPlayerSetup() {
     });
 
     updateSetup();
+    document.querySelectorAll('[data-rule-toggle]').forEach(button => {
+        const enabled = extendedRules[button.dataset.ruleToggle] === true;
+        button.setAttribute('aria-pressed', String(enabled));
+        button.querySelector('span').textContent = enabled ? 'ANO' : 'NE';
+    });
 }
 
 export { updateSetup };
