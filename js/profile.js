@@ -36,7 +36,7 @@ async function loadProfile() {
         return;
     }
     $('profile-display-name').value = data.account.display_name || data.account.username || '';
-    $('profile-color').value = data.account.color_preference || '#E53935';
+    $('profile-color').value = data.account.color_preference || '#ff6b6b';
     updateColorPreview();
     showMessage();
     try {
