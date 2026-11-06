@@ -51,7 +51,7 @@ if (panel) {
             addLog('Deska ' + state.boardSize + ' polí; hráči: ' + state.players.map(player => player.name).join(', ') + '.');
             return;
         }
-        if (state.diceValue !== previous.diceValue) addLog(state.currentPlayerName + ' hodil ' + state.diceValue + '.');
+        if (state.rollSequence !== previous.rollSequence) addLog(state.currentPlayerName + ' hodil ' + state.diceValue + ' (hod č. ' + state.rollSequence + ').');
         if (state.currentPlayer !== previous.currentPlayer) addLog('Na tahu je ' + state.currentPlayerName + '.');
         if (state.phase !== previous.phase) addLog('Změna fáze hry: ' + previous.phase + ' → ' + state.phase + '.');
         state.pieces.forEach((pieces, playerId) => pieces.forEach((steps, pieceId) => {
