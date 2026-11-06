@@ -3,7 +3,6 @@
  * Síťové akce zůstávají v online controlleru.
  */
 import { renderChat } from './chat-view.js';
-import { resetOnlineGameRuntime } from './game-runtime.js';
 const $ = id => document.getElementById(id);
 
 export function renderRoomView(data, deps) {
@@ -12,7 +11,6 @@ export function renderRoomView(data, deps) {
     const participants = data.participants || [];
 
     state.onlineRenderRequest++;
-    resetOnlineGameRuntime();
     state.onlineMode = false;
     $('win-modal')?.classList.add('hidden');
     showScreen('room');
