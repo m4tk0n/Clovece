@@ -61,6 +61,7 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
 </head>
 <body data-css-versions='<?= htmlspecialchars(json_encode([
             'css/components-auth.css' => $assetVersion('css/components-auth.css'),
+            'css/components-profile.css' => $assetVersion('css/components-profile.css'),
             'css/components-player-selection.css' => $assetVersion('css/components-player-selection.css'),
             'css/components-online.css' => $assetVersion('css/components-online.css'),
             'css/components-chat.css' => $assetVersion('css/components-chat.css'),
@@ -86,7 +87,15 @@ $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
                     <span>PŘIHLÁSIT SE</span>
                     <i class="fas fa-sign-in-alt"></i>
                 </button>
-                <button id="account-avatar-btn" class="account-avatar hidden" type="button" aria-label="Uživatelský účet"></button>
+                <button id="account-avatar-btn" class="account-avatar hidden" type="button" aria-label="Uživatelský účet" aria-haspopup="menu" aria-expanded="false"></button>
+                <div id="account-menu" class="account-dropdown hidden" role="menu" aria-label="Menu uživatelského účtu">
+                    <button type="button" role="menuitem" data-account-action="profile"><i class="fas fa-user"></i><span>Profil</span></button>
+                    <button type="button" role="menuitem" data-account-action="games"><i class="fas fa-dice"></i><span>Rozehrané hry</span></button>
+                    <button type="button" role="menuitem" data-account-action="stats"><i class="fas fa-chart-column"></i><span>Statistiky</span></button>
+                    <div class="account-dropdown-divider"></div>
+                    <button type="button" role="menuitem" data-account-action="settings"><i class="fas fa-sliders"></i><span>Nastavení hry</span></button>
+                    <button type="button" role="menuitem" data-account-action="logout" class="account-logout"><i class="fas fa-right-from-bracket"></i><span>Odhlásit se</span></button>
+                </div>
             </div>
             <div class="menu-content">
                 <div id="user-info" class="user-info hidden">
