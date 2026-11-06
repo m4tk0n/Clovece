@@ -1,31 +1,34 @@
-/* Rules – komponenty pro příslušnou část aplikace. */
-
-.rules-content {
-    max-width: 800px;
-}
+/* ===================
+   PRAVIDLA (#rules-screen)
+   =================== */
 
 .rules-text {
-    text-align: left;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2rem;
-    border-radius: var(--radius);
-    border: 2px solid rgba(255, 230, 109, 0.3);
-    max-height: 500px;
+    max-height: 55vh;
+    padding: 14px;
     overflow-y: auto;
+    border: 1px solid var(--gold-line-soft);
+    border-radius: 13px;
+    background: rgba(0, 0, 0, .3);
+    text-align: left;
 }
 
 .rules-text h3 {
-    font-family: var(--font-pixel);
-    font-size: 1.3rem;
-    color: var(--accent);
-    margin: 20px 0 10px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(255, 230, 109, 0.3);
+    margin: 12px 0 6px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid rgba(198, 169, 107, .3);
+    font-size: 13px;
 }
+.rules-text h3:first-child { margin-top: 0; }
 
 .rules-text p {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 15px;
+    margin-bottom: 9px;
+    color: rgba(255, 255, 255, .8);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+    .rules-text { padding: 9px; }
+    .rules-text h3 { margin: 8px 0 4px; padding-bottom: 4px; font-size: 12px; }
+    .rules-text p { margin-bottom: 6px; font-size: 12px; line-height: 1.4; }
 }

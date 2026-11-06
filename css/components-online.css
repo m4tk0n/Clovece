@@ -1,128 +1,187 @@
-/* Lobby + Room List + Room Screen + Participant List – komponenty pro příslušnou část aplikace. */
+/* ============================================================
+   ONLINE – LOBBY (#lobby-screen) a MÍSTNOST (#room-screen)
+   Chat místnosti je tady taky (herní chat zůstává v components-chat.css).
+   ============================================================ */
 
+/* ---------- LOBBY ---------- */
+#lobby-screen { --panel-max: 820px; --content-max: 760px; }
+
+/* Popisek vlevo, pole vpravo; tlačítka přes celou šířku. */
 .lobby-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin: 2rem 0;
+    display: grid;
+    grid-template-columns: minmax(100px, .65fr) minmax(0, 1.35fr);
+    gap: 8px 12px;
     align-items: center;
+    margin: 12px 0;
+    text-align: left;
 }
+.lobby-actions :is(input, select) { width: 100%; }
+.lobby-actions > .menu-btn,
+.join-room-form { grid-column: 1 / -1; }
+.lobby-actions > .menu-btn { margin: 0; }
 
-.join-room-form {
+.join-room-form { display: flex; gap: 8px; }
+.join-room-form input { flex: 1 1 auto; width: 0; }
+.join-room-form .menu-btn { flex: 0 0 auto; margin: 0; }
+
+/* Přenos identity */
+.identity-transfer {
+    display: grid;
+    gap: 7px;
+    margin: 0 0 12px;
+    padding: 11px;
+    border: 1px solid var(--gold-line-soft);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, .18);
+    text-align: left;
+}
+.identity-transfer h3 { margin: 0; }
+.identity-transfer p { color: rgba(255, 255, 255, .72); font-size: 12px; line-height: 1.4; }
+.identity-transfer label { margin-top: 4px; color: var(--gold-light); }
+.identity-transfer input { width: 100%; font-family: monospace; }
+.identity-transfer .menu-btn { width: 100%; margin: 0; }
+
+/* Moje hry */
+.my-games-list { display: grid; gap: 7px; margin: 8px 0 12px; }
+.my-game-item {
     display: flex;
-    gap: 15px;
     align-items: center;
-    width: 100%;
-    max-width: 500px;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 10px;
+    background: rgba(10, 15, 28, .72);
+    text-align: left;
 }
+.my-game-details { display: grid; gap: 5px; min-width: 0; }
+.my-game-details strong { color: #fff; overflow-wrap: anywhere; }
+.my-game-details span,
+.my-games-empty { color: rgba(255, 255, 255, .72); font-size: .88rem; }
+.my-game-resume { flex: 0 0 auto; min-width: 112px; margin: 0; }
 
-.join-room-form input {
-    flex: 1;
-    padding: 12px 20px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius);
-    color: var(--white);
-    font-family: var(--font-pixel);
-    font-size: 1rem;
-    outline: none;
-    transition: all var(--transition-fast);
-}
-
-.join-room-form input:focus {
-    border-color: var(--primary);
-    background: rgba(0, 0, 0, 0.5);
-}
-
-.join-room-form input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
-}
-
-.room-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    max-width: 800px;
-    margin: 0 auto;
-}
+.room-list { display: flex; flex-direction: column; gap: 8px; }
 
 
-
-
-
-
+/* ---------- MÍSTNOST ---------- */
+/* Řádek 1: pozvánka | stav. Pod tím odkaz a tlačítko Zkopírovat. */
 .room-info {
-    display: flex;
-    gap: 20px;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.7);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    text-align: left;
 }
-
-.room-status {
-    font-size: 0.8rem;
-    padding: 5px 10px;
-    border-radius: var(--radius);
-    text-transform: uppercase;
-}
-
-.room-status.waiting {
-    background: rgba(255, 230, 109, 0.2);
-    color: var(--accent);
-}
-
-.room-status.playing {
-    background: rgba(78, 205, 196, 0.2);
-    color: var(--secondary);
-}
-
-#room-info {
-    margin-bottom: 2rem;
-}
-
+.room-code-display { grid-area: 1 / 1; }
+.room-status { grid-area: 1 / 2; text-align: right; }
 .room-code-display,
-.room-status-display {
-    font-family: var(--font-pixel);
-    font-size: 1.2rem;
-    margin: 10px 0;
-}
+.room-status { margin: 0; font: 600 13px/1.4 var(--font-ui); }
+.room-code-display .highlight { color: var(--gold-light); overflow-wrap: anywhere; }
+.room-info > input { grid-column: 1 / -1; width: 100%; }
+.room-info > .menu-btn { grid-column: 1 / -1; justify-self: start; margin: 0; }
 
-.room-code-display .highlight,
-.room-status-display .highlight {
-    color: var(--accent);
-    text-shadow: 0 0 10px rgba(255, 230, 109, 0.5);
-}
-
-.participant-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 2rem 0;
-    max-width: 600px;
-}
-
-
-
-
-
-.participant-color {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-full);
+/* Hráči v místnosti: [barva] jméno ........ role */
+.participant-list { display: flex; flex-direction: column; gap: 7px; margin: 10px 0; }
+.participant-item {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-family: var(--font-pixel);
-    font-size: 0.8rem;
-    color: var(--white);
-    font-weight: bold;
+    gap: 10px;
+    padding: 8px 11px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .04);
+    text-align: left;
+}
+.participant-color {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 50%;
+}
+.participant-item > span:not(.participant-color) {
+    flex: 1;
+    min-width: 0;
+    font: 600 13px/1.3 var(--font-ui);
+    overflow-wrap: anywhere;
+}
+.participant-item small {
+    color: #9ba99d;
+    font-size: 10px;
+    letter-spacing: .1em;
+    white-space: nowrap;
 }
 
+/* Akce místnosti */
+.room-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin: 10px 0; }
+.room-actions .menu-btn { margin: 0; }
+
+/* Formulář jména a barvy: popisek | pole | tlačítko  (2 řádky) */
+#room-player-settings {
+    display: grid;
+    grid-template-columns: minmax(110px, .7fr) minmax(0, 1fr) auto;
+    gap: 7px 10px;
+    justify-content: stretch;
+    align-items: center;
+    text-align: left;
+}
+#room-player-settings .menu-btn { white-space: nowrap; }
+
+/* Chat místnosti */
+.room-chat {
+    margin-top: 12px;
+    padding: 11px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: var(--radius);
+    background: rgba(0, 0, 0, .25);
+    text-align: left;
+}
+.room-chat h4 { margin: 0 0 8px; }
+.room-chat .chat-messages {
+    max-height: 140px;
+    margin-bottom: 8px;
+    padding: 7px;
+    overflow-y: auto;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, .2);
+}
+.room-chat .chat-message {
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    animation: fadeIn .3s ease-out;
+}
+.room-chat .chat-message strong { color: var(--gold-light); }
+.room-chat .chat-form { display: flex; gap: 8px; }
+.room-chat .chat-form input { flex: 1 1 auto; }
+.room-chat .chat-form .menu-btn { margin: 0; }
 
 
-.room-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin: 2rem 0;
-    flex-wrap: wrap;
+/* ---------- Menší displeje ---------- */
+@media (max-width: 600px) {
+    .lobby-actions { grid-template-columns: 92px minmax(0, 1fr); gap: 7px 9px; }
+    .join-room-form .menu-btn { padding-inline: 10px; }
+
+    #room-player-settings { grid-template-columns: 92px minmax(0, 1fr); }
+    #room-player-settings .menu-btn { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+    .my-game-item { flex-direction: column; align-items: flex-start; }
+    .my-game-resume { width: 100%; }
+}
+@media (max-width: 420px) {
+    .lobby-actions { gap: 5px 7px; margin: 8px 0; }
+    .identity-transfer { gap: 5px; margin-bottom: 8px; padding: 8px; }
+    .my-games-list { gap: 5px; margin: 6px 0 8px; }
+    .participant-list { gap: 5px; margin: 7px 0; }
+    .participant-item { gap: 7px; padding: 6px 8px; }
+    .room-actions { gap: 4px; margin: 7px 0; }
+    .room-chat { margin-top: 8px; padding: 8px; }
+}
+@media (max-width: 360px) {
+    .lobby-actions { grid-template-columns: 1fr; }
+    .join-room-form { flex-direction: column; }
+    .join-room-form .menu-btn { width: 100%; }
 }

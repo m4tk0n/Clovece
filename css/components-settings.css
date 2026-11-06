@@ -1,94 +1,66 @@
-/* Settings – komponenty pro příslušnou část aplikace. */
+/* ============================================================
+   NASTAVENÍ (#settings-screen)
+   ============================================================ */
 
 .settings-container {
-    max-width: 500px;
-    margin: 0 auto 2rem;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2rem;
-    border-radius: var(--radius);
-    border: 2px solid rgba(78, 205, 196, 0.3);
+    max-width: 520px;
+    margin: 0 auto 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(198, 169, 107, .32);
+    border-radius: 14px;
+    background: var(--surface-card);
 }
 
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    text-align: left;
 }
+.setting-item:last-child { border-bottom: 0; }
 
-.setting-item:last-child {
-    border-bottom: none;
-}
+.settings-container select { min-width: 112px; }
 
-.setting-item label {
-    font-family: var(--font-pixel);
-    font-size: 1rem;
-    color: var(--white);
-}
-
+/* Přepínač (checkbox schovaný uvnitř <label class="toggle-switch">) */
 .toggle-switch {
     position: relative;
+    flex: 0 0 auto;
     display: inline-block;
     width: 60px;
     height: 34px;
+    transform: scale(.82);
+    transform-origin: right center;
 }
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.toggle-switch input { width: 0; height: 0; opacity: 0; }
 
 .slider-round {
     position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.2);
+    inset: 0;
     border-radius: 34px;
+    background: rgba(255, 255, 255, .2);
+    cursor: pointer;
     transition: background var(--transition-fast);
 }
-
 .slider-round::before {
-    position: absolute;
     content: '';
-    height: 26px;
-    width: 26px;
+    position: absolute;
     left: 4px;
     bottom: 4px;
-    background: var(--gradient-1);
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
+    background: var(--gradient-1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
     transition: transform var(--transition-fast);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
+.toggle-switch input:checked + .slider-round { background: rgba(78, 205, 196, .3); }
+.toggle-switch input:checked + .slider-round::before { transform: translateX(26px); background: var(--gradient-2); }
+.toggle-switch input:focus-visible + .slider-round { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-.toggle-switch input:checked + .slider-round {
-    background: rgba(78, 205, 196, 0.3);
-}
-
-.toggle-switch input:checked + .slider-round::before {
-    transform: translateX(26px);
-    background: var(--gradient-2);
-}
-
-.settings-container select {
-    padding: 8px 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 107, 107, 0.3);
-    border-radius: var(--radius);
-    color: var(--white);
-    font-family: var(--font-pixel);
-    font-size: 0.9rem;
-    cursor: pointer;
-    outline: none;
-    transition: all var(--transition-fast);
-}
-
-.settings-container select:hover,
-.settings-container select:focus {
-    border-color: var(--primary);
-    background: rgba(255, 107, 107, 0.1);
+@media (max-width: 420px) {
+    .settings-container { margin-bottom: 8px; padding: 8px 10px; }
+    .setting-item { gap: 7px; padding: 6px 0; }
 }

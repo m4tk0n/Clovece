@@ -1,39 +1,188 @@
-/* Player Selection – komponenty pro příslušnou část aplikace. */
+/* ============================================================
+   VYTVOŘENÍ HRY (#player-selection)
+   Počet hráčů, velikost desky, sestava u stolu.
+   (Dřív bylo rozlité v game-premium.css a menu-premium.css.)
+   ============================================================ */
 
 .selection-container {
-    max-width: 600px;
-    margin: 0 auto 2rem;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2rem;
-    border-radius: var(--radius);
-    border: 2px solid rgba(255, 107, 107, 0.3);
+    margin: 0 auto 12px;
+    padding: 16px;
+    border: 1px solid var(--gold-line);
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(21, 35, 31, .96), rgba(8, 17, 16, .96));
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .06);
 }
 
 
+/* ---------- Počet hráčů (stepper) ---------- */
+.setup-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.setup-control {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, .075), rgba(255, 255, 255, .025));
+    text-align: center;
+}
+.setup-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.6em;
+    margin-bottom: 8px;
+    color: #c7d0c5;
+    font: 700 10px/1.5 "Press Start 2P", monospace;
+    letter-spacing: .04em;
+}
+.setup-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.setup-stepper strong {
+    flex: 0 0 44px;
+    color: var(--gold);
+    font: 700 36px/1 var(--font-title);
+    text-align: center;
+}
+.setup-stepper-btn {
+    flex: 0 0 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .09);
+    color: #fff;
+    font: 700 26px/1 Arial, sans-serif;
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease, opacity .15s ease;
+}
+.setup-stepper-btn:hover:not(:disabled) { background: rgba(255, 255, 255, .2); transform: translateY(-1px); }
+.setup-stepper-btn:active:not(:disabled) { transform: translateY(1px); }
+.setup-stepper-btn:disabled { opacity: .3; cursor: not-allowed; }
 
 
+/* ---------- Velikost desky ---------- */
+.board-size-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin: 14px 0 8px;
+}
+.board-size-label {
+    color: var(--gold);
+    font: 700 10px/1.4 "Press Start 2P", monospace;
+    letter-spacing: .04em;
+}
+.board-size-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    width: min(100%, 420px);
+}
+.board-size-btn {
+    min-height: 46px;
+    border: 1px solid rgba(201, 164, 93, .48);
+    border-radius: 10px;
+    background: rgba(7, 18, 15, .72);
+    color: #eee5d1;
+    font: 700 19px/1 var(--font-title);
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.board-size-btn.is-active {
+    border-color: #e4bd70;
+    background: linear-gradient(145deg, rgba(125, 91, 39, .9), rgba(67, 49, 26, .95));
+    color: #fff6df;
+    box-shadow: inset 0 0 0 1px rgba(255, 225, 163, .2), 0 0 0 2px rgba(201, 164, 93, .18);
+}
+.board-size-btn:disabled { opacity: .32; cursor: not-allowed; }
+.board-size-btn:focus-visible { outline: 2px solid #f3d28f; outline-offset: 3px; }
 
 
-
-
-
+/* ---------- Sestava u stolu ---------- */
 .player-preview {
-    margin-top: 2rem;
-    padding: 1rem;
-    background: rgba(0, 0, 0, 0.3);
+    margin-top: 12px;
+    padding: 12px;
     border-radius: var(--radius);
+    background: rgba(0, 0, 0, .3);
 }
-
-.player-preview h3 {
-    font-family: var(--font-pixel);
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: var(--accent);
-}
+.player-preview h3 { margin: 0 0 9px; }
 
 .preview-players {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    gap: 5px;
+}
+/* Jeden řádek: figurka | jméno | barva. Barva hráče přichází přes --player-color. */
+.preview-player {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) minmax(104px, auto);
+    align-items: center;
+    gap: 8px;
+    padding: 3px 8px;
+    border: 1px solid color-mix(in srgb, var(--player-color), transparent 60%);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--player-color), transparent 91%);
+    text-align: left;
+}
+.preview-player-orb {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--player-color);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--player-color), transparent 55%);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+}
+.preview-player .preview-player-name,
+.preview-player .preview-player-color {
+    width: 100%;
+    min-height: 32px;
+}
+.preview-player .preview-player-name {
+    border-color: color-mix(in srgb, var(--player-color), transparent 45%);
+    font-weight: 700;
+}
+.preview-player .preview-player-name:focus {
+    border-color: var(--player-color);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--player-color), transparent 72%);
+}
+.preview-color-label { min-width: 0; margin: 0; }
+
+#random-player-colors-btn { margin: 8px 0 0; }
+
+
+/* ---------- Menší displeje ---------- */
+@media (max-width: 600px) {
+    .setup-control { padding: 9px 8px; }
+    .setup-label { font-size: clamp(8px, 2.5vw, 10px); }
+    .setup-stepper { gap: 6px; }
+    .setup-stepper strong { flex-basis: 34px; font-size: 31px; }
+    .setup-stepper-btn { flex-basis: 34px; width: 34px; height: 34px; font-size: 23px; }
+    .board-size-control { margin-top: 10px; }
+    .board-size-btn { min-height: 42px; }
+}
+@media (max-width: 420px) {
+    .selection-container { padding: 10px; margin-bottom: 8px; }
+    .setup-grid { gap: 6px; }
+    .setup-control { padding: 7px; }
+    .setup-stepper strong { flex-basis: 30px; font-size: 27px; }
+    .setup-stepper-btn { flex-basis: 30px; width: 30px; height: 30px; font-size: 21px; }
+    .player-preview { margin-top: 7px; padding: 8px; }
+    .preview-player { grid-template-columns: 28px minmax(0, 1fr) minmax(88px, auto); gap: 6px; padding: 3px 7px; }
+    .preview-player-orb { width: 28px; height: 28px; }
 }

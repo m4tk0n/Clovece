@@ -1,111 +1,10 @@
-/* Premium tabletop presentation */
+/* Premium tabletop presentation
+   (pravidla obrazovky "Vytvoření hry" jsou teď v components-player-selection.css) */
 :root {
     --table-ink: #f3eddf;
     --table-muted: #aab5aa;
     --table-gold: #c6a96b;
 }
-#player-selection .menu-content {
-    width: min(980px, 94vw);
-}
-#player-selection .selection-container {
-    max-width: 880px;
-    background: linear-gradient(145deg, rgba(21,35,31,.96), rgba(8,17,16,.96));
-    border: 1px solid rgba(198,169,107,.48);
-    border-radius: 24px;
-    box-shadow: 0 28px 80px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.08);
-    padding: clamp(20px,4vw,38px);
-}
-.setup-grid {
-    display: grid;
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 18px;
-}
-.setup-control {
-    padding: 20px;
-    border-radius: 18px;
-    background: linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
-    border: 1px solid rgba(255,255,255,.1);
-    text-align: center;
-}
-.setup-control label,
-.setup-control .setup-label {
-    display: block;
-    color: #c7d0c5;
-    font: 700 11px/1.5 "Press Start 2P",monospace;
-    letter-spacing: .04em;
-    margin-bottom: 18px;
-}
-.setup-stepper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: #fff;
-}
-.setup-stepper strong {
-    flex: 0 0 56px;
-    font: 700 46px/1 "Bangers",Impact,sans-serif;
-    color: var(--table-gold);
-    text-align: center;
-}
-.setup-stepper-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    flex: 0 0 48px;
-    border: 1px solid rgba(255,255,255,.2);
-    border-radius: 12px;
-    background: rgba(255,255,255,.09);
-    color: #fff;
-    font: 700 30px/1 Arial,sans-serif;
-    cursor: pointer;
-    transition: background .15s ease, transform .15s ease, opacity .15s ease;
-}
-.setup-stepper-btn:hover:not(:disabled) {
-    background: rgba(255,255,255,.2);
-    transform: translateY(-1px);
-}
-.setup-stepper-btn:active:not(:disabled) {
-    transform: translateY(1px);
-}
-.setup-stepper-btn:disabled {
-    opacity: .3;
-    cursor: not-allowed;
-}
-
-.preview-players {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-    gap: 10px;
-}
-.preview-player {
-    display: grid;
-    grid-template-columns: 34px 1fr;
-    align-items: center;
-    gap: 2px 10px;
-    text-align: left;
-    padding: 10px;
-    border: 1px solid color-mix(in srgb,var(--player-color),transparent 60%);
-    border-radius: 12px;
-    background: color-mix(in srgb,var(--player-color),transparent 91%);
-}
-.preview-player-orb {
-    grid-row: span 2;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    color: #fff;
-    background: var(--player-color);
-    font-size: 10px;
-    font-weight: 900;
-    box-shadow: 0 4px 14px color-mix(in srgb,var(--player-color),transparent 55%);
-}
-.preview-player span:not(.preview-player-orb) { color: #f4f0e8; font-size: 11px; }
-.preview-player small { color: #9ba99d; font-size: 8px; letter-spacing: .12em; }
 #game-screen {
     min-height: 100vh;
     padding: 18px clamp(10px,3vw,36px) 32px;
@@ -202,7 +101,6 @@
     #game-screen .game-header { padding:11px; }
     #game-screen .game-footer { grid-template-columns:1fr; }
 
-    .setup-grid { grid-template-columns:1fr; }
     #game-screen .game-controls { width:100%; justify-content:flex-end; }
 }
 
@@ -296,26 +194,6 @@
     #game-menu .menu-audio-row { gap: 8px; padding: 10px; }
     #game-menu .game-volume { width: 86px; }
 }
-
-/* Editable player and AI names in the game setup */
-.preview-player-name {
-    min-width: 0;
-    width: 100%;
-    padding: 5px 7px;
-    border: 1px solid color-mix(in srgb,var(--player-color),transparent 45%);
-    border-radius: 7px;
-    background: rgba(5,12,11,.48);
-    color: #f4f0e8;
-    font: inherit;
-    font-size: 12px;
-    font-weight: 700;
-    outline: none;
-}
-.preview-player-name:focus {
-    border-color: var(--player-color);
-    box-shadow: 0 0 0 2px color-mix(in srgb,var(--player-color),transparent 72%);
-}
-.preview-player-name::placeholder { color: #a6b1a7; }
 
 /* Bottom chat panel replaces the old full-width player cards. */
 #game-screen .game-footer {
@@ -538,100 +416,6 @@
         height: 243px;
         min-height: 243px;
         max-height: 243px;
-    }
-}
-
-/* Player setup: keep the roster visible below the board-size selector. */
-#player-selection .player-preview {
-    display: block;
-    width: 100%;
-    margin-top: 20px;
-    visibility: visible;
-    opacity: 1;
-}
-#player-selection .preview-players {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-    gap: 3px;
-    width: 100%;
-    min-height: 1px;
-    visibility: visible;
-    opacity: 1;
-}
-#player-selection .preview-player {
-    min-width: 0;
-}
-#player-selection #random-player-colors-btn {
-    margin-top: 14px;
-}
-
-/* Player-count controls stay centered and side by side, including narrow phones. */
-@media (max-width: 760px) {
-    #player-selection .setup-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-    #player-selection .setup-control {
-        min-width: 0;
-        padding: 14px 8px;
-    }
-    #player-selection .setup-control .setup-label {
-        min-height: 3em;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: clamp(8px, 2.5vw, 11px);
-        text-align: center;
-    }
-    #player-selection .setup-stepper { gap: 6px; }
-    #player-selection .setup-stepper strong {
-        flex-basis: 34px;
-        font-size: clamp(30px, 9vw, 42px);
-    }
-    #player-selection .setup-stepper-btn {
-        width: 34px;
-        height: 38px;
-        flex-basis: 34px;
-    }
-}
-
-/* Sestava u stolu: figurka, jméno a výběr barvy v jedné řadě. */
-#player-selection .preview-player {
-    display: grid;
-    grid-template-columns: 32px minmax(0, 1fr) minmax(104px, auto);
-    align-items: center;
-    gap: 8px;
-}
-#player-selection .preview-player-orb {
-    grid-row: auto;
-    grid-column: 1;
-}
-#player-selection .preview-player-name {
-    grid-column: 2;
-    grid-row: 1;
-    width: 100%;
-    min-width: 0;
-}
-#player-selection .preview-color-label {
-    grid-column: 3;
-    grid-row: 1;
-    min-width: 0;
-    margin: 0;
-}
-#player-selection .preview-player-color {
-    width: 100%;
-    min-width: 0;
-}
-@media (max-width: 420px) {
-    #player-selection .preview-player {
-        grid-template-columns: 28px minmax(0, 1fr) minmax(88px, auto);
-        gap: 6px;
-        padding: 8px 7px;
-    }
-    #player-selection .preview-player-orb {
-        width: 28px;
-        height: 28px;
     }
 }
 

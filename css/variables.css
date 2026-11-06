@@ -54,3 +54,29 @@
     --radius-lg: 20px;
     --radius-full: 50%;
 }
+
+/* ============================================
+   MENU – barvy, písmo a plochy (používá menu-base.css,
+   menu-main.css a components-*.css). Mění se jen tady.
+   ============================================ */
+:root {
+    --gold: #c6a96b;
+    --gold-light: #e5c47e;
+    --gold-line: rgba(198, 169, 107, 0.38);
+    --gold-line-soft: rgba(198, 169, 107, 0.28);
+
+    --ink: #f4f0e7;
+    --ink-soft: #d7dfd5;
+    --ink-dim: rgba(218, 225, 215, 0.55);
+
+    --font-ui: "Rubik", Arial, sans-serif;
+
+    --surface-screen:
+        radial-gradient(ellipse at 18% 18%, rgba(78, 205, 196, 0.16), transparent 38%),
+        radial-gradient(ellipse at 82% 82%, rgba(255, 107, 107, 0.14), transparent 42%),
+        linear-gradient(145deg, #080f13, #14231f 55%, #090f13);
+    --surface-panel: linear-gradient(155deg, rgba(26, 43, 37, 0.97), rgba(9, 17, 18, 0.97));
+    --surface-card: rgba(0, 0, 0, 0.2);
+    --surface-field: rgba(5, 10, 15, 0.62);
+    --surface-hover: linear-gradient(110deg, rgba(198, 169, 107, 0.2), rgba(255, 255, 255, 0.06));
+}
