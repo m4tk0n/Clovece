@@ -1,3 +1,20 @@
+## 1.00.00.19 – Automatická volba velikosti desky podle počtu hráčů
+
+**Datum:** 6. 11. 2026  
+**Typ:** Úprava výběru místní hry
+
+- Při snížení počtu hráčů se automaticky zvolí nejmenší dostupná velikost desky.
+- Při zvýšení počtu hráčů zůstane ruční volba zachována, pokud je pro nový počet stále dostupná.
+- Pokud zvolená deska přestane být dostupná, automaticky se vybere nejmenší dostupná velikost.
+- Dostupné velikosti: 2–4 hráči: 40, 48 nebo 80 polí; 5–6 hráčů: 48 nebo 80 polí; 7–8 hráčů: 80 polí.
+
+**Dotčené soubory:**
+- `js/player-setup.js`
+
+**Ověření:** uživatel potvrdil funkčnost změny po sloučení PR #32.
+
+---
+
 ## 1.00.00.18 – Registrace a přihlašování uživatelských účtů
 
 **Datum:** 6. 11. 2026  
