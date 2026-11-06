@@ -53,7 +53,7 @@ Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HIS
 
 ## Odložené načítání herních částí
 
-- Při otevření webu se nenačítá lokální herní runtime ani renderer desky; načtou se až při vstupu do lokálního nastavení hry nebo při otevření aktivní online hry.
+- Při otevření webu se načítá pouze navigace a zvuk. Lokální herní runtime se importuje až při vstupu do lokální hry nebo nastavení; online modul až po otevření lobby a renderer/engine až při aktivní online hře.
 - `css/game-premium.css` se spolu s CSS desky a kostky připojí až při zobrazení hry. Načte se pouze sada pro právě zvolený režim 2D nebo 3D.
 - Herní animace vyhození a vítězství jsou v `css/game-premium.css`; globální `css/animations.css` obsahuje pouze animace potřebné i mimo hru, například pro úvodní obrazovku a menu.
 - Při odchodu z herní obrazovky se herní stylesheety odpojí, DOM desky se vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
