@@ -38,4 +38,4 @@ jobs:
             fi
             printf '\n---\nNahlášeno ručním testovacím workflow.\n'
           } > issue.md
-          gh issue create --repo "$REPOSITORY" --title "$ISSUE_TITLE" --body-file issue.md --label "bug"
+          gh issue create --repo "$REPOSITORY" --title "$ISSUE_TITLE" --body-file issue.md
