@@ -19,17 +19,22 @@ async function refreshAccountMenu() {
     const authButtons = document.getElementById('auth-buttons');
     const userInfo = document.getElementById('user-info');
 
-    if (authButtons) authButtons.classList.toggle('hidden', Boolean(account));
-    if (userInfo) userInfo.classList.toggle('hidden', !account);
+    const loginButton = document.getElementById('login-menu-btn');
+    const avatarButton = document.getElementById('account-avatar-btn');
+    const accountName = account ? (account.display_name || account.username || '') : '';
+    const initial = Array.from(accountName.trim())[0] || '?';
 
-    if (account) {
-        const displayName = document.getElementById('user-display-name');
-        const wins = document.getElementById('user-wins');
-        const games = document.getElementById('user-games');
-        if (displayName) displayName.textContent = account.display_name || account.username;
-        if (wins) wins.textContent = '0';
-        if (games) games.textContent = '0';
+    if (authButtons) authButtons.classList.remove('hidden');
+    if (loginButton) loginButton.classList.toggle('hidden', Boolean(account));
+    if (avatarButton) {
+        avatarButton.classList.toggle('hidden', !account);
+        avatarButton.textContent = initial.toLocaleUpperCase('cs-CZ');
+        avatarButton.setAttribute('aria-label', account ? 'Přihlášený uživatel: ' + accountName : 'Uživatelský účet');
+        avatarButton.title = accountName;
     }
+
+    // Údaje o uživateli se v hlavním menu nezobrazují.
+    if (userInfo) userInfo.classList.add('hidden');
     return account;
 }
 
