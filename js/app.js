@@ -6,7 +6,7 @@ import {
     createGame, rollDice, getValidMoves, getForcedMove, movePiece, PLAYER_COLORS,
     advanceTurn, chooseAIMove, getAvailableBoardSizes
 } from './game-engine.js';
-import { renderBoard, ensureModeStyles } from './game-board.js';
+import { renderBoard, ensureModeStyles, getBoardView } from './game-board.js';
 import { showScreen } from './navigation.js';
 import { setMasterVolume, toggleMasterMute, getAudioState, setSoundEffectsEnabled } from './audio.js';
 
@@ -657,7 +657,7 @@ function onBoardClick(event) {
     }
 }
 
-function startGame() {
+async function startGame() {
     try {
         const names = Array.from($('preview-players').querySelectorAll('[data-name-key]'), input => {
             const name = input.value.trim().slice(0, 20);
@@ -686,6 +686,11 @@ function startGame() {
     chatHistory.push(startLogEntry);
     updateStartLog();
     modalOpen = false;
+    try {
+        await ensureModeStyles(getBoardView());
+    } catch (error) {
+        console.error('Herní CSS se nepodařilo připravit:', error);
+    }
     $('win-modal').classList.add('hidden');
     $('kick-modal').classList.add('hidden');
     showScreen('game');
