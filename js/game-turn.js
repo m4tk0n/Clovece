@@ -159,6 +159,7 @@ export function createTurnController(deps) {
         if (!isAI && player.isAI) return;
     
         const value = Math.floor(Math.random() * 6) + 1;
+        game.testRollSequence = (game.testRollSequence || 0) + 1;
         game.diceValue = value;
         await animateDice(value, settings);
         if (!game || game.phase !== 'start-roll' || game.currentPlayer !== playerId || isPaused()) return;
@@ -207,6 +208,7 @@ export function createTurnController(deps) {
         if (!isAI && game.players[game.currentPlayer].isAI) return;
     
         const result = rollDice(game);
+        game.testRollSequence = (game.testRollSequence || 0) + 1;
         await animateDice(result.value, settings);
         if (!game || game.winner !== null || isPaused()) return;
     
