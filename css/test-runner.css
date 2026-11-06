@@ -1,0 +1,14 @@
+.live-test-panel{position:fixed;z-index:12000;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:min(440px,calc(100vw - 24px));max-height:min(58vh,560px);overflow:hidden;color:#f4f7fb;background:rgba(15,23,42,.97);border:1px solid rgba(148,163,184,.45);border-radius:14px;box-shadow:0 12px 42px rgba(0,0,0,.42);font:13px/1.45 system-ui,sans-serif}
+.live-test-heading{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#1e293b;border-bottom:1px solid #475569}
+.live-test-heading div{display:flex;flex-direction:column;gap:2px}.live-test-heading strong{letter-spacing:.08em;font-size:12px}#test-status{color:#a7f3d0;font-size:12px}
+#test-panel-collapse{width:32px;height:30px;border:1px solid #64748b;border-radius:8px;color:white;background:#334155;font-size:20px}
+#test-panel-content{padding:11px}.test-rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;margin-bottom:10px}
+.test-rule-grid label{display:flex;align-items:center;gap:7px;color:#e2e8f0;font-size:12px}.test-rule-grid input{accent-color:#34d399;width:16px;height:16px}
+.test-controls{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.test-controls button{border:1px solid #64748b;border-radius:7px;padding:7px 10px;background:#334155;color:white;font-weight:700;font-size:11px}
+.test-controls button:disabled{opacity:.38}#test-start{background:#047857;border-color:#10b981}#test-pause{background:#92400e;border-color:#f59e0b}#test-report{background:#7f1d1d;border-color:#ef4444}
+.test-log-heading{display:flex;justify-content:space-between;margin:4px 0 5px;color:#cbd5e1}.test-log-heading span{color:#94a3b8;font-size:11px}
+.test-live-log{list-style:none;margin:0;padding:7px 9px;max-height:150px;overflow:auto;border:1px solid #334155;border-radius:8px;background:#020617}
+.test-live-log li{padding:3px 0;border-bottom:1px solid rgba(148,163,184,.12);color:#dbeafe;overflow-wrap:anywhere}.test-live-log li:last-child{border:0}
+.test-live-log time{color:#94a3b8;margin-right:6px;font-variant-numeric:tabular-nums}.test-panel-note{margin:8px 0 0;color:#94a3b8;font-size:10px}
+.live-test-panel.is-collapsed{width:260px}.live-test-panel.is-collapsed #test-panel-content{display:none}
+@media(max-width:600px){.live-test-panel{right:8px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 16px);max-height:48vh}.test-live-log{max-height:100px}}
