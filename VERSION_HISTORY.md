@@ -18,6 +18,26 @@ Historie začíná verzí 1.00.00.01. Starší změny před zavedením tohoto p�
 ---
 
 
+## 1.00.00.07 – Odložené načítání herního runtime a uvolnění prostředků
+
+**Datum:** 6. 11. 2026  
+**Typ:** Optimalizace načítání a životního cyklu hry  
+**Navazuje na:** verzi 1.00.00.06
+
+- Lokální herní runtime se již neimportuje při startu hlavního menu; načte se až při vstupu do lokálního nastavení hry.
+- Online lobby již při startu neimportuje renderer desky, herní engine ani animaci kostky. Tyto moduly se načtou až při aktivní online hře.
+- `css/game-premium.css` se načítá až při zobrazení hry společně s CSS aktivního režimu.
+- Při odchodu z herní obrazovky se herní CSS odpojí, DOM desky vyčistí a 3D renderer uvolní WebGL prostředky, geometrii, materiály, ovladače a animační smyčku.
+- Prohlížeč neumožňuje standardním API odregistrovat importované ES moduly z modulové cache. Aplikace proto uvolňuje vlastní reference a aktivní prostředky, nikoli s garancí fyzického vymazání kódu z paměti.
+
+**Dotčené soubory:**
+- `index.php`
+- `js/bootstrap.js`, `js/navigation.js`, `js/app.js`, `js/online.js`
+- `js/game-board.js`, `js/game-board-view.js`
+- `README.md`, `DEBUG.md`, `.github/ROADMAP.md`
+
+**Ověření:** čeká na GitHub Actions a praktický test v prohlížeči.
+
 ## 1.00.00.06 – Oddělení stylů 2D a 3D desky a kostky
 
 **Datum:** 6. 11. 2026  
