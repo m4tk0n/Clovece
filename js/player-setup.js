@@ -12,7 +12,7 @@ const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
 
-function escapeHtml(value) {
+export function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, char => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[char]);
