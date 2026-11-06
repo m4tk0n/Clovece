@@ -71,7 +71,7 @@ export function initNavigation() {
     const openLocalGame = async () => {
         try {
             const gameModule = await ensureLocalGame();
-            gameModule.openPlayerSelection();
+            await gameModule.openPlayerSelection();
         } catch (error) {
             console.error('Herní modul se nepodařilo načíst:', error);
             window.alert('Herní část se nepodařilo načíst. Obnov stránku a zkus to znovu.');
