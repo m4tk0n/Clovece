@@ -77,9 +77,16 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
         ]), ENT_QUOTES, 'UTF-8') ?>'>
 <?php if ($testMode): ?>
 <aside id="live-test-panel" class="live-test-panel" aria-label="Automatické testování místní hry">
-    <div class="live-test-heading">
-        <div><strong>TESTOVACÍ LABORATOŘ</strong><span id="test-status">Připraveno</span></div>
-        <button id="test-panel-collapse" type="button" aria-expanded="true" aria-label="Sbalit testovací panel">−</button>
+    <div class="live-test-heading" id="test-panel-drag-handle">
+        <div class="test-heading-title"><strong>TESTOVACÍ LABORATOŘ</strong><span id="test-status">Připraveno</span></div>
+        <div class="test-heading-actions" aria-label="Rychlé ovládání testu">
+            <button id="test-start" type="button" title="Spustit" aria-label="Spustit test">▶</button>
+            <button id="test-pause" type="button" title="Pozastavit" aria-label="Pozastavit test" disabled>Ⅱ</button>
+            <button id="test-resume" type="button" title="Pokračovat" aria-label="Pokračovat v testu" disabled>▶</button>
+            <button id="test-stop" type="button" title="Zastavit" aria-label="Zastavit test" disabled>■</button>
+            <button id="test-report" type="button" title="Nahlásit chybu" aria-label="Nahlásit chybu" disabled>⚑</button>
+            <button id="test-panel-collapse" type="button" aria-expanded="true" aria-label="Sbalit testovací panel" title="Sbalit panel">−</button>
+        </div>
     </div>
     <div id="test-panel-content">
         <div class="test-rule-grid">
@@ -92,13 +99,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
         <div class="test-log-heading"><strong>Průběh testu</strong><span id="test-step-count">0 událostí</span></div>
         <ol id="test-live-log" class="test-live-log" aria-live="polite"><li>Čekám na spuštění automatické hry.</li></ol>
         <p class="test-panel-note">Hra běží ve skutečném herním rozhraní. Pravidla se předávají přímo do herního enginu.</p>
-        <div class="test-controls" aria-label="Ovládání testu">
-            <button id="test-start" type="button">▶ START</button>
-            <button id="test-pause" type="button" disabled>Ⅱ PAUZA</button>
-            <button id="test-resume" type="button" disabled>▶ POKRAČOVAT</button>
-            <button id="test-stop" type="button" disabled>■ STOP</button>
-            <button id="test-report" type="button" disabled>⚑ CHYBA</button>
-        </div>
+
     </div>
 </aside>
 <?php endif; ?>
