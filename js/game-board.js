@@ -4,6 +4,9 @@
  */
 export {
     getBoardStyle,
+    getBoardView,
     buildBoardSceneData,
-    renderBoard
+    renderBoard,
+    ensureModeStyles,
+    releaseGameView
 } from './game-board-view.js';
