@@ -183,7 +183,8 @@ export async function startTestGame() {
         setup.names,
         setup.colors,
         setup.selectedBoardSize,
-        setup.extendedRules
+        setup.extendedRules,
+        setup.aiDifficulty
     );
     // V testovacím režimu hrají všichni účastníci automaticky.
     // Nemění se pravidla ani herní engine, pouze příznak řízení hráče.
