@@ -254,7 +254,7 @@ export async function animateThreeDice(value, fast = false) {
         }));
         die.add(edge);
 
-        const pipGeometry = new T.SphereGeometry(.088, 28, 20);
+        const pipGeometry = new T.SphereGeometry(.112, 32, 24);
         const pipMaterial = new T.MeshPhysicalMaterial({
             color: 0x25201b, roughness: .2, metalness: .12,
             clearcoat: .9, clearcoatRoughness: .1
@@ -263,7 +263,7 @@ export async function animateThreeDice(value, fast = false) {
             color: 0xb52b27, roughness: .18, metalness: .08,
             clearcoat: 1, clearcoatRoughness: .08
         });
-        const pipRings = new T.TorusGeometry(.092, .009, 8, 32);
+        const pipRings = new T.TorusGeometry(.116, .009, 8, 36);
         const ringMaterial = new T.MeshStandardMaterial({ color: 0xb58b49, metalness: .86, roughness: .24 });
         const layouts = {
             1: [[0, 0]],
@@ -325,7 +325,7 @@ export async function animateThreeDice(value, fast = false) {
             target[1] - Math.PI * 2 * turns,
             target[2] + Math.PI * 2 * (turns - 1)
         ];
-        const duration = fast ? 480 : 1650;
+        const duration = fast ? 720 : 2600;
         const started = performance.now();
         return await new Promise(resolve => {
             const animate = now => {
