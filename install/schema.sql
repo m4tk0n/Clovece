@@ -1,5 +1,5 @@
 -- Člověče, nezlob se! – čisté databázové schéma pro online multiplayer
--- Verze schématu: 1
+-- Verze schématu: 3
 --
 -- Určeno pro MySQL 8.0 / InnoDB.
 -- Jde o SQL šablonu. PHP instalační skript musí nahradit {DB_PREFIX}
