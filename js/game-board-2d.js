@@ -71,6 +71,8 @@ function baseMarkup(game, player, validMoves, g) {
 
     let markup = '<g class="base-zone" style="--player-color:' + color + '">';
     markup += '<circle cx="' + c.x.toFixed(1) + '" cy="' + c.y.toFixed(1) + '" r="' + g.base + '" fill="' + color + '" fill-opacity=".14" stroke="' + color + '" stroke-opacity=".8" stroke-width="2"/>';
+    const playerName = String(player.name || 'Hráč').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    markup += '<text class="base-player-name" x="' + c.x.toFixed(1) + '" y="' + (c.y - g.base - 7).toFixed(1) + '" text-anchor="middle" fill="#fff" stroke="#101915" stroke-width="3" paint-order="stroke" font-size="' + Math.max(10, g.base * .32).toFixed(1) + '" font-weight="700">' + playerName + '</text>';
 
     game.pieces[player.id].pieces.forEach(piece => {
         if (piece.steps !== -1) return;
