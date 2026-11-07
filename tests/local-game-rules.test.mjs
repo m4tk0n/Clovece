@@ -14,7 +14,7 @@ function movingGame(rules = {}) {
   return game;
 }
 
-test('výchozí nastavení zapíná všechna čtyři rozšířená pravidla', () => {
+test('výchozí nastavení zapíná stávající rozšířená pravidla a novou volbu nechává vypnutou', () => {
   const game = createGame(1, 1);
   assert.deepEqual(game.rules, {
     threeRolls: true,
@@ -91,7 +91,7 @@ test('pravidlo tří hodů vypnuté: po prvním neúspěšném hodu tah končí'
   assert.equal(game.phase, 'no-move');
 });
 
-test('všechny kombinace čtyř přepínačů lze bezpečně předat do herního jádra', () => {
+test('všechny kombinace pěti přepínačů lze bezpečně předat do herního jádra', () => {
   for (let mask = 0; mask < 32; mask++) {
     const rules = {
       threeRolls: Boolean(mask & 1),
