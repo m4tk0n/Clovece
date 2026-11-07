@@ -9,11 +9,12 @@
 - Po akci třetí šestky se vrátí do základny hráčova figurka na hlavním okruhu nejblíže vlastnímu domečku. Figurka v cílové dráze se trestu netýká.
 - Po trestu tah končí. Pokud při třetí šestce neexistuje legální tah, provede se trest bez pohybu a tah rovněž končí.
 - Pravidlo je implementováno pouze pro místní hru; online režim zůstává beze změny.
+- Opraveno očekávání jednoho staršího testu AI: figurka blokující delší útok může sama ohrozit cíl ze své bližší pozice.
 
 **Dotčené soubory:**
 - `screens/player-selection.php`, `js/player-setup.js`
 - `js/game-engine.js`, `js/game-turn.js`
-- `tests/local-game-rules.test.mjs`, `docs/GAME_RULES.md`
+- `tests/local-game-rules.test.mjs`, `tests/ai-strategy.test.mjs`, `docs/GAME_RULES.md`
 
 **Ověření:** přidány regresní testy pro provedení třetí šestky, výběr figurky nejblíže domečku a vypnutou variantu. Výsledek automatického běhu CI bude ověřen po nasazení změn.
 
