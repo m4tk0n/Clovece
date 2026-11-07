@@ -114,6 +114,7 @@ export function createTurnController(deps) {
             ? 'vyměnil vlastní figurku na startu (původní se vrátila do základny)'
             : 'vyhodil hráče ' + move.captured.playerName);
         if (move.finishedNow) logText.push('dostal figurku do domečku');
+        if (move.penalty) logText.push('trest za tři šestky: figurka ' + (move.penalty.pieceId + 1) + ' se vrátila do základny');
         addGameLogEntry(move.playerName, logText.join(', '));
     
         showGame();
@@ -224,6 +225,16 @@ export function createTurnController(deps) {
         await animateDice(result.value, settings);
         if (!game || automationPaused || game.winner !== null || isPaused()) return;
     
+        if (result.turnEnded) {
+            const penaltyText = result.penalty
+                ? 'hodil 6, nemá legální tah, trest za tři šestky: figurka ' + (result.penalty.pieceId + 1) + ' se vrátila do základny'
+                : 'hodil 6, nemá legální tah; trest za tři šestky bez účinku (žádná figurka na hlavní trase)';
+            addGameLogEntry(result.penalty?.playerName || game.players[(game.currentPlayer + game.players.length - 1) % game.players.length].name, penaltyText);
+            showGame();
+            continueGame();
+            return;
+        }
+
         if (result.retrying) {
             const retryText = result.value === 6
                 ? 'hodil 6, nemá legální tah a hází znovu'
