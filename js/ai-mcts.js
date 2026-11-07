@@ -181,6 +181,7 @@ export function chooseMonteCarloDecision(game, dependencies, options = {}) {
                 advanceToDecision(nextState, dependencies, random);
                 const child = createNode(nextState, game.players.length);
                 child.parentMove = pieceId;
+                child.parent = node;
                 node.children.push(child);
                 node = child;
                 terminalState = nextState;
