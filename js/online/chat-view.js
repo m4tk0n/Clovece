@@ -135,7 +135,8 @@ export function renderGameChat(messages, participants, moves = []) {
                 ': nové parametry +' + (learning.newParameterCount || 0) +
                 ', upraveno vah ' + (learning.changedParameters || 0) +
                 ', celkem parametrů ' + (learning.totalParameters || 1000) +
-                ', loss ' + Number(learning.averageCrossEntropy || 0).toFixed(4) + '.';
+                ', loss ' + Number(learning.averageCrossEntropy || 0).toFixed(4) +
+                ', MCTS simulací ' + (learning.teacherSimulations || 0) + '.';
             if (learning.policyInfluencedChoice) learningText += ' Naučená politika ovlivnila výběr tahu.';
             const examples = (learning.newParameters || []).slice(0, 3).map(parameter =>
                 '#' + parameter.id + ' ' + (parameter.featureNames || []).join(' × ')
