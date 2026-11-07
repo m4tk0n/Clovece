@@ -229,7 +229,7 @@ export function chooseMonteCarloDecision(game, dependencies, options = {}) {
         }
 
         let rewards;
-        if (terminalState?.winner !== null) {
+        if (terminalState && terminalState.winner !== null) {
             rewards = getRewardVector(terminalState, dependencies);
         } else {
             const simulation = cloneGame(terminalState || node.state);
