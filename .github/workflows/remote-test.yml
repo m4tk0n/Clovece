@@ -54,6 +54,7 @@ jobs:
               print(f"\\n{t['name']}: exact_rows={t['exact_rows']}, estimated_rows={t['estimated_rows']}, data={t['data_bytes']} B, indexes={t['index_bytes']} B, free={t['free_bytes']} B")
               print("  columns:", ", ".join(c["COLUMN_NAME"] + " " + c["COLUMN_TYPE"] for c in t["columns"]))
               print("  indexes:", json.dumps(t["indexes"], ensure_ascii=False))
+              print("  possible redundant indexes:", json.dumps(t.get("possible_redundant_indexes", []), ensure_ascii=False))
               for c in t.get("measured_columns", []):
                   print(f"  data {c['column']}: total={c['total_value_octets']} B, avg={c['average_value_octets']} B, max={c['max_value_octets']} B, null={c['null_rows']}")
           print("\\nFOREIGN KEYS:", json.dumps(d.get("foreign_keys", []), ensure_ascii=False))
