@@ -33,6 +33,7 @@ $legal = onlineEngineValidMoves($game);
 
 aiLearningAssert(in_array($decision['pieceId'], $legal, true), 'AI musí vybrat legální tah.');
 aiLearningAssert(count($model['weights']) === 1000, 'Model musí zachovat 1000 základních vah.');
+aiLearningAssert($model['version'] === 3 && $model['featureSchema']['totalFeatures'] === 1000, 'Online JSON model musí používat společné schéma v3.');
 aiLearningAssert($model['decisionsTrained'] === 1, 'Model se musí aktualizovat po každém rozhodnutí.');
 aiLearningAssert(count($model['dynamicParameters']) > 0, 'AI musí objevit nové dynamické parametry.');
 aiLearningAssert($decision['learning']['totalParameters'] > 1000, 'Celkový počet parametrů musí překročit 1000.');
