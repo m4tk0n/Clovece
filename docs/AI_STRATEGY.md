@@ -240,7 +240,7 @@ Místní hra používá `js/ai-live-learning.js`:
 Online hra používá `lib/ai-learning.php`:
 - Model je globální a sdílený mezi online AI partiemi v jediné tabulce `ai_learning_model`; neukládá samostatné řádky pro anonymní hráče.
 - Řádek modelu se zamyká `SELECT ... FOR UPDATE` během transakce tahu, aby se souběžné online partie nepřepisovaly.
-- Online větev vytváří stejný počet 1000 základních vlastností a dynamické parametry od ID 1001. Její současný učitel je serverová heuristika (`online-heuristic-v1`), zatímco místní hra používá MCTS.
+- Online větev vytváří stejný počet 1000 základních vlastností a dynamické parametry od ID 1001. Učitelem je MCTS nad serverovým herním enginem (8 simulací a nejvýše 40 tahů rolloutů); cílové pravděpodobnosti vycházejí z návštěvnosti legálních tahů.
 - Online model je tedy zatím samostatný od modelu uloženého v prohlížeči a od kandidáta trénovacího repozitáře. Sloučení těchto modelů do jednoho synchronizovaného modelu je další krok; nyní se jejich zkušenosti mezi režimy automaticky nepřenášejí.
 
 V režimu `?debug=1` se po každém rozhodnutí AI zobrazuje v chatu zpráva **AI UČENÍ**: počet nových parametrů, upravené váhy, celkový počet parametrů, cross-entropy a několik nově objevených kombinací. Čísla jsou skutečné hodnoty z modelu, nikoli ilustrační text.
