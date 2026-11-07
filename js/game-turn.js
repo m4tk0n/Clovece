@@ -5,7 +5,7 @@
 import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
-        getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
+        getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision, chooseAIMoveLearningDecision,
         settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry
     } = deps;
     const $ = id => document.getElementById(id);
@@ -52,11 +52,40 @@ export function createTurnController(deps) {
     }
     
     function chooseAndLogAIMove() {
-        const decision = chooseAIMoveDecision
-            ? chooseAIMoveDecision(game)
-            : { pieceId: chooseAIMove(game), reason: '' };
+        const decision = chooseAIMoveLearningDecision
+            ? chooseAIMoveLearningDecision(game)
+            : chooseAIMoveDecision
+                ? chooseAIMoveDecision(game)
+                : { pieceId: chooseAIMove(game), reason: '' };
         if (debugAI && decision?.reason) {
             addGameLogEntry('AI rozhodování', decision.reason);
+        }
+        if (debugAI && decision?.learning) {
+            const learning = decision.learning;
+            if (learning.error) {
+                addGameLogEntry('AI UČENÍ', 'Učení se nepodařilo: ' + learning.error + '. Tah zůstává podle původní strategie.');
+            } else {
+                const created = learning.newParameterCount || 0;
+                const ids = learning.newParameters || [];
+                const firstId = ids.length ? ids[0].id : null;
+                const lastId = ids.length ? ids[ids.length - 1].id : null;
+                let message = 'Rozhodnutí ' + learning.decisionsTrained +
+                    ': ' + (created ? 'objeveno ' + created + ' nových parametrů' +
+                        (firstId !== null ? ' (#' + firstId + (lastId !== firstId ? ' až #' + lastId : '') + ')' : '') :
+                        'nový parametr nebyl potřeba') +
+                    ', upraveno vah: ' + learning.changedParameters +
+                    ', celkem parametrů: ' + learning.totalParameters +
+                    ', MCTS loss: ' + Number(learning.averageCrossEntropy || 0).toFixed(4) + '.';
+                if (learning.policyInfluencedChoice) {
+                    message += ' Naučená politika změnila výběr figurky na ' + (decision.pieceId + 1) + '.';
+                }
+                if (!learning.storageSaved) message += ' Uložení modelu na zařízení se nezdařilo.';
+                const examples = ids.slice(0, 3).map(item =>
+                    '#' + item.id + ' ' + (item.featureNames || []).join(' × ')
+                );
+                if (examples.length) message += ' Nové vzorce: ' + examples.join('; ') + '.';
+                addGameLogEntry('AI UČENÍ', message);
+            }
         }
         return decision?.pieceId ?? null;
     }
@@ -263,8 +292,11 @@ export function createTurnController(deps) {
         const forcedMove = getForcedMove(game);
         const autoMoveForced = getGameExtensionValue('shouldAutoMoveForced', true, game);
         if (forcedMove !== null && autoMoveForced) {
-            if (isAI && debugAI) {
-                addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
+            if (isAI) {
+                chooseAndLogAIMove();
+                if (debugAI) {
+                    addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
+                }
             }
             performMove(forcedMove);
             return;
