@@ -132,6 +132,23 @@ test('tři šestky: třetí šestka se odehraje a potom se vrátí nejbližší 
   assert.equal(game.consecutiveSixes, 0);
 });
 
+test('tři šestky: i bez legálního tahu se po třetí šestce provede trest a tah skončí', () => {
+  const game = createGame(1, 1, [], [], 40, { threeSixesPenalty: true });
+  game.pieces[0].pieces[0].steps = 40;
+  game.pieces[0].pieces[1].steps = 41;
+  game.pieces[0].pieces[2].steps = 42;
+  game.pieces[0].pieces[3].steps = 39;
+  game.consecutiveSixes = 2;
+
+  const result = rollDice(game, 6);
+  assert.equal(result.turnEnded, true);
+  assert.deepEqual(result.validMoves, []);
+  assert.equal(result.penalty.pieceId, 3);
+  assert.equal(game.pieces[0].pieces[3].steps, -1);
+  assert.equal(game.currentPlayer, 1);
+  assert.equal(game.phase, 'roll');
+});
+
 test('tři šestky: bez zapnutí rozšířeného pravidla se řetězení nepřeruší', () => {
   const game = createGame(1, 1, [], [], 40, { mustDeploy: false });
   game.pieces[0].pieces[0].steps = 0;
