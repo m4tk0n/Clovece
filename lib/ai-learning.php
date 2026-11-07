@@ -745,6 +745,64 @@ function onlineAiLearningDecision(array $game, array &$model): array
     ];
 }
 
+function onlineAiLearningCompleteGame(PDO $db, int $gameId, array $currentActionResult = []): ?array
+{
+    $stmt = $db->prepare(
+        'SELECT action_json FROM ' . onlineTable('game_moves') .
+        ' WHERE game_id = ? AND action_type = \'move\' ORDER BY id'
+    );
+    $stmt->execute([$gameId]);
+    $decisions = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $json) {
+        $action = is_string($json) ? json_decode($json, true) : null;
+        if (is_array($action) && is_array($action['aiLearning'] ?? null)) {
+            $decisions[] = $action['aiLearning'];
+        }
+    }
+    if (is_array($currentActionResult['aiLearning'] ?? null)) {
+        $decisions[] = $currentActionResult['aiLearning'];
+    }
+    if ($decisions === []) return null;
+
+    $first = $decisions[0];
+    $last = $decisions[count($decisions) - 1];
+    $newParameters = array_sum(array_map(
+        static fn(array $item): int => max(0, (int) ($item['newParameterCount'] ?? 0)),
+        $decisions
+    ));
+    $changedParameters = array_sum(array_map(
+        static fn(array $item): int => max(0, (int) ($item['changedParameters'] ?? 0)),
+        $decisions
+    ));
+    $lossValues = array_values(array_filter(array_map(
+        static fn(array $item): float => max(0.0, (float) ($item['averageCrossEntropy'] ?? 0)),
+        $decisions
+    ), static fn(float $value): bool => is_finite($value)));
+    $summary = [
+        'parametersAtStart' => max(1000, (int) ($first['totalParameters'] ?? 1000) - (int) ($first['newParameterCount'] ?? 0)),
+        'newParameters' => $newParameters,
+        'parametersAtEnd' => (int) ($last['totalParameters'] ?? 1000),
+        'decisions' => count($decisions),
+        'changedParameters' => $changedParameters,
+        'averageCrossEntropy' => $lossValues ? array_sum($lossValues) / count($lossValues) : 0.0,
+    ];
+
+    $modelStmt = $db->query('SELECT model_json FROM ' . onlineTable('ai_learning_model') . ' WHERE id = 1 FOR UPDATE');
+    $modelJson = $modelStmt->fetchColumn();
+    $model = is_string($modelJson) ? json_decode($modelJson, true) : null;
+    if (is_array($model)) {
+        $model['gamesTrained'] = (int) ($model['gamesTrained'] ?? 0) + 1;
+        $db->prepare(
+            'UPDATE ' . onlineTable('ai_learning_model') . ' SET model_json = ?, generation = ? WHERE id = 1'
+        )->execute([
+            json_encode($model, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            (int) ($model['generation'] ?? 0),
+        ]);
+        $summary['gamesTrained'] = (int) $model['gamesTrained'];
+    }
+    return $summary;
+}
+
 function onlineAiLearningEnsureSchema(PDO $db): void
 {
     $db->exec(
