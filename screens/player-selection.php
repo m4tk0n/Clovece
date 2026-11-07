@@ -86,6 +86,14 @@
                         </div>
                         <button class="rule-switch" type="button" data-rule-toggle="mustEnterHome" aria-pressed="true"><span>ANO</span></button>
                     </div>
+                    <div class="extended-rule-row">
+                        <div class="extended-rule-description">
+                            <span>TŘI ŠESTKY ZA SEBOU</span>
+                            <button class="rule-info" type="button" data-rule-info aria-label="Nápověda: Tři šestky za sebou" aria-expanded="false">i</button>
+                            <p class="rule-hint" hidden>Pokud během jednoho tahu hodíš třikrát po sobě šestku, třetí šestku ještě normálně zahraješ. Potom se tvoje figurka na hlavní trase nejblíže domečku vrátí do základny a tah končí. Figurky v domečku se trestu netýkají.</p>
+                        </div>
+                        <button class="rule-switch" type="button" data-rule-toggle="threeSixesPenalty" aria-pressed="false"><span>NE</span></button>
+                    </div>
                 </section>
                 </div>
                 <button id="start-game-btn" class="menu-btn">
