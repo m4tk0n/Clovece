@@ -5,8 +5,8 @@
  * Základny leží uvnitř desky ve volném místě, takže dráha může zabírat
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
-import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js';
-import { render2DBoard } from './game-board-2d.js';
+import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js?v=20261107-2';
+import { render2DBoard } from './game-board-2d.js?v=20261107-2';
 import { notifyGameExtensions } from './game-extensions.js';
 
 const STYLE_KEY = 'clovece_board_style';
@@ -25,7 +25,7 @@ function loadThreeRenderer() {
     if (!threeRendererPromise) {
         const startedAt = performance.now();
         notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načítání', status: '…' });
-        threeRendererPromise = import('./game-board-3d.js?v=20261107-1').then(module => {
+        threeRendererPromise = import('./game-board-3d.js?v=20261107-2').then(module => {
             notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načteno', status: 'OK', duration: Math.round(performance.now() - startedAt) });
             return module;
         }).catch(error => {
