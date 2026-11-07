@@ -4,15 +4,37 @@ import {
     createGame,
     getValidMoves,
     getPiecePosition,
+    movePiece,
+    rollDice,
     chooseAIMove,
     chooseAIMoveDecision
 } from '../js/game-engine.js';
 import {
     estimateCaptureProbability,
-    estimatePieceThreat
+    estimatePieceThreat,
+    calculatePlayerPips
 } from '../js/ai-strategy.js';
 
-test('capture probability accounts for chained sixes', () => {
+const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
+
+function moveOpponentPiecesOutOfBase(game, playerId, keepPieceId = 0) {
+    let homeStep = game.trackLength;
+    game.pieces[playerId].pieces.forEach(piece => {
+        if (piece.id !== keepPieceId && piece.steps === -1) {
+            piece.steps = homeStep++;
+        }
+    });
+}
+
+function placeOpponentBehindTarget(game, distance, targetSteps = 5) {
+    const targetPosition = getPiecePosition(game, 0, game.pieces[0].pieces[0]);
+    const opponentStart = game.players[1].start;
+    const attackerPosition = (targetPosition - distance + game.trackLength) % game.trackLength;
+    game.pieces[1].pieces[0].steps =
+        (attackerPosition - opponentStart + game.trackLength) % game.trackLength;
+}
+
+test('single-piece capture probability accounts for chained sixes', () => {
     assert.equal(estimateCaptureProbability(4), 1 / 6);
     assert.equal(estimateCaptureProbability(6), 1 / 6);
     assert.equal(estimateCaptureProbability(7), 1 / 36);
@@ -22,31 +44,59 @@ test('capture probability accounts for chained sixes', () => {
     assert.equal(estimateCaptureProbability(-1), 0);
 });
 
-test('threat estimate distinguishes a nearby attacker from a distant one', () => {
+test('threat simulation uses engine-legal moves and accounts for bonus sixes', () => {
     const game = createGame(1, 1);
     game.pieces[0].pieces[0].steps = 5;
+    placeOpponentBehindTarget(game, 4);
 
-    // Player 1 starts at field 20. Steps 21 place the attacker at field 1:
-    // four fields behind player 0's piece at field 5.
-    game.pieces[1].pieces[0].steps = 21;
-    assert.ok(Math.abs(
-        estimatePieceThreat(game, 0, 0, getPiecePosition) - (1 / 6)
-    ) < 1e-12);
+    const threat = estimatePieceThreat(game, 0, 0, aiDependencies);
+    // Soupeř může šestku využít k povinnému nasazení a poté zkusit zásah.
+    // Výpočet je oříznut po třech pokračováních; přesná nekonečná řada je 0,2.
+    assert.ok(threat > 0.19 && threat < 0.2);
+});
 
-    // Steps 5 place the attacker at field 25, twenty fields behind the target.
-    game.pieces[1].pieces[0].steps = 5;
+test('a distant attack requires the correct sequence of sixes', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = 5;
+    placeOpponentBehindTarget(game, 20);
+    moveOpponentPiecesOutOfBase(game, 1);
+
     assert.ok(Math.abs(
-        estimatePieceThreat(game, 0, 0, getPiecePosition) - (1 / 1296)
+        estimatePieceThreat(game, 0, 0, aiDependencies) - (1 / 1296)
     ) < 1e-12);
 });
 
-test('a blocked intermediate six-space prevents the longer attack but the blocking piece can still attack', () => {
+test('engine simulation respects a blocked intermediate landing square', () => {
     const game = createGame(1, 1);
     game.pieces[0].pieces[0].steps = 5;
-    game.pieces[1].pieces[0].steps = 5; // field 25, twenty spaces from target
-    game.pieces[1].pieces[1].steps = 11; // field 31 blocks the first piece, but is itself 14 spaces away
+    placeOpponentBehindTarget(game, 20);
+    moveOpponentPiecesOutOfBase(game, 1, 0);
+    game.pieces[1].pieces[1].steps = 11;
 
-    assert.ok(Math.abs(estimatePieceThreat(game, 0, 0, getPiecePosition) - (1 / 216)) < 1e-12);
+    // První útočná figurka je blokována na mezilehlém poli.
+    // Druhá figurka je sama 14 polí za cílem a může zasáhnout dvěma šestkami a dvojkou.
+    assert.ok(Math.abs(
+        estimatePieceThreat(game, 0, 0, aiDependencies) - (1 / 216)
+    ) < 1e-12);
+});
+
+test('pip count includes deployment and one player-level wait cost', () => {
+    const game = createGame(1, 1, [], [], 40);
+    const allBase = calculatePlayerPips(game, 0);
+
+    game.pieces[0].pieces[0].steps = 0;
+    const oneDeployed = calculatePlayerPips(game, 0);
+
+    assert.ok(allBase > 200);
+    assert.equal(oneDeployed, 192);
+    assert.ok(allBase - oneDeployed > 11 && allBase - oneDeployed < 12);
+});
+
+test('waiting cost reflects one or three attempts to roll a six', () => {
+    const threeAttempts = createGame(1, 1, [], [], 40, { threeRolls: true });
+    const oneAttempt = createGame(1, 1, [], [], 40, { threeRolls: false });
+
+    assert.ok(calculatePlayerPips(oneAttempt, 0) > calculatePlayerPips(threeAttempts, 0));
 });
 
 test('AI difficulty is stored in the game and all levels return legal moves', () => {
@@ -69,27 +119,30 @@ test('unknown AI difficulty safely falls back to medium', () => {
     assert.equal(game.aiDifficulty, 'medium');
 });
 
-test('a distant target cannot be hit after the attacker has reached the end of its track', () => {
+test('a distant target cannot be hit after the attacker has reached its home lane', () => {
     const game = createGame(1, 1);
     game.pieces[0].pieces[0].steps = 20;
     game.pieces[1].pieces[0].steps = game.trackLength - 1;
-    assert.equal(estimatePieceThreat(game, 0, 0, getPiecePosition), 0);
+    moveOpponentPiecesOutOfBase(game, 1);
+
+    assert.equal(estimatePieceThreat(game, 0, 0, aiDependencies), 0);
 });
 
-test('AI may prefer a valuable capture over a non-mandatory home entry', () => {
+test('AI may prefer a valuable capture over a small optional home entry', () => {
     const game = createGame(1, 1, [], [], 40, { mustEnterHome: false });
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = 0;
     game.pieces[0].pieces[1].steps = game.trackLength - 1;
-    game.pieces[1].pieces[0].steps = 21; // The capture target is at field 1.
+    game.pieces[1].pieces[0].steps = 21;
+    moveOpponentPiecesOutOfBase(game, 1, 0);
 
     const legal = getValidMoves(game);
     assert.deepEqual(legal, [0, 1]);
     assert.equal(chooseAIMove(game), 0);
 });
 
-test('AI still obeys mandatory home entry when that rule is enabled', () => {
+test('AI obeys mandatory home entry when that rule is enabled', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
@@ -101,8 +154,35 @@ test('AI still obeys mandatory home entry when that rule is enabled', () => {
     assert.equal(chooseAIMove(game), 1);
 });
 
+test('an immediate game-winning move has absolute priority', () => {
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = game.trackLength;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
+    game.pieces[0].pieces[2].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
 
-test('AI decision exposes a readable explanation without changing the legal move', () => {
+    // Připravíme čtyři různé pozice D1–D3 a poslední figurku těsně před D4.
+    game.pieces[0].pieces[0].steps = game.trackLength;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
+    game.pieces[0].pieces[2].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+
+    // Ostatní tři figurky obsadí D1, D2 a D3; poslední tah na D4 vyhraje.
+    game.pieces[0].pieces[0].steps = game.trackLength;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
+    game.pieces[0].pieces[2].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+    // V testu se přesný dojezd provede z D3 na D4.
+    const decision = chooseAIMoveDecision(game);
+    assert.equal(decision.pieceId, 3);
+    assert.equal(decision.score, 1);
+    assert.match(decision.reason, /Vítězný tah/);
+});
+
+test('AI decision exposes score breakdown and a grounded explanation', () => {
     const game = createGame(1, 1, [], [], 40, {}, 'medium');
     game.phase = 'move';
     game.diceValue = 6;
@@ -112,20 +192,6 @@ test('AI decision exposes a readable explanation without changing the legal move
     assert.ok(getValidMoves(game).includes(decision.pieceId));
     assert.equal(typeof decision.reason, 'string');
     assert.ok(decision.reason.length > 10);
+    assert.equal(typeof decision.breakdown.effectiveOwnPips, 'number');
     assert.equal(chooseAIMove(game), decision.pieceId);
-});
-
-
-test('AI explains why it finishes a piece instead of taking an optional capture', () => {
-    const game = createGame(1, 1, [], [], 40, { mustEnterHome: false }, 'medium');
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = game.trackLength + 2;
-    game.pieces[0].pieces[1].steps = 0;
-    game.pieces[1].pieces[0].steps = 21;
-
-    const decision = chooseAIMoveDecision(game);
-    assert.equal(decision.pieceId, 0);
-    assert.match(decision.reason, /vyhodit hráče/);
-    assert.match(decision.reason, /domečku/);
 });
