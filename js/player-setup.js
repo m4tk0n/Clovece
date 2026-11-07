@@ -17,6 +17,28 @@ const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true
 // Obrazovka výběru zůstává po opuštění v DOM; posluchače proto registrujeme jen jednou.
 const initializedSetupRoots = new WeakSet();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
+// Krátká jména AI: ženská, mužská i genderově neutrální.
+const AI_NAMES = [
+    'Claude', 'Alex', 'Sam', 'Robin', 'Kim', 'Charlie', 'Mika', 'Niki', 'Toni', 'Andrea',
+    'Adam', 'Eliáš', 'Max', 'Leo', 'Oliver', 'Theo', 'Mia', 'Ema', 'Luna', 'Nora',
+    'Sofie', 'Kira', 'Lia', 'Zoe', 'Aria', 'Noel', 'Rene', 'Sasha', 'Dani', 'Jamie'
+];
+
+function ensureAiNames(count) {
+    const usedNames = new Set();
+    for (let number = 1; number <= count; number++) {
+        const existing = customPlayerNames.get('ai:' + number);
+        if (existing) usedNames.add(existing.split(' ').slice(1).join(' '));
+    }
+
+    const available = shuffleColors(AI_NAMES.filter(name => !usedNames.has(name)));
+    for (let number = 1; number <= count; number++) {
+        const key = 'ai:' + number;
+        if (customPlayerNames.has(key)) continue;
+        const name = available.shift() || 'AI';
+        customPlayerNames.set(key, 'AI' + number + ' ' + name);
+    }
+}
 
 export function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, char => ({
@@ -78,6 +100,8 @@ function updateSetup() {
         button.disabled = !availableBoardSizes.includes(size);
     });
 
+    ensureAiNames(aiCount);
+
     const players = Array.from({ length: total }, (_, index) => {
         const isAI = index >= humanCount;
         const number = isAI ? index - humanCount + 1 : index + 1;
@@ -88,7 +112,7 @@ function updateSetup() {
             number,
             key,
             selectedColor: PLAYER_COLORS.includes(requestedColor) ? requestedColor : 'random',
-            name: customPlayerNames.get(key) || (isAI ? 'AI ' : 'Hráč ') + number
+            name: customPlayerNames.get(key) || (isAI ? 'AI' + number : 'Hráč ' + number)
         };
     });
 
@@ -127,10 +151,10 @@ function updateSetup() {
 export function getPlayerSetup() {
     const preview = $('preview-players');
     const names = Array.from(preview.querySelectorAll('[data-name-key]'), input => {
-        const name = input.value.trim().slice(0, 20);
+        const name = input.value.trim().slice(0, 30);
         if (name) return name;
         const number = input.dataset.nameKey.split(':')[1];
-        return input.dataset.nameKey.startsWith('ai:') ? 'AI ' + number : 'Hráč ' + number;
+        return input.dataset.nameKey.startsWith('ai:') ? 'AI' + number : 'Hráč ' + number;
     });
     // Náhodné barvy jsou už v náhledu vylosované. Do hry použijeme přesně ty zobrazené.
     const colors = Array.from(preview.querySelectorAll('[data-color-key]'), select =>
