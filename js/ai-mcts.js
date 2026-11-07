@@ -6,8 +6,6 @@
  * are reimplemented here. UCT uses the reward component of the player who
  * made the parent decision, so opponents optimize their own chance to win.
  */
-import { chooseStrategicMove } from './ai-strategy.js';
-
 function cloneGame(game) {
     return JSON.parse(JSON.stringify(game));
 }
@@ -97,6 +95,38 @@ function selectChild(node, exploration) {
     return best;
 }
 
+function chooseRolloutMove(state, dependencies, random) {
+    const legalMoves = dependencies.getValidMoves(state);
+    if (!legalMoves.length) return null;
+    const playerId = state.currentPlayer;
+    let bestScore = Infinity;
+    let bestMoves = [];
+
+    for (const pieceId of legalMoves) {
+        const next = cloneGame(state);
+        dependencies.movePiece(next, pieceId);
+        if (next.winner === playerId) return pieceId;
+
+        const ownPips = dependencies.calculatePlayerPips(next, playerId);
+        const opponents = next.players
+            .filter(player => player.id !== playerId && !player.finished)
+            .map(player => dependencies.calculatePlayerPips(next, player.id));
+        const opponentAverage = opponents.length
+            ? opponents.reduce((sum, value) => sum + value, 0) / opponents.length
+            : ownPips;
+        const score = ownPips - opponentAverage * 0.18;
+
+        if (score < bestScore - 1e-9) {
+            bestScore = score;
+            bestMoves = [pieceId];
+        } else if (Math.abs(score - bestScore) <= 1e-9) {
+            bestMoves.push(pieceId);
+        }
+    }
+
+    return bestMoves[Math.floor(random() * bestMoves.length)];
+}
+
 function rollout(state, dependencies, random, options) {
     const maxTurns = options.maxPlayoutTurns;
     const startTurn = state.turnNumber;
@@ -122,11 +152,7 @@ function rollout(state, dependencies, random, options) {
         }
 
         if (state.phase === 'move') {
-            const pieceId = chooseStrategicMove(
-                state,
-                dependencies,
-                options.rolloutDifficulty
-            );
+            const pieceId = chooseRolloutMove(state, dependencies, random);
             if (pieceId === null || pieceId === undefined) {
                 dependencies.advanceTurn(state);
                 turns++;
@@ -155,8 +181,6 @@ export function chooseMonteCarloDecision(game, dependencies, options = {}) {
         simulations: Math.max(1, Math.min(5000, Math.floor(options.simulations ?? 160))),
         exploration: Math.max(0.05, Math.min(4, Number(options.exploration ?? Math.SQRT2))),
         maxPlayoutTurns: Math.max(20, Math.min(3000, Math.floor(options.maxPlayoutTurns ?? 500))),
-        rolloutDifficulty: ['easy', 'medium', 'hard'].includes(options.rolloutDifficulty)
-            ? options.rolloutDifficulty : 'easy',
         seed: options.seed ?? 1
     };
     const random = makeRandom(settings.seed);
