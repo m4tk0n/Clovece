@@ -1,3 +1,24 @@
+## 1.00.00.26 – Volitelné pravidlo tří šestek za sebou
+
+**Datum:** 7. 11. 2026  
+**Typ:** Nové rozšířené pravidlo místní hry
+
+- Do sekce **Rozšířená pravidla** při vytváření místní hry přidána volba „Tři šestky za sebou“ s nápovědou a přepínačem ANO/NE.
+- Volba je ve výchozím stavu vypnutá; při vypnutí zůstává řetězení šestek neomezené.
+- Při zapnutí se počítají tři po sobě jdoucí šestky v jednom tahu. Třetí šestka se nejprve normálně zahraje.
+- Po akci třetí šestky se vrátí do základny hráčova figurka na hlavním okruhu nejblíže vlastnímu domečku. Figurka v cílové dráze se trestu netýká.
+- Po trestu tah končí. Pokud při třetí šestce neexistuje legální tah, provede se trest bez pohybu a tah rovněž končí.
+- Pravidlo je implementováno pouze pro místní hru; online režim zůstává beze změny.
+
+**Dotčené soubory:**
+- `screens/player-selection.php`, `js/player-setup.js`
+- `js/game-engine.js`, `js/game-turn.js`
+- `tests/local-game-rules.test.mjs`, `docs/GAME_RULES.md`
+
+**Ověření:** přidány regresní testy pro provedení třetí šestky, výběr figurky nejblíže domečku a vypnutou variantu. Výsledek automatického běhu CI bude ověřen po nasazení změn.
+
+---
+
 ## 1.00.00.25 – Testovací laboratoř a rozšířená diagnostika
 
 **Datum:** 7. 11. 2026  
