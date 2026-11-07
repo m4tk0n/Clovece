@@ -12,7 +12,12 @@ export function createGameView({ getGame, renderBoard }) {
     function showGame() {
         const game = getGame();
         if (!game) return;
-        renderBoard($('game-container'), game);
+        const boardContainer = $('game-container');
+        if (boardContainer && !boardContainer._playerPanelRefreshBound) {
+            boardContainer.addEventListener('clovece:board-rendered', renderPlayers);
+            boardContainer._playerPanelRefreshBound = true;
+        }
+        renderBoard(boardContainer, game);
         renderPlayers();
         updateTurnControls();
     }
