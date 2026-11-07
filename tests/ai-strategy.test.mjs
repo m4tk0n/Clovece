@@ -76,8 +76,29 @@ test('engine simulation respects a blocked intermediate landing square', () => {
     // První útočná figurka je blokována na mezilehlém poli.
     // Druhá figurka je sama 14 polí za cílem a může zasáhnout dvěma šestkami a dvojkou.
     assert.ok(Math.abs(
+        estimatePieceThreat(game, 0, 0, aiDependencies) - (7 / 1296)
+    ) < 1e-12);
+});
+
+test('the third six is resolved before its configured penalty', () => {
+    const game = createGame(1, 1, [], [], 40, { threeSixesPenalty: true });
+    game.pieces[0].pieces[0].steps = 5;
+    placeOpponentBehindTarget(game, 18);
+    moveOpponentPiecesOutOfBase(game, 1);
+
+    // Třetí šestka nejprve dojede na cíl a vyhodí ho; teprve potom přijde trest.
+    assert.ok(Math.abs(
         estimatePieceThreat(game, 0, 0, aiDependencies) - (1 / 216)
     ) < 1e-12);
+});
+
+test('the three-sixes penalty prevents a fourth roll needed for a distant capture', () => {
+    const game = createGame(1, 1, [], [], 40, { threeSixesPenalty: true });
+    game.pieces[0].pieces[0].steps = 5;
+    placeOpponentBehindTarget(game, 20);
+    moveOpponentPiecesOutOfBase(game, 1);
+
+    assert.equal(estimatePieceThreat(game, 0, 0, aiDependencies), 0);
 });
 
 test('pip count includes deployment and one player-level wait cost', () => {
