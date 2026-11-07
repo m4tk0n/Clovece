@@ -135,6 +135,17 @@ function buildScene(T,scene,data) {
         const ring=add(T,board,new T.TorusGeometry(r*.91,.035,10,64),mat(T,base.color,{roughness:.3,metalness:.25}),x,.32,z,false);
         ring.rotation.x=Math.PI/2;
         add(T,board,new T.CylinderGeometry(r*.78,r*.78,.018,48),mat(T,base.color,{roughness:.55,opacity:.75}),x,.315,z,false);
+        if (base.playerName) {
+            const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+            canvas.width=512;canvas.height=96;
+            ctx.font='bold 54px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.lineWidth=12;ctx.strokeStyle='#101915';ctx.strokeText(base.playerName,256,48,490);
+            ctx.fillStyle='#ffffff';ctx.fillText(base.playerName,256,48,490);
+            const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
+            const label=new T.Sprite(new T.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
+            label.position.set(x,.72,z);label.scale.set(Math.max(1.25,Math.min(2.8,base.playerName.length*.19)),.34,1);
+            board.add(label);
+        }
     });
     add(T,board,new T.CylinderGeometry(.78,.84,.16,64),dark,0,.30,0);
     const medallion=new T.Mesh(new T.TorusGeometry(.66,.045,12,64),gold);medallion.rotation.x=Math.PI/2;medallion.position.y=.40;board.add(medallion);
