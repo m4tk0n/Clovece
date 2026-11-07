@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {
   createGame,
   getValidMoves,
-  rollDice
+  rollDice,
+  movePiece
 } from '../js/game-engine.js';
 
 function movingGame(rules = {}) {
@@ -19,7 +20,8 @@ test('výchozí nastavení zapíná všechna čtyři rozšířená pravidla', ()
     threeRolls: true,
     mustDeploy: true,
     skipHomePieces: true,
-    mustEnterHome: true
+    mustEnterHome: true,
+    threeSixesPenalty: false
   });
 });
 
@@ -90,16 +92,60 @@ test('pravidlo tří hodů vypnuté: po prvním neúspěšném hodu tah končí'
 });
 
 test('všechny kombinace čtyř přepínačů lze bezpečně předat do herního jádra', () => {
-  for (let mask = 0; mask < 16; mask++) {
+  for (let mask = 0; mask < 32; mask++) {
     const rules = {
       threeRolls: Boolean(mask & 1),
       mustDeploy: Boolean(mask & 2),
       skipHomePieces: Boolean(mask & 4),
-      mustEnterHome: Boolean(mask & 8)
+      mustEnterHome: Boolean(mask & 8),
+      threeSixesPenalty: Boolean(mask & 16)
     };
     const game = createGame(1, 1, [], [], 40, rules);
     assert.deepEqual(game.rules, rules);
   }
+});
+
+
+test('tři šestky: třetí šestka se odehraje a potom se vrátí nejbližší figurka do základny', () => {
+  const game = createGame(1, 1, [], [], 40, {
+    mustDeploy: false,
+    threeSixesPenalty: true
+  });
+  game.pieces[0].pieces[0].steps = 0;
+  game.pieces[0].pieces[1].steps = 30;
+  game.pieces[0].pieces[2].steps = 10;
+
+  for (let index = 0; index < 3; index++) {
+    const result = rollDice(game, 6);
+    assert.ok(result.validMoves.includes(0));
+    movePiece(game, 0);
+  }
+
+  // Figurku 1 jsme po třetí šestce posunuli z 12 na 18.
+  // Trest ale vybere figurku 2 na poli 31, protože je blíže domečku.
+  assert.equal(game.pieces[0].pieces[0].steps, 18);
+  assert.equal(game.pieces[0].pieces[1].steps, -1);
+  assert.equal(game.lastMove.penalty.pieceId, 1);
+  assert.equal(game.lastMove.penalty.playerId, 0);
+  assert.equal(game.currentPlayer, 1);
+  assert.equal(game.phase, 'roll');
+  assert.equal(game.consecutiveSixes, 0);
+});
+
+test('tři šestky: bez zapnutí rozšířeného pravidla se řetězení nepřeruší', () => {
+  const game = createGame(1, 1, [], [], 40, { mustDeploy: false });
+  game.pieces[0].pieces[0].steps = 0;
+
+  for (let index = 0; index < 3; index++) {
+    const result = rollDice(game, 6);
+    assert.ok(result.validMoves.includes(0));
+    movePiece(game, 0);
+  }
+
+  assert.equal(game.pieces[0].pieces[0].steps, 18);
+  assert.equal(game.currentPlayer, 0);
+  assert.equal(game.phase, 'roll');
+  assert.equal(game.lastMove.penalty, null);
 });
 
 test('výchozí a volitelné velikosti desky fungují pro různý počet hráčů', () => {
