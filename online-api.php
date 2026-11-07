@@ -248,6 +248,10 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
             }
             $newVersion = (int) $game['state_version'] + 1;
             $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
+            if ($newStatus === 'finished') {
+                $learningSummary = onlineAiLearningCompleteGame($db, $gameId, $actionResult);
+                if ($learningSummary !== null) $actionResult['aiLearningSummary'] = $learningSummary;
+            }
             $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET state_json = ?, state_version = ?, current_turn = ?, status = ?, last_activity_at = NOW(), finished_at = IF(? = \'finished\', NOW(), finished_at) WHERE id = ?')
                 ->execute([json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $newVersion, (int) $state['currentPlayer'], $newStatus, $newStatus, $gameId]);
             if ($actionType === 'start_roll') {
@@ -1087,6 +1091,10 @@ try {
 
                 $newVersion = $currentVersion + 1;
                 $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
+                if ($newStatus === 'finished') {
+                    $learningSummary = onlineAiLearningCompleteGame($db, $gameId, $actionResult);
+                    if ($learningSummary !== null) $actionResult['aiLearningSummary'] = $learningSummary;
+                }
                 $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 $actionJson = json_encode($actionResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
