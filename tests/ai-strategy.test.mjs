@@ -157,25 +157,13 @@ test('AI obeys mandatory home entry when that rule is enabled', () => {
 test('an immediate game-winning move has absolute priority', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
-    game.diceValue = 1;
+    game.diceValue = 4;
     game.pieces[0].pieces[0].steps = game.trackLength;
     game.pieces[0].pieces[1].steps = game.trackLength + 1;
     game.pieces[0].pieces[2].steps = game.trackLength + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength - 1;
 
-    // Připravíme čtyři různé pozice D1–D3 a poslední figurku těsně před D4.
-    game.pieces[0].pieces[0].steps = game.trackLength;
-    game.pieces[0].pieces[1].steps = game.trackLength + 1;
-    game.pieces[0].pieces[2].steps = game.trackLength + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
-
-    // Ostatní tři figurky obsadí D1, D2 a D3; poslední tah na D4 vyhraje.
-    game.pieces[0].pieces[0].steps = game.trackLength;
-    game.pieces[0].pieces[1].steps = game.trackLength + 1;
-    game.pieces[0].pieces[2].steps = game.trackLength + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
-    // V testu se přesný dojezd provede z D3 na D4.
+    // Tři figurky obsazují D1–D3; čtvrtá dojede přesně na D4.
     const decision = chooseAIMoveDecision(game);
     assert.equal(decision.pieceId, 3);
     assert.equal(decision.score, 1);
