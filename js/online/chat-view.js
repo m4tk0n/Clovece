@@ -3,6 +3,7 @@
  * Modul neobsahuje síťovou komunikaci ani stav online relace.
  */
 const $ = id => document.getElementById(id);
+const debugAI = new URLSearchParams(window.location.search).get('debug') === '1';
 
 export function renderChat(messages, participants) {
     const container = $('room-chat-messages');
@@ -126,6 +127,21 @@ export function renderGameChat(messages, participants, moves = []) {
             previous.text += ', ' + text;
         } else {
             displayEntries.push({ kind: 'event', sender, text });
+        }
+
+        if (debugAI && item.action_type === 'move' && action.aiLearning) {
+            const learning = action.aiLearning;
+            let learningText = 'Rozhodnutí ' + (learning.decisionsTrained || '?') +
+                ': nové parametry +' + (learning.newParameterCount || 0) +
+                ', upraveno vah ' + (learning.changedParameters || 0) +
+                ', celkem parametrů ' + (learning.totalParameters || 1000) +
+                ', loss ' + Number(learning.averageCrossEntropy || 0).toFixed(4) + '.';
+            if (learning.policyInfluencedChoice) learningText += ' Naučená politika ovlivnila výběr tahu.';
+            const examples = (learning.newParameters || []).slice(0, 3).map(parameter =>
+                '#' + parameter.id + ' ' + (parameter.featureNames || []).join(' × ')
+            );
+            if (examples.length) learningText += ' Nové vzorce: ' + examples.join('; ') + '.';
+            displayEntries.push({ kind: 'event', sender: 'AI UČENÍ', text: learningText });
         }
     });
 
