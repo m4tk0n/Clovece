@@ -35,7 +35,8 @@ test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračován�
   // Pauza pozastaví automatické tahy, aniž by opustila skutečnou herní obrazovku.
   await page.locator('#test-pause').click();
   await expect(page.locator('#test-status')).toHaveText('Pozastaveno');
-  await expect(page.locator('#game-menu')).toBeVisible();
+  await expect(page.locator('#game-screen')).toBeVisible();
+  await expect(page.locator('#game-menu')).toBeHidden();
   await page.waitForTimeout(2200);
   const pausedState = await page.evaluate(() => window.__cloveceTest.state());
 
