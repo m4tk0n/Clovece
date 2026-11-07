@@ -527,13 +527,14 @@ function onlineAiLearningDecision(array $game, array &$model): array
             'decisionsTrained' => (int) $model['decisionsTrained'],
             'generation' => (int) $model['generation'],
             'newParameterCount' => count($newParameters),
-            'newParameters' => array_slice($newParameters, 0, 8),
+            'newParameters' => array_map(static fn(array $item): array => [
+                'id' => $item['id'],
+                'featureNames' => $item['featureNames'],
+            ], array_slice($newParameters, 0, 8)),
             'dynamicParameterCount' => count($model['dynamicParameters']),
             'totalParameters' => 1000 + count($model['dynamicParameters']),
             'changedParameters' => $changedParameters,
             'averageCrossEntropy' => count($actions) ? $loss : 0.0,
-            'teacher' => 'online-heuristic-v1',
-            'teacherScores' => array_map(static fn(float $value): float => round($value, 4), $rawScores),
             'policyInfluencedChoice' => (int) $selected['pieceId'] !== (int) $heuristicBestPiece,
         ],
     ];
