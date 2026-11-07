@@ -173,15 +173,19 @@ export function getPlayerSetup() {
 function loadProfileDefaults() {
     profileDefaultsPromise = bootstrapOnline().then(data => {
         const account = data.account;
-        if (!account) return;
-
         const nameKey = 'human:1';
+        const colorKey = 'human:1';
+        if (!account) {
+            if (!manuallyEditedPlayerNames.has(nameKey)) customPlayerNames.delete(nameKey);
+            if (!manuallyEditedPlayerColors.has(colorKey)) customPlayerColors.delete(colorKey);
+            updateSetup();
+            return;
+        }
         if (!manuallyEditedPlayerNames.has(nameKey)) {
             const displayName = String(account.display_name || account.username || '').trim().slice(0, 20);
             if (displayName) customPlayerNames.set(nameKey, displayName);
         }
 
-        const colorKey = 'human:1';
         if (!manuallyEditedPlayerColors.has(colorKey)) {
             const profileColor = String(account.color_preference || '').trim().toUpperCase();
             const gameColor = PROFILE_TO_GAME_COLORS[profileColor] || profileColor;
@@ -237,6 +241,7 @@ export function initPlayerSetup() {
     $('random-player-colors-btn')?.addEventListener('click', () => {
         $('preview-players')?.querySelectorAll('[data-color-key]').forEach(select => {
             customPlayerColors.set(select.dataset.colorKey, 'random');
+            manuallyEditedPlayerColors.add(select.dataset.colorKey);
         });
         updateSetup();
     });
