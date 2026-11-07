@@ -9,8 +9,8 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 ### Herní možnosti
 
 - 2 až 8 hráčů v libovolné kombinaci lidí a AI
-- Podrobná a závazná pravidla hry včetně dostupných desek jsou vedena výhradně v [GAME_RULES.md](GAME_RULES.md)
-- Automatické tahy AI se třemi úrovněmi obtížnosti (lehká, střední, těžká); taktika a pravděpodobnostní model jsou popsány v [AI_STRATEGY.md](AI_STRATEGY.md)
+- Podrobná a závazná pravidla hry včetně dostupných desek jsou vedena výhradně v [GAME_RULES.md](docs/GAME_RULES.md)
+- Automatické tahy AI se třemi úrovněmi obtížnosti (lehká, střední, těžká); taktika a pravděpodobnostní model jsou popsány v [AI_STRATEGY.md](docs/AI_STRATEGY.md)
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
 
@@ -30,7 +30,7 @@ Online režim je implementovaný v základní podobě a probíhá ověřování 
 - vytváření místností a připojování dalších hráčů
 - synchronizace stavu hry přes PHP API a MySQL
 - serverové házení kostkou a ověřování tahů
-- chat a společný časový proud chatu a herních událostí (pravidla logování: [CHAT_LOG.md](CHAT_LOG.md))
+- chat a společný časový proud chatu a herních událostí (pravidla logování: [CHAT_LOG.md](docs/CHAT_LOG.md))
 - pravidelné dotazování API; WebSockety nejsou vyžadovány
 
 Před nasazením pro běžné hraní je nutné dokončit test na WZ.cz ve dvou samostatných zařízeních.
@@ -42,11 +42,11 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 - Obtížnost místní AI se nastavuje při vytváření hry: lehká, střední nebo těžká.
 - Všechny úrovně vybírají pouze legální tahy herního enginu.
 - AI vyhodnocuje postup, dokončení figurek, vyhazování, riziko zásahu soupeřem a podle obtížnosti také očekávané pokračování po šestce.
-- Kompletní popis algoritmu, pravděpodobností, omezení a testů je v [AI_STRATEGY.md](AI_STRATEGY.md).
+- Kompletní popis algoritmu, pravděpodobností, omezení a testů je v [AI_STRATEGY.md](docs/AI_STRATEGY.md).
 
 ## Historie verzí
 
-Přehled verzovaných změn projektu je veden v [VERSION_HISTORY.md](VERSION_HISTORY.md).
+Přehled verzovaných změn projektu je veden v [docs/VERSION_HISTORY.md](docs/VERSION_HISTORY.md).
 
 ## Struktura
 
