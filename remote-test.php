@@ -317,7 +317,12 @@ try {
                 'parent_table' => $parent,
                 'parent_column' => $parentColumn,
                 'orphan_rows' => (int) $db->query($sql)->fetchColumn(),
-                'enforced_by_foreign_key' => false,
+                'enforced_by_foreign_key' => (bool) array_filter($foreignKeys, static function (array $fk) use ($child, $childColumn, $parent, $parentColumn): bool {
+                    return $fk['TABLE_NAME'] === $child
+                        && $fk['COLUMN_NAME'] === $childColumn
+                        && $fk['REFERENCED_TABLE_NAME'] === $parent
+                        && $fk['REFERENCED_COLUMN_NAME'] === $parentColumn;
+                }),
             ];
         }
 
@@ -363,6 +368,20 @@ try {
         );
         $databaseSizeStmt->execute([$schemaName]);
         $databaseSize = $databaseSizeStmt->fetch();
+
+        $projectDatabaseSize = ['data_bytes' => 0, 'index_bytes' => 0, 'free_bytes' => 0];
+        $otherSchemaTables = [];
+        foreach ($tableRows as $schemaTable) {
+            $schemaTableName = (string) $schemaTable['TABLE_NAME'];
+            if ($prefix !== '' && !str_starts_with($schemaTableName, $prefix)) {
+                $otherSchemaTables[] = $schemaTableName;
+            }
+        }
+        foreach ($tables as $projectTable) {
+            $projectDatabaseSize['data_bytes'] += $projectTable['data_bytes'];
+            $projectDatabaseSize['index_bytes'] += $projectTable['index_bytes'];
+            $projectDatabaseSize['free_bytes'] += $projectTable['free_bytes'];
+        }
 
         $profiles = [];
 
@@ -448,7 +467,10 @@ try {
                 'game_move_idempotency_lookup' => [
                     'SELECT id FROM ' . $quoteIdentifier(table('game_moves')) . '
                      WHERE game_id = ? AND request_id = ? LIMIT 1',
-                    [$explainGameId, '00000000-0000-4000-8000-000000000000'],
+                    [$explainGameId, (string) ($db->query(
+                        'SELECT request_id FROM ' . $quoteIdentifier(table('game_moves')) .
+                        ' WHERE game_id = ' . $explainGameId . ' LIMIT 1'
+                    )->fetchColumn() ?: '00000000-0000-4000-8000-000000000000')],
                 ],
             ];
             foreach ($planQueries as $planName => [$sql, $params]) {
@@ -538,6 +560,9 @@ try {
             'table_prefix' => $prefix,
             'server' => $server,
             'database_size' => $databaseSize,
+            'project_database_size' => $projectDatabaseSize,
+            'schema_table_count' => count($tableRows),
+            'other_schema_tables' => $otherSchemaTables,
             'profiles' => $profiles,
             'query_plans' => $queryPlans,
             'table_count' => count($tables),
