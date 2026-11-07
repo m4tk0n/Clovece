@@ -109,10 +109,15 @@ export function learnFromAIMove(game, dependencies, strategicDecision) {
             maxPlayoutTurns: 80,
             seed
         });
-        if (!teacher?.ranked?.length) return strategicDecision;
+        if (!teacher) return strategicDecision;
+        const teacherRanked = teacher.ranked || [
+            { pieceId: teacher.pieceId, visits: teacher.visits, score: teacher.score },
+            ...(teacher.alternatives || [])
+        ];
+        if (!teacherRanked.length) return strategicDecision;
 
         const studentDecision = chooseSearchPolicyMove(
-            game, dependencies, model, teacher, () => 0.5
+            game, dependencies, model, { ...teacher, ranked: teacherRanked }, () => 0.5
         );
         if (!studentDecision?.model || !studentDecision.experience) return strategicDecision;
 
