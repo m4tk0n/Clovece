@@ -33,6 +33,13 @@ Tento dokument popisuje, co se zobrazuje v chatu během lokální i online parti
 - Dosažení cílového domečku figurkou.
 - Konec tahu bez možného tahu.
 
+### Učení AI (pouze debug režim)
+
+- Každý tah AI s legálním rozhodnutím vytvoří samostatnou zprávu o učení.
+- Zpráva uvádí počet nových parametrů, jejich ID, počet upravených vah, celkový počet parametrů a cross-entropy.
+- Zprávy **AI UČENÍ** se neslučují s běžným herním tahem ani s běžnými zprávami chatu.
+- V online hře jsou údaje součástí záznamu akce tahu; v místní hře vznikají přímo při rozhodnutí AI.
+- Výpis se zobrazuje pouze při `?debug=1`.
 ### Běžné zprávy
 - Textové zprávy hráčů se zobrazují ve stejném časovém proudu jako herní události.
 - Běžná zpráva přeruší slučování herních událostí, aby se její text nespojil s automatickým logem.
