@@ -323,6 +323,94 @@ try {
         $databaseSizeStmt->execute([$schemaName]);
         $databaseSize = $databaseSizeStmt->fetch();
 
+        $profiles = [];
+
+        $profiles['identities_by_type'] = $db->query(
+            'SELECT identity_type, COUNT(*) AS row_count,
+                    SUM(last_seen_at IS NULL) AS never_seen,
+                    SUM(last_seen_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)) AS unseen_7d,
+                    SUM(last_seen_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 DAY)) AS unseen_30d
+             FROM ' . $quoteIdentifier(table('player_identities')) . '
+             GROUP BY identity_type ORDER BY identity_type'
+        )->fetchAll();
+
+        $profiles['identities_without_game_or_account'] = (int) $db->query(
+            'SELECT COUNT(*) FROM ' . $quoteIdentifier(table('player_identities')) . ' i
+             WHERE NOT EXISTS (SELECT 1 FROM ' . $quoteIdentifier(table('player_accounts')) . ' a WHERE a.identity_id = i.id)
+               AND NOT EXISTS (SELECT 1 FROM ' . $quoteIdentifier(table('game_participants')) . ' p WHERE p.identity_id = i.id)
+               AND NOT EXISTS (SELECT 1 FROM ' . $quoteIdentifier(table('online_games')) . ' g WHERE g.created_by_identity_id = i.id)'
+        )->fetchColumn();
+
+        $profiles['devices_summary'] = $db->query(
+            'SELECT COUNT(*) AS total,
+                    SUM(revoked_at IS NULL) AS active,
+                    SUM(revoked_at IS NOT NULL) AS revoked,
+                    SUM(last_seen_at IS NULL) AS never_seen,
+                    SUM(revoked_at IS NULL AND last_seen_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)) AS active_unseen_7d
+             FROM ' . $quoteIdentifier(table('player_devices'))
+        )->fetch();
+
+        $profiles['identities_with_multiple_active_devices'] = (int) $db->query(
+            'SELECT COUNT(*) FROM (
+                SELECT identity_id FROM ' . $quoteIdentifier(table('player_devices')) . '
+                WHERE revoked_at IS NULL GROUP BY identity_id HAVING COUNT(*) > 1
+             ) active_device_groups'
+        )->fetchColumn();
+
+        $profiles['games_by_status'] = $db->query(
+            'SELECT status, COUNT(*) AS row_count,
+                    SUM(state_json IS NULL) AS empty_state,
+                    SUM(OCTET_LENGTH(state_json)) AS total_state_octets,
+                    MAX(OCTET_LENGTH(state_json)) AS max_state_octets,
+                    MIN(created_at) AS oldest_created_at,
+                    MAX(last_activity_at) AS latest_activity_at
+             FROM ' . $quoteIdentifier(table('online_games')) . '
+             GROUP BY status ORDER BY status'
+        )->fetchAll();
+
+        $profiles['moves_by_game'] = $db->query(
+            'SELECT game_id, COUNT(*) AS move_count,
+                    MIN(state_version) AS first_state_version,
+                    MAX(state_version) AS last_state_version,
+                    SUM(OCTET_LENGTH(action_json)) AS action_json_octets,
+                    MAX(OCTET_LENGTH(action_json)) AS max_action_json_octets,
+                    MIN(created_at) AS first_move_at,
+                    MAX(created_at) AS last_move_at
+             FROM ' . $quoteIdentifier(table('game_moves')) . '
+             GROUP BY game_id ORDER BY move_count DESC, game_id'
+        )->fetchAll();
+
+        $profiles['move_duplicate_checks'] = [
+            'duplicate_game_request_pairs' => (int) $db->query(
+                'SELECT COUNT(*) FROM (
+                    SELECT game_id, request_id FROM ' . $quoteIdentifier(table('game_moves')) . '
+                    GROUP BY game_id, request_id HAVING COUNT(*) > 1
+                 ) duplicates_found'
+            )->fetchColumn(),
+            'duplicate_game_state_versions' => (int) $db->query(
+                'SELECT COUNT(*) FROM (
+                    SELECT game_id, state_version FROM ' . $quoteIdentifier(table('game_moves')) . '
+                    GROUP BY game_id, state_version HAVING COUNT(*) > 1
+                 ) duplicates_found'
+            )->fetchColumn(),
+        ];
+
+        $profiles['invites_summary'] = $db->query(
+            'SELECT COUNT(*) AS total,
+                    SUM(revoked_at IS NULL AND (expires_at IS NULL OR expires_at > UTC_TIMESTAMP()) AND uses_count < uses_limit) AS usable,
+                    SUM(revoked_at IS NOT NULL) AS revoked,
+                    SUM(expires_at IS NOT NULL AND expires_at <= UTC_TIMESTAMP() AND revoked_at IS NULL) AS expired,
+                    SUM(uses_count >= uses_limit) AS exhausted
+             FROM ' . $quoteIdentifier(table('game_invites'))
+        )->fetch();
+
+        $profiles['cron_tasks_by_status'] = $db->query(
+            'SELECT last_status, is_enabled, COUNT(*) AS row_count,
+                    SUM(last_error IS NOT NULL AND last_error <> "") AS has_error
+             FROM ' . $quoteIdentifier(table('cron_tasks')) . '
+             GROUP BY last_status, is_enabled ORDER BY last_status, is_enabled'
+        )->fetchAll();
+
         remoteTestRespond([
             'success' => true,
             'generated_at_utc' => gmdate('c'),
@@ -331,6 +419,7 @@ try {
             'table_prefix' => $prefix,
             'server' => $server,
             'database_size' => $databaseSize,
+            'profiles' => $profiles,
             'table_count' => count($tables),
             'tables' => $tables,
             'foreign_keys' => $foreignKeys,
