@@ -795,6 +795,18 @@ function onlineAiLearningCompleteGame(PDO $db, int $gameId, array $currentAction
     $model = is_string($modelJson) ? json_decode($modelJson, true) : null;
     if (is_array($model)) {
         $model['gamesTrained'] = (int) ($model['gamesTrained'] ?? 0) + 1;
+        $patterns = is_array($model['dynamicParameters'] ?? null) ? $model['dynamicParameters'] : [];
+        usort($patterns, static fn(array $a, array $b): int =>
+            (((int) ($b['teacherSupport'] ?? 0) - (int) ($b['teacherRejects'] ?? 0)) <=>
+             ((int) ($a['teacherSupport'] ?? 0) - (int) ($a['teacherRejects'] ?? 0)))
+        );
+        $summary['topPatterns'] = array_map(static fn(array $item): array => [
+            'id' => (int) ($item['id'] ?? 0),
+            'featureNames' => array_slice($item['featureNames'] ?? [], 0, 3),
+            'weight' => (float) ($item['weight'] ?? 0),
+            'teacherSupport' => (int) ($item['teacherSupport'] ?? 0),
+            'teacherRejects' => (int) ($item['teacherRejects'] ?? 0),
+        ], array_slice($patterns, 0, 3));
         $db->prepare(
             'UPDATE ' . onlineTable('ai_learning_model') . ' SET model_json = ?, generation = ? WHERE id = 1'
         )->execute([
