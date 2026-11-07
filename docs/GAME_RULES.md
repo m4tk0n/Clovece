@@ -104,3 +104,13 @@
 - Protože je startovní pole obsazeno jeho první figurkou, tato figurka se vrátí do základny a nově nasazená figurka ji na startovním poli nahradí.
 - Druhá šestka rovněž zakládá nárok na další bonusový hod. Řetězení šestek není omezeno.
 - **Důležité:** Vrácení vlastní figurky do základny při tomto povinném nasazení není chyba ani zrušení tahu. Je to výslovně povolená a povinná součást pravidel.
+
+## 14. Rozšířené pravidlo: tři šestky za sebou
+- Toto pravidlo je volitelné a zapíná se při vytváření místní hry v části rozšířených pravidel. Pokud není zapnuté, platí běžné pravidlo neomezeného řetězení šestek.
+- Počítají se tři po sobě jdoucí hody šestkou během jednoho tahu hráče. Jakýkoli hod jiný než 6 počítadlo přeruší.
+- Třetí šestka se nejprve normálně vyhodnotí podle všech ostatních pravidel: provede se povinné nasazení, pokud má hráč figurky v základně, nebo se provede zvolený legální pohyb.
+- Teprve po dokončení akce třetí šestky se provede trest: jedna hráčova figurka, která je na hlavním okruhu nejblíže vlastní cílové dráze, se vrátí do základny.
+- Při výběru trestané figurky se posuzují pouze figurky na hlavním okruhu. Figurky v základně ani figurky v cílové dráze D1–D4 se trestu netýkají.
+- Pokud hráč nemá na hlavním okruhu žádnou figurku, trest se neprovede.
+- Po provedení trestu tah hráče končí. Za třetí šestku se již další bonusový hod neprovádí.
+- Toto pravidlo se vztahuje na místní hru; online hra zůstává beze změny, dokud nebude rozšíření samostatně implementováno a zapnuto také pro online místnosti.
