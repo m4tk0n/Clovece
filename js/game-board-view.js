@@ -275,8 +275,23 @@ export function buildBoardSceneData(game) {
     return createBoardSceneData(game, boardStyle);
 }
 
+function capturePlayerPanel(container) {
+    const panel = container.querySelector('#players-panel');
+    if (panel && panel.innerHTML.trim()) {
+        container._playersPanelMarkup = panel.innerHTML;
+    }
+}
+
+function restorePlayerPanel(container) {
+    const panel = container.querySelector('#players-panel');
+    if (panel && container._playersPanelMarkup !== undefined) {
+        panel.innerHTML = container._playersPanelMarkup;
+    }
+}
+
 export function renderBoard(container, game) {
     if (!container || !game) return;
+    capturePlayerPanel(container);
     bindStyleSwitch(container);
     container._lastGame = game;
 
@@ -300,6 +315,7 @@ export function renderBoard(container, game) {
                     '<div class="board-current-player" style="--player-color:' + activePlayer.color + '"><span>NA ŘADĚ</span><strong>' + activePlayer.name + '</strong></div></div>' +
                 '</div>';
             stage = container.querySelector('.three-board-stage');
+            restorePlayerPanel(container);
         } else {
             const turn = container.querySelector('.board-turn-count strong');
             const current = container.querySelector('.board-current-player');
@@ -357,6 +373,7 @@ export function renderBoard(container, game) {
             switchCss: SWITCH_CSS,
             switchMarkup: styleSwitchMarkup()
         });
+        restorePlayerPanel(container);
     };
     // SVG vykreslíme až po načtení jeho CSS, aby se na okamžik neukázala neostylovaná deska.
     ensureModeStyles('2d').then(renderSvg).catch(error => {
