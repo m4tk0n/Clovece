@@ -51,6 +51,10 @@ function saveModel() {
 }
 
 export function beginLocalAiLearningGame() {
+    if (new URLSearchParams(globalThis.location?.search || '').get('test') === '1') {
+        currentGameStats = null;
+        return;
+    }
     currentGameStats = {
         dynamicAtStart: model.dynamicParameters.length,
         decisionsAtStart: model.decisionsTrained,
@@ -62,6 +66,7 @@ export function beginLocalAiLearningGame() {
 }
 
 export function completeLocalAiLearningGame() {
+    if (new URLSearchParams(globalThis.location?.search || '').get('test') === '1') return null;
     if (!currentGameStats) beginLocalAiLearningGame();
     model.gamesTrained++;
     const saved = saveModel();
