@@ -17,6 +17,7 @@ test('local AI creates and trains dynamic parameters during its own decision', (
     assert.ok(legal.includes(decision.pieceId));
     assert.ok(decision.learning);
     assert.ok(decision.learning.decisionsTrained > 0);
-    assert.ok(decision.learning.totalParameters >= 1000);
+    assert.ok(decision.learning.totalParameters > 1000);
+    assert.ok(decision.learning.newParameterCount > 0);
     assert.equal(decision.learning.teacherSimulations, 12);
 });
