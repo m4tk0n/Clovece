@@ -2,7 +2,8 @@
  * Člověče, nezlob se! – čisté herní jádro.
  * Nezávislé na DOM a serveru, připravené pro pozdější autoritativní online API.
  */
-import { chooseStrategicMove, chooseStrategicDecision } from './ai-strategy.js';
+import { chooseStrategicMove, chooseStrategicDecision, calculatePlayerPips } from './ai-strategy.js';
+import { chooseMonteCarloDecision, chooseMonteCarloMove } from './ai-mcts.js';
 
 export const PLAYER_COLORS = [
     '#E53935', '#1E88E5', '#43A047', '#F9A825',
@@ -390,7 +391,7 @@ export function advanceTurn(game) {
     game.turnNumber++;
 }
 
-const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
+const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice, advanceTurn, calculatePlayerPips };
 
 export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'medium') {
     return chooseStrategicDecision(game, aiDependencies, difficulty);
@@ -398,4 +399,13 @@ export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'me
 
 export function chooseAIMove(game, difficulty = game.aiDifficulty || 'medium') {
     return chooseStrategicMove(game, aiDependencies, difficulty);
+}
+
+/** Monte Carlo search API for the AI laboratory and optional game modes. */
+export function chooseAIMoveMonteCarlo(game, options = {}) {
+    return chooseMonteCarloMove(game, aiDependencies, options);
+}
+
+export function chooseAIMoveMonteCarloDecision(game, options = {}) {
+    return chooseMonteCarloDecision(game, aiDependencies, options);
 }
