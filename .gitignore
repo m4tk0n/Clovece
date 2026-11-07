@@ -2,10 +2,9 @@
 # Člověče, nezlob se! - Git Ignore
 # ============================================
 
-# Environment file (contains sensitive data - DO NOT COMMIT REAL CREDENTIALS)
-# Template file .env.dist is committed and should be renamed to .env on server
-# .env is also committed with placeholder values for automatic deployment
-# !.env
+# Environment files may contain production credentials.
+# Commit only the safe template .env.dist, never the real .env.
+.env
 
 # IDE files
 .idea/
@@ -42,3 +41,6 @@ package-lock.json
 # Playwright browser test output
 playwright-report/
 test-results/
+
+# AI training reports and local experiment output
+artifacts/
