@@ -739,6 +739,7 @@ function onlineAiLearningDecision(array $game, array &$model): array
             'totalParameters' => 1000 + count($model['dynamicParameters']),
             'changedParameters' => $changedParameters,
             'averageCrossEntropy' => count($actions) ? $loss : 0.0,
+            'teacherSimulations' => (int) ($teacher['simulations'] ?? 0),
             'policyInfluencedChoice' => (int) $selected['pieceId'] !== (int) $heuristicBestPiece,
         ],
     ];
