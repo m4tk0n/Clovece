@@ -102,6 +102,7 @@ Simulace pokračuje nejvýše přes tři navazující bonusové hody. Zbytek pra
 - Pro jednoho soupeře jde o přesný výpočet pravděpodobnosti v prohledané hloubce za předpokladu, že soupeř se snaží maximalizovat zásah sledované figurky.
 - Tento předpoklad je konzervativní: neznamená, že soupeř bude v reálné hře vždy volit právě tento tah.
 - U více soupeřů se jejich odhady spojí horní mezí – součtem omezeným na 1. Je to konzervativní aproximace, protože tahy soupeřů mění společný stav a nejsou nezávislé.
+- Při hodnocení pozice se u vlastních figurek počítá hrozba od všech soupeřů. U soupeřových figurek se započítává hrozba od aktuální AI; vzájemné hrozby mezi ostatními soupeři se vynechávají, protože nejsou přímým důsledkem jejího tahu. Tím se zároveň omezuje výpočetní náročnost při 8 hráčích.
 - Model nepředstírá, že jde o přesnou pravděpodobnost celé budoucí partie.
 
 ### Očekávaná ztráta
