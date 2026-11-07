@@ -29,6 +29,27 @@ jobs:
             --data "action=status" | tee remote-status.json
           python -c "import json; d=json.load(open('remote-status.json')); assert d.get('success'), d"
 
+      - name: Read complete production database schema and storage usage
+        env:
+          BASE_URL: https://7x.wz.cz/clovece
+          REMOTE_TEST_TOKEN: ${{ secrets.REMOTE_TEST_TOKEN }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$BASE_URL/remote-test.php" \
+            -H "Authorization: Bearer $REMOTE_TEST_TOKEN" \
+            --data "action=database_report" | tee database-report.json
+          python - <<'PY'
+          import json
+          d = json.load(open("database-report.json"))
+          assert d.get("success") is True, d
+          print("DATABASE:", d.get("database"))
+          print("TABLE COUNT:", len(d.get("tables", [])))
+          for t in d.get("tables", []):
+              print(f"{t['name']}: rows~{t['rows']}, data={t['data_bytes']} B, indexes={t['index_bytes']} B")
+          print("COLUMN DEFINITIONS, INDEXES AND FOREIGN KEYS INCLUDED")
+          print("GAME_MOVES COLUMN STORAGE:", json.dumps(d.get("game_moves_column_storage", []), ensure_ascii=False))
+          PY
+
       - name: Test real registration, logout and login through online API
         env:
           BASE_URL: https://7x.wz.cz/clovece
@@ -120,3 +141,12 @@ jobs:
           require(cleanup_ok, "Úklid testovacího účtu selhal.")
           print("PASS: testovací účet a identita byly odstraněny")
           PY
+
+      - name: Save database report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-database-report
+          path: database-report.json
+          if-no-files-found: ignore
+          retention-days: 3
