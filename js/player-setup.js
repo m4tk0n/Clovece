@@ -12,7 +12,7 @@ let previousTotalPlayerCount = 2;
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
 // Výchozí ANO zachovává dosavadní pravidla lokální hry.
-const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true, mustEnterHome: true };
+const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true, mustEnterHome: true, threeSixesPenalty: false };
 // Obrazovka výběru zůstává po opuštění v DOM; posluchače proto registrujeme jen jednou.
 const initializedSetupRoots = new WeakSet();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
