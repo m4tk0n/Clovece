@@ -169,7 +169,20 @@ AI vybere tah s nejvyšším W. Vyhození, dokončení figurky, nasazení i úni
 
 Těžká úroveň tedy nezná budoucí hody; počítá jejich očekávaný výsledek.
 
-## 7. Vysvětlování rozhodnutí
+## 7. Adaptivní ochota riskovat
+
+AI upravuje váhu rizika podle relativního pořadí hráče v pipovém závodu:
+
+- Pokud má AI nižší pipový odhad než soupeři, tedy je vpředu, zvyšuje váhu rizika vlastních figurek.
+- Pokud zaostává, snižuje tuto váhu a přijímá větší riziko ve snaze zlepšit šanci na vítězství.
+- Při vyrovnané pozici zůstává původní váha obtížnosti.
+- Korekce je omezena na násobek 0,8 až 1,2, aby změna pořadí nepřevážila ostatní strategické faktory.
+
+Úprava se týká pouze rizika vlastních figurek AI. Ohrožení soupeřů se nadále hodnotí plnou vahou, aby ochota AI riskovat neoslabovala její schopnost využít soupeřovy chyby. Rozhodnutí se počítá z pipů po provedení kandidátního tahu.
+
+Jde o heuristiku, nikoli o předpověď skutečné pravděpodobnosti výhry. Její přínos se musí ověřit turnaji AI proti AI.
+
+## 8. Vysvětlování rozhodnutí
 
 `chooseStrategicDecision()` vrací kromě ID figurky také:
 
@@ -182,7 +195,7 @@ Těžká úroveň tedy nezná budoucí hody; počítá jejich očekávaný výsl
 
 V režimu `?debug=1` se hlavní důvody zapisují do herního chatu jako samostatná zpráva **AI rozhodování**. Text se generuje z vypočtených hodnot; nesmí tvrdit, že AI zvažovala faktor, který ve skóre nebyl.
 
-## 8. Technická architektura
+## 9. Technická architektura
 
 - `js/ai-strategy.js`: pipový model, pravděpodobnostní simulace hrozeb, vyhodnocení pozic, obtížnosti a vysvětlení.
 - `js/game-engine.js`: poskytuje AI závislosti `getValidMoves`, `getPiecePosition`, `movePiece` a `rollDice`; pravidla zůstávají v enginu.
@@ -190,7 +203,7 @@ V režimu `?debug=1` se hlavní důvody zapisují do herního chatu jako samosta
 - `js/app.js`: předává rozhodování do tahového automatu.
 - `tests/ai-strategy.test.mjs`: regresní testy pravděpodobností, simulace pravidel, pipů, legálních tahů a vysvětlení.
 
-## 9. Testovací požadavky
+## 10. Testovací požadavky
 
 Testy musí ověřovat zejména:
 
@@ -200,12 +213,13 @@ Testy musí ověřovat zejména:
 - respektování pravidel nasazení, tří pokusů a trestu za tři šestky,
 - cenu čekání při jednom a třech pokusech o šestku,
 - podporu desek 40, 48 a 80 bez pevně zakódované délky,
+- adaptaci rizika: vedoucí AI je opatrnější, zaostávající AI přijímá větší riziko a při shodě zůstává neutrální,
 - výběr výhradně legálního tahu,
 - absolutní prioritu okamžité výhry,
 - povinný vstup do domečku,
 - deterministické rozhodnutí a rozklad skóre.
 
-## 10. Známá omezení a další ladění
+## 11. Známá omezení a další ladění
 
 - Pipový převod, flexibilita, penalizace blokovaného startu, váhy obtížností a softmax jsou heuristiky.
 - Model více soupeřů používá konzervativní horní mez a nepřepočítává celý společný stav po každém soupeřově tahu.
