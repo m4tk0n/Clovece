@@ -12,6 +12,13 @@ let selectedBoardSize = 40;
 let previousTotalPlayerCount = 2;
 const customPlayerNames = new Map();
 const customPlayerColors = new Map();
+const manuallyEditedPlayerNames = new Set();
+const manuallyEditedPlayerColors = new Set();
+let profileDefaultsPromise = Promise.resolve();
+const PROFILE_TO_GAME_COLORS = {
+    '#FF6B6B': '#E53935', '#4ECDC4': '#00ACC1', '#FFE66D': '#F9A825', '#A8E6CF': '#43A047',
+    '#FF8B94': '#D81B60', '#B4A7D6': '#8E24AA', '#D4A373': '#FB8C00', '#9999FF': '#1E88E5'
+};
 // Výchozí ANO zachovává dosavadní pravidla lokální hry.
 const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true, mustEnterHome: true, threeSixesPenalty: false };
 // Obrazovka výběru zůstává po opuštění v DOM; posluchače proto registrujeme jen jednou.
@@ -163,10 +170,38 @@ export function getPlayerSetup() {
     return { humanCount, aiCount, selectedBoardSize, names, colors, aiDifficulty: $('ai-difficulty')?.value || 'medium', extendedRules: { ...extendedRules } };
 }
 
+function loadProfileDefaults() {
+    profileDefaultsPromise = bootstrapOnline().then(data => {
+        const account = data.account;
+        if (!account) return;
+
+        const nameKey = 'human:1';
+        if (!manuallyEditedPlayerNames.has(nameKey)) {
+            const displayName = String(account.display_name || account.username || '').trim().slice(0, 20);
+            if (displayName) customPlayerNames.set(nameKey, displayName);
+        }
+
+        const colorKey = 'human:1';
+        if (!manuallyEditedPlayerColors.has(colorKey)) {
+            const profileColor = String(account.color_preference || '').trim().toUpperCase();
+            const gameColor = PROFILE_TO_GAME_COLORS[profileColor] || profileColor;
+            if (PLAYER_COLORS.includes(gameColor)) customPlayerColors.set(colorKey, gameColor);
+        }
+        updateSetup();
+    }).catch(error => {
+        console.warn('Výchozí údaje profilu se nepodařilo načíst:', error);
+    });
+    return profileDefaultsPromise;
+}
+
+export function waitForPlayerProfileDefaults() {
+    return profileDefaultsPromise;
+}
+
 export function initPlayerSetup() {
     const setupRoot = $('player-selection');
-    if (setupRoot && initializedSetupRoots.has(setupRoot)) return;
-    if (setupRoot) initializedSetupRoots.add(setupRoot);
+    if (!setupRoot || !initializedSetupRoots.has(setupRoot)) {
+        if (setupRoot) initializedSetupRoots.add(setupRoot);
 
     $('setup-grid')?.addEventListener('click', event => {
         const button = event.target.closest('[data-count-target][data-count-step]');
@@ -189,12 +224,14 @@ export function initPlayerSetup() {
         const input = event.target.closest('[data-name-key]');
         if (!input) return;
         customPlayerNames.set(input.dataset.nameKey, input.value.trim());
+        manuallyEditedPlayerNames.add(input.dataset.nameKey);
     });
     $('preview-players')?.addEventListener('change', event => {
         const select = event.target.closest('[data-color-key]');
         if (!select) return;
 
         customPlayerColors.set(select.dataset.colorKey, select.value);
+        manuallyEditedPlayerColors.add(select.dataset.colorKey);
         updateSetup();
     });
     $('random-player-colors-btn')?.addEventListener('click', () => {
@@ -235,30 +272,15 @@ export function initPlayerSetup() {
     });
 
     updateSetup();
-
-    // Přihlášený hráč začne jako první člověk se svým profilem.
-    // Výchozí hodnoty se nastaví pouze jednou a nepřepisují ruční úpravy.
-    void bootstrapOnline().then(data => {
-        const account = data.account;
-        if (!account) return;
-
-        if (!customPlayerNames.has('human:1')) {
-            const displayName = String(account.display_name || account.username || '').trim().slice(0, 20);
-            if (displayName) customPlayerNames.set('human:1', displayName);
-        }
-        if (!customPlayerColors.has('human:1') && PLAYER_COLORS.includes(account.color_preference)) {
-            customPlayerColors.set('human:1', account.color_preference);
-        }
-        updateSetup();
-    }).catch(error => {
-        console.warn('Výchozí údaje profilu se nepodařilo načíst:', error);
-    });
-
-    document.querySelectorAll('[data-rule-toggle]').forEach(button => {
+        document.querySelectorAll('[data-rule-toggle]').forEach(button => {
         const enabled = extendedRules[button.dataset.ruleToggle] === true;
         button.setAttribute('aria-pressed', String(enabled));
         button.querySelector('span').textContent = enabled ? 'ANO' : 'NE';
-    });
+        });
+    }
+
+    // Profil načítáme při každém otevření výběru, ne pouze při prvním vytvoření DOM.
+    void loadProfileDefaults();
 }
 
 export { updateSetup };
