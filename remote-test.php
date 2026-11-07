@@ -126,12 +126,17 @@ try {
             $constraintStmt = $db->prepare(
                 'SELECT tc.CONSTRAINT_NAME, tc.CONSTRAINT_TYPE,
                         kcu.COLUMN_NAME, kcu.ORDINAL_POSITION,
-                        kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME
+                        kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME,
+                        rc.UPDATE_RULE, rc.DELETE_RULE, rc.MATCH_OPTION
                  FROM information_schema.TABLE_CONSTRAINTS tc
                  LEFT JOIN information_schema.KEY_COLUMN_USAGE kcu
                    ON kcu.CONSTRAINT_SCHEMA = tc.CONSTRAINT_SCHEMA
                   AND kcu.TABLE_NAME = tc.TABLE_NAME
                   AND kcu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+                 LEFT JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+                   ON rc.CONSTRAINT_SCHEMA = tc.CONSTRAINT_SCHEMA
+                  AND rc.TABLE_NAME = tc.TABLE_NAME
+                  AND rc.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
                  WHERE tc.CONSTRAINT_SCHEMA = ? AND tc.TABLE_NAME = ?
                  ORDER BY tc.CONSTRAINT_NAME, kcu.ORDINAL_POSITION'
             );
@@ -180,6 +185,36 @@ try {
                 }
             }
 
+            $indexGroups = [];
+            foreach ($indexes as $indexPart) {
+                $indexGroups[(string) $indexPart['INDEX_NAME']][] = $indexPart;
+            }
+            $possibleRedundantIndexes = [];
+            foreach ($indexGroups as $shortName => $shortParts) {
+                if (count($shortParts) === 0 || (int) $shortParts[0]['NON_UNIQUE'] !== 1) {
+                    continue;
+                }
+                $shortColumns = array_column($shortParts, 'COLUMN_NAME');
+                if (in_array(null, $shortColumns, true)) {
+                    continue;
+                }
+                foreach ($indexGroups as $longName => $longParts) {
+                    if ($shortName === $longName || count($longParts) <= count($shortParts)
+                        || (int) $longParts[0]['NON_UNIQUE'] !== 1) {
+                        continue;
+                    }
+                    $longColumns = array_column($longParts, 'COLUMN_NAME');
+                    if (array_slice($longColumns, 0, count($shortColumns)) === $shortColumns) {
+                        $possibleRedundantIndexes[] = [
+                            'candidate_redundant_index' => $shortName,
+                            'possible_covering_index' => $longName,
+                            'shared_left_prefix' => $shortColumns,
+                            'note' => 'Candidate only; confirm actual SQL usage before removing.',
+                        ];
+                    }
+                }
+            }
+
             $tables[] = [
                 'name' => $tableName,
                 'engine' => $tableRow['ENGINE'],
@@ -192,17 +227,23 @@ try {
                 'create_options' => $tableRow['CREATE_OPTIONS'],
                 'columns' => $columns,
                 'indexes' => $indexes,
+                'possible_redundant_indexes' => $possibleRedundantIndexes,
                 'constraints' => $constraints,
                 'measured_columns' => $measuredColumns,
             ];
         }
 
         $foreignStmt = $db->prepare(
-            'SELECT TABLE_NAME, CONSTRAINT_NAME, COLUMN_NAME, ORDINAL_POSITION,
-                    REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
-             FROM information_schema.KEY_COLUMN_USAGE
-             WHERE CONSTRAINT_SCHEMA = ? AND REFERENCED_TABLE_NAME IS NOT NULL
-             ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION'
+            'SELECT kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.COLUMN_NAME, kcu.ORDINAL_POSITION,
+                    kcu.REFERENCED_TABLE_NAME, kcu.REFERENCED_COLUMN_NAME,
+                    rc.UPDATE_RULE, rc.DELETE_RULE, rc.MATCH_OPTION
+             FROM information_schema.KEY_COLUMN_USAGE kcu
+             LEFT JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+               ON rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+              AND rc.TABLE_NAME = kcu.TABLE_NAME
+              AND rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+             WHERE kcu.CONSTRAINT_SCHEMA = ? AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+             ORDER BY kcu.TABLE_NAME, kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION'
         );
         $foreignStmt->execute([$schemaName]);
         $foreignKeyRows = $foreignStmt->fetchAll();
@@ -356,6 +397,36 @@ try {
                 WHERE revoked_at IS NULL GROUP BY identity_id HAVING COUNT(*) > 1
              ) active_device_groups'
         )->fetchColumn();
+
+        $profiles['games_with_null_state'] = $db->query(
+            'SELECT g.id, g.status, g.created_at, g.last_activity_at, g.delete_after,
+                    COUNT(p.id) AS participant_count
+             FROM ' . $quoteIdentifier(table('online_games')) . ' g
+             LEFT JOIN ' . $quoteIdentifier(table('game_participants')) . ' p ON p.game_id = g.id
+             WHERE g.state_json IS NULL
+             GROUP BY g.id, g.status, g.created_at, g.last_activity_at, g.delete_after
+             ORDER BY g.created_at'
+        )->fetchAll();
+
+        $profiles['game_state_vs_move_log'] = $db->query(
+            'SELECT g.id AS game_id, g.status, g.state_version AS game_state_version,
+                    COUNT(m.id) AS move_rows, MAX(m.state_version) AS max_move_version,
+                    MIN(m.state_version) AS min_move_version,
+                    SUM(m.action_type = "start") AS start_log_rows
+             FROM ' . $quoteIdentifier(table('online_games')) . ' g
+             LEFT JOIN ' . $quoteIdentifier(table('game_moves')) . ' m ON m.game_id = g.id
+             GROUP BY g.id, g.status, g.state_version
+             HAVING COUNT(m.id) > 0
+             ORDER BY g.id'
+        )->fetchAll();
+
+        $profiles['moves_by_action_type'] = $db->query(
+            'SELECT action_type, COUNT(*) AS row_count,
+                    SUM(OCTET_LENGTH(action_json)) AS total_action_octets,
+                    MAX(OCTET_LENGTH(action_json)) AS max_action_octets
+             FROM ' . $quoteIdentifier(table('game_moves')) . '
+             GROUP BY action_type ORDER BY row_count DESC'
+        )->fetchAll();
 
         $profiles['games_by_status'] = $db->query(
             'SELECT status, COUNT(*) AS row_count,
