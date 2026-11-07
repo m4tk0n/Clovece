@@ -15,6 +15,7 @@ import { chooseMonteCarloDecision } from './ai-mcts.js';
 const STORAGE_KEY = 'clovece.ai.search.learning.v1';
 const STORAGE_PARAMETER_LIMIT = 5000;
 let model = loadModel();
+let currentGameStats = null;
 
 function loadModel() {
     try {
@@ -26,6 +27,7 @@ function loadModel() {
 }
 
 function saveModel() {
+    if (!globalThis.localStorage) return false;
     try {
         globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(model));
         return true;
@@ -46,6 +48,36 @@ function saveModel() {
         }
         return false;
     }
+}
+
+export function beginLocalAiLearningGame() {
+    currentGameStats = {
+        dynamicAtStart: model.dynamicParameters.length,
+        decisionsAtStart: model.decisionsTrained,
+        newParameters: 0,
+        changedParameters: 0,
+        decisions: 0,
+        lossTotal: 0
+    };
+}
+
+export function completeLocalAiLearningGame() {
+    if (!currentGameStats) beginLocalAiLearningGame();
+    model.gamesTrained++;
+    const saved = saveModel();
+    const summary = {
+        parametersAtStart: 1000 + currentGameStats.dynamicAtStart,
+        newParameters: currentGameStats.newParameters,
+        parametersAtEnd: 1000 + model.dynamicParameters.length,
+        decisions: currentGameStats.decisions,
+        changedParameters: currentGameStats.changedParameters,
+        averageCrossEntropy: currentGameStats.decisions
+            ? currentGameStats.lossTotal / currentGameStats.decisions : 0,
+        gamesTrained: model.gamesTrained,
+        storageSaved: saved
+    };
+    currentGameStats = null;
+    return summary;
 }
 
 function decisionOptions(decision) {
@@ -115,6 +147,12 @@ export function learnFromAIMove(game, dependencies, strategicDecision) {
         ).length;
         const newParameters = studentDecision.newDynamicParameters || [];
         const totalParameters = 1000 + model.dynamicParameters.length;
+        if (currentGameStats) {
+            currentGameStats.decisions++;
+            currentGameStats.newParameters += newParameters.length;
+            currentGameStats.changedParameters += changedParameters;
+            currentGameStats.lossTotal += trained.averageCrossEntropy;
+        }
         const summary = {
             decisionsTrained: model.decisionsTrained,
             gamesTrained: model.gamesTrained,
