@@ -3,6 +3,7 @@
  * Tento modul neimportuje herní engine ani vykreslování.
  */
 import { PLAYER_COLORS, getAvailableBoardSizes } from './game-engine.js';
+import { bootstrapOnline } from './online/api.js';
 
 const $ = id => document.getElementById(id);
 let humanCount = 1;
@@ -210,6 +211,25 @@ export function initPlayerSetup() {
     });
 
     updateSetup();
+
+    // Přihlášený hráč začne jako první člověk se svým profilem.
+    // Výchozí hodnoty se nastaví pouze jednou a nepřepisují ruční úpravy.
+    void bootstrapOnline().then(data => {
+        const account = data.account;
+        if (!account) return;
+
+        if (!customPlayerNames.has('human:1')) {
+            const displayName = String(account.display_name || account.username || '').trim().slice(0, 20);
+            if (displayName) customPlayerNames.set('human:1', displayName);
+        }
+        if (!customPlayerColors.has('human:1') && PLAYER_COLORS.includes(account.color_preference)) {
+            customPlayerColors.set('human:1', account.color_preference);
+        }
+        updateSetup();
+    }).catch(error => {
+        console.warn('Výchozí údaje profilu se nepodařilo načíst:', error);
+    });
+
     document.querySelectorAll('[data-rule-toggle]').forEach(button => {
         const enabled = extendedRules[button.dataset.ruleToggle] === true;
         button.setAttribute('aria-pressed', String(enabled));
