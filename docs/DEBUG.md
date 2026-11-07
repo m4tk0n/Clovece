@@ -88,9 +88,13 @@ To umožňuje testerovi zkontrolovat dostupnou možnost a ručně vybrat figurku
 
 Toto nastavení se týká běžného zpracování tahu v lokální herní logice. Automatické rozhodování AI má vlastní větev a AI si tah vybírá sama.
 
-## 5. Co debug režim aktuálně nezobrazuje
+## 5. Průběžné učení AI
 
-Aktuální debug režim nezobrazuje samostatný textový výpis všech souřadnic polí a figurek, kompletní interní stav herního enginu, síťové požadavky online hry ani automatický záznam všech rozhodnutí AI. Tyto údaje nejsou součástí současných debug nástrojů.
+Při každém rozhodnutí místní AI i online AI se v chatu zobrazí samostatná zpráva **AI UČENÍ**. Obsahuje počet nově vytvořených parametrů, jejich ID a příklady kombinací, počet upravených vah, celkový počet parametrů a cross-entropy učícího rozhodnutí. Online záznam se ukládá do historie akce tahu; místní záznam vzniká při rozhodnutí v prohlížeči.
+
+Učení používá 1000 základních parametrů a dynamické parametry od ID 1001. Místní model se ukládá do localStorage daného zařízení; online model je globální řádek v databázi. Tyto dva modely zatím nejsou synchronizované.
+
+Debug režim nadále nezobrazuje kompletní interní stav herního enginu ani všechny síťové požadavky online hry.
 
 ## 6. Vypnutí
 
