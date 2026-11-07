@@ -139,12 +139,14 @@ try {
             if ($textColumns !== []) {
                 $select = ['COUNT(*) AS row_count'];
                 foreach ($textColumns as $index => $columnName) {
-                    $quoted = '\`' . str_replace('\`', '\`\`', $columnName) . '\`';
+                    $tick = chr(96);
+                    $quoted = $tick . str_replace($tick, $tick . $tick, $columnName) . $tick;
                     $select[] = 'SUM(OCTET_LENGTH(' . $quoted . ')) AS c' . $index . '_total';
                     $select[] = 'AVG(OCTET_LENGTH(' . $quoted . ')) AS c' . $index . '_avg';
                     $select[] = 'MAX(OCTET_LENGTH(' . $quoted . ')) AS c' . $index . '_max';
                 }
-                $quotedTable = '\`' . str_replace('\`', '\`\`', $movesTable) . '\`';
+                $tick = chr(96);
+                $quotedTable = $tick . str_replace($tick, $tick . $tick, $movesTable) . $tick;
                 $stats = $db->query('SELECT ' . implode(', ', $select) . ' FROM ' . $quotedTable)->fetch();
                 foreach ($textColumns as $index => $columnName) {
                     $movesStorage[] = [
