@@ -623,8 +623,15 @@ function onlineAiLearningDecision(array $game, array &$model): array
     }
     unset($action);
 
-    $teacherTemperature = max(8.0, ($scoreMax - $scoreMin) * 0.22);
-    $teacherProbabilities = onlineAiLearningSoftmax($rawScores, $teacherTemperature);
+    $teacher = onlineAiLearningMctsTeacher($game, 12, 80);
+    $teacherVisits = [];
+    foreach ($teacher['ranked'] as $rankedTeacherMove) {
+        $teacherVisits[(int) $rankedTeacherMove['pieceId']] = (int) $rankedTeacherMove['visits'];
+    }
+    $visitTotal = array_sum($teacherVisits);
+    $teacherProbabilities = $visitTotal > 0
+        ? array_map(static fn(array $action): float => ($teacherVisits[$action['pieceId']] ?? 0) / $visitTotal, $actions)
+        : onlineAiLearningSoftmax($rawScores, max(8.0, ($scoreMax - $scoreMin) * 0.22));
     $temperature = (float) ($model['temperature'] ?? 0.22);
     $studentLogits = [];
     foreach ($actions as $action) {
