@@ -12,7 +12,8 @@ import {
 import {
     estimateCaptureProbability,
     estimatePieceThreat,
-    calculatePlayerPips
+    calculatePlayerPips,
+    calculateAdaptiveRiskMultiplier
 } from '../js/ai-strategy.js';
 
 const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
@@ -248,4 +249,24 @@ test('AI evaluates an eight-player game on the 80-space board', () => {
     assert.equal(game.players.length, 8);
     assert.ok(legal.length > 0);
     assert.ok(legal.includes(decision.pieceId));
+});
+
+
+test('AI adapts risk tolerance to its relative race position', () => {
+    const ahead = createGame(1, 1);
+    ahead.pieces[0].pieces.forEach((piece, index) => {
+        piece.steps = ahead.trackLength + index;
+    });
+    assert.ok(calculateAdaptiveRiskMultiplier(ahead, 0) > 1);
+    assert.ok(calculateAdaptiveRiskMultiplier(ahead, 0) <= 1.2);
+
+    const behind = createGame(1, 1);
+    behind.pieces[1].pieces.forEach((piece, index) => {
+        piece.steps = behind.trackLength + index;
+    });
+    assert.ok(calculateAdaptiveRiskMultiplier(behind, 0) < 1);
+    assert.ok(calculateAdaptiveRiskMultiplier(behind, 0) >= 0.8);
+
+    const tied = createGame(1, 1);
+    assert.equal(calculateAdaptiveRiskMultiplier(tied, 0), 1);
 });
