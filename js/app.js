@@ -10,6 +10,7 @@ import { getPlayerSetup, initPlayerSetup, updateSetup, waitForPlayerProfileDefau
 import { createGameView } from './game-view.js?v=20261107-2';
 import { createGameLog } from './game-log.js';
 import { createTurnController } from './game-turn.js';
+import { beginLocalAiLearningGame, completeLocalAiLearningGame } from './ai-live-learning.js';
 
 // Zvukový modul se načte až při skutečném spuštění hry.
 let audioModule = null;
@@ -76,6 +77,7 @@ const turnController = createTurnController({
     chooseAIMove,
     chooseAIMoveDecision,
     chooseAIMoveLearningDecision,
+    completeLocalAiLearningGame,
     settings,
     animateDice,
     isPaused,
@@ -112,6 +114,7 @@ async function startGame() {
         await waitForPlayerProfileDefaults();
         const setup = getPlayerSetup();
         game = createGame(setup.humanCount, setup.aiCount, setup.names, setup.colors, setup.selectedBoardSize, setup.extendedRules, setup.aiDifficulty);
+        beginLocalAiLearningGame();
         turnController.setGame(game);
         game.phase = 'start-roll';
         game.currentPlayer = 0;
