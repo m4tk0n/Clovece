@@ -44,6 +44,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
             "./js/dice-rotation.js": "./js/dice-rotation.js?v=<?= $assetVersion('js/dice-rotation.js') ?>",
             "./js/game-board.js": "./js/game-board.js?v=<?= $assetVersion('js/game-board.js') ?>",
             "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
+            "./js/player-setup.js": "./js/player-setup.js?v=<?= $assetVersion('js/player-setup.js') ?>",
             "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
             "./js/navigation.js": "./js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
             "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>",
