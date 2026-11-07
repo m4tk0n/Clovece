@@ -226,3 +226,21 @@ Testy musí ověřovat zejména:
 - Těžká úroveň simuluje bonusové pokračování, nikoli kompletní minimax celé partie.
 - Pro další posílení je vhodné spustit automatické turnaje AI proti AI na deskách 40/48/80 a při 2–8 hráčích. Z výsledků kalibrovat parametry self-play, měřit Elo a porovnávat míru vítězství.
 - Monte Carlo rollouty a plná simulace celých kol se mají přidávat až po změření rychlosti na mobilních zařízeních. Nesmí způsobit prodlevy v běžném tahu.
+
+## 12. Průběžné učení při každém tahu AI
+
+Místní hra používá `js/ai-live-learning.js`:
+- Základ modelu má 1000 vstupních vah (44 základních signálů, 946 párových interakcí a 10 trojitých interakcí).
+- Při každém rozhodnutí AI MCTS prohledá legální tahy, vytvoří cílové rozdělení a učící model zpracuje právě toto jedno rozhodnutí.
+- Neznámé kvantované kombinace základních signálů vytvářejí dynamické parametry s ID od 1001. Nové parametry jsou přidány před dalším tahem AI a jejich váhy se aktualizují okamžitě.
+- Model místní hry se ukládá jako JSON do `localStorage` zařízení pod klíčem `clovece.ai.search.learning.v1`. Kvůli limitu úložiště zařízení se při nedostatku místa zachovává až 5000 nejpoužívanějších dynamických parametrů.
+- Naučené skóre může upravit pořadí strategických tahů, ale jeho vliv je omezený na 12 % kombinovaného skóre; legální tahy stále určuje herní engine.
+- Pokud se učící vrstva pokazí nebo není dostupná, hra pokračuje původní strategickou AI.
+
+Online hra používá `lib/ai-learning.php`:
+- Model je globální a sdílený mezi online AI partiemi v jediné tabulce `ai_learning_model`; neukládá samostatné řádky pro anonymní hráče.
+- Řádek modelu se zamyká `SELECT ... FOR UPDATE` během transakce tahu, aby se souběžné online partie nepřepisovaly.
+- Online větev vytváří stejný počet 1000 základních vlastností a dynamické parametry od ID 1001. Její současný učitel je serverová heuristika (`online-heuristic-v1`), zatímco místní hra používá MCTS.
+- Online model je tedy zatím samostatný od modelu uloženého v prohlížeči a od kandidáta trénovacího repozitáře. Sloučení těchto modelů do jednoho synchronizovaného modelu je další krok; nyní se jejich zkušenosti mezi režimy automaticky nepřenášejí.
+
+V režimu `?debug=1` se po každém rozhodnutí AI zobrazuje v chatu zpráva **AI UČENÍ**: počet nových parametrů, upravené váhy, celkový počet parametrů, cross-entropy a několik nově objevených kombinací. Čísla jsou skutečné hodnoty z modelu, nikoli ilustrační text.
