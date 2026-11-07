@@ -223,17 +223,24 @@ function calculatePipWinShares(pips) {
     return weights.map(value => total > 0 ? value / total : 1 / weights.length);
 }
 
-function evaluatePosition(game, dependencies, riskWeight) {
+function evaluatePosition(game, dependencies, riskWeight, focusPlayerId) {
     const rawPips = game.players.map(player => calculatePlayerPips(game, player.id));
     const expectedLoss = game.players.map(() => 0);
 
     for (const player of game.players) {
         if (player.finished) continue;
-        const playerId = player.id;
-        game.pieces[playerId].pieces.forEach((piece, pieceId) => {
+        const targetPlayerId = player.id;
+        game.pieces[targetPlayerId].pieces.forEach((piece, pieceId) => {
             if (!isMainTrackPiece(piece, game.trackLength)) return;
-            const threat = estimatePieceThreat(game, playerId, pieceId, dependencies);
-            expectedLoss[playerId] += threat * getCaptureCost(game, playerId, pieceId);
+            // U vlastních figurek počítáme hrozby od všech soupeřů.
+            // U soupeřů stačí započítat hrozbu, kterou představuje právě naše AI;
+            // vzájemné hrozby mezi soupeři nejsou přímým důsledkem našeho tahu.
+            const threat = targetPlayerId === focusPlayerId
+                ? estimatePieceThreat(game, targetPlayerId, pieceId, dependencies)
+                : estimateOpponentHitProbability(
+                    game, focusPlayerId, targetPlayerId, pieceId, dependencies
+                );
+            expectedLoss[targetPlayerId] += threat * getCaptureCost(game, targetPlayerId, pieceId);
         });
     }
 
@@ -327,7 +334,7 @@ function evaluateCandidate(originalGame, pieceId, dependencies, difficulty, risk
         };
     }
 
-    const position = evaluatePosition(simulated, dependencies, riskWeight);
+    const position = evaluatePosition(simulated, dependencies, riskWeight, playerId);
     let score = position.winShares[playerId] ?? 0;
     let bonusScore = null;
 
@@ -391,7 +398,7 @@ function formatPips(value) {
     });
 }
 
-function buildDecisionExplanation(selected, evaluated, playerId) {
+function buildDecisionExplanation(selected, evaluated) {
     if (selected.winningMove) return 'Vítězný tah. Všechny čtyři figurky jsou v domečku.';
 
     const parts = [];
@@ -472,7 +479,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
 
     return {
         pieceId: selected.pieceId,
-        reason: buildDecisionExplanation(selected, evaluated, game.currentPlayer),
+        reason: buildDecisionExplanation(selected, evaluated),
         score: selected.score,
         breakdown: {
             expectedOwnLoss: selected.riskLoss,
