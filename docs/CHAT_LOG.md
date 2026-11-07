@@ -38,6 +38,7 @@ Tento dokument popisuje, co se zobrazuje v chatu během lokální i online parti
 - Každý tah AI s legálním rozhodnutím vytvoří samostatnou zprávu o učení.
 - Zpráva uvádí počet nových parametrů, jejich ID, počet upravených vah, celkový počet parametrů a cross-entropy.
 - Zprávy **AI UČENÍ** se neslučují s běžným herním tahem ani s běžnými zprávami chatu.
+- Po dokončení online partie se do poslední herní události připojí souhrn celé partie; nevytváří se kvůli němu další řádek v `game_moves`.
 - V online hře jsou údaje součástí záznamu akce tahu; v místní hře vznikají přímo při rozhodnutí AI.
 - Výpis se zobrazuje pouze při `?debug=1`.
 ### Běžné zprávy
