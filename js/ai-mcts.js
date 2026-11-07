@@ -52,7 +52,9 @@ function advanceToDecision(state, dependencies, random, maxChanceRolls = 80) {
         const value = 1 + Math.floor(random() * 6);
         const result = rollDice(state, value);
         chanceRolls++;
-        if (result.turnEnded || state.phase === 'no-move') {
+        if (result.turnEnded) {
+            // rollDice already advanced the turn in this exceptional branch.
+        } else if (state.phase === 'no-move') {
             dependencies.advanceTurn(state);
         }
     }
@@ -104,7 +106,9 @@ function rollout(state, dependencies, random, options) {
         if (state.phase === 'roll') {
             const value = 1 + Math.floor(random() * 6);
             const result = dependencies.rollDice(state, value);
-            if (result.turnEnded || state.phase === 'no-move') {
+            if (result.turnEnded) {
+                turns++;
+            } else if (state.phase === 'no-move') {
                 dependencies.advanceTurn(state);
                 turns++;
             }
