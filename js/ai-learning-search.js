@@ -168,8 +168,9 @@ export function createSearchModel(source = DEFAULT_SEARCH_MODEL) {
         dynamicParameters: Array.isArray(source?.dynamicParameters)
             ? source.dynamicParameters.filter(item => item && typeof item.key === 'string')
                 .slice(0, 50000).map((item, index) => ({
-                    id: 1001 + index,
+                    id: Number.isInteger(item.id) && item.id >= 1001 ? item.id : 1001 + index,
                     key: item.key,
+                    featureNames: Array.isArray(item.featureNames) ? item.featureNames.slice(0, 3) : [],
                     weight: clamp(Number(item.weight) || 0, -5, 5),
                     visits: Math.max(0, Math.floor(Number(item.visits) || 0)),
                     teacherSupport: Math.max(0, Math.floor(Number(item.teacherSupport) || 0)),
@@ -496,7 +497,7 @@ function registerDynamicPatterns(model, actions) {
             let parameter = byKey.get(feature.key);
             if (!parameter && model.dynamicParameters.length < DYNAMIC_FEATURE_LIMIT) {
                 parameter = {
-                    id: 1001 + model.dynamicParameters.length,
+                    id: Math.max(1000, ...model.dynamicParameters.map(item => item.id)) + 1,
                     key: feature.key,
                     featureNames: feature.featureNames,
                     weight: 0,
