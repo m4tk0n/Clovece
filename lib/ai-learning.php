@@ -623,7 +623,7 @@ function onlineAiLearningDecision(array $game, array &$model): array
     }
     unset($action);
 
-    $teacher = onlineAiLearningMctsTeacher($game, 12, 80);
+    $teacher = onlineAiLearningMctsTeacher($game, 8, 40);
     $teacherVisits = [];
     foreach ($teacher['ranked'] as $rankedTeacherMove) {
         $teacherVisits[(int) $rankedTeacherMove['pieceId']] = (int) $rankedTeacherMove['visits'];
