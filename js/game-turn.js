@@ -197,6 +197,12 @@ export function createTurnController(deps) {
                     ', upravené váhy ' + summary.changedParameters +
                     ', průměrná loss ' + Number(summary.averageCrossEntropy || 0).toFixed(4) +
                     ', dokončených partií modelu ' + summary.gamesTrained + '.' +
+                    (summary.topPatterns?.length
+                        ? ' MCTS nejčastěji podporovalo: ' + summary.topPatterns.map(item =>
+                            '#' + item.id + ' ' + item.featureNames.join(' × ') +
+                            ' (podpora ' + item.teacherSupport + ', odmítnutí ' + item.teacherRejects + ')'
+                        ).join('; ') + '.'
+                        : '') +
                     (summary.storageSaved ? '' : ' Model se nepodařilo uložit na zařízení.'));
             }
         }
