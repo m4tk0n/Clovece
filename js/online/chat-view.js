@@ -144,6 +144,21 @@ export function renderGameChat(messages, participants, moves = []) {
             if (examples.length) learningText += ' Nové vzorce: ' + examples.join('; ') + '.';
             displayEntries.push({ kind: 'event', sender: 'AI UČENÍ', text: learningText });
         }
+
+        if (debugAI && action.aiLearningSummary) {
+            const summary = action.aiLearningSummary;
+            displayEntries.push({
+                kind: 'event',
+                sender: 'AI UČENÍ',
+                text: 'Souhrn partie: parametry na začátku ' + (summary.parametersAtStart || 1000) +
+                    ', nově vytvořeno +' + (summary.newParameters || 0) +
+                    ', na konci ' + (summary.parametersAtEnd || 1000) +
+                    ', rozhodnutí ' + (summary.decisions || 0) +
+                    ', upravené váhy ' + (summary.changedParameters || 0) +
+                    ', průměrná loss ' + Number(summary.averageCrossEntropy || 0).toFixed(4) +
+                    ', dokončených partií modelu ' + (summary.gamesTrained || '?') + '.'
+            });
+        }
     });
 
     displayEntries.forEach(item => {
