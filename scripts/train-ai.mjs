@@ -11,9 +11,9 @@ import {
     movePiece,
     advanceTurn,
     chooseAIMove,
-    chooseAIMoveMonteCarlo,
-    calculatePlayerPips
+    chooseAIMoveMonteCarlo
 } from '../js/game-engine.js';
+import { calculatePlayerPips } from '../js/ai-strategy.js';
 
 function arg(name, fallback) {
     const prefix = '--' + name + '=';
@@ -33,7 +33,7 @@ function playGame({ playerCount, boardSize, candidate, seed, maxTurns }) {
     const random = randomFor(seed);
     const game = createGame(1, playerCount - 1, [], [], boardSize);
     const candidateSeat = seed % playerCount;
-    game.currentPlayer = seed % playerCount;
+    game.currentPlayer = 0;
     const dependencies = { getValidMoves, movePiece, rollDice, advanceTurn, calculatePlayerPips };
 
     while (game.winner === null && game.turnNumber <= maxTurns) {
