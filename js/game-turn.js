@@ -188,7 +188,7 @@ export function createTurnController(deps) {
         if (!game.aiLearningSummaryLogged && game.players.some(player => player.isAI) && completeLocalAiLearningGame) {
             game.aiLearningSummaryLogged = true;
             const summary = completeLocalAiLearningGame();
-            if (debugAI) {
+            if (debugAI && summary) {
                 addGameLogEntry('AI UČENÍ',
                     'Souhrn partie: parametry na začátku ' + summary.parametersAtStart +
                     ', nově vytvořeno +' + summary.newParameters +
