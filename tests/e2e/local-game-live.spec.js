@@ -28,7 +28,8 @@ test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračován�
     threeRolls: false,
     mustDeploy: true,
     skipHomePieces: true,
-    mustEnterHome: true
+    mustEnterHome: true,
+    threeSixesPenalty: false
   });
 
   // Pauza pozastaví automatické tahy, aniž by opustila skutečnou herní obrazovku.
