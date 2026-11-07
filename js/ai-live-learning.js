@@ -90,6 +90,7 @@ function decisionOptions(decision) {
  */
 export function learnFromAIMove(game, dependencies, strategicDecision) {
     if (!strategicDecision || game?.phase !== 'move') return strategicDecision;
+    if (new URLSearchParams(globalThis.location?.search || '').get('test') === '1') return strategicDecision;
     const legalMoves = dependencies.getValidMoves(game);
     if (!legalMoves.length) return strategicDecision;
 
