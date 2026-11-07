@@ -80,8 +80,8 @@
                     </div>
                     <div class="extended-rule-row">
                         <div class="extended-rule-description">
-                            <span>POVINNOST VSTOUPIT DO DOMEČKU</span>
-                            <button class="rule-info" type="button" data-rule-info aria-label="Nápověda: Povinnost vstoupit do domečku" aria-expanded="false">i</button>
+                            <span>POVINNĚ DO DOMEČKU</span>
+                            <button class="rule-info" type="button" data-rule-info aria-label="Nápověda: Povinně do domečku" aria-expanded="false">i</button>
                             <p class="rule-hint" hidden>Pokud můžeš podle hodu kostkou legálně vstoupit některou figurkou do volného cílového pole, musíš tento tah využít. Pokud žádný takový tah není možný, můžeš táhnout jinou figurkou.</p>
                         </div>
                         <button class="rule-switch" type="button" data-rule-toggle="mustEnterHome" aria-pressed="true"><span>ANO</span></button>
