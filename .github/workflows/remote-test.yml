@@ -48,6 +48,7 @@ jobs:
           print("MYSQL:", d.get("server", {}).get("version"), d.get("server", {}).get("version_comment"))
           print("CHARSET/COLLATION:", d.get("server", {}).get("character_set_server"), d.get("server", {}).get("collation_server"))
           print("DATABASE SIZE:", json.dumps(d.get("database_size", {}), ensure_ascii=False))
+          print("DATABASE PROFILES:", json.dumps(d.get("profiles", {}), ensure_ascii=False))
           print("TABLE COUNT:", d["table_count"])
           for t in d.get("tables", []):
               print(f"\\n{t['name']}: exact_rows={t['exact_rows']}, estimated_rows={t['estimated_rows']}, data={t['data_bytes']} B, indexes={t['index_bytes']} B, free={t['free_bytes']} B")
