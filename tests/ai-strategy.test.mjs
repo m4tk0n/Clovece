@@ -46,7 +46,7 @@ test('a blocked intermediate six-space prevents the longer attack but the blocki
     game.pieces[1].pieces[0].steps = 5; // field 25, twenty spaces from target
     game.pieces[1].pieces[1].steps = 11; // field 31 blocks the first piece, but is itself 14 spaces away
 
-    assert.equal(estimatePieceThreat(game, 0, 0, getPiecePosition), 1 / 216);
+    assert.ok(Math.abs(estimatePieceThreat(game, 0, 0, getPiecePosition) - (1 / 216)) < 1e-12);
 });
 
 test('AI difficulty is stored in the game and all levels return legal moves', () => {
