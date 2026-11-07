@@ -420,6 +420,54 @@ try {
              ORDER BY g.id'
         )->fetchAll();
 
+        $explainGameId = (int) $db->query(
+            'SELECT game_id FROM ' . $quoteIdentifier(table('game_moves')) .
+            ' GROUP BY game_id ORDER BY COUNT(*) DESC, game_id LIMIT 1'
+        )->fetchColumn();
+        $queryPlans = [];
+        if ($explainGameId > 0) {
+            $planQueries = [
+                'game_moves_history' => [
+                    'SELECT id, participant_id, state_version, action_type, action_json, created_at
+                     FROM ' . $quoteIdentifier(table('game_moves')) . '
+                     WHERE game_id = ? ORDER BY id DESC LIMIT 30',
+                    [$explainGameId],
+                ],
+                'game_chat_history' => [
+                    'SELECT id, participant_id, message, created_at
+                     FROM ' . $quoteIdentifier(table('game_chat')) . '
+                     WHERE game_id = ? ORDER BY id DESC LIMIT 30',
+                    [$explainGameId],
+                ],
+                'game_participants_active' => [
+                    'SELECT id, identity_id, player_index, player_type, display_name
+                     FROM ' . $quoteIdentifier(table('game_participants')) . '
+                     WHERE game_id = ? AND left_at IS NULL ORDER BY player_index',
+                    [$explainGameId],
+                ],
+                'game_move_idempotency_lookup' => [
+                    'SELECT id FROM ' . $quoteIdentifier(table('game_moves')) . '
+                     WHERE game_id = ? AND request_id = ? LIMIT 1',
+                    [$explainGameId, '00000000-0000-4000-8000-000000000000'],
+                ],
+            ];
+            foreach ($planQueries as $planName => [$sql, $params]) {
+                $stmt = $db->prepare('EXPLAIN ' . $sql);
+                $stmt->execute($params);
+                $queryPlans[$planName] = $stmt->fetchAll();
+            }
+        }
+        foreach ([
+            'online_games_active_by_activity' => 'SELECT id, status, last_activity_at FROM ' .
+                $quoteIdentifier(table('online_games')) .
+                ' WHERE status IN ("active", "paused") ORDER BY last_activity_at DESC LIMIT 20',
+            'player_identities_recent_activity' => 'SELECT id, last_seen_at FROM ' .
+                $quoteIdentifier(table('player_identities')) .
+                ' WHERE last_seen_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) ORDER BY last_seen_at DESC LIMIT 20',
+        ] as $planName => $sql) {
+            $queryPlans[$planName] = $db->query('EXPLAIN ' . $sql)->fetchAll();
+        }
+
         $profiles['moves_by_action_type'] = $db->query(
             'SELECT action_type, COUNT(*) AS row_count,
                     SUM(OCTET_LENGTH(action_json)) AS total_action_octets,
@@ -491,6 +539,7 @@ try {
             'server' => $server,
             'database_size' => $databaseSize,
             'profiles' => $profiles,
+            'query_plans' => $queryPlans,
             'table_count' => count($tables),
             'tables' => $tables,
             'foreign_keys' => $foreignKeys,
