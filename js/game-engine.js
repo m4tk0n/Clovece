@@ -4,6 +4,7 @@
  */
 import { chooseStrategicMove, chooseStrategicDecision, calculatePlayerPips } from './ai-strategy.js';
 import { chooseMonteCarloDecision, chooseMonteCarloMove } from './ai-mcts.js';
+import { learnFromAIMove } from './ai-live-learning.js';
 
 export const PLAYER_COLORS = [
     '#E53935', '#1E88E5', '#43A047', '#F9A825',
@@ -395,6 +396,12 @@ const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice, a
 
 export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'medium') {
     return chooseStrategicDecision(game, aiDependencies, difficulty);
+}
+
+/** Rozhodnutí AI s průběžným učením při každém jejím tahu v místní hře. */
+export function chooseAIMoveLearningDecision(game, difficulty = game.aiDifficulty || 'medium') {
+    const strategic = chooseStrategicDecision(game, aiDependencies, difficulty);
+    return learnFromAIMove(game, aiDependencies, strategic);
 }
 
 export function chooseAIMove(game, difficulty = game.aiDifficulty || 'medium') {
