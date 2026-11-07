@@ -390,7 +390,7 @@ export function advanceTurn(game) {
     game.turnNumber++;
 }
 
-const aiDependencies = { getValidMoves, getPiecePosition, movePiece };
+const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
 
 export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'medium') {
     return chooseStrategicDecision(game, aiDependencies, difficulty);

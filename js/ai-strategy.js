@@ -1,11 +1,16 @@
 /**
  * Strategická AI pro lokální hru Člověče, nezlob se!
  *
- * Modul neobsahuje pravidla hry. Legální tahy i samotné provedení tahu
- * vždy ověřuje game-engine.js; tento modul pouze porovnává jejich hodnotu.
+ * AI neobsahuje pravidla ani vlastní generátor tahů. Všechny tahy, simulace
+ * hodů a důsledky pravidel získává výhradně z game-engine.js.
  */
 
-/** Pravděpodobnost zásahu při řetězení šestek a pokračování stejnou figurkou. */
+const BASE_DEPLOY_COST = 6;
+const EXPECTED_PIPS_PER_ACTIVE_TURN = 4.2;
+const MAX_THREAT_BONUS_ROLLS = 3;
+const MAX_BONUS_LOOKAHEAD = 2;
+const FLEXIBILITY_PIPS = [-1.5, 0, 1.5, 2.2, 2.5];
+
 export function estimateCaptureProbability(distance) {
     if (!Number.isInteger(distance) || distance < 1) return 0;
     return 1 / (6 ** Math.ceil(distance / 6));
@@ -15,263 +20,471 @@ function cloneGame(game) {
     return JSON.parse(JSON.stringify(game));
 }
 
-function getOpponentProgressValue(game, captured) {
-    if (!captured || captured.ownPiece) return 0;
-    const enemyPiece = game.pieces[captured.playerId]?.pieces[captured.pieceId];
-    if (!enemyPiece || enemyPiece.steps < 0) return 0;
-    return enemyPiece.steps / game.trackLength;
+function isMainTrackPiece(piece, trackLength) {
+    return piece.steps >= 0 && piece.steps < trackLength;
 }
 
-function getAttackerProbability(game, attackerId, attackerPiece, targetPosition, getPiecePosition) {
-    if (attackerPiece.steps < 0 || attackerPiece.steps >= game.trackLength) return 0;
+function getBasePieces(game, playerId) {
+    return game.pieces[playerId].pieces.filter(piece => piece.steps === -1);
+}
 
-    const attackerPosition = getPiecePosition(game, attackerId, attackerPiece);
-    if (attackerPosition === null) return 0;
+function getThreatCacheKey(game, depth) {
+    return [
+        depth,
+        game.currentPlayer,
+        game.baseRollAttempts || 0,
+        game.consecutiveSixes || 0,
+        game.thirdAttemptSix ? 1 : 0,
+        game.threeSixesPenaltyPending ? 1 : 0,
+        game.pieces.map(group => group.pieces.map(piece => piece.steps).join(',')).join(';')
+    ].join('|');
+}
 
-    const distance = (targetPosition - attackerPosition + game.trackLength) % game.trackLength;
-    if (distance === 0) return 0;
+/**
+ * Pravděpodobnost zásahu jednoho konkrétního cíle během tahu soupeře.
+ *
+ * Pro každou hodnotu kostky se používá rollDice(), getValidMoves() a
+ * movePiece() z enginu. Na šestku může soupeř zvolit libovolný legální tah;
+ * model volí ten, který maximalizuje šanci zasáhnout sledovanou figurku.
+ * Jde tedy o konzervativní model soupeře zaměřeného na tento zásah.
+ *
+ * Po třech navazujících bonusových hodech se další řetězení ořízne.
+ * Pravděpodobnost vynechaného pokračování je nejvýše 1/1296 na tah.
+ */
+function estimateOpponentHitProbability(
+    initialGame,
+    attackerId,
+    targetPlayerId,
+    targetPieceId,
+    dependencies
+) {
+    const { getValidMoves, movePiece, rollDice } = dependencies;
+    if (typeof rollDice !== 'function' || typeof movePiece !== 'function' ||
+        typeof getValidMoves !== 'function') return 0;
 
-    // Figurka nesmí před dosažením cíle vstoupit do vlastního domečku.
-    const remainingTrack = game.trackLength - attackerPiece.steps;
-    if (distance >= remainingTrack) return 0;
+    const canAct = initialGame.pieces[attackerId].pieces.some(piece =>
+        piece.steps === -1 || isMainTrackPiece(piece, initialGame.trackLength)
+    );
+    if (!canAct) return 0;
 
-    const rollsRequired = Math.ceil(distance / 6);
-    const attackerPieces = game.pieces[attackerId].pieces;
+    const startState = cloneGame(initialGame);
+    startState.currentPlayer = attackerId;
+    startState.phase = 'roll';
+    startState.diceValue = 0;
+    startState.baseRollAttempts = 0;
+    startState.thirdAttemptSix = false;
+    startState.consecutiveSixes = 0;
+    startState.threeSixesPenaltyPending = false;
 
-    // Každá mezilehlá šestka musí mít volné cílové pole.
-    for (let rollIndex = 1; rollIndex < rollsRequired; rollIndex++) {
-        const blockedPosition = (attackerPosition + rollIndex * 6) % game.trackLength;
-        const blocked = attackerPieces.some(piece =>
-            piece.id !== attackerPiece.id &&
-            piece.steps >= 0 &&
-            piece.steps < game.trackLength &&
-            getPiecePosition(game, attackerId, piece) === blockedPosition
-        );
-        if (blocked) return 0;
+    const cache = new Map();
+
+    function enumerate(state, depth) {
+        const target = state.pieces[targetPlayerId]?.pieces[targetPieceId];
+        if (!target || !isMainTrackPiece(target, state.trackLength) || state.winner !== null) return 0;
+
+        const key = getThreatCacheKey(state, depth);
+        if (cache.has(key)) return cache.get(key);
+
+        let probability = 0;
+        for (let dice = 1; dice <= 6; dice++) {
+            const rolled = cloneGame(state);
+            const result = rollDice(rolled, dice);
+            let branchProbability = 0;
+
+            if (result.turnEnded || rolled.phase === 'no-move' || rolled.phase === 'finished') {
+                branchProbability = 0;
+            } else if (result.retrying) {
+                if (rolled.phase === 'roll' && depth < MAX_THREAT_BONUS_ROLLS) {
+                    branchProbability = enumerate(rolled, depth + 1);
+                }
+            } else if (rolled.phase === 'move') {
+                const legalMoves = result.validMoves || getValidMoves(rolled, attackerId);
+                let bestContinuation = 0;
+
+                for (const pieceId of legalMoves) {
+                    const next = cloneGame(rolled);
+                    const move = movePiece(next, pieceId);
+                    const capturedTarget = move.captured &&
+                        !move.captured.ownPiece &&
+                        move.captured.playerId === targetPlayerId &&
+                        move.captured.pieceId === targetPieceId;
+
+                    if (capturedTarget) {
+                        bestContinuation = 1;
+                        break;
+                    }
+
+                    if (next.winner === null &&
+                        next.currentPlayer === attackerId &&
+                        next.phase === 'roll' &&
+                        depth < MAX_THREAT_BONUS_ROLLS) {
+                        bestContinuation = Math.max(bestContinuation, enumerate(next, depth + 1));
+                    }
+                }
+                branchProbability = bestContinuation;
+            }
+
+            probability += branchProbability / 6;
+        }
+
+        const bounded = Math.max(0, Math.min(1, probability));
+        cache.set(key, bounded);
+        return bounded;
     }
 
-    const destinationBlocked = attackerPieces.some(piece =>
-        piece.id !== attackerPiece.id &&
-        piece.steps >= 0 &&
-        piece.steps < game.trackLength &&
-        getPiecePosition(game, attackerId, piece) === targetPosition
-    );
-    if (destinationBlocked) return 0;
-
-    return estimateCaptureProbability(distance);
+    return enumerate(startState, 0);
 }
 
-/** Pravděpodobnost, že některý soupeř zasáhne danou vlastní figurku. */
-export function estimatePieceThreat(game, targetPlayerId, targetPieceId, getPiecePosition) {
+/**
+ * Odhad pravděpodobnosti, že některý soupeř během svého příštího tahu
+ * vyhodí konkrétní figurku. U více soupeřů používá sjednocení horní mezí
+ * (součet pravděpodobností omezený na 1), protože jejich tahy mění společný stav.
+ */
+export function estimatePieceThreat(game, targetPlayerId, targetPieceId, dependencies) {
     const targetPiece = game.pieces[targetPlayerId]?.pieces[targetPieceId];
-    if (!targetPiece || targetPiece.steps < 0 || targetPiece.steps >= game.trackLength) return 0;
+    if (!targetPiece || !isMainTrackPiece(targetPiece, game.trackLength)) return 0;
 
-    const targetPosition = getPiecePosition(game, targetPlayerId, targetPiece);
-    if (targetPosition === null) return 0;
-
-    let survivalProbability = 1;
+    let totalThreat = 0;
     for (const opponent of game.players) {
         if (opponent.id === targetPlayerId || opponent.finished) continue;
-
-        let opponentSurvival = 1;
-        for (const attackerPiece of game.pieces[opponent.id].pieces) {
-            const probability = getAttackerProbability(
-                game, opponent.id, attackerPiece, targetPosition, getPiecePosition
-            );
-            opponentSurvival *= 1 - probability;
-        }
-        survivalProbability *= opponentSurvival;
+        const probability = estimateOpponentHitProbability(
+            game,
+            opponent.id,
+            targetPlayerId,
+            targetPieceId,
+            dependencies
+        );
+        totalThreat = Math.min(1, totalThreat + probability);
+        if (totalThreat >= 1) return 1;
     }
 
-    return Math.max(0, Math.min(1, 1 - survivalProbability));
+    return totalThreat;
 }
 
-function scoreNextBonusRoll(game, playerId, getValidMoves, getPiecePosition) {
-    if (game.phase !== 'roll' || game.currentPlayer !== playerId) return 0;
+function getWaitingCost(game) {
+    const attemptsPerTurn = game.rules?.threeRolls === false ? 1 : 3;
+    const exitProbability = 1 - (5 / 6) ** attemptsPerTurn;
+    return EXPECTED_PIPS_PER_ACTIVE_TURN * (1 / exitProbability - 1);
+}
 
-    let expectedBest = 0;
+/**
+ * Pipový odhad zbývající cesty jednoho hráče.
+ *
+ * Aktivní figurka: zbývající pole do D4.
+ * Základna: zbývající cesta + šestka potřebná k nasazení.
+ * Čekání na šestku se přičítá pouze jednou, pokud jsou všechny figurky v základně.
+ * Flexibilita a blokovaný start jsou malé laditelné heuristiky.
+ */
+export function calculatePlayerPips(game, playerId) {
+    const pieces = game.pieces[playerId]?.pieces || [];
+    const trackLength = game.trackLength;
+    const baseCount = pieces.filter(piece => piece.steps === -1).length;
+    const allAtBase = pieces.length > 0 && baseCount === pieces.length;
+    const activeCount = pieces.filter(piece => isMainTrackPiece(piece, trackLength)).length;
+
+    let pips = 0;
+    for (const piece of pieces) {
+        if (piece.steps === -1) {
+            pips += trackLength + 3 + BASE_DEPLOY_COST;
+        } else {
+            pips += Math.max(0, trackLength + 3 - piece.steps);
+        }
+    }
+
+    if (allAtBase) pips += getWaitingCost(game);
+    pips -= FLEXIBILITY_PIPS[Math.min(activeCount, 4)] || 0;
+
+    const hasPieceOnOwnStart = pieces.some(piece => piece.steps === 0);
+    if (game.rules?.mustDeploy !== false && baseCount > 0 && hasPieceOnOwnStart) {
+        pips += 2;
+    }
+
+    return Math.max(0, pips);
+}
+
+function getCaptureCost(game, playerId, pieceId) {
+    const pieces = game.pieces[playerId]?.pieces || [];
+    const piece = pieces[pieceId];
+    if (!piece || !isMainTrackPiece(piece, game.trackLength)) return 0;
+
+    const allOtherPiecesAtBase = pieces.every(other =>
+        other.id === pieceId || other.steps === -1
+    );
+    return piece.steps + BASE_DEPLOY_COST + (allOtherPiecesAtBase ? getWaitingCost(game) : 0);
+}
+
+function calculatePipWinShares(pips) {
+    if (!pips.length) return [];
+    const minimum = Math.min(...pips);
+    const average = pips.reduce((sum, value) => sum + value, 0) / pips.length;
+    const temperature = Math.max(8, 1.24 * Math.sqrt(Math.max(1, average)));
+    const weights = pips.map(value => Math.exp(-(value - minimum) / temperature));
+    const total = weights.reduce((sum, value) => sum + value, 0);
+    return weights.map(value => total > 0 ? value / total : 1 / weights.length);
+}
+
+function evaluatePosition(game, dependencies, riskWeight) {
+    const rawPips = game.players.map(player => calculatePlayerPips(game, player.id));
+    const expectedLoss = game.players.map(() => 0);
+
+    for (const player of game.players) {
+        if (player.finished) continue;
+        const playerId = player.id;
+        game.pieces[playerId].pieces.forEach((piece, pieceId) => {
+            if (!isMainTrackPiece(piece, game.trackLength)) return;
+            const threat = estimatePieceThreat(game, playerId, pieceId, dependencies);
+            expectedLoss[playerId] += threat * getCaptureCost(game, playerId, pieceId);
+        });
+    }
+
+    const effectivePips = rawPips.map((value, playerId) =>
+        value + expectedLoss[playerId] * riskWeight
+    );
+    return {
+        rawPips,
+        expectedLoss,
+        effectivePips,
+        winShares: calculatePipWinShares(effectivePips)
+    };
+}
+
+function evaluatePipOnlyWinShare(game, playerId) {
+    if (game.winner !== null) return game.winner === playerId ? 1 : 0;
+    const pips = game.players.map(player => calculatePlayerPips(game, player.id));
+    return calculatePipWinShares(pips)[playerId] ?? 0;
+}
+
+/**
+ * Těžká AI simuluje skutečné bonusové hody přes engine.
+ * Na každém hodu zvolí nejlepší legální pokračování; listy používají levnější
+ * pipové hodnocení bez dalšího výpočtu hrozeb, aby zůstala odezva přijatelná.
+ */
+function evaluateBonusContinuation(game, playerId, dependencies, depth = 0) {
+    if (depth >= MAX_BONUS_LOOKAHEAD) return evaluatePipOnlyWinShare(game, playerId);
+
+    const { rollDice, getValidMoves, movePiece } = dependencies;
+    let expected = 0;
+
     for (let dice = 1; dice <= 6; dice++) {
-        const forecast = cloneGame(game);
-        forecast.phase = 'move';
-        forecast.diceValue = dice;
-        const moves = getValidMoves(forecast, playerId);
-        let best = 0;
+        const rolled = cloneGame(game);
+        const result = rollDice(rolled, dice);
+        let branchScore;
 
-        for (const pieceId of moves) {
-            const piece = forecast.pieces[playerId].pieces[pieceId];
-            const nextSteps = piece.steps < 0 ? 0 : piece.steps + dice;
-            let value = piece.steps < 0 ? 12 : dice * 2;
-            if (nextSteps >= forecast.trackLength) value += 18;
-            if (nextSteps === forecast.trackLength + 3) value += 90;
-
-            if (nextSteps < forecast.trackLength) {
-                const destination = (forecast.players[playerId].start + nextSteps) % forecast.trackLength;
-                forecast.pieces.forEach((group, enemyId) => {
-                    if (enemyId === playerId) return;
-                    group.pieces.forEach(enemy => {
-                        if (enemy.steps >= 0 && enemy.steps < forecast.trackLength &&
-                            getPiecePosition(forecast, enemyId, enemy) === destination) {
-                            value += 65 + (enemy.steps / forecast.trackLength) * 45;
-                        }
-                    });
-                });
+        if (result.turnEnded || rolled.phase === 'no-move' || rolled.phase === 'finished') {
+            branchScore = evaluatePipOnlyWinShare(rolled, playerId);
+        } else if (result.retrying) {
+            branchScore = rolled.phase === 'roll'
+                ? evaluateBonusContinuation(rolled, playerId, dependencies, depth + 1)
+                : evaluatePipOnlyWinShare(rolled, playerId);
+        } else if (rolled.phase === 'move') {
+            const legalMoves = result.validMoves || getValidMoves(rolled, playerId);
+            if (!legalMoves.length) {
+                branchScore = evaluatePipOnlyWinShare(rolled, playerId);
+            } else {
+                branchScore = 0;
+                for (const pieceId of legalMoves) {
+                    const next = cloneGame(rolled);
+                    movePiece(next, pieceId);
+                    let score = evaluatePipOnlyWinShare(next, playerId);
+                    if (next.winner === null &&
+                        next.currentPlayer === playerId &&
+                        next.phase === 'roll' &&
+                        depth + 1 < MAX_BONUS_LOOKAHEAD) {
+                        score = evaluateBonusContinuation(next, playerId, dependencies, depth + 1);
+                    }
+                    branchScore = Math.max(branchScore, score);
+                }
             }
-            best = Math.max(best, value);
+        } else {
+            branchScore = evaluatePipOnlyWinShare(rolled, playerId);
         }
-        expectedBest += best / 6;
+
+        expected += branchScore / 6;
     }
-    return expectedBest;
+
+    return expected;
 }
 
-function evaluateCandidate(originalGame, pieceId, dependencies, difficulty) {
-    const { getValidMoves, getPiecePosition, movePiece } = dependencies;
+function evaluateCandidate(originalGame, pieceId, dependencies, difficulty, riskWeight) {
     const playerId = originalGame.currentPlayer;
-    const beforeSteps = originalGame.pieces[playerId].pieces[pieceId].steps;
+    const beforePiece = originalGame.pieces[playerId].pieces[pieceId];
     const simulated = cloneGame(originalGame);
-    const move = movePiece(simulated, pieceId);
+    const move = dependencies.movePiece(simulated, pieceId);
 
     if (simulated.winner === playerId) {
-        return { pieceId, score: 100000, reason: 'vítězný tah' };
+        return {
+            pieceId,
+            score: 1,
+            move,
+            winningMove: true,
+            reason: 'vítězný tah',
+            expectedLoss: 0,
+            riskLoss: 0,
+            captureGain: 0,
+            bonusScore: null,
+            rawPips: [],
+            effectivePips: []
+        };
     }
 
-    let score = beforeSteps < 0 ? 16 : originalGame.diceValue * 2.2;
+    const position = evaluatePosition(simulated, dependencies, riskWeight);
+    let score = position.winShares[playerId] ?? 0;
+    let bonusScore = null;
 
-    if (move.finishedNow) score += 115;
-    else if (beforeSteps < originalGame.trackLength && !move.deployed &&
-        simulated.pieces[playerId].pieces[pieceId].steps >= originalGame.trackLength) {
-        score += 22;
-    }
-
-    if (move.captured && !move.captured.ownPiece) {
-        score += 78 + getOpponentProgressValue(originalGame, move.captured) * 62;
-    } else if (move.captured?.ownPiece) {
-        score -= 7;
-    }
-
-    const activeBefore = originalGame.pieces[playerId].pieces.filter(piece =>
-        piece.steps >= 0 && piece.steps < originalGame.trackLength
-    ).length;
-    if (move.deployed && activeBefore === 0) score += 7;
-
-    const riskWeight = difficulty === 'easy' ? 0.45 : difficulty === 'hard' ? 1.65 : 1.15;
-    let expectedLoss = 0;
-    simulated.pieces[playerId].pieces.forEach((piece, ownPieceId) => {
-        if (piece.steps < 0 || piece.steps >= simulated.trackLength) return;
-        const probability = estimatePieceThreat(simulated, playerId, ownPieceId, getPiecePosition);
-        const progress = piece.steps / simulated.trackLength;
-        expectedLoss += probability * (24 + progress * 46);
-    });
-    score -= expectedLoss * riskWeight;
-
-    if (difficulty === 'hard') {
-        // Šestka ponechá tah stejnému hráči; započítá se očekávaná hodnota
-        // nejlepšího legálního pokračování přes všech šest dalších výsledků.
-        score += scoreNextBonusRoll(simulated, playerId, getValidMoves, getPiecePosition) * 0.72;
+    if (difficulty === 'hard' &&
+        simulated.phase === 'roll' &&
+        simulated.currentPlayer === playerId) {
+        bonusScore = evaluateBonusContinuation(simulated, playerId, dependencies);
+        score = score * 0.65 + bonusScore * 0.35;
     }
 
     const movedPiece = simulated.pieces[playerId].pieces[pieceId];
-    const movedPieceThreat = estimatePieceThreat(simulated, playerId, pieceId, getPiecePosition);
+    const threat = isMainTrackPiece(movedPiece, simulated.trackLength)
+        ? estimatePieceThreat(simulated, playerId, pieceId, dependencies)
+        : 0;
+    const captureGain = move.captured && !move.captured.ownPiece
+        ? getCaptureCost(originalGame, move.captured.playerId, move.captured.pieceId)
+        : 0;
+
     return {
         pieceId,
         score,
         move,
-        beforeSteps,
+        winningMove: false,
+        beforeSteps: beforePiece.steps,
         afterSteps: movedPiece.steps,
-        activeBefore,
-        activeAfter: simulated.pieces[playerId].pieces.filter(piece =>
-            piece.steps >= 0 && piece.steps < simulated.trackLength
-        ).length,
-        threat: movedPieceThreat,
-        expectedLoss,
+        trackLength: simulated.trackLength,
+        activeBefore: originalGame.pieces[playerId].pieces
+            .filter(piece => isMainTrackPiece(piece, originalGame.trackLength)).length,
+        activeAfter: simulated.pieces[playerId].pieces
+            .filter(piece => isMainTrackPiece(piece, simulated.trackLength)).length,
+        threat,
+        expectedLoss: position.expectedLoss[playerId],
+        riskLoss: position.expectedLoss[playerId] * riskWeight,
+        captureGain,
+        bonusScore,
+        rawPips: position.rawPips,
+        effectivePips: position.effectivePips,
         reason: move.captured && !move.captured.ownPiece
             ? 'vyhození soupeře'
-            : move.finishedNow ? 'dokončení figurky'
-            : move.deployed ? 'nasazení figurky'
-            : 'postup a vyhodnocení rizika'
+            : move.finishedNow
+                ? 'dokončení figurky'
+                : move.deployed
+                    ? 'nasazení figurky'
+                    : movedPiece.steps >= originalGame.trackLength
+                        ? 'postup do domečku'
+                        : 'postup a vyhodnocení rizika'
     };
 }
 
-/**
- * Lehká = jednoduché priority; střední = pravděpodobnost ohrožení;
- * těžká = vyšší váha rizika a očekávaná hodnota pokračování po šestce.
- */
 function formatPercent(value) {
-    return Math.round(value * 1000) / 10;
+    return (value * 100).toLocaleString('cs-CZ', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    });
 }
 
-function buildDecisionExplanation(game, selected, evaluated, dependencies) {
-    const playerId = game.currentPlayer;
-    const captureAlternative = evaluated.find(candidate =>
-        candidate !== selected && candidate.move.captured && !candidate.move.captured.ownPiece
-    );
-    const recentMove = game.lastMove;
-    const wasJustDeployed = recentMove?.playerId === playerId &&
-        recentMove.deployed && recentMove.pieceId === selected.pieceId;
+function formatPips(value) {
+    return value.toLocaleString('cs-CZ', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+    });
+}
 
-    if (selected.move.finishedNow) {
-        if (captureAlternative) {
-            return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
-                ', ale raději dokončím figurku v domečku. Hotová figurka už nemůže být vyhozena.';
-        }
-        return 'Raději pojedu do domečku. Dokončení figurky je jistý postup k vítězství.';
+function buildDecisionExplanation(selected, evaluated, playerId) {
+    if (selected.winningMove) return 'Vítězný tah. Všechny čtyři figurky jsou v domečku.';
+
+    const parts = [];
+    if (selected.move.captured && !selected.move.captured.ownPiece) {
+        parts.push(
+            'Vyhodím hráče ' + selected.move.captured.playerName +
+            '; jeho ztráta se v modelu počítá přibližně jako ' +
+            formatPips(selected.captureGain) + ' pipů.'
+        );
+    } else if (selected.move.captured?.ownPiece) {
+        parts.push('Povinné nasazení vymění vlastní figurku na startu.');
     }
 
-    if (selected.move.captured && !selected.move.captured.ownPiece) {
-        return 'Vyhodím hráče ' + selected.move.captured.playerName +
-            '. Získám tím výhodu a soupeř musí figurku znovu nasadit.';
+    if (selected.move.finishedNow) {
+        parts.push('Figurka bezpečně dokončí cestu do D4.');
+    } else if (selected.afterSteps >= 0 && selected.afterSteps >= selected.trackLength) {
+        parts.push('Vstupem do domečku se figurka dostává mimo riziko vyhození.');
     }
 
     if (selected.move.deployed) {
-        const count = selected.activeAfter;
-        return 'Raději nasadím další figurku. Budu mít ' + count +
-            ' figurek na hracím poli a více možností pro další tahy.';
+        parts.push(
+            'Nasazení zvýší počet aktivních figurek na ' + selected.activeAfter +
+            '; nasazení spotřebuje šestku a sníží pipovou vzdálenost o 6.'
+        );
     }
 
-    if (wasJustDeployed) {
-        return 'Raději pojedu právě nasazenou figurkou. Využiji její nasazení a rozšířím svůj postup po okruhu.';
+    if (selected.riskLoss > 0.05) {
+        parts.push(
+            'Po započtení hrozeb je očekávaná ztráta vlastních figurek přibližně ' +
+            formatPips(selected.riskLoss) + ' pipů.'
+        );
     }
 
-    if (captureAlternative) {
-        const threat = selected.threat;
-        if (selected.afterSteps >= game.trackLength) {
-            return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
-                ', ale soupeři jsou daleko a moje figurka je už v domečku. Raději pojedu do domečku.';
-        }
-        const riskText = threat < 0.01
-            ? 'soupeři jsou daleko a moje figurka není v bezprostředním ohrožení'
-            : 'riziko vyhození mé figurky je přibližně ' + formatPercent(threat) + ' %';
-        return 'Mohl bych vyhodit hráče ' + captureAlternative.move.captured.playerName +
-            ', ale ' + riskText + '. Raději zvolím bezpečnější postup.';
+    if (selected.bonusScore !== null) {
+        parts.push(
+            'Po simulaci bonusových hodů vychází modelové skóre pokračování na ' +
+            formatPercent(selected.bonusScore) + ' %.'
+        );
     }
 
-    if (selected.threat >= 0.10) {
-        return 'Volím tah, který nejlépe omezuje riziko ztráty figurek. Odhad ohrožení vybrané figurky je ' +
-            formatPercent(selected.threat) + ' %.';
+    const second = evaluated[1];
+    if (second) {
+        const difference = selected.score - second.score;
+        parts.push(
+            'Modelové skóre tahu je ' + formatPercent(selected.score) +
+            ' % oproti ' + formatPercent(second.score) +
+            ' % u druhé možnosti' +
+            (difference > 0.0005 ? ' (rozdíl ' + formatPercent(difference) + ' procentního bodu).' : '.')
+        );
     }
 
-    return 'Volím tento tah podle postupu figurek, jejich bezpečí a možností dalších tahů.';
+    if (!parts.length) {
+        parts.push('Tento tah má nejlepší kombinaci postupu, bezpečí a budoucích možností.');
+    }
+
+    return parts.join(' ');
 }
 
-/** Vrátí vybraný tah včetně vysvětlení pro debug chat. */
+/** Vrátí vybraný legální tah včetně rozkladu rozhodnutí pro debug chat. */
 export function chooseStrategicDecision(game, dependencies, difficulty = 'medium') {
     const level = ['easy', 'medium', 'hard'].includes(difficulty) ? difficulty : 'medium';
+    const riskWeight = level === 'easy' ? 0.55 : level === 'hard' ? 1.1 : 1;
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
 
     const evaluated = validMoves.map(pieceId =>
-        evaluateCandidate(game, pieceId, dependencies, level)
+        evaluateCandidate(game, pieceId, dependencies, level, riskWeight)
     );
     evaluated.sort((a, b) => b.score - a.score || a.pieceId - b.pieceId);
     const selected = evaluated[0];
 
     return {
         pieceId: selected.pieceId,
-        reason: buildDecisionExplanation(game, selected, evaluated, dependencies),
+        reason: buildDecisionExplanation(selected, evaluated, game.currentPlayer),
         score: selected.score,
+        breakdown: {
+            expectedOwnLoss: selected.riskLoss,
+            capturedOpponentValue: selected.captureGain,
+            ownPips: selected.rawPips[game.currentPlayer] ?? 0,
+            effectiveOwnPips: selected.effectivePips[game.currentPlayer] ?? 0,
+            bonusScore: selected.bonusScore
+        },
         alternatives: evaluated.slice(1).map(candidate => ({
             pieceId: candidate.pieceId,
             score: candidate.score,
-            reason: candidate.reason
+            reason: candidate.reason,
+            breakdown: {
+                expectedOwnLoss: candidate.riskLoss,
+                capturedOpponentValue: candidate.captureGain,
+                ownPips: candidate.rawPips[game.currentPlayer] ?? 0,
+                effectiveOwnPips: candidate.effectivePips[game.currentPlayer] ?? 0,
+                bonusScore: candidate.bonusScore
+            }
         }))
     };
 }
