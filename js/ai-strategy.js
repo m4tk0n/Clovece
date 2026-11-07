@@ -62,9 +62,10 @@ function estimateOpponentHitProbability(
     if (typeof rollDice !== 'function' || typeof movePiece !== 'function' ||
         typeof getValidMoves !== 'function') return 0;
 
-    const activeAttackers = initialGame.pieces[attackerId].pieces
-        .filter(piece => isMainTrackPiece(piece, initialGame.trackLength));
-    if (!activeAttackers.length) return 0;
+    const canAct = initialGame.pieces[attackerId].pieces.some(piece =>
+        piece.steps === -1 || isMainTrackPiece(piece, initialGame.trackLength)
+    );
+    if (!canAct) return 0;
 
     const startState = cloneGame(initialGame);
     startState.currentPlayer = attackerId;
