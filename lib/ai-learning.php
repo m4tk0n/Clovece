@@ -758,6 +758,11 @@ function onlineAiLearningEnsureSchema(PDO $db): void
     $initial = json_encode(onlineAiLearningDefaultModel(), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     $stmt = $db->prepare('INSERT IGNORE INTO ' . onlineTable('ai_learning_model') . ' (id, model_json, generation) VALUES (1, ?, 0)');
     $stmt->execute([$initial]);
+    $migration = $db->prepare(
+        'INSERT INTO ' . onlineTable('schema_migrations') . ' (version, name) VALUES (3, ?) ' .
+        'ON DUPLICATE KEY UPDATE name = VALUES(name)'
+    );
+    $migration->execute(['global_online_ai_learning_model']);
 }
 
 function onlineAiLearningChooseMove(PDO $db, array $game): array
