@@ -6,7 +6,7 @@ import { createGame, getValidMoves, getForcedMove, movePiece, rollDice, advanceT
 import { renderBoard, prepareBoardRendering } from './game-board.js';
 import { showScreen, loadScreen } from './navigation.js';
 import { settings } from './settings.js';
-import { getPlayerSetup, initPlayerSetup, updateSetup, getExtendedRules, setExtendedRulesForTest } from './player-setup.js';
+import { getPlayerSetup, initPlayerSetup, updateSetup, waitForPlayerProfileDefaults, getExtendedRules, setExtendedRulesForTest } from './player-setup.js';
 import { createGameView } from './game-view.js';
 import { createGameLog } from './game-log.js';
 import { createTurnController } from './game-turn.js';
@@ -108,6 +108,7 @@ async function startGame() {
     }
 
     try {
+        await waitForPlayerProfileDefaults();
         const setup = getPlayerSetup();
         game = createGame(setup.humanCount, setup.aiCount, setup.names, setup.colors, setup.selectedBoardSize, setup.extendedRules, setup.aiDifficulty);
         turnController.setGame(game);
@@ -147,6 +148,7 @@ export async function openPlayerSelection() {
     // Obrazovka se vkládá až při otevření, proto posluchače připojíme až po jejím načtení.
     initPlayerSetup();
     updateSetup();
+    await waitForPlayerProfileDefaults();
     await showScreen('player-selection');
 }
 
@@ -164,6 +166,7 @@ export async function startTestGame() {
     await loadScreen('player-selection');
     initPlayerSetup();
     updateSetup();
+    await waitForPlayerProfileDefaults();
     const setup = getPlayerSetup();
     await loadScreen('game');
     const { initGameScreen } = await import('./game-screen.js');
