@@ -66,6 +66,6 @@ Později lze na kterémkoli stále přihlášeném zařízení vygenerovat dalš
 
 ## Aktuální technický stav
 
-V aktuálním online-api.php akce create_transfer_code před vytvořením nového kódu nejprve zneplatňuje předchozí aktivní záznamy označené device_label = 'transfer'. To je v rozporu s požadavkem na více současně platných kódů.
+V aktuálním online-api.php je serverová expirace 15 minut již kontrolována při uplatnění kódu pomocí created_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE). Uplatnění probíhá v databázové transakci se zámkem záznamu FOR UPDATE a po úspěchu se konkrétní kód zneplatní pomocí revoked_at. Původní zařízení zůstává připojené.
 
-V aktuálním toku je nutné doplnit a ověřit serverovou expiraci 15 minut a atomické jednorázové uplatnění. Tento dokument popisuje cílové chování; jeho vytvoření samo o sobě neznamená, že je toto chování již implementováno.
+**Zjištěný nesoulad:** akce create_transfer_code před vytvořením nového kódu nejprve zneplatňuje všechny předchozí aktivní záznamy označené device_label = 'transfer'. Proto nyní nelze mít více současně platných kódů. Implementační změna musí odstranit pouze toto hromadné zneplatnění a zachovat kontrolu expirace, transakci a jednorázové uplatnění. Dokumentace popisuje požadovaný cílový stav; změna kódu zatím nebyla provedena.
