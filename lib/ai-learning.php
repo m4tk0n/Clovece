@@ -367,6 +367,8 @@ function onlineAiLearningDecision(array $game, array &$model): array
     }
     $scoreMin = min($rawScores);
     $scoreMax = max($rawScores);
+    $heuristicBestIndex = array_search(max($rawScores), $rawScores, true);
+    $heuristicBestPiece = $simulations[$heuristicBestIndex === false ? 0 : $heuristicBestIndex];
     $actions = [];
     foreach ($simulations as $index => $pieceId) {
         $extracted = onlineAiLearningActionFeatures($game, $pieceId, $rawScores[$index], $scoreMin, $scoreMax);
@@ -532,7 +534,7 @@ function onlineAiLearningDecision(array $game, array &$model): array
             'averageCrossEntropy' => count($actions) ? $loss : 0.0,
             'teacher' => 'online-heuristic-v1',
             'teacherScores' => array_map(static fn(float $value): float => round($value, 4), $rawScores),
-            'policyInfluencedChoice' => (int) $selected['pieceId'] !== (int) $ranked[0]['pieceId'],
+            'policyInfluencedChoice' => (int) $selected['pieceId'] !== (int) $heuristicBestPiece,
         ],
     ];
 }
