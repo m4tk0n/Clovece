@@ -352,6 +352,7 @@ function evaluateCandidate(originalGame, pieceId, dependencies, difficulty, risk
         winningMove: false,
         beforeSteps: beforePiece.steps,
         afterSteps: movedPiece.steps,
+        trackLength: simulated.trackLength,
         activeBefore: originalGame.pieces[playerId].pieces
             .filter(piece => isMainTrackPiece(piece, originalGame.trackLength)).length,
         activeAfter: simulated.pieces[playerId].pieces
@@ -405,7 +406,7 @@ function buildDecisionExplanation(selected, evaluated, playerId) {
 
     if (selected.move.finishedNow) {
         parts.push('Figurka bezpečně dokončí cestu do D4.');
-    } else if (selected.afterSteps >= 0 && selected.afterSteps >= selected.move.trackLength) {
+    } else if (selected.afterSteps >= 0 && selected.afterSteps >= selected.trackLength) {
         parts.push('Vstupem do domečku se figurka dostává mimo riziko vyhození.');
     }
 
