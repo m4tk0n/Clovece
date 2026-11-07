@@ -94,7 +94,7 @@
 **Datum:** 6. 11. 2026  
 **Typ:** Nové rozšířené pravidlo místní hry
 
-- Do nabídky rozšířených pravidel přidána volba „Povinnost vstoupit do domečku“ s přepínačem ANO/NE a informační nápovědou.
+- Do nabídky rozšířených pravidel přidána volba „Povinně do domečku“ s přepínačem ANO/NE a informační nápovědou.
 - Při zapnutí musí hráč využít alespoň jeden dostupný legální tah do volného cílového pole, pokud takový tah podle hodu a ostatních aktivních pravidel existuje.
 - Pokud legální vstup neexistuje, zůstávají dostupné ostatní legální tahy.
 - Při vypnutí může hráč zvolit jiný legální tah i tehdy, když má možnost vstoupit do domečku.
