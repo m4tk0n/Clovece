@@ -33,7 +33,8 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
         threeRolls: rules.threeRolls !== false,
         mustDeploy: rules.mustDeploy !== false,
         skipHomePieces: rules.skipHomePieces !== false,
-        mustEnterHome: rules.mustEnterHome !== false
+        mustEnterHome: rules.mustEnterHome !== false,
+        threeSixesPenalty: rules.threeSixesPenalty === true
     };
     if (total < 2 || total > 8 || humanCount < 1 || aiCount < 0) {
         throw new Error('Hra vyžaduje 2 až 8 hráčů a alespoň jednoho člověka.');
@@ -80,6 +81,8 @@ export function createGame(humanCount, aiCount, names = [], colors = [], boardSi
         diceValue: 0,
         baseRollAttempts: 0,
         thirdAttemptSix: false,
+        consecutiveSixes: 0,
+        threeSixesPenaltyPending: false,
         phase: 'roll',
         turnNumber: 1,
         winner: null,
@@ -188,13 +191,43 @@ export function getForcedMove(game) {
     return moves.length === 1 ? moves[0] : null;
 }
 
+function applyThreeSixesPenalty(game) {
+    if (!game.rules.threeSixesPenalty) return null;
+    const playerId = game.currentPlayer;
+    const playerPieces = game.pieces[playerId].pieces;
+    // Největší počet kroků na hlavním okruhu znamená nejbližší pozici k vlastnímu domečku.
+    const candidates = playerPieces
+        .filter(piece => piece.steps >= 0 && piece.steps < game.trackLength)
+        .sort((a, b) => b.steps - a.steps);
+    const piece = candidates[0];
+    if (!piece) return null;
+    const penalty = {
+        playerId,
+        pieceId: piece.id,
+        playerName: game.players[playerId].name,
+        steps: piece.steps
+    };
+    piece.steps = -1;
+    return penalty;
+}
+
 export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     if (game.phase !== 'roll' || game.winner !== null) {
         throw new Error('Nyní nelze házet kostkou.');
     }
 
     game.diceValue = Math.max(1, Math.min(6, Number(value) || 1));
-    const playerPieces = game.pieces[game.currentPlayer].pieces;
+    if (game.diceValue === 6 && game.rules.threeSixesPenalty) {
+        game.consecutiveSixes = (game.consecutiveSixes || 0) + 1;
+        game.threeSixesPenaltyPending = game.consecutiveSixes >= 3;
+    } else if (game.diceValue !== 6) {
+        game.consecutiveSixes = 0;
+        game.threeSixesPenaltyPending = false;
+    } else {
+        game.consecutiveSixes = 0;
+        game.threeSixesPenaltyPending = false;
+    }
+    const gamePieces = game.pieces[game.currentPlayer].pieces;
     const allAtBase = playerPieces.every(piece => piece.steps === -1);
 
     if (allAtBase) {
@@ -223,6 +256,12 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     const moves = getValidMoves(game);
     if (!moves.length) {
         if (game.diceValue === 6) {
+            if (game.threeSixesPenaltyPending) {
+                const penalty = applyThreeSixesPenalty(game);
+                game.threeSixesPenaltyPending = false;
+                advanceTurn(game);
+                return { value: game.diceValue, validMoves: [], retrying: false, turnEnded: true, penalty };
+            }
             // Šestka bez legálního tahu propadá, ale hráč hází znovu.
             game.phase = 'roll';
             game.baseRollAttempts = 0;
@@ -299,10 +338,15 @@ export function movePiece(game, pieceId) {
         steps => steps >= game.trackLength && steps <= maxSteps
     ) && new Set(homeSteps).size === 4;
 
+    let penalty = null;
     if (playerFinished) {
         player.finished = true;
         game.winner = playerId;
         game.phase = 'finished';
+    } else if (game.threeSixesPenaltyPending) {
+        penalty = applyThreeSixesPenalty(game);
+        game.threeSixesPenaltyPending = false;
+        advanceTurn(game);
     } else if (game.thirdAttemptSix) {
         // Šestka na třetí pokus nasadí figurku, ale další hod už nedává.
         game.thirdAttemptSix = false;
@@ -321,7 +365,8 @@ export function movePiece(game, pieceId) {
         deployed: fromSteps === -1,
         captured,
         finishedNow,
-        diceValue
+        diceValue,
+        penalty
     };
 
     return game.lastMove;
@@ -338,6 +383,8 @@ export function advanceTurn(game) {
     game.diceValue = 0;
     game.baseRollAttempts = 0;
     game.thirdAttemptSix = false;
+    game.consecutiveSixes = 0;
+    game.threeSixesPenaltyPending = false;
     game.phase = 'roll';
     game.turnNumber++;
 }
