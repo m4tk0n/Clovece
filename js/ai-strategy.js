@@ -412,10 +412,17 @@ function buildDecisionExplanation(selected, evaluated, playerId) {
     }
 
     if (selected.move.deployed) {
-        parts.push(
-            'Nasazení zvýší počet aktivních figurek na ' + selected.activeAfter +
-            '; nasazení spotřebuje šestku a sníží pipovou vzdálenost o 6.'
-        );
+        if (selected.move.captured?.ownPiece) {
+            parts.push(
+                'Po nasazení zůstane na trase ' + selected.activeAfter +
+                ' aktivních figurek, protože původní figurka na startu se vrací do základny.'
+            );
+        } else {
+            parts.push(
+                'Nasazení převede figurku ze základny na start; na trase budu mít ' +
+                selected.activeAfter + ' aktivních figurek. Nasazení spotřebuje šestku.'
+            );
+        }
     }
 
     if (selected.riskLoss > 0.05) {
