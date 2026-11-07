@@ -336,6 +336,203 @@ function onlineAiLearningSoftmax(array $scores, float $temperature): array
     return array_map(static fn(float $value): float => $sum > 0 ? $value / $sum : 1 / count($values), $values);
 }
 
+function onlineAiMctsAdvanceToDecision(array &$state, int $maxChanceRolls = 80): void
+{
+    $chanceRolls = 0;
+    while (($state['winner'] ?? null) === null && $chanceRolls < $maxChanceRolls) {
+        if (($state['phase'] ?? '') === 'move' || ($state['phase'] ?? '') === 'finished') return;
+        if (($state['phase'] ?? '') === 'no-move') {
+            onlineEngineAdvanceTurn($state);
+            continue;
+        }
+        if (($state['phase'] ?? '') !== 'roll') return;
+        onlineEngineRollDice($state, static fn(): int => random_int(1, 6));
+        $chanceRolls++;
+        if (($state['phase'] ?? '') === 'no-move') onlineEngineAdvanceTurn($state);
+    }
+}
+
+function onlineAiMctsRewardVector(array $state): array
+{
+    $count = count($state['players']);
+    if (($state['winner'] ?? null) !== null) {
+        return array_map(static fn(int $id): float => $id === (int) $state['winner'] ? 1.0 : 0.0, range(0, $count - 1));
+    }
+    $pips = [];
+    foreach ($state['players'] as $player) $pips[] = onlineAiLearningPips($state, (int) $player['id']);
+    $minimum = min($pips);
+    $average = array_sum($pips) / max(1, count($pips));
+    $temperature = max(8.0, 1.24 * sqrt(max(1.0, $average)));
+    $weights = array_map(static fn(float $value): float => exp(-($value - $minimum) / $temperature), $pips);
+    $total = array_sum($weights);
+    return array_map(static fn(float $value): float => $total > 0 ? $value / $total : 1 / max(1, $count), $weights);
+}
+
+function onlineAiMctsRolloutMove(array $state): ?int
+{
+    $valid = onlineEngineValidMoves($state);
+    if ($valid === []) return null;
+    $playerId = (int) $state['currentPlayer'];
+    $bestScore = INF;
+    $best = [];
+    foreach ($valid as $pieceId) {
+        $next = $state;
+        onlineEngineMovePiece($next, (int) $pieceId);
+        if (($next['winner'] ?? null) === $playerId) return (int) $pieceId;
+        $ownPips = onlineAiLearningPips($next, $playerId);
+        $opponents = [];
+        foreach ($next['players'] as $opponent) {
+            $id = (int) $opponent['id'];
+            if ($id === $playerId || !empty($opponent['finished'])) continue;
+            $opponents[] = onlineAiLearningPips($next, $id);
+        }
+        $opponentAverage = $opponents ? array_sum($opponents) / count($opponents) : $ownPips;
+        $score = $ownPips - $opponentAverage * 0.18;
+        if ($score < $bestScore - 1e-9) {
+            $bestScore = $score;
+            $best = [(int) $pieceId];
+        } elseif (abs($score - $bestScore) <= 1e-9) {
+            $best[] = (int) $pieceId;
+        }
+    }
+    return $best ? $best[random_int(0, count($best) - 1)] : null;
+}
+
+function onlineAiMctsRollout(array $state, int $maxTurns): array
+{
+    $turns = 0;
+    while (($state['winner'] ?? null) === null && $turns < $maxTurns) {
+        if (($state['phase'] ?? '') === 'roll') {
+            $beforePlayer = (int) $state['currentPlayer'];
+            onlineEngineRollDice($state, static fn(): int => random_int(1, 6));
+            if (($state['phase'] ?? '') === 'no-move') onlineEngineAdvanceTurn($state);
+            if ((int) $state['currentPlayer'] !== $beforePlayer) $turns++;
+            continue;
+        }
+        if (($state['phase'] ?? '') === 'no-move') {
+            onlineEngineAdvanceTurn($state);
+            $turns++;
+            continue;
+        }
+        if (($state['phase'] ?? '') === 'move') {
+            $beforePlayer = (int) $state['currentPlayer'];
+            $pieceId = onlineAiMctsRolloutMove($state);
+            if ($pieceId === null) {
+                onlineEngineAdvanceTurn($state);
+                $turns++;
+            } else {
+                onlineEngineMovePiece($state, $pieceId);
+                if ((int) $state['currentPlayer'] !== $beforePlayer) $turns++;
+            }
+            continue;
+        }
+        break;
+    }
+    return onlineAiMctsRewardVector($state);
+}
+
+function onlineAiMctsSelectChild(object $node, float $exploration): ?object
+{
+    $logParent = log(max(1, (int) $node->visits));
+    $best = null;
+    $bestScore = -INF;
+    foreach ($node->children as $child) {
+        if ($child->visits === 0) return $child;
+        $exploitation = $child->valueSums[$node->playerId] / $child->visits;
+        $bonus = $exploration * sqrt($logParent / $child->visits);
+        $score = $exploitation + $bonus;
+        if ($score > $bestScore) {
+            $bestScore = $score;
+            $best = $child;
+        }
+    }
+    return $best;
+}
+
+function onlineAiLearningMctsTeacher(array $game, int $simulations = 12, int $maxTurns = 80): array
+{
+    $valid = onlineEngineValidMoves($game);
+    if ($valid === []) return ['ranked' => [], 'simulations' => 0];
+    $count = count($game['players']);
+    $root = (object) [
+        'state' => $game,
+        'playerId' => (int) $game['currentPlayer'],
+        'visits' => 0,
+        'valueSums' => array_fill(0, $count, 0.0),
+        'children' => [],
+        'unexpandedMoves' => array_values($valid),
+        'parent' => null,
+        'parentMove' => null,
+    ];
+    for ($iteration = 0; $iteration < $simulations; $iteration++) {
+        $node = $root;
+        $terminalState = null;
+        while (true) {
+            if (($node->state['winner'] ?? null) !== null) {
+                $terminalState = $node->state;
+                break;
+            }
+            if ($node->unexpandedMoves === null) {
+                $node->unexpandedMoves = onlineEngineValidMoves($node->state);
+            }
+            if ($node->unexpandedMoves !== []) {
+                $choiceIndex = random_int(0, count($node->unexpandedMoves) - 1);
+                $pieceId = $node->unexpandedMoves[$choiceIndex];
+                array_splice($node->unexpandedMoves, $choiceIndex, 1);
+                $next = $node->state;
+                onlineEngineMovePiece($next, (int) $pieceId);
+                onlineAiMctsAdvanceToDecision($next);
+                $child = (object) [
+                    'state' => $next,
+                    'playerId' => (int) $next['currentPlayer'],
+                    'visits' => 0,
+                    'valueSums' => array_fill(0, $count, 0.0),
+                    'children' => [],
+                    'unexpandedMoves' => null,
+                    'parent' => $node,
+                    'parentMove' => (int) $pieceId,
+                ];
+                $node->children[] = $child;
+                $node = $child;
+                $terminalState = $next;
+                break;
+            }
+            if ($node->children === []) {
+                $terminalState = $node->state;
+                break;
+            }
+            $node = onlineAiMctsSelectChild($node, 1.41421356237);
+            if ($node === null) {
+                $terminalState = $root->state;
+                break;
+            }
+        }
+        if ($terminalState !== null && ($terminalState['winner'] ?? null) !== null) {
+            $rewards = onlineAiMctsRewardVector($terminalState);
+        } else {
+            $rewards = onlineAiMctsRollout($terminalState ?? $node->state, $maxTurns);
+        }
+        $backprop = $node;
+        while ($backprop !== null) {
+            $backprop->visits++;
+            foreach ($rewards as $playerId => $value) $backprop->valueSums[$playerId] += $value;
+            $backprop = $backprop->parent;
+        }
+    }
+    $ranked = [];
+    foreach ($root->children as $child) {
+        $ranked[] = [
+            'pieceId' => (int) $child->parentMove,
+            'visits' => (int) $child->visits,
+            'score' => $child->visits > 0 ? $child->valueSums[$root->playerId] / $child->visits : 0.0,
+        ];
+    }
+    usort($ranked, static fn(array $a, array $b): int =>
+        ($b['visits'] <=> $a['visits']) ?: ($b['score'] <=> $a['score'])
+    );
+    return ['ranked' => $ranked, 'simulations' => $simulations];
+}
+
 function onlineAiLearningDecision(array $game, array &$model): array
 {
     $valid = onlineEngineValidMoves($game);
