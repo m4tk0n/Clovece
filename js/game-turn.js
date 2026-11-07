@@ -6,7 +6,7 @@ import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision, chooseAIMoveLearningDecision,
-        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry
+        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, completeLocalAiLearningGame
     } = deps;
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
@@ -185,6 +185,21 @@ export function createTurnController(deps) {
         $('win-title').textContent = winner.isAI ? 'AI VYHRÁLA!' : 'VÍTĚZSTVÍ!';
         $('win-message').textContent = winner.name + ' dostal všechny čtyři figurky domů.';
         $('win-modal').classList.remove('hidden');
+        if (!game.aiLearningSummaryLogged && game.players.some(player => player.isAI) && completeLocalAiLearningGame) {
+            game.aiLearningSummaryLogged = true;
+            const summary = completeLocalAiLearningGame();
+            if (debugAI) {
+                addGameLogEntry('AI UČENÍ',
+                    'Souhrn partie: parametry na začátku ' + summary.parametersAtStart +
+                    ', nově vytvořeno +' + summary.newParameters +
+                    ', na konci ' + summary.parametersAtEnd +
+                    ', rozhodnutí ' + summary.decisions +
+                    ', upravené váhy ' + summary.changedParameters +
+                    ', průměrná loss ' + Number(summary.averageCrossEntropy || 0).toFixed(4) +
+                    ', dokončených partií modelu ' + summary.gamesTrained + '.' +
+                    (summary.storageSaved ? '' : ' Model se nepodařilo uložit na zařízení.'));
+            }
+        }
         play('win-sound');
         const confetti = $('confetti');
         if (confetti) {
