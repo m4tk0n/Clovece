@@ -201,6 +201,29 @@ CREATE TABLE IF NOT EXISTS {DB_PREFIX}game_chat (
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Jeden globální model online AI; řádek se zamyká při každém tahu AI.
+-- Neukládají se zde jednotliví anonymní uživatelé ani jejich partie.
+CREATE TABLE IF NOT EXISTS {DB_PREFIX}ai_learning_model (
+    id TINYINT UNSIGNED NOT NULL,
+    model_json JSON NOT NULL,
+    generation BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO {DB_PREFIX}ai_learning_model (id, model_json, generation)
+VALUES (1, JSON_OBJECT(
+    'version', 1,
+    'generation', 0,
+    'decisionsTrained', 0,
+    'gamesTrained', 0,
+    'learningRate', 0.02,
+    'temperature', 0.22,
+    'weights', JSON_ARRAY(),
+    'dynamicParameters', JSON_ARRAY()
+), 0)
+ON DUPLICATE KEY UPDATE id = VALUES(id);
+
 CREATE TABLE IF NOT EXISTS {DB_PREFIX}cron_tasks (
     task_key VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     last_started_at TIMESTAMP NULL DEFAULT NULL,
@@ -221,4 +244,8 @@ ON DUPLICATE KEY UPDATE name = VALUES(name);
 
 INSERT INTO {DB_PREFIX}schema_migrations (version, name)
 VALUES (2, 'player_account_authentication')
+ON DUPLICATE KEY UPDATE name = VALUES(name);
+
+INSERT INTO {DB_PREFIX}schema_migrations (version, name)
+VALUES (3, 'global_online_ai_learning_model')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
