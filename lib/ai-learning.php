@@ -37,7 +37,8 @@ function onlineAiLearningBaseNames(): array
 function onlineAiLearningDefaultModel(): array
 {
     return [
-        'version' => 1,
+        'version' => 3,
+        'featureSchema' => ['version' => 3, 'baseFeatures' => 44, 'pairwiseFeatures' => 946, 'tripleFeatures' => 10, 'totalFeatures' => 1000],
         'generation' => 0,
         'decisionsTrained' => 0,
         'gamesTrained' => 0,
@@ -580,6 +581,8 @@ function onlineAiLearningDecision(array $game, array &$model): array
     $weights = $model['weights'] ?? [];
     if (!is_array($weights) || count($weights) !== 1000) $weights = array_fill(0, 1000, 0.0);
     $model['weights'] = array_map(static fn($v): float => onlineAiLearningClamp((float) $v, -5.0, 5.0), $weights);
+    $model['version'] = 3;
+    $model['featureSchema'] = ['version' => 3, 'baseFeatures' => 44, 'pairwiseFeatures' => 946, 'tripleFeatures' => 10, 'totalFeatures' => 1000];
     $model['dynamicParameters'] = is_array($model['dynamicParameters'] ?? null) ? $model['dynamicParameters'] : [];
     $byKey = [];
     $byId = [];
