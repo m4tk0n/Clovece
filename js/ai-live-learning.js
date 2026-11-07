@@ -79,6 +79,16 @@ export function completeLocalAiLearningGame() {
         averageCrossEntropy: currentGameStats.decisions
             ? currentGameStats.lossTotal / currentGameStats.decisions : 0,
         gamesTrained: model.gamesTrained,
+        topPatterns: [...model.dynamicParameters]
+            .sort((a, b) => (b.teacherSupport - b.teacherRejects) - (a.teacherSupport - a.teacherRejects))
+            .slice(0, 3)
+            .map(item => ({
+                id: item.id,
+                featureNames: item.featureNames || [],
+                weight: item.weight,
+                teacherSupport: item.teacherSupport,
+                teacherRejects: item.teacherRejects
+            })),
         storageSaved: saved
     };
     currentGameStats = null;
