@@ -38,7 +38,7 @@ export function buildBoardSceneData(game, style = 'classic') {
         const offset = g.base * .4;
         const offsets = [[-offset,-offset],[offset,-offset],[-offset,offset],[offset,offset]];
         return {
-            playerId: player.id, color: player.color,
+            playerId: player.id, playerName: String(player.name || 'Hráč'), color: player.color,
             x: center.x - CENTER, z: center.y - CENTER, radius: g.base,
             pieces: game.pieces[player.id].pieces
                 .filter(piece => piece.steps === -1)
