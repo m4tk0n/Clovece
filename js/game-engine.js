@@ -227,7 +227,7 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
         game.consecutiveSixes = 0;
         game.threeSixesPenaltyPending = false;
     }
-    const gamePieces = game.pieces[game.currentPlayer].pieces;
+    const playerPieces = game.pieces[game.currentPlayer].pieces;
     const allAtBase = playerPieces.every(piece => piece.steps === -1);
 
     if (allAtBase) {
@@ -257,10 +257,11 @@ export function rollDice(game, value = Math.floor(Math.random() * 6) + 1) {
     if (!moves.length) {
         if (game.diceValue === 6) {
             if (game.threeSixesPenaltyPending) {
+                const rolledValue = game.diceValue;
                 const penalty = applyThreeSixesPenalty(game);
                 game.threeSixesPenaltyPending = false;
                 advanceTurn(game);
-                return { value: game.diceValue, validMoves: [], retrying: false, turnEnded: true, penalty };
+                return { value: rolledValue, validMoves: [], retrying: false, turnEnded: true, penalty };
             }
             // Šestka bez legálního tahu propadá, ale hráč hází znovu.
             game.phase = 'roll';
