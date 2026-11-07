@@ -223,6 +223,30 @@ function calculatePipWinShares(pips) {
     return weights.map(value => total > 0 ? value / total : 1 / weights.length);
 }
 
+/**
+ * Přizpůsobí ochotu riskovat aktuálnímu pořadí v závodu o vítězství.
+ * Nižší pipy znamenají lepší pozici. Náskok zvyšuje ochranu vlastních figurek,
+ * zaostávání naopak dovolí přijmout větší riziko. Rozsah je omezen na ±20 %.
+ */
+export function calculateAdaptiveRiskMultiplier(game, playerId) {
+    const ownPips = calculatePlayerPips(game, playerId);
+    const opponents = game.players.filter(player =>
+        player.id !== playerId && !player.finished
+    );
+    if (!opponents.length) return 1;
+
+    let ahead = 0;
+    let behind = 0;
+    for (const opponent of opponents) {
+        const opponentPips = calculatePlayerPips(game, opponent.id);
+        if (opponentPips < ownPips) ahead++;
+        else if (opponentPips > ownPips) behind++;
+    }
+
+    const advantage = (behind - ahead) / opponents.length;
+    return Math.max(0.8, Math.min(1.2, 1 + advantage * 0.2));
+}
+
 function evaluatePosition(game, dependencies, riskWeight, focusPlayerId) {
     const rawPips = game.players.map(player => calculatePlayerPips(game, player.id));
     const expectedLoss = game.players.map(() => 0);
@@ -245,7 +269,7 @@ function evaluatePosition(game, dependencies, riskWeight, focusPlayerId) {
     }
 
     const effectivePips = rawPips.map((value, playerId) =>
-        value + expectedLoss[playerId] * riskWeight
+        value + expectedLoss[playerId] * (playerId === focusPlayerId ? riskWeight : 1)
     );
     return {
         rawPips,
@@ -334,7 +358,9 @@ function evaluateCandidate(originalGame, pieceId, dependencies, difficulty, risk
         };
     }
 
-    const position = evaluatePosition(simulated, dependencies, riskWeight, playerId);
+    const riskMultiplier = calculateAdaptiveRiskMultiplier(simulated, playerId);
+    const effectiveRiskWeight = riskWeight * riskMultiplier;
+    const position = evaluatePosition(simulated, dependencies, effectiveRiskWeight, playerId);
     let score = position.winShares[playerId] ?? 0;
     let bonusScore = null;
 
@@ -367,7 +393,8 @@ function evaluateCandidate(originalGame, pieceId, dependencies, difficulty, risk
             .filter(piece => isMainTrackPiece(piece, simulated.trackLength)).length,
         threat,
         expectedLoss: position.expectedLoss[playerId],
-        riskLoss: position.expectedLoss[playerId] * riskWeight,
+        riskLoss: position.expectedLoss[playerId] * effectiveRiskWeight,
+        riskMultiplier,
         captureGain,
         bonusScore,
         rawPips: position.rawPips,
@@ -432,6 +459,12 @@ function buildDecisionExplanation(selected, evaluated) {
         }
     }
 
+    if (selected.riskMultiplier > 1.05) {
+        parts.push('Protože jsem v závodu vpředu, více chráním vlastní figurky.');
+    } else if (selected.riskMultiplier < 0.95) {
+        parts.push('Protože v závodu zaostávám, přijímám o něco vyšší riziko.');
+    }
+
     if (selected.riskLoss > 0.05) {
         parts.push(
             'Po započtení hrozeb je očekávaná ztráta vlastních figurek přibližně ' +
@@ -486,6 +519,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             capturedOpponentValue: selected.captureGain,
             ownPips: selected.rawPips[game.currentPlayer] ?? 0,
             effectiveOwnPips: selected.effectivePips[game.currentPlayer] ?? 0,
+            riskMultiplier: selected.riskMultiplier ?? 1,
             bonusScore: selected.bonusScore
         },
         alternatives: evaluated.slice(1).map(candidate => ({
@@ -497,6 +531,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
                 capturedOpponentValue: candidate.captureGain,
                 ownPips: candidate.rawPips[game.currentPlayer] ?? 0,
                 effectiveOwnPips: candidate.effectivePips[game.currentPlayer] ?? 0,
+                riskMultiplier: candidate.riskMultiplier ?? 1,
                 bonusScore: candidate.bonusScore
             }
         }))
