@@ -374,6 +374,8 @@ export function renderBoard(container, game) {
             switchMarkup: styleSwitchMarkup()
         });
         restorePlayerPanel(container);
+        // game-view mohl aktualizovat počty ještě před dokončením asynchronního SVG renderu.
+        container.dispatchEvent(new CustomEvent('clovece:board-rendered'));
     };
     // SVG vykreslíme až po načtení jeho CSS, aby se na okamžik neukázala neostylovaná deska.
     ensureModeStyles('2d').then(renderSvg).catch(error => {
