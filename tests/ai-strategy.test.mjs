@@ -40,13 +40,13 @@ test('threat estimate distinguishes a nearby attacker from a distant one', () =>
     ) < 1e-12);
 });
 
-test('a blocked intermediate six-space prevents the modeled chained attack', () => {
+test('a blocked intermediate six-space prevents the longer attack but the blocking piece can still attack', () => {
     const game = createGame(1, 1);
     game.pieces[0].pieces[0].steps = 5;
     game.pieces[1].pieces[0].steps = 5; // field 25, twenty spaces from target
-    game.pieces[1].pieces[1].steps = 11; // field 31, blocks the first six-space
+    game.pieces[1].pieces[1].steps = 11; // field 31 blocks the first piece, but is itself 14 spaces away
 
-    assert.equal(estimatePieceThreat(game, 0, 0, getPiecePosition), 0);
+    assert.equal(estimatePieceThreat(game, 0, 0, getPiecePosition), 1 / 216);
 });
 
 test('AI difficulty is stored in the game and all levels return legal moves', () => {
