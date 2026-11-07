@@ -37,6 +37,7 @@ aiLearningAssert($model['decisionsTrained'] === 1, 'Model se musí aktualizovat 
 aiLearningAssert(count($model['dynamicParameters']) > 0, 'AI musí objevit nové dynamické parametry.');
 aiLearningAssert($decision['learning']['totalParameters'] > 1000, 'Celkový počet parametrů musí překročit 1000.');
 aiLearningAssert($decision['learning']['newParameterCount'] > 0, 'První rozhodnutí musí vytvořit nové vzorce.');
+aiLearningAssert($decision['learning']['teacherSimulations'] === 8, 'Online AI musí použít MCTS učitele.');
 
 $ids = array_column($model['dynamicParameters'], 'id');
 aiLearningAssert(count($ids) === count(array_unique($ids)), 'ID dynamických parametrů musí být jedinečná.');
