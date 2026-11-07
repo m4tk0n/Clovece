@@ -35,7 +35,7 @@ function ensureAiNames(count) {
     for (let number = 1; number <= count; number++) {
         const key = 'ai:' + number;
         if (customPlayerNames.has(key)) continue;
-        const name = available.shift() || 'AI';
+        const name = available.shift() || 'Max';
         customPlayerNames.set(key, 'AI' + number + ' ' + name);
     }
 }
@@ -112,7 +112,7 @@ function updateSetup() {
             number,
             key,
             selectedColor: PLAYER_COLORS.includes(requestedColor) ? requestedColor : 'random',
-            name: customPlayerNames.get(key) || (isAI ? 'AI' + number : 'Hráč ' + number)
+            name: customPlayerNames.get(key) || (isAI ? 'AI' + number + ' Max' : 'Hráč ' + number)
         };
     });
 
@@ -154,7 +154,7 @@ export function getPlayerSetup() {
         const name = input.value.trim().slice(0, 30);
         if (name) return name;
         const number = input.dataset.nameKey.split(':')[1];
-        return input.dataset.nameKey.startsWith('ai:') ? 'AI' + number : 'Hráč ' + number;
+        return input.dataset.nameKey.startsWith('ai:') ? 'AI' + number + ' Max' : 'Hráč ' + number;
     });
     // Náhodné barvy jsou už v náhledu vylosované. Do hry použijeme přesně ty zobrazené.
     const colors = Array.from(preview.querySelectorAll('[data-color-key]'), select =>
