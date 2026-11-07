@@ -23,6 +23,7 @@ jobs:
             **/.github/**
             .env
             README.md
+            docs/**
             tests/
             package.json
             package-lock.json
