@@ -204,3 +204,15 @@ test('AI decision exposes score breakdown and a grounded explanation', () => {
     assert.equal(typeof decision.breakdown.effectiveOwnPips, 'number');
     assert.equal(chooseAIMove(game), decision.pieceId);
 });
+
+test('AI explanation describes the self-replacement caused by mandatory deployment', () => {
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 6;
+    game.pieces[0].pieces[0].steps = 0;
+
+    const decision = chooseAIMoveDecision(game);
+    assert.ok(getValidMoves(game).includes(decision.pieceId));
+    assert.match(decision.reason, /původní figurka na startu se vrací do základny/);
+    assert.doesNotMatch(decision.reason, /zvýší počet aktivních figurek/);
+});
