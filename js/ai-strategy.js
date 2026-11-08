@@ -222,6 +222,15 @@ export function calculateAIMoveProbabilityFeatures(game, candidate, dependencies
     const stateAfter = candidate.state;
     const target = stateAfter.pieces[playerId]?.pieces[pieceId];
     const maxSteps = stateAfter.trackLength + 3;
+    if (stateAfter.winner !== null) {
+        return {
+            ownCaptureRisk: 0,
+            opponentCaptureChance: 0,
+            safeFinishChance: 0,
+            extraTurnChance: 0,
+            deployAttackRisk: 0
+        };
+    }
 
     function prepareRollState(source, activePlayerId) {
         const state = cloneGame(source);
