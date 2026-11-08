@@ -14,7 +14,8 @@ import {
     evaluateTacticalCandidates,
     calculatePlayerPips,
     chooseStrategicDecision,
-    normalizeTrainingSituation
+    normalizeTrainingSituation,
+    AI_TACTICAL_WEIGHTS
 } from '../js/ai-strategy.js';
 
 const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
@@ -233,6 +234,20 @@ test('tactical teacher always chooses an immediate winning legal move', async ()
     assert.equal(decision.pieceId, 3);
     assert.equal(decision.reason, 'immediate-win');
     assert.ok(decision.ranking.every(item => Number.isFinite(item.score)));
+    const learnedWeights = AI_TACTICAL_WEIGHTS;
+    for (const item of decision.ranking) {
+        const f = item.factors;
+        const expectedTrainingScore = f.ownProgress * learnedWeights.ownProgress +
+            f.opponentSetback * learnedWeights.opponentSetback +
+            f.threatReduction * learnedWeights.threatReduction +
+            (f.capturedOpponent ? learnedWeights.captureOpponent : 0) -
+            (f.capturedOwnPiece ? learnedWeights.captureOwn : 0) +
+            (f.finishedPiece ? learnedWeights.finishPiece : 0) +
+            (f.deployedPiece ? learnedWeights.deployPiece : 0) +
+            (f.enteredHome ? learnedWeights.enterHome : 0) +
+            f.homeProgress * learnedWeights.homeProgress;
+        assert.ok(Math.abs(item.trainingScore - expectedTrainingScore) < 0.00001);
+    }
 });
 
 test('tactical teacher ranks only engine-provided legal candidates', async () => {
