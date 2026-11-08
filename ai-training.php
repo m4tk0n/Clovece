@@ -89,11 +89,20 @@ try {
     aiTrainingFail('Instrukce nemá platný JSON formát.', 400);
 }
 
+$feedbackType = (string) ($payload['feedbackType'] ?? 'correction');
 $instruction = trim((string) ($payload['instruction'] ?? ''));
 $context = $payload['context'] ?? null;
+if (!in_array($feedbackType, ['correction', 'positive'], true)) {
+    aiTrainingFail('Neznámý typ výukového záznamu.', 400);
+}
 $instructionLength = preg_match_all('/./us', $instruction, $instructionCharacters);
-if ($instruction === '' || $instructionLength === false || $instructionLength > 3000) {
+if ($feedbackType === 'correction'
+    && ($instruction === '' || $instructionLength === false || $instructionLength > 3000)
+) {
     aiTrainingFail('Instrukce musí obsahovat 1 až 3000 znaků.', 400);
+}
+if ($feedbackType === 'positive' && $instruction !== '') {
+    aiTrainingFail('Potvrzení správného rozhodnutí nesmí obsahovat opravnou instrukci.', 400);
 }
 if (!is_array($context)
     || ($context['format'] ?? '') !== 'clovece-ai-debug'
@@ -105,11 +114,14 @@ if (!is_array($context)
 }
 
 $record = [
-    'format' => 'clovece-ai-human-instruction',
+    'format' => $feedbackType === 'positive'
+        ? 'clovece-ai-positive-example'
+        : 'clovece-ai-human-instruction',
     'formatVersion' => 1,
+    'feedbackType' => $feedbackType,
     'id' => bin2hex(random_bytes(16)),
     'createdAt' => gmdate('c'),
-    'instruction' => $instruction,
+    'instruction' => $feedbackType === 'positive' ? null : $instruction,
     'context' => $context,
     'sessionFingerprint' => hash('sha256', session_id()),
 ];

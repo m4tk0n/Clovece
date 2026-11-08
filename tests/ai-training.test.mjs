@@ -46,6 +46,8 @@ test('each human correction is stored as a new private immutable JSON file', asy
     assert.match(endpoint, /HTTP_X_CSRF_TOKEN/i);
     assert.match(endpoint, /aiTrainingSameOrigin/);
     assert.match(endpoint, /storage\/ai-training\/instructions/);
+    assert.match(endpoint, /clovece-ai-positive-example/);
+    assert.match(endpoint, /feedbackType === 'positive'/);
     assert.match(endpoint, /fopen\(\$filePath, 'x'\)/);
     assert.match(endpoint, /LOCK_EX/);
     assert.doesNotMatch(endpoint, /\b(?:unlink|rename|file_put_contents)\s*\(/i);
@@ -56,6 +58,9 @@ test('training panel sends the complete AI context together with the teacher cor
     const panel = await read('../js/ai-training-overlay.js');
     assert.match(panel, /Co měla AI udělat správně a proč/);
     assert.match(panel, /PŘESKOČIT/);
+    assert.match(panel, /SPRÁVNĚ/);
+    assert.match(panel, /saveFeedback\('positive'\)/);
+    assert.match(panel, /feedbackType,/);
     assert.match(panel, /ai-training-smaller/);
     assert.match(panel, /ai-training-larger/);
     assert.match(panel, /childElementCount > 0/);
