@@ -18,7 +18,7 @@ const outputWeightsPath = path.resolve(String(args['output-weights'] || 'artifac
 const modulePath = path.resolve(String(args.module || 'artifacts/ai-tactical-weights-candidate.js'));
 const reportPath = path.resolve(String(args.report || 'artifacts/ai-weight-training-report.json'));
 const epochs = Math.max(1, Math.min(200, Number(args.epochs) || 30));
-const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']) || 0.015));
+const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']) || 0.05));
 const minGames = Math.max(4, Number(args['min-games']) || 10);
 const minRecords = Math.max(50, Number(args['min-records']) || 100);
 
