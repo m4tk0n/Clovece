@@ -364,12 +364,18 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
             .sort((a, b) => b.neuralScore - a.neuralScore || a.pieceId - b.pieceId)
         : [];
     const neural = neuralCandidates[0] || null;
-    const selected = winning || learned || neural || candidates[Math.min(
-        candidates.length - 1,
-        Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * candidates.length)
-    )];
+    const tacticalRanking = !winning && !learned && !neural
+        ? evaluateTacticalCandidates(game, candidates)
+        : [];
+    const tactical = tacticalRanking.length
+        ? candidates.find(candidate => candidate.pieceId === tacticalRanking[0].pieceId)
+        : null;
+    const selected = winning || learned || neural || tactical;
     const trained = Boolean(learned && !winning && selected.pieceId === learned.pieceId);
     const neuralSelected = Boolean(!winning && !learned && neural && selected.pieceId === neural.pieceId);
+    const tacticalSelected = Boolean(!winning && !learned && !neural && tactical &&
+        selected.pieceId === tactical.pieceId);
+    const tacticalByPiece = new Map(tacticalRanking.map(item => [item.pieceId, item]));
     const usedInstructions = trained ? [{
         id: 'memory:' + signature,
         feedbackType: 'compiled-memory',
@@ -392,23 +398,31 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
                 : neuralSelected
                     ? 'NEURONOVÁ AI: model vyhodnotil ' + validMoves.length + ' legálních tahů a doporučuje figurku ' +
                         (neural.pieceId + 1) + ' (skóre ' + neural.neuralScore.toFixed(4) + ').'
-                    : 'Pro tuto přesnou situaci zatím nemám použitelné naučené hodnocení ani aktivní neuronový model. Tah jsem vybrala náhodně z ' +
-                        validMoves.length + ' legálních možností.',
-        score: winning ? 1 : (trained ? Math.min(0.99, 0.5 + learned.votes / 100) : (neuralSelected ? neural.neuralScore : 0)),
+                    : tacticalSelected
+                        ? 'TAKTICKÁ AI: vyhodnotila ' + validMoves.length + ' legálních tahů podle postupu, ohrožení, vyhození soupeře a dokončení figurky. Doporučuje figurku ' +
+                            (tactical.pieceId + 1) + '.'
+                        : 'AI nemá pro tuto situaci použitelné naučené hodnocení.',
+        score: winning ? 1 : (trained ? Math.min(0.99, 0.5 + learned.votes / 100) :
+            (neuralSelected ? neural.neuralScore : (tacticalSelected ? tacticalByPiece.get(tactical.pieceId).score : 0))),
         breakdown: {
             trainedKnowledge: trained,
             neuralNetwork: neuralSelected,
+            tacticalTeacher: tacticalSelected,
             neuralModelVersion: neuralSelected ? neuralModel.version : null,
             usedInstructions,
             legalMoveCount: validMoves.length,
-            selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' : (neuralSelected ? 'neural-network' : 'untrained-random'))
+            selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' :
+                (neuralSelected ? 'neural-network' : (tacticalSelected ? 'tactical-teacher' : 'no-selection')))
         },
         alternatives: candidates
             .filter(candidate => candidate.pieceId !== selected.pieceId)
             .map(candidate => ({
                 pieceId: candidate.pieceId,
-                score: candidate.winningMove ? 1 : (trained ? Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100 : (neuralByPiece.get(candidate.pieceId) ?? 0)),
-                reason: candidate.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' : (neuralByPiece.has(candidate.pieceId) ? 'neuronové skóre' : 'bez modelového skóre'))
+                score: candidate.winningMove ? 1 : (trained ? Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100 :
+                    (neuralByPiece.get(candidate.pieceId) ?? tacticalByPiece.get(candidate.pieceId)?.score ?? 0)),
+                reason: candidate.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' :
+                    (neuralByPiece.has(candidate.pieceId) ? 'neuronové skóre' :
+                        (tacticalByPiece.has(candidate.pieceId) ? 'taktické vyhodnocení' : 'bez modelového skóre')))
             }))
     };
 }
