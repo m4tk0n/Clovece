@@ -45,15 +45,35 @@ export function createGameView({ getGame, renderBoard }) {
         $('current-player-name').textContent = player.name;
         $('current-player-display').style.setProperty('--player-color', player.color);
         $('dice-value').textContent = game.diceValue || '—';
+        const trainerMode = ['trainer', 'training'].includes(new URLSearchParams(window.location.search).get('debug'));
+        const diceControls = $('trainer-dice-controls');
+        if (diceControls) {
+            diceControls.classList.toggle('hidden', !trainerMode);
+            const aiDiceMode = (() => { try { return localStorage.getItem('clovece-trainer-ai-dice-mode') === 'auto' ? 'auto' : 'manual'; } catch { return 'manual'; } })();
+            const diceRow = $('trainer-dice-options');
+            const canChooseDice = ['start-roll', 'roll'].includes(game.phase) && (!player.isAI || aiDiceMode === 'manual');
+            if (diceRow) {
+                diceRow.classList.toggle('hidden', !['start-roll', 'roll'].includes(game.phase));
+                diceRow.querySelectorAll('[data-dice-value]').forEach(button => {
+                    button.disabled = !canChooseDice;
+                    button.classList.toggle('is-selected', Number(button.dataset.diceValue) === Number(game.diceValue));
+                });
+            }
+            const modeButton = $('trainer-ai-dice-mode');
+            if (modeButton) {
+                modeButton.textContent = aiDiceMode === 'auto' ? 'AI KOSTKA: AUTOMATICKY' : 'AI KOSTKA: RUČNĚ';
+                modeButton.setAttribute('aria-pressed', String(aiDiceMode === 'manual'));
+            }
+        }
         $('game-status').textContent = game.phase === 'start-roll'
-            ? (isHuman ? 'Rozstřel: hoď kostkou, až přijdeš na řadu.' : 'AI hází v rozstřelu…')
+            ? (isHuman ? 'Rozstřel: vyber hodnotu kostky.' : (trainerMode && (() => { try { return localStorage.getItem('clovece-trainer-ai-dice-mode') !== 'auto'; } catch { return true; } })() ? 'AI čeká na výběr kostky.' : 'AI hází v rozstřelu…'))
             : game.phase === 'move'
                 ? (isHuman ? 'Vyber figurku, kterou chceš posunout.' : 'AI vybírá svůj tah…')
                 : game.phase === 'no-move'
                     ? 'Žádný možný tah.'
                     : game.phase === 'finished'
                         ? 'Hra skončila.'
-                        : (isHuman ? 'Hoď kostkou a hraj.' : 'AI hází kostkou…');
+                        : (isHuman ? (trainerMode ? 'Vyber hodnotu kostky.' : 'Hoď kostkou a hraj.') : (trainerMode && (() => { try { return localStorage.getItem('clovece-trainer-ai-dice-mode') !== 'auto'; } catch { return true; } })() ? 'AI čeká na výběr kostky.' : 'AI hází kostkou…'));
     
         const canRoll = isHuman && ['start-roll', 'roll'].includes(game.phase);
         $('roll-dice-btn').classList.toggle('hidden', !canRoll);
