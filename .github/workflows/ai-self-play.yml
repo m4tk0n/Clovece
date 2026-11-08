@@ -130,8 +130,8 @@ jobs:
           done
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin ai-training-data
-          git switch ai-training-data
+          git fetch origin ai-training-data:refs/remotes/origin/ai-training-data
+          git switch -C ai-training-data --track origin/ai-training-data
           git add training-data/self-play/
           git commit -m "Archive AI self-play run ${RUN_NUMBER}"
           git push origin ai-training-data
