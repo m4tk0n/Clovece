@@ -597,8 +597,8 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
         'pieceId' => $selected['pieceId'],
         'reason' => $selected['winning']
             ? 'Okamžitě vítězný tah – hra tím končí.'
-            : 'Zatím nemám naučenou taktiku. Náhodně jsem vybrala z ' .
-                count($valid) . ' legálních možností.',
+            : 'Taktická AI vyhodnotila ' . count($valid) .
+                ' legálních možností podle společných vah v1.',
         'selectedScore' => $selected['score'],
         'candidates' => $alternatives,
     ];
