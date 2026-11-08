@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGame, getValidMoves, movePiece } from '../js/game-engine.js';
+import { createGame, getValidMoves, movePiece, rollDice } from '../js/game-engine.js';
 import {
     AI_FEATURE_COUNT,
     extractAIMoveFeatures,
@@ -10,7 +10,7 @@ import {
 } from '../js/ai-neural-network.js';
 import { chooseStrategicDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
 
-const dependencies = { getValidMoves, movePiece };
+const dependencies = { getValidMoves, movePiece, rollDice };
 
 function modelForFeature(index) {
     const weights = Array(AI_FEATURE_COUNT).fill(0);
@@ -64,6 +64,35 @@ test('feature vector has a fixed size and supports 40, 48 and 80 field boards', 
     }
 });
 
+test('probability features enumerate legal dice outcomes and stay within zero and one', () => {
+    const game = createGame(1, 1);
+    game.pieces[0].pieces[0].steps = 5;
+    // Soupeř stojí o jedno pole před figurkou; zasáhne pouze při hodu 1.
+    game.pieces[1].pieces[0].steps = 24;
+    const state = structuredClone(game);
+    const candidate = { pieceId: 0, move: { deployed: false }, state, winningMove: false };
+    const probabilities = calculateAIMoveProbabilityFeatures(game, candidate, dependencies);
+    assert.equal(probabilities.ownCaptureRisk, 1 / 6);
+    assert.equal(probabilities.deployAttackRisk, 0);
+    assert.equal(probabilities.opponentCaptureChance, 0);
+    assert.equal(probabilities.safeFinishChance, 0);
+    assert.equal(probabilities.extraTurnChance, 1 / 6);
+    assert.ok(Object.values(probabilities).every(value => value >= 0 && value <= 1));
+    candidate.move.deployed = true;
+    const deployed = calculateAIMoveProbabilityFeatures(game, candidate, dependencies);
+    assert.equal(deployed.deployAttackRisk, 1 / 6);
+});
+
+test('probability features occupy the final five stable positions in schema v2', () => {
+    const game = createGame(1, 1);
+    game.phase = 'move'; game.diceValue = 1; game.pieces[0].pieces[0].steps = 0;
+    const legal = getValidMoves(game); const pieceId = legal[0];
+    const state = structuredClone(game); const move = movePiece(state, pieceId);
+    const probabilities = { ownCaptureRisk: 0.1, opponentCaptureChance: 0.2, safeFinishChance: 0.3, extraTurnChance: 1 / 6, deployAttackRisk: 0.5 };
+    const features = extractAIMoveFeatures(game, { pieceId, move, state, probabilityFeatures: probabilities }, legal.length);
+    assert.equal(features.length, 23);
+    assert.deepEqual(features.slice(18), [0.1, 0.2, 0.3, 1 / 6, 0.5]);
+});
 test('neural AI ranks only engine-legal moves and selects the highest score', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
