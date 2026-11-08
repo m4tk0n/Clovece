@@ -15,10 +15,10 @@ test('offline trainer exports a runtime-valid neural model', async () => {
         const metrics = path.join(dir, 'metrics.json');
         fs.mkdirSync(input);
         const lines = [];
-        for (let gameId = 1; gameId <= 20; gameId++) {
+        for (let gameId = 1; gameId <= 120; gameId++) {
             const a = Array(18).fill(0);
             const b = Array(18).fill(0);
-            a[6] = gameId / 20;
+            a[6] = gameId / 120;
             b[7] = gameId / 20;
             lines.push(JSON.stringify({
                 gameId, completed: true,
@@ -38,7 +38,7 @@ test('offline trainer exports a runtime-valid neural model', async () => {
         assert.equal(isValidAINeuralModel(imported.default), true);
         assert.equal(imported.default.layers[0].outputSize, 32);
         assert.equal(imported.default.layers.at(-1).outputSize, 1);
-        assert.equal(JSON.parse(fs.readFileSync(metrics, 'utf8')).pairs.total, 20);
+        assert.equal(JSON.parse(fs.readFileSync(metrics, 'utf8')).pairs.total, 120);
     } finally {
         fs.rmSync(dir, { recursive: true, force: true });
     }
