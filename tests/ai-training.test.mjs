@@ -199,6 +199,10 @@ test('trainer dice picker supports manual human rolls and selectable automatic/m
     assert.match(turn, /rollDice\(game, selectedValue === null \? undefined : selectedValue\)/);
     assert.match(turn, /doStartingRoll\(isAI, selectedValue\)/);
     assert.match(view, /trainer-dice-controls/);
+    assert.match(view, /function ensureDiceDisplayToggle\(\)/);
+    assert.match(view, /boardSwitch\.insertBefore\(toggle, infoButton \|\| boardSwitch\.firstChild\)/);
+    assert.match(screen, /\[data-dice-display\]/);
+    assert.match(screen, /dice-display-hidden/);
     assert.match(view, /AI KOSTKA: AUTOMATICKY/);
     assert.match(screen, /turnController\.selectDice/);
     assert.match(screen, /turnController\.toggleAIDiceMode/);
