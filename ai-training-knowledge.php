@@ -128,7 +128,7 @@ if ($action === 'train') {
         aiMemoryFail('Fronta výuky AI je právě uzamčena.', 503);
     }
     $initializedPath = $realRoot . '/.training-queue.initialized';
-    if (!is_file($initializedPath) || is_file($realRoot . '/.training-queue.needs-rebuild')) {
+    if (!is_file($initializedPath) || !is_file($queuePath) || is_file($realRoot . '/.training-queue.needs-rebuild')) {
         $existing = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
         sort($existing, SORT_STRING);
         $queueTemp = $queuePath . '.tmp';
@@ -158,6 +158,7 @@ if ($action === 'train') {
         aiMemoryFail('Fronta výuky AI není dostupná.', 500);
     }
     $offset = max(0, (int)($memory['queueOffset'] ?? 0));
+    $originalQueueOffset = $offset;
     if (fseek($queueHandle, $offset) !== 0) {
         fclose($queueHandle); flock($queueLock, LOCK_UN); fclose($queueLock);
         flock($lock, LOCK_UN); fclose($lock);
@@ -206,14 +207,18 @@ if ($action === 'train') {
         $memory['totalProcessed'] = (int)($memory['totalProcessed'] ?? 0) + 1;
         $processedNow++;
     }
-    $memory['updatedAt'] = gmdate('c');
-    $json = json_encode($memory, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
-    $temp = $memoryPath . '.tmp';
+    $newQueueOffset = (int)($memory['queueOffset'] ?? 0);
+    $memoryChanged = $processedNow > 0 || $newQueueOffset !== $originalQueueOffset || !is_file($memoryPath);
     fclose($queueHandle);
     flock($queueLock, LOCK_UN); fclose($queueLock);
-    if (!is_string($json) || file_put_contents($temp, $json, LOCK_EX) === false || !rename($temp, $memoryPath)) {
-        @unlink($temp); flock($lock, LOCK_UN); fclose($lock);
-        aiMemoryFail('Zápis trvalé paměti AI selhal; zdrojové JSON zůstaly zachovány.', 500);
+    if ($memoryChanged) {
+        $memory['updatedAt'] = gmdate('c');
+        $json = json_encode($memory, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        $temp = $memoryPath . '.tmp';
+        if (!is_string($json) || file_put_contents($temp, $json, LOCK_EX) === false || !rename($temp, $memoryPath)) {
+            @unlink($temp); flock($lock, LOCK_UN); fclose($lock);
+            aiMemoryFail('Zápis trvalé paměti AI selhal; zdrojové JSON zůstaly zachovány.', 500);
+        }
     }
 }
 flock($lock, LOCK_UN); fclose($lock);
