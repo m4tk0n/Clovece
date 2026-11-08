@@ -538,3 +538,10 @@ První turnaj modelu v2 ukázal, že 82% přesnost napodobování učitele nezna
 - `threatReduction` – změna součtu ohrožení vlastních figurek po tahu.
 
 Jde o číselné faktory stejného taktického vyhodnocení, které vytváří cílové pořadí učitele. Runtime je vypočítá pouze pro platný zapnutý model. Self-play data schema v1/v2 nejsou pro trénování v3 kompatibilní; musí se nasbírat nové záznamy. Model zůstává vypnutý do nového tréninku a turnajového ověření.
+
+
+## 23. Rozšířený turnaj napříč deskami
+
+Po každém úspěšném tréninku se kandidát porovná s taktickým učitelem ve třech oddělených turnajích: 500 her na desce 40 se 4 hráči, 500 her na desce 48 se 6 hráči a 500 her na desce 80 s 8 hráči. Seed je odvozený od ID workflow běhu (nebo lze ručně zadat vlastní), jednotlivé varianty mají oddělené seedy. Každý report obsahuje 95% Wilsonův interval, průměrné pořadí, rozložení umístění a počet neplatných/neúplných her. Výsledky se ukládají samostatně jako `ai-tournament-40-4.json`, `ai-tournament-48-6.json` a `ai-tournament-80-8.json`. Hranice v reportu porovnává dolní mez intervalu s rovnoměrnou šancí 1/N; její splnění je jen základní statistický filtr, nikoli automatické schválení nasazení.
+
+První kandidát schema v3 měl z 200 her na desce 40/4 64 výher (32 %), průměrné pořadí 2,39 a 95% interval 25,93–38,75 %. Základní hranici 25 % tedy překonal, ale tento výsledek sám o sobě nestačí: je nutné ověřit stabilitu na větším vzorku a generalizaci na deskách 48 a 80.
