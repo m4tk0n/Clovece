@@ -92,6 +92,7 @@ for (let layer = 0; layer < sizes.length - 1; layer++) {
     const inputSize = sizes[layer], outputSize = sizes[layer + 1];
     const scale = Math.sqrt(2 / inputSize);
     layers.push({
+        outputSize,
         weights: Array.from({ length: outputSize }, () =>
             Array.from({ length: inputSize }, () => (random() * 2 - 1) * scale)),
         biases: Array(outputSize).fill(0),
