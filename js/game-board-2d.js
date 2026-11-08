@@ -188,6 +188,7 @@ export function render2DBoard(container, game, style, ui) {
     container.innerHTML =
         '<div class="premium-board-shell">' + ui.switchCss +
             '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span>' + ui.switchMarkup + '</div>' +
+            (new URLSearchParams(window.location.search).get('debug') === 'trainer' || new URLSearchParams(window.location.search).get('debug') === 'training' ? '<div class="board-dice-trainer-slot"></div>' : '') +
             '<svg class="premium-board" viewBox="0 0 720 720" role="img" aria-label="Hrací plán pro ' + total + ' hráčů">' +
                 '<defs>' +
                     '<radialGradient id="boardBg"><stop offset="0" stop-color="#34423f"/><stop offset=".68" stop-color="#182522"/><stop offset="1" stop-color="#0c1413"/></radialGradient>' +
