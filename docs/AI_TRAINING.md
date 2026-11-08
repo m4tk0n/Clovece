@@ -292,3 +292,8 @@ Ve výukovém panelu je seznam **Rozhodnutí v tomto tahu**. Lze přepnout na d�
 Oprava může být zadána textem (například „měla pohnout figurkou 3“) nebo výběrem tlačítka **Učit: figurka N** u konkrétního legálního kandidáta. Strukturovaná oprava uloží `decision.preferredPieceId`; textové vysvětlení je volitelné.
 
 Kompilátor paměti přijme strukturovanou preferenci pouze tehdy, pokud její figurka patří do `decision.legalMoves` uloženého pro hodnocené rozhodnutí. Oprava rozhodnutí po šestce se tak nepřipíše následnému rozhodnutí po trojce a učení nikdy nevytvoří nelegální tah.
+
+
+## 12. Přehled nastavení vytvořené hry v traineru
+
+V režimu `/?debug=trainer` je před tlačítkem **KLASIK** informační tlačítko **i**. Otevře přehled skutečné konfigurace právě spuštěné partie: velikost desky, počet a typ hráčů, jejich jména a barvy, obtížnost AI a všechny volby rozšířených pravidel. Přehled čte přímo aktuální objekt hry; nezobrazuje výchozí hodnoty z formuláře pro vytvoření nové hry. Zavřít jej lze křížkem nebo opětovným kliknutím na **i**.
