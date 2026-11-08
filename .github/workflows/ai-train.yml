@@ -1,0 +1,50 @@
+name: AI neuronové trénování (kandidát)
+
+on:
+  workflow_dispatch:
+    inputs:
+      epochs:
+        description: Počet trénovacích epoch
+        required: true
+        default: "40"
+        type: string
+      seed:
+        description: Seed inicializace a míchání
+        required: true
+        default: "20261108"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Načíst archiv self-play dat
+        run: |
+          git fetch origin ai-training-data
+          mkdir -p training-data/self-play
+          git archive FETCH_HEAD training-data/self-play | tar -x
+          test -n "$(find training-data/self-play -name '*.jsonl.gz' -print -quit)"
+      - name: Ověřit vstupní formát a neuronovou vrstvu
+        run: node --test tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
+      - name: Natrénovat kandidátní model
+        run: |
+          node scripts/ai-train.mjs \
+            --input-dir=training-data/self-play \
+            --epochs="${{ inputs.epochs }}" \
+            --seed="${{ inputs.seed }}" \
+            --output=artifacts/ludo-ai-candidate.js \
+            --metrics=artifacts/ai-training-metrics.json
+      - name: Uložit kandidáta a výsledky (bez nasazení)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-neural-candidate-${{ github.run_number }}
+          path: artifacts/
+          retention-days: 90
