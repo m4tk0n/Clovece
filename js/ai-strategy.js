@@ -1,5 +1,6 @@
 import { scoreAIMoveCandidates, isValidAINeuralModel } from './ai-neural-network.js';
 import { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
+import { AI_WEIGHT_VALUES, AI_WEIGHT_COUNT, getAIWeight } from './ai-weight-config.js';
 export { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
 
 /**
@@ -320,7 +321,7 @@ export function calculateAIMoveProbabilityFeatures(game, candidate, dependencies
  * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
  * random je injektovatelný kvůli reprodukovatelným testům.
  */
-export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random, learnedMemory = {}, neuralModel = null) {
+export function chooseStrategicDecision(game, dependencies, difficulty = 'medium', random = Math.random, learnedMemory = {}, neuralModel = null) {
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
 
@@ -344,11 +345,33 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
         ? learnedCandidates[0]
         : null;
 
+    const tacticalRanking = !winning && !learned
+        ? evaluateTacticalCandidates(game, candidates, getRuntimeTacticalWeights(difficulty))
+        : [];
+    const tacticalByPiece = new Map(tacticalRanking.map(item => [item.pieceId, item]));
+    const rankedCandidates = tacticalRanking
+        .map(item => candidates.find(candidate => candidate.pieceId === item.pieceId))
+        .filter(Boolean);
+    const difficultyProfile = getDifficultyProfile(difficulty);
+    let tactical = rankedCandidates[0] || null;
+    let intentionalBlunder = false;
+    if (!winning && !learned && rankedCandidates.length > 1) {
+        if (random() < difficultyProfile.blunderRate) {
+            tactical = rankedCandidates[Math.floor(random() * rankedCandidates.length)];
+            intentionalBlunder = true;
+        } else if (difficultyProfile.randomness > 0) {
+            const bestScore = tacticalRanking[0]?.score ?? 0;
+            const noiseRange = Math.max(1, Math.abs(bestScore) * difficultyProfile.randomness);
+            const noisy = tacticalRanking.map(item => ({
+                ...item,
+                noisyScore: item.score + (random() * 2 - 1) * noiseRange
+            })).sort((a, b) => b.noisyScore - a.noisyScore || a.pieceId - b.pieceId);
+            tactical = candidates.find(candidate => candidate.pieceId === noisy[0].pieceId) || tactical;
+        }
+    }
     const neuralCandidatesWithProbabilities = !winning && !learned && isValidAINeuralModel(neuralModel)
         ? (() => {
-            const tacticalByPiece = new Map(
-                evaluateTacticalCandidates(game, candidates).map(item => [item.pieceId, item.factors])
-            );
+            const tacticalByPiece = new Map(tacticalRanking.map(item => [item.pieceId, item.factors]));
             return candidates.map(candidate => ({
                 ...candidate,
                 probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies),
@@ -356,28 +379,14 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
             }));
         })()
         : candidates;
-    const neuralScores = !winning && !learned
+    const neuralScores = !winning && !learned && isValidAINeuralModel(neuralModel)
         ? scoreAIMoveCandidates(game, neuralCandidatesWithProbabilities, validMoves.length, neuralModel)
         : null;
     const neuralByPiece = new Map((neuralScores || []).map(item => [item.pieceId, item.score]));
-    const neuralCandidates = neuralScores
-        ? candidates.map(candidate => ({ ...candidate, neuralScore: neuralByPiece.get(candidate.pieceId) }))
-            .filter(candidate => Number.isFinite(candidate.neuralScore))
-            .sort((a, b) => b.neuralScore - a.neuralScore || a.pieceId - b.pieceId)
-        : [];
-    const neural = neuralCandidates[0] || null;
-    const tacticalRanking = !winning && !learned && !neural
-        ? evaluateTacticalCandidates(game, candidates)
-        : [];
-    const tactical = tacticalRanking.length
-        ? candidates.find(candidate => candidate.pieceId === tacticalRanking[0].pieceId)
-        : null;
-    const selected = winning || learned || neural || tactical;
+    const selected = winning || learned || tactical;
     const trained = Boolean(learned && !winning && selected.pieceId === learned.pieceId);
-    const neuralSelected = Boolean(!winning && !learned && neural && selected.pieceId === neural.pieceId);
-    const tacticalSelected = Boolean(!winning && !learned && !neural && tactical &&
-        selected.pieceId === tactical.pieceId);
-    const tacticalByPiece = new Map(tacticalRanking.map(item => [item.pieceId, item]));
+    const neuralSelected = false;
+    const tacticalSelected = Boolean(!winning && !learned && tactical);
     const usedInstructions = trained ? [{
         id: 'memory:' + signature,
         feedbackType: 'compiled-memory',
@@ -401,8 +410,8 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
                     ? 'NEURONOVÁ AI: model vyhodnotil ' + validMoves.length + ' legálních tahů a doporučuje figurku ' +
                         (neural.pieceId + 1) + ' (skóre ' + neural.neuralScore.toFixed(4) + ').'
                     : tacticalSelected
-                        ? 'TAKTICKÁ AI: vyhodnotila ' + validMoves.length + ' legálních tahů podle postupu, ohrožení, vyhození soupeře a dokončení figurky. Doporučuje figurku ' +
-                            (tactical.pieceId + 1) + '.'
+                        ? 'VÁHOVÁ AI: vyhodnotila ' + validMoves.length + ' legálních tahů pomocí ' + AI_WEIGHT_COUNT + ' načtených vah (' + difficultyProfile.label + ').' +
+                            (intentionalBlunder ? ' Záměrná chyba podle nastavení obtížnosti.' : ' Doporučuje figurku ' + (tactical.pieceId + 1) + '.')
                         : 'AI nemá pro tuto situaci použitelné naučené hodnocení.',
         score: winning ? 1 : (trained ? Math.min(0.99, 0.5 + learned.votes / 100) :
             (neuralSelected ? neural.neuralScore : (tacticalSelected ? tacticalByPiece.get(tactical.pieceId).score : 0))),
@@ -411,6 +420,8 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
             neuralNetwork: neuralSelected,
             tacticalTeacher: tacticalSelected,
             neuralModelVersion: neuralSelected ? neuralModel.version : null,
+            weightConfig: { count: AI_WEIGHT_COUNT, difficulty: difficultyProfile.label, aggression: difficultyProfile.aggression, riskMultiplier: difficultyProfile.riskMultiplier, blunderRate: difficultyProfile.blunderRate, randomness: difficultyProfile.randomness, activeWeightIds: [1,2,3,11,12,13,21,22,23,24,25,26,27,30,31,33,41,42,43,46,47,49,51,54,55,56,60,61,62,63,64,65,66,67,68,71,72,73,74,75,91,92,93,94,95,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416].map(id => ({ id, value: getAIWeight(id) })) },
+            intentionalBlunder,
             usedInstructions,
             legalMoveCount: validMoves.length,
             selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' :
@@ -456,12 +467,47 @@ function estimateFastTrackThreat(game, playerId) {
     return total;
 }
 
+function getDifficultyProfile(difficulty = 'medium') {
+    const level = String(difficulty || 'medium').toLowerCase();
+    if (level === 'easy' || level === 'light' || level === 'lehka') {
+        return { label: 'Lehká', aggression: getAIWeight(401), riskMultiplier: getAIWeight(414), blunderRate: getAIWeight(408), randomness: getAIWeight(411) };
+    }
+    if (level === 'hard' || level === 'tezka' || level === 'těžká') {
+        return { label: 'Těžká', aggression: getAIWeight(405), riskMultiplier: getAIWeight(416), blunderRate: getAIWeight(410), randomness: getAIWeight(413) };
+    }
+    return { label: 'Střední', aggression: getAIWeight(403), riskMultiplier: getAIWeight(415), blunderRate: getAIWeight(409), randomness: getAIWeight(412) };
+}
+
+function getRuntimeTacticalWeights(difficulty = 'medium') {
+    const profile = getDifficultyProfile(difficulty);
+    return {
+        ...AI_TACTICAL_WEIGHTS,
+        aggression: profile.aggression,
+        riskMultiplier: profile.riskMultiplier
+    };
+}
+
+/** Všech 1000 číselných položek je načteno; aktivní strategické váhy jsou mapovány podle ID. */
+export function getAIWeightConfiguration() {
+    return {
+        count: AI_WEIGHT_COUNT,
+        values: AI_WEIGHT_VALUES.slice(),
+        difficultyPresets: {
+            easy: getDifficultyProfile('easy'),
+            medium: getDifficultyProfile('medium'),
+            hard: getDifficultyProfile('hard')
+        }
+    };
+}
+
 export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTICAL_WEIGHTS) {
     const playerId = game.currentPlayer;
     const beforeOwnPips = calculatePlayerPips(game, playerId);
     const beforeThreat = estimateFastTrackThreat(game, playerId);
     const beforeOpponentPips = game.players.reduce((sum, player) =>
         player.id === playerId ? sum : sum + calculatePlayerPips(game, player.id), 0);
+    const aggressionScale = Math.max(0, Number(weights.aggression ?? getAIWeight(403))) / 150;
+    const riskMultiplier = Math.max(0, Number(weights.riskMultiplier ?? getAIWeight(415)));
     return candidates.map(candidate => {
         const state = candidate.state;
         const ownPipsGain = beforeOwnPips - calculatePlayerPips(state, playerId);
@@ -480,13 +526,27 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         const enteredHome = beforeSteps < game.trackLength && afterSteps >= game.trackLength;
         const homeProgress = beforeSteps >= game.trackLength && afterSteps >= beforeSteps
             ? afterSteps - beforeSteps : 0;
-        const score = winning ? weights.immediateWin :
-            ownPipsGain * weights.ownProgress +
-            opponentPipsGain * weights.opponentSetback +
-            threatReduction * weights.threatReduction +
+        const captureContext = captured && !captured.ownPiece
+            ? (captured.steps >= game.trackLength - 6 ? getAIWeight(2) : (captured.steps <= 3 ? getAIWeight(3) : getAIWeight(1)))
+            : 0;
+        const progressScore = ownPipsGain * (getAIWeight(21) / 100) +
+            Math.max(0, afterSteps - beforeSteps) * getAIWeight(22);
+        const captureScore = enemyCapture ? (captureContext / 10) * aggressionScale : 0;
+        const selfCaptureScore = selfCapture ? -(getAIWeight(11) / 10) : 0;
+        const riskScore = -(Math.abs(getAIWeight(12)) * Math.max(0, afterThreat) / 100) * riskMultiplier +
+            (getAIWeight(13) * Math.max(0, threatReduction) / 10);
+        const homeScore = (enteredHome ? getAIWeight(23) / 10 : 0) +
+            (candidate.move?.finishedNow ? getAIWeight(24) / 10 : 0) +
+            homeProgress * (getAIWeight(25) / 10) +
+            (afterSteps === game.trackLength + 2 ? getAIWeight(27) / 10 : 0);
+        const baseScore = deployedPiece ? getAIWeight(31) / 10 : 0;
+        const dynamicScore = (opponentPipsGain * (getAIWeight(1) / 100) * aggressionScale) +
+            (ownPipsGain * (getAIWeight(30) / 100)) +
+            (threatReduction * (getAIWeight(60) / 10));
+        const score = winning ? 1000000 :
+            progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
             (enemyCapture ? weights.captureOpponent : 0) -
             (selfCapture ? weights.captureOwn : 0) +
-            (candidate.move?.finishedNow ? weights.finishPiece : 0) +
             (deployedPiece ? weights.deployPiece : 0) +
             (enteredHome ? weights.enterHome : 0) +
             homeProgress * weights.homeProgress;
@@ -503,6 +563,9 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 deployedPiece,
                 enteredHome,
                 homeProgress: Number(homeProgress.toFixed(3)),
+                aggressionScale: Number(aggressionScale.toFixed(3)),
+                riskMultiplier,
+                weightCount: AI_WEIGHT_COUNT,
                 winning
             }
         };
