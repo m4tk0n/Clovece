@@ -13,7 +13,7 @@ export function createTurnController(deps) {
     const speedDelay = () => 950;
     const debugMode = new URLSearchParams(window.location.search).get('debug');
     const debugAI = debugMode === '1';
-    const trainingAI = debugMode === 'training';
+    const trainingAI = debugMode === 'trainer' || debugMode === 'training';
     let game = null;
     let aiTimer = null;
     let automationPaused = false;
@@ -58,11 +58,11 @@ export function createTurnController(deps) {
     async function chooseAndLogAIMove() {
         const gameAtDecision = game;
         const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
-        const knowledge = await refreshAITrainingKnowledge();
+        const knowledge = await refreshAITrainingKnowledge({ trainer: trainingAI });
         if (!game || game !== gameAtDecision ||
             [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
-        if (knowledge.error && debugAI) {
-            addGameLogEntry('AI učení', 'Instrukce se nepodařilo načíst: ' + knowledge.error);
+        if (knowledge.error && (debugAI || trainingAI)) {
+            addGameLogEntry('AI učení', 'Paměť se nepodařilo aktualizovat: ' + knowledge.error);
         }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         const legalMoves = getValidMoves(game);
@@ -73,7 +73,7 @@ export function createTurnController(deps) {
             return legalMoves[0] ?? null;
         }
         const decision = chooseAIMoveDecision
-            ? chooseAIMoveDecision(game, undefined, knowledge.instructions)
+            ? chooseAIMoveDecision(game, undefined, knowledge.memory)
             : { pieceId: chooseAIMove(game), reason: '' };
         if ((debugAI || trainingAI) && decision?.reason) {
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
