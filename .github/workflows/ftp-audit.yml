@@ -2,6 +2,10 @@ name: Read-only FTP audit
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/ftp-audit.yml"
+      - "scripts/ftp-audit.py"
 
 permissions:
   contents: read
@@ -22,6 +26,7 @@ jobs:
         run: python3 scripts/ftp-audit.py --self-test
 
       - name: Compare FTP inventory with GitHub main
+        if: github.event_name == 'workflow_dispatch'
         env:
           FTP_SERVER: \${{ secrets.FTP_SERVER }}
           FTP_USERNAME: \${{ secrets.FTP_USERNAME }}
@@ -35,6 +40,7 @@ jobs:
             --output-dir audit-output
 
       - name: Publish sanitized audit report
+        if: always() && github.event_name == 'workflow_dispatch'
         if: always()
         uses: actions/upload-artifact@v4
         with:
