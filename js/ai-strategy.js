@@ -383,10 +383,16 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
         ? scoreAIMoveCandidates(game, neuralCandidatesWithProbabilities, validMoves.length, neuralModel)
         : null;
     const neuralByPiece = new Map((neuralScores || []).map(item => [item.pieceId, item.score]));
-    const selected = winning || learned || tactical;
+    const neuralCandidates = neuralScores
+        ? candidates.map(candidate => ({ ...candidate, neuralScore: neuralByPiece.get(candidate.pieceId) }))
+            .filter(candidate => Number.isFinite(candidate.neuralScore))
+            .sort((a, b) => b.neuralScore - a.neuralScore || a.pieceId - b.pieceId)
+        : [];
+    const neural = neuralCandidates[0] || null;
+    const neuralSelected = Boolean(!winning && !learned && neural);
+    const tacticalSelected = Boolean(!winning && !learned && !neural && tactical);
+    const selected = winning || learned || neural || tactical;
     const trained = Boolean(learned && !winning && selected.pieceId === learned.pieceId);
-    const neuralSelected = false;
-    const tacticalSelected = Boolean(!winning && !learned && tactical);
     const usedInstructions = trained ? [{
         id: 'memory:' + signature,
         feedbackType: 'compiled-memory',
@@ -432,7 +438,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             .map(candidate => ({
                 pieceId: candidate.pieceId,
                 score: candidate.winningMove ? 1 : (trained ? Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100 :
-                    (tacticalByPiece.get(candidate.pieceId)?.score ?? neuralByPiece.get(candidate.pieceId) ?? 0)),
+                    (neuralSelected ? (neuralByPiece.get(candidate.pieceId) ?? 0) : (tacticalByPiece.get(candidate.pieceId)?.score ?? 0))),
                 reason: candidate.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' :
                     (neuralByPiece.has(candidate.pieceId) ? 'neuronové skóre' :
                         (tacticalByPiece.has(candidate.pieceId) ? 'taktické vyhodnocení' : 'bez modelového skóre')))
