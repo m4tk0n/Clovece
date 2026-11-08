@@ -63,6 +63,7 @@ jobs:
             exit "$STATUS"
           fi
       - name: Automaticky nasadit vítězné váhy do main
+        id: promote
         if: steps.tournament.outcome == 'success'
         run: |
           if [ ! -f artifacts/ai-weight-tournament-report.json ]; then
@@ -109,9 +110,34 @@ jobs:
             git add config/ai-tactical-weights.json js/ai-tactical-weights.js
             git commit -m "Promote tactical AI weights after tournament"
             git push origin HEAD:main
+            echo "promoted=true" >> "$GITHUB_OUTPUT"
           else
             echo "Nebyly vytvořeny žádné změny aktivních vah."
           fi
+      - name: Nasadit vítězné váhy přímo na Webzdarma
+        if: steps.promote.outputs.promoted == 'true'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /clovece/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            .env
+            README.md
+            docs/**
+            scripts/**
+            tests/
+            package.json
+            package-lock.json
+            playwright.config.js
+            playwright-report/**
+            test-results/**
+            node_modules/****
+            tests/
       - name: Uložit report tréninku a turnaje
         if: always()
         uses: actions/upload-artifact@v4
