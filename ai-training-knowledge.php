@@ -53,13 +53,19 @@ function aiMemorySignature(array $game): ?string {
     return json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 function aiMemoryPieceId(array $record): ?int {
+    $decision = $record['context']['decision'] ?? [];
     if (($record['feedbackType'] ?? '') === 'positive') {
-        $id = $record['context']['decision']['selectedPieceId'] ?? null;
-        return is_numeric($id) && (int)$id >= 0 && (int)$id < 4 ? (int)$id : null;
+        $id = $decision['selectedPieceId'] ?? null;
+    } else {
+        $id = $decision['preferredPieceId'] ?? null;
+        if (!is_numeric($id)) {
+            $instruction = strtolower((string)($record['instruction'] ?? ''));
+            if (preg_match('/(?:figurk(?:u|a|y|ou)?|fig\\.?|\\bf)\\s*(?:č(?:íslo)?\\.?\\s*)?([1-4])\\b/u', $instruction, $m)) $id = (int)$m[1] - 1;
+        }
     }
-    $instruction = strtolower((string)($record['instruction'] ?? ''));
-    if (preg_match('/(?:figurk(?:u|a|y|ou)?|fig\.?|\bf)\s*(?:č(?:íslo)?\.?\s*)?([1-4])\b/u', $instruction, $m)) return (int)$m[1] - 1;
-    return null;
+    $id = is_numeric($id) ? (int)$id : -1;
+    $legalMoves = $decision['legalMoves'] ?? [];
+    return $id >= 0 && $id < 4 && is_array($legalMoves) && in_array($id, array_map('intval', $legalMoves), true) ? $id : null;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Allow: POST'); aiMemoryFail('Nepodporovaná metoda.', 405); }
