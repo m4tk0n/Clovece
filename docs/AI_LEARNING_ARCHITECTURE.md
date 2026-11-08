@@ -24,23 +24,25 @@ Pět booleovských přepínačů tvoří 32 kombinací. Tréninkový self-play m
 
 Některá rozšíření jsou podle GAME_RULES.md zatím dostupná pouze v místní hře. Online engine je nesmí předstírat ani aplikovat, dokud nedostane odpovídající implementaci pravidel. Online AI proto používá online výchozí hodnoty těchto voleb. Pokud online stav obsahuje explicitní objekt `rules`, extrakce vlastností přečte skutečné hodnoty; jinak použije výchozí online profil.
 
-## Učení v jednotlivých režimech
+## Jediné centrální úložiště místní a online AI
 
-### Místní hra
-- AI načítá model zařízení z úložiště prohlížeče.
-- Po každém tahu aktualizuje váhy a dynamické parametry a uloží model.
-- Výpis učení může uvádět počet rozhodnutí, nové parametry, změněné váhy a vliv naučené politiky.
+Místní i online AI používají stejný fyzický soubor na hostingu:
 
-### Online hra
-- AI načítá a aktualizuje globální model v MySQL tabulce `ai_learning_model`.
-- Zápis je chráněn databázovou transakcí / zámkem řádku, aby souběžné partie nepřepisovaly změny.
-- Serverový engine je autoritou pro online legální tahy.
+`storage/ai-learning-data.json`
 
-### GitHub self-play trénink
-- Trénink používá stejný formát modelu `clovece-search-policy` v3.
-- Každé rozhodnutí ukládá stav, legální možnosti, jejich vlastnosti, MCTS cíle a výsledek.
-- Kandidát se nesmí stát produkčním modelem bez validace proti šampionovi.
-- Export sdíleného modelu obsahuje pouze ověřeného šampiona.
+Soubor není součástí Git repozitáře a při nasazení se nepřepisuje. Adresář `storage/` je chráněn proti přímému HTTP čtení; přístup probíhá přes `ai-learning-api.php` nebo serverový herní engine.
+
+- Místní JavaScript načte společný model před prvním rozhodnutím AI a po každém naučeném tahu odešle změny.
+- Online PHP AI načítá a aktualizuje tentýž soubor přímo na serveru.
+- Oba přístupy používají stejný soubor zámku `storage/ai-learning-data.lock` a atomickou výměnu JSON souboru.
+- API používá CSRF ochranu a kontroluje formát, rozsah vah, velikost požadavku a dynamické parametry.
+- Zápisy z více zařízení se slučují jako rozdíly proti verzi, ze které zařízení vycházelo. Tím se nezahodí souběžně naučené váhy ani nové dynamické kombinace.
+- `localStorage` je pouze nouzová cache pro případ nedostupného serveru; není autoritativním úložištěm.
+- Starší MySQL tabulka `ai_learning_model`, pokud již v databázi existuje, se tímto řešením dále nepoužívá.
+
+### Aktuální hranice integrace
+
+GitHub self-play trénink zatím stále ukládá své checkpointy do vlastních artefaktů a SFTP archivu. Není tedy ještě napojen na centrální živý soubor. Produkční model se nesmí automaticky nahradit neověřeným kandidátem; propojení trénovacího runneru musí používat zabezpečený serverový přístup a stejný mechanismus slučování.
 
 ## Navazující 30minutové běhy GitHub Actions
 
