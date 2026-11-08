@@ -353,7 +353,7 @@ Simulátor vytváří hru přes `createGame`, všechny hráče přepne na AI a t
 
 ### Výstupy
 
-- `artifacts/ai-self-play.jsonl`: jeden řádek na každé rozhodnutí; obsahuje legální kandidáty, 18prvkové vstupní vektory, vybraný tah, hráče, hod a konečný výsledek partie.
+- `artifacts/ai-self-play.jsonl`: jeden řádek na každé rozhodnutí; obsahuje legální kandidáty, 23prvkové vstupní vektory (schema v2), vybraný tah, hráče, hod a konečný výsledek partie.
 - `artifacts/ai-self-play-metrics.json`: souhrn počtu dokončených/nedokončených partií, vítězů, rozhodnutí a průměrné délky. Počty umístění se počítají pouze z dokončených partií.
 
 Nedokončené partie mají `reward: null` a nesmějí být použity jako dokončené výsledkové příklady.
@@ -410,7 +410,7 @@ Odhad ohrožení je záměrně rychlý: porovnává pozice figurek na okruhu a p
 - skóre všech legálních kandidátů;
 - rozpad skóre na postup, zdržení soupeře, změnu ohrožení, vyhození a dokončení;
 - pořadí kandidátů učitele a vybraný tah;
-- původní 18prvkové vstupní příznaky pro neuronovou síť.
+- 23 vstupních příznaků neuronové sítě (schema v2).
 
 Tím vznikají supervised trénovací preference: kandidát s vyšším učitelským skóre je preferovanější než kandidát s nižším skóre. Výsledné pořadí partie se ukládá samostatně jako výsledek celé hry.
 
@@ -443,8 +443,8 @@ Volby:
 
 ### Co se trénuje
 
-- Vstup: stávajících 18 normalizovaných příznaků z `AI_FEATURE_SCHEMA_VERSION=1`.
-- Architektura: plně propojená síť 18 → 32 → 16 → 1, ReLU v skrytých vrstvách a lineární výstup.
+- Vstup: 23 normalizovaných příznaků z `AI_FEATURE_SCHEMA_VERSION=2`.
+- Architektura: plně propojená síť 23 → 32 → 16 → 1, ReLU v skrytých vrstvách a lineární výstup.
 - Metoda: pairwise ranking. Pro každou situaci se porovnávají dvojice legálních kandidátů podle skóre taktického učitele. Síť se učí dát lepšímu kandidátu vyšší skóre.
 - Nedokončené partie a neplatné vzorky se vynechají; shodné učitelské skóre nevytváří umělou preferenci.
 - Validační rozdělení je oddělené po ID partie, nikoli náhodně po jednotlivých tazích.
@@ -458,7 +458,7 @@ Volby:
 4. Ponech 40 epoch a výchozí seed, případně změň hodnoty.
 5. Po dokončení stáhni artifact `ai-neural-candidate-N`; obsahuje kandidátní model a report.
 
-Workflow načte archiv z větve `ai-training-data`, spustí cílené testy a vyrobí kandidáta. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
+Workflow načte archiv z větve `ai-training-data`, spustí cílené testy a ověří počet kompatibilních párů schema v2. Pokud jich ještě není alespoň 100, trénink se korektně přeskočí; po novém self-play sběru lze workflow spustit znovu. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
 
 ### První neuronový trénovací běh (2026-11-08)
 
@@ -479,7 +479,7 @@ Tyto metriky měří napodobení taktického učitele. **Neprokazují vyšší �
 
 Runtime již obsahuje `estimateCaptureProbability(distance)` a přesnější `estimatePieceThreat(...)`, která enumeruje možné hody soupeře přes produkční engine včetně bonusových šestek a legálních tahů. Tato enumerace je přesnější než zjednodušený odhad učitele.
 
-Aktuální síť ale stále přijímá **18 vstupů**; pravděpodobnostní výpočty nejsou samostatnými vstupy modelu verze 1. Učitel je používá při tvorbě taktického hodnocení. Rozšíření vstupního schématu o pravděpodobnost zásahu a další odvozené hodnoty vyžaduje novou verzi schématu, změnu runtime extrakce, trenéru i testů současně. Nesmí se potichu změnit pořadí ani význam existujících 18 hodnot.
+Aktuální síť přijímá **23 vstupů ve schématu v2**. Posledních pět je počítáno enumerací kostky a legálních tahů enginu. Podrobné pořadí, význam a omezení příznaků jsou v kapitole 18 a v `docs/AI_NEURAL_NETWORK.md`. Historické 18prvkové vektory verze 1 se do trénování v2 nezařazují.
 
 ### Bezpečnost nasazení
 
