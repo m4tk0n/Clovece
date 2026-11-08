@@ -174,6 +174,9 @@ test('structured correction is compiled only when the preferred piece was legal 
 
 test('trainer info button displays the settings of the created game before the classic style button', async () => {
     const board = await read('../js/game-board-view.js');
+    assert.match(board, /data-dice-display="toggle"/);
+    assert.match(board, /dice-display-hidden/);
+    assert.ok(board.indexOf('data-dice-display="toggle"') < board.indexOf('data-game-info="toggle"'));
     assert.match(board, /data-game-info="toggle"/);
     assert.ok(board.indexOf('data-game-info="toggle"') < board.indexOf('data-board-style="\' + style'));
     assert.match(board, /NASTAVENÍ VYTVOŘENÉ HRY/);
