@@ -24,6 +24,16 @@ export function createTurnController(deps) {
     let trainingDecisionHistory = [];
     let trainingDecisionTurnKey = '';
     let trainingDecisionSequence = 0;
+    const trainerDiceModeKey = 'clovece-trainer-ai-dice-mode';
+
+    function getAIDiceMode() {
+        try { return localStorage.getItem(trainerDiceModeKey) === 'auto' ? 'auto' : 'manual'; }
+        catch { return 'manual'; }
+    }
+
+    function needsManualAIDice() {
+        return trainingAI && Boolean(game?.players?.[game.currentPlayer]?.isAI) && getAIDiceMode() === 'manual';
+    }
 
     function publishTrainingDecisionHistory() {
         if (!trainingAI) return;
@@ -291,13 +301,13 @@ export function createTurnController(deps) {
         }
     }
     
-    async function doStartingRoll(isAI = false) {
+    async function doStartingRoll(isAI = false, selectedValue = null) {
         if (!game || game.phase !== 'start-roll' || modalOpen) return;
         const playerId = game.currentPlayer;
         const player = game.players[playerId];
         if (!isAI && player.isAI) return;
     
-        const value = Math.floor(Math.random() * 6) + 1;
+        const value = selectedValue === null ? Math.floor(Math.random() * 6) + 1 : Math.max(1, Math.min(6, Number(selectedValue) || 1));
         game.testRollSequence = (game.testRollSequence || 0) + 1;
         game.diceValue = value;
         await animateDice(value, settings);
@@ -337,16 +347,16 @@ export function createTurnController(deps) {
         continueGame();
     }
     
-    async function doRoll(isAI = false) {
+    async function doRoll(isAI = false, selectedValue = null) {
         if (!game || modalOpen) return;
         if (game.phase === 'start-roll') {
-            await doStartingRoll(isAI);
+            await doStartingRoll(isAI, selectedValue);
             return;
         }
         if (game.phase !== 'roll') return;
         if (!isAI && game.players[game.currentPlayer].isAI) return;
     
-        const result = rollDice(game);
+        const result = rollDice(game, selectedValue === null ? undefined : selectedValue);
         game.testRollSequence = (game.testRollSequence || 0) + 1;
         await animateDice(result.value, settings);
         if (!game || automationPaused || game.winner !== null || isPaused()) return;
@@ -425,6 +435,10 @@ export function createTurnController(deps) {
         aiTimer = setTimeout(async () => {
             if (!game || automationPaused || modalOpen || moveAnimating || game.winner !== null || isPaused()) return;
             if (game.phase === 'start-roll' || game.phase === 'roll') {
+                if (needsManualAIDice()) {
+                    showGame();
+                    return;
+                }
                 doRoll(true);
             } else if (game.phase === 'move') {
                 const selected = await chooseAndLogAIMove();
@@ -433,6 +447,24 @@ export function createTurnController(deps) {
         }, speedDelay());
     }
     
+    function selectDice(value) {
+        if (!trainingAI || !game || ![1, 2, 3, 4, 5, 6].includes(Number(value)) ||
+            !['start-roll', 'roll'].includes(game.phase) || automationPaused || modalOpen || isPaused()) return;
+        const player = game.players[game.currentPlayer];
+        if (player?.isAI && getAIDiceMode() !== 'manual') return;
+        void doRoll(Boolean(player?.isAI), Number(value));
+    }
+
+    function toggleAIDiceMode() {
+        if (!trainingAI) return;
+        const next = getAIDiceMode() === 'manual' ? 'auto' : 'manual';
+        try { localStorage.setItem(trainerDiceModeKey, next); } catch (error) {
+            console.warn('Režim házení AI se nepodařilo uložit:', error);
+        }
+        showGame();
+        if (next === 'auto') continueGame();
+    }
+
     function onBoardClick(event) {
         const piece = event.target.closest?.('[data-player][data-piece]');
         const playerId = Number(event.detail?.playerId ?? piece?.dataset.player);
@@ -488,6 +520,8 @@ export function createTurnController(deps) {
         closeKickModal,
         continueGame,
         doRoll,
+        selectDice,
+        toggleAIDiceMode,
         onBoardClick
     };
 }
