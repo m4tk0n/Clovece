@@ -132,6 +132,13 @@ export function createTurnController(deps) {
                     ' · náhodnost ' + config.randomness);
             }
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
+            if (debugAI && decision.breakdown?.selectedWeightFactors) {
+                const factors = decision.breakdown.selectedWeightFactors;
+                addGameLogEntry('AI příspěvek vah', 'součet 876 vah: ' + factors.allWeightsScore +
+                    ' bodů · postup ' + factors.ownProgress + ' · útok ' + factors.capturedOpponent +
+                    ' · obrana ' + factors.threatReduction + ' · domeček ' + factors.homeProgress +
+                    ' · nasazení ' + factors.deployedPiece + ' · rizikový násobitel ' + factors.riskMultiplier);
+            }
             if (debugAI && decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
                 const usedIds = decision.breakdown.usedInstructions.map(item => item.id).join(', ');
                 addGameLogEntry('AI učení', 'NAUČENO – použité instrukce: ' + usedIds);
@@ -143,7 +150,9 @@ export function createTurnController(deps) {
             if (debugAI && alternatives.length) {
                 addGameLogEntry('AI možnosti', alternatives.map(item =>
                     'figurka ' + (Number(item.pieceId) + 1) + ': ' +
-                    Number(item.score || 0).toFixed(4) + ' bodů (' + (item.reason || 'vyhodnocení') + ')'
+                    Number(item.score || 0).toFixed(4) + ' bodů' +
+                    (item.weightFactors ? ' [1000-slot ' + item.weightFactors.allWeightsScore + ']' : '') +
+                    ' (' + (item.reason || 'vyhodnocení') + ')'
                 ).join('; '));
             }
             pendingAIDebugExport = {
