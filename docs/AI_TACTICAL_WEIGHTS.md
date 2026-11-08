@@ -28,13 +28,14 @@ Výchozí hodnoty:
 `scripts/ai-train-weights.mjs` používá dokončené self-play partie a jejich odměny podle konečného umístění. Učí se metodou REINFORCE (policy gradient):
 
 1. Z každé dokončené partie převezme rozhodnutí, dostupné kandidáty a konečnou odměnu hráče.
-2. Odměnu vystředí vůči průměrné odměně hráčů v dané partii.
-3. Změří, jak změna vah ovlivňuje pravděpodobnost vybraného tahu oproti ostatním legálním kandidátům.
-4. Aktualizuje pouze šest běžných taktických vah. Okamžitá výhra zůstává pevná.
-5. Celé partie rozdělí mezi trénovací a validační množinu; tahy z jedné partie se nikdy nerozdělí mezi obě množiny.
-6. Nové váhy přijme pouze tehdy, pokud se zlepší odměnou vážené skóre na oddělených validačních partiích.
+2. Self-play vybírá tah ze softmaxového rozdělení podle aktuálních taktických vah a do záznamu ukládá pravděpodobnost výběru, teplotu i použité váhy. Okamžitě vítězný tah zůstává vynucený.
+3. Odměnu vystředí vůči průměrné odměně hráčů v dané partii.
+4. Změří, jak změna vah ovlivňuje pravděpodobnost vybraného tahu oproti ostatním legálním kandidátům. Historická data koriguje poměrem aktuální a původní pravděpodobnosti výběru (oříznutý importance sampling).
+5. Aktualizuje pouze šest běžných taktických vah. Okamžitá výhra zůstává pevná.
+6. Celé partie rozdělí mezi trénovací a validační množinu; tahy z jedné partie se nikdy nerozdělí mezi obě množiny.
+7. Nové váhy přijme pouze tehdy, pokud se zlepší odměnou vážené skóre na oddělených validačních partiích.
 
-Trénink nepoužívá `teacherScore` jako cílovou hodnotu a nepředstírá tak, že pouhé kopírování učitele je nové učení. Validační skóre je kontrola kvality tréninku, nikoliv důkaz vyšší úspěšnosti v turnaji. Nezávislé turnajové porovnání zůstává samostatným krokem.
+Trénink nepoužívá `teacherScore` jako cílovou hodnotu. Starší deterministické záznamy bez pravděpodobnosti výběru přeskočí; tím se neplete napodobování učitele s učením podle výsledků. Validační skóre je kontrola kvality tréninku, nikoliv důkaz vyšší úspěšnosti v turnaji. Nezávislé turnajové porovnání zůstává samostatným krokem.
 
 ## Automatický cyklus
 
@@ -49,7 +50,7 @@ Report obsahuje původní, navržené a výsledné váhy, počty partií a rozho
 ## Ochrany
 
 - Trénink nemění pravidla hry ani generování legálních tahů.
-- Nedokončené partie a rozhodnutí s okamžitě vítězným tahem se do aktualizace běžných vah nezapočítávají.
+- Nedokončené partie, staré deterministické záznamy a rozhodnutí s okamžitě vítězným tahem se do aktualizace běžných vah nezapočítávají.
 - Okamžitá výhra má vždy přednost.
 - Při nedostatku dat nebo chybějící oddělené validaci se trénink zastaví bez změny vah.
 - PHP a JavaScript používají stejné naučené číselné hodnoty.
