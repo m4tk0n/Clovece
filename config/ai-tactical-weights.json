@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "trainedAt": null,
+  "trainingMethod": "initial-baseline",
+  "sourceGames": 0,
+  "weights": {
+    "immediateWin": 100000,
+    "ownProgress": 0.08,
+    "opponentSetback": 0.035,
+    "threatReduction": 12,
+    "captureOpponent": 5,
+    "captureOwn": 7,
+    "finishPiece": 8
+  }
+}
