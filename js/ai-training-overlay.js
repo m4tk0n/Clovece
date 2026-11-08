@@ -36,10 +36,9 @@ export function initAITrainingOverlay() {
     let currentDecision = null;
     let csrfToken = null;
     let saving = false;
-    let savedDecisionId = null;
 
     const setSubmitState = () => {
-        submit.disabled = saving || !currentDecision || !input.value.trim() || savedDecisionId === currentDecision?.id;
+        submit.disabled = saving || !currentDecision || !input.value.trim();
     };
 
     const addText = (parent, tag, className, value) => {
@@ -52,7 +51,6 @@ export function initAITrainingOverlay() {
 
     function renderDecision(detail) {
         currentDecision = detail;
-        savedDecisionId = null;
         saveStatus.textContent = '';
         analysis.replaceChildren();
 
@@ -143,7 +141,8 @@ export function initAITrainingOverlay() {
     form.addEventListener('submit', async event => {
         event.preventDefault();
         const instruction = input.value.trim();
-        if (!instruction || !currentDecision || saving || savedDecisionId === currentDecision.id) return;
+        if (!instruction || !currentDecision || saving) return;
+        const decisionToSave = currentDecision;
         saving = true;
         setSubmitState();
         saveStatus.textContent = 'Ukládám…';
@@ -160,14 +159,13 @@ export function initAITrainingOverlay() {
                 },
                 body: JSON.stringify({
                     instruction,
-                    context: currentDecision
+                    context: decisionToSave
                 })
             });
             const payload = await response.json();
             if (!response.ok || !payload.success || !payload.id) {
                 throw new Error(payload.error || 'Instrukci se nepodařilo uložit.');
             }
-            savedDecisionId = currentDecision.id;
             saveStatus.textContent = 'Uloženo · ' + payload.id;
             status.textContent = 'Instrukce byla uložena jako samostatný soubor.';
             input.value = '';
