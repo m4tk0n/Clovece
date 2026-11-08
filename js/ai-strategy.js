@@ -160,12 +160,60 @@ export function calculatePlayerPips(game, playerId) {
     return Math.max(0, pips);
 }
 
+function normalizeTrainingSituation(game, piecesSource = game.pieces) {
+    const players = [...(game.players || [])].sort((a, b) => Number(a.slot) - Number(b.slot));
+    const currentPlayer = players.find(player => Number(player.id) === Number(game.currentPlayer));
+    return JSON.stringify({
+        boardSize: Number(game.boardSize || game.trackLength),
+        trackLength: Number(game.trackLength),
+        playerCount: players.length,
+        rules: game.rules || {},
+        currentSlot: currentPlayer ? Number(currentPlayer.slot) : Number(game.currentPlayer),
+        diceValue: Number(game.diceValue),
+        players: players.map(player => {
+            const group = piecesSource.find(item => Number(item.playerId) === Number(player.id));
+            return {
+                slot: Number(player.slot),
+                start: Number(player.start),
+                pieces: (group?.pieces || []).map(piece => Number(piece.steps))
+            };
+        })
+    });
+}
+
+function getTaughtPieceId(record) {
+    if (record.feedbackType === 'positive') {
+        const selected = record.context?.decision?.selectedPieceId;
+        return selected !== null && selected !== undefined && Number.isInteger(Number(selected)) ? Number(selected) : null;
+    }
+    const instruction = String(record.instruction || '').toLocaleLowerCase('cs');
+    const match = instruction.match(/(?:figurk(?:u|a|y|ou)?|fig\.?|\bf)\s*(?:č(?:íslo)?\.?\s*)?([1-4])\b/i);
+    if (!match) return null;
+    return Number(match[1]) - 1;
+}
+
+function findMatchingTrainingExamples(game, instructions) {
+    const signature = normalizeTrainingSituation(game);
+    return (Array.isArray(instructions) ? instructions : [])
+        .filter(record => record && record.context?.game &&
+            normalizeTrainingSituation({
+                ...record.context.game,
+                pieces: record.context.game.piecesBefore || [],
+                players: record.context.game.players || [],
+                currentPlayer: record.context.game.currentPlayer,
+                diceValue: record.context.game.diceValue
+            }, record.context.game.piecesBefore || []) === signature)
+        .map(record => ({ record, pieceId: getTaughtPieceId(record) }))
+        .filter(item => Number.isInteger(item.pieceId) && item.pieceId >= 0 && item.pieceId < 4);
+}
+
 /**
- * Nevyučená AI vybírá rovnoměrně z legálních tahů.
- * Okamžitá výhra je jediný výsledek, který nevyžaduje taktické hodnocení.
+ * AI vybírá výhradně z legálních tahů herního enginu.
+ * Naučené příklady se použijí jen při přesné shodě herní situace; textová
+ * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
  * random je injektovatelný kvůli reprodukovatelným testům.
  */
-export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random) {
+export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random, learnedInstructions = []) {
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
 
@@ -176,29 +224,68 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
     });
 
     const winning = candidates.find(candidate => candidate.winningMove);
-    const selected = winning || candidates[Math.min(
-        candidates.length - 1,
-        Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * candidates.length)
-    )];
+    const matchingExamples = findMatchingTrainingExamples(game, learnedInstructions)
+        .filter(item => validMoves.includes(item.pieceId))
+        .sort((a, b) => String(b.record.createdAt || '').localeCompare(String(a.record.createdAt || '')));
+
+    let learned = null;
+    if (!winning) {
+        const latestCorrection = matchingExamples.find(item => item.record.feedbackType === 'correction');
+        if (latestCorrection) {
+            learned = {
+                ...latestCorrection,
+                explanation: String(latestCorrection.record.instruction || '').trim()
+            };
+        } else {
+            const positive = matchingExamples.find(item => item.record.feedbackType === 'positive');
+            if (positive) {
+                learned = {
+                    ...positive,
+                    explanation: String(positive.record.note || 'Člověk dříve potvrdil tento tah jako správný.').trim()
+                };
+            }
+        }
+    }
+
+    const selected = winning || (learned
+        ? candidates.find(candidate => candidate.pieceId === learned.pieceId)
+        : null) || candidates[Math.min(
+            candidates.length - 1,
+            Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * candidates.length)
+        )];
+
+    const trained = Boolean(learned && !winning && selected.pieceId === learned.pieceId);
+    const usedInstructions = trained ? [{
+        id: learned.record.id,
+        feedbackType: learned.record.feedbackType,
+        createdAt: learned.record.createdAt || null,
+        matchedBy: 'exact-situation',
+        similarity: 1,
+        preferredPieceId: learned.pieceId,
+        explanation: learned.explanation
+    }] : [];
 
     return {
         pieceId: selected.pieceId,
         reason: winning
             ? 'Okamžitě vítězný tah – hra tím končí.'
-            : 'Zatím nemám naučenou taktiku. Tah jsem vybrala náhodně z ' +
-                validMoves.length + ' legálních možností.',
-        score: winning ? 1 : 0,
+            : trained
+                ? 'NAUČENO: použila jsem lidskou instrukci pro tuto přesnou herní situaci. ' + learned.explanation
+                : 'Zatím nemám použitelnou naučenou instrukci pro tuto situaci. Tah jsem vybrala náhodně z ' +
+                    validMoves.length + ' legálních možností.',
+        score: winning ? 1 : (trained ? 0.9 : 0),
         breakdown: {
-            trainedKnowledge: false,
+            trainedKnowledge: trained,
+            usedInstructions,
             legalMoveCount: validMoves.length,
-            selection: winning ? 'immediate-win' : 'untrained-random'
+            selection: winning ? 'immediate-win' : (trained ? 'learned-instruction' : 'untrained-random')
         },
         alternatives: candidates
             .filter(candidate => candidate.pieceId !== selected.pieceId)
             .map(candidate => ({
                 pieceId: candidate.pieceId,
                 score: candidate.winningMove ? 1 : 0,
-                reason: candidate.winningMove ? 'okamžitá výhra' : 'bez naučeného hodnocení'
+                reason: candidate.winningMove ? 'okamžitá výhra' : 'bez odpovídající naučené instrukce'
             }))
     };
 }

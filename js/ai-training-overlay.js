@@ -161,6 +161,17 @@ export function initAITrainingOverlay() {
         addText(analysis, 'div', 'ai-training-player', (detail.aiName || player?.name || 'AI') +
             ' · tah ' + (game.turnNumber ?? '—') + ' · hod ' + (game.diceValue ?? '—'));
 
+        const usedInstructions = Array.isArray(decision.usedInstructions) ? decision.usedInstructions : [];
+        if (decision.trainedKnowledge && usedInstructions.length) {
+            const ids = usedInstructions.map(item => String(item.id || '').slice(0, 8)).filter(Boolean);
+            addText(analysis, 'div', 'ai-training-learned',
+                'NAUČENO · použita instrukce ' + (ids.join(', ') || 'bez ID'));
+        }
+        if (decision.knowledgeError) {
+            addText(analysis, 'div', 'ai-training-knowledge-error',
+                'Načtení výuky se nezdařilo: ' + decision.knowledgeError);
+        }
+
         addText(analysis, 'div', 'ai-training-section-title', 'CO AI UDĚLALA');
         addText(analysis, 'p', 'ai-training-explanation',
             cleanExplanation(decision.explanation) || 'AI zatím nemá taktické zkušenosti. Vybrala legální tah podle aktuálního způsobu výběru.');

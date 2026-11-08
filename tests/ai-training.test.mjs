@@ -34,9 +34,9 @@ test('training decision appears as a green evaluation in the normal chat', async
     const app = await read('../js/app.js');
     assert.match(turn, /debugMode === 'training'/);
     assert.match(turn, /clovece:ai-training-decision/);
-    assert.match(turn, /addAITrainingEvaluation/);
-    assert.match(log, /ai-training-evaluation/);
-    assert.match(log, /'\[' \+ item\.sender \+ ': ' \+ item\.text \+ '\]'/);
+    assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
+    assert.ok(log.includes("'[' + item.sender + ': ' + item.text + ']'"));
+    assert.ok(log.includes("'[' + item.sender + ': ' + item.text + ']'"));
     assert.match(app, /addAITrainingEvaluation/);
 });
 
@@ -82,7 +82,7 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(styles, /\.ai-training-buttons button\{[^}]*flex:1 1 0/);
     assert.match(styles, /\.ai-training-buttons\{display:flex;width:100%/);
     assert.match(panel, /context: decisionToSave/);
-    assert.match(panel, /instruction,/);
+    assert.ok(panel.includes('instruction: instruction || null'));
     assert.match(panel, /ai-training\.php/);
 });
 
@@ -91,11 +91,43 @@ test('training chat contains only a short evaluation marker and automatic first 
     const turn = await read('../js/game-turn.js');
     const log = await read('../js/game-log.js');
     const panel = await read('../js/ai-training-overlay.js');
-    assert.match(turn, /addAITrainingEvaluation\?\.\(playerName, 'vyhodnocení'\)/);
+    assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
     assert.match(turn, /allPiecesInBase[\s\S]*?trainingAI && Number\(game\.diceValue\) === 6/);
     assert.match(turn, /První povinné nasazení není taktické/);
-    assert.match(log, /'\\[' \+ item\.sender \+ ': ' \+ item\.text \+ '\]'/);
+    assert.ok(log.includes("'[' + item.sender + ': ' + item.text + ']'"));
     assert.match(panel, /positionLabel\(beforePiece\.steps[\s\S]*?positionLabel\(afterPiece\.steps/);
     assert.match(panel, /cleanExplanation/);
     assert.match(panel, /protože jsem v závod/);
+});
+
+
+test('AI checks the private instruction directory through a read-only protected endpoint', async () => {
+    const endpoint = await read('../ai-training-knowledge.php');
+    const client = await read('../js/ai-training-knowledge.js');
+    const turn = await read('../js/game-turn.js');
+    assert.ok(endpoint.includes('HTTP_X_CSRF_TOKEN'));
+    assert.ok(endpoint.includes('knowledgeSameOrigin'));
+    assert.ok(endpoint.includes('storage/ai-training/instructions'));
+    assert.ok(endpoint.includes('Require') && endpoint.includes('denied'));
+    assert.ok(endpoint.includes('glob('));
+    assert.ok(endpoint.includes('feedbackType'));
+    assert.ok(!endpoint.includes('sessionFingerprint'));
+    assert.ok(!endpoint.includes('unlink(') && !endpoint.includes('rename(') && !endpoint.includes('file_put_contents('));
+    assert.ok(client.includes('ai-training-knowledge.php'));
+    assert.ok(client.includes('instructionCache'));
+    assert.ok(client.includes('since:'));
+    assert.ok(turn.includes('refreshAITrainingKnowledge'));
+    assert.ok(turn.includes('await refreshAITrainingKnowledge()'));
+    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.instructions)'));
+});
+
+test('training panel explicitly identifies decisions influenced by stored instructions', async () => {
+    const panel = await read('../js/ai-training-overlay.js');
+    const styles = await read('../css/ai-training.css');
+    const turn = await read('../js/game-turn.js');
+    assert.match(panel, /NAUČENO/);
+    assert.match(panel, /usedInstructions/);
+    assert.match(styles, /ai-training-learned/);
+    assert.match(turn, /trainedKnowledge/);
+    assert.match(turn, /'naučeno'/);
 });
