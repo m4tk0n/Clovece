@@ -43,7 +43,7 @@ test('training decision appears as a green evaluation in the normal chat', async
 test('each human correction is stored as a new private immutable JSON file', async () => {
     const endpoint = await read('../ai-training.php');
     const storageRules = await read('../storage/.htaccess');
-    assert.match(endpoint, /X-CSRF-TOKEN/i);
+    assert.match(endpoint, /HTTP_X_CSRF_TOKEN/i);
     assert.match(endpoint, /aiTrainingSameOrigin/);
     assert.match(endpoint, /storage\/ai-training\/instructions/);
     assert.match(endpoint, /fopen\(\$filePath, 'x'\)/);
@@ -56,7 +56,7 @@ test('training panel sends the complete AI context together with the teacher cor
     const panel = await read('../js/ai-training-overlay.js');
     assert.match(panel, /Co měla AI udělat správně a proč/);
     assert.match(panel, /ODESLAT INSTRUKCI/);
-    assert.match(panel, /context: currentDecision/);
+    assert.match(panel, /context: decisionToSave/);
     assert.match(panel, /instruction,/);
     assert.match(panel, /ai-training\.php/);
 });
