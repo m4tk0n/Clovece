@@ -1,4 +1,4 @@
-name: AI reward-based weight training
+name: AI reward training and tactical tournament
 
 on:
   workflow_run:
@@ -8,17 +8,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: ai-reward-training
+  group: ai-reward-training-and-tournament
   cancel-in-progress: false
 
 jobs:
-  train:
+  train-and-compete:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -37,16 +37,87 @@ jobs:
           COUNT=$(find training-data/self-play -type f -name '*.jsonl*' | wc -l)
           echo "Archivované datové soubory: $COUNT"
           test "$COUNT" -gt 0
-      - name: Ověřit reward trainer
-        run: node --test tests/ai-train-weights.test.mjs tests/ai-tactical-weights.test.mjs
-      - name: Trénovat taktické váhy podle výsledků partií
+      - name: Vypočítat kandidátní váhy ze skutečných výsledků partií
         run: |
           mkdir -p artifacts
-          node scripts/ai-train-weights.mjs --input-dir=training-data/self-play --current-weights=config/ai-tactical-weights.json --output-weights=artifacts/ai-tactical-weights-candidate.json --module=artifacts/ai-tactical-weights-candidate.js --report=artifacts/ai-weight-training-report.json
-      - name: Uložit report tréninku
+          node scripts/ai-train-weights.mjs \
+            --input-dir=training-data/self-play \
+            --current-weights=config/ai-tactical-weights.json \
+            --output-weights=artifacts/ai-tactical-weights-candidate.json \
+            --module=artifacts/ai-tactical-weights-candidate.js \
+            --report=artifacts/ai-weight-training-report.json
+      - name: Turnaj kandidáta proti aktivní AI na deskách 40, 48 a 80
+        id: tournament
+        continue-on-error: true
+        run: |
+          if [ ! -f artifacts/ai-tactical-weights-candidate.json ]; then
+            echo "Trénink nevytvořil lepšího kandidáta. Aktivní váhy zůstávají beze změny."
+            exit 0
+          fi
+          STATUS=0
+          node scripts/ai-weight-tournament.mjs \
+            --candidate=artifacts/ai-tactical-weights-candidate.json \
+            --baseline=config/ai-tactical-weights.json \
+            --output=artifacts/ai-weight-tournament-report.json \
+            --games-per-board=120 || STATUS=$?
+          if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 2 ]; then
+            exit "$STATUS"
+          fi
+      - name: Automaticky nasadit vítězné váhy do main
+        if: steps.tournament.outcome == 'success' || steps.tournament.outcome == 'failure'
+        run: |
+          if [ ! -f artifacts/ai-weight-tournament-report.json ]; then
+            echo "Turnaj nebyl spuštěn; aktivní váhy zůstávají beze změny."
+            exit 0
+          fi
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('artifacts/ai-weight-tournament-report.json', 'utf8'));
+          if (report.accepted !== true) {
+            console.log('Kandidát turnajem neprošel. Aktivní váhy se nemění.');
+            process.exit(0);
+          }
+          const candidate = JSON.parse(fs.readFileSync('artifacts/ai-tactical-weights-candidate.json', 'utf8'));
+          const active = JSON.parse(fs.readFileSync('config/ai-tactical-weights.json', 'utf8'));
+          const keys = Object.keys(active.weights);
+          if (keys.some(key => Number(candidate.basedOnWeights?.[key]) !== Number(active.weights[key]))) {
+            throw new Error('Aktivní váhy se od vytvoření kandidáta změnily. Automatické nasazení zrušeno.');
+          }
+          const next = {
+            version: 1,
+            trainedAt: candidate.candidateCreatedAt,
+            trainingMethod: candidate.trainingMethod,
+            sourceGames: candidate.sourceGames,
+            tournament: {
+              completedGames: report.gamesCompleted,
+              candidateWins: report.overall.candidateWins,
+              baselineWins: report.overall.baselineWins,
+              candidateWinRate: report.overall.candidateWinRate,
+              confidence95: report.overall.candidateWinRate95CI,
+              reportCreatedAt: report.createdAt
+            },
+            weights: candidate.weights
+          };
+          fs.writeFileSync('config/ai-tactical-weights.json', JSON.stringify(next, null, 2) + '\n');
+          fs.writeFileSync('js/ai-tactical-weights.js',
+            '// Generated from config/ai-tactical-weights.json after a successful head-to-head tournament.\n' +
+            'export const AI_TACTICAL_WEIGHTS = Object.freeze(' + JSON.stringify(next.weights, null, 2) + ');\n');
+          console.log('Nové váhy prošly turnajem; připraveno k nasazení.');
+          NODE
+          if ! git diff --quiet -- config/ai-tactical-weights.json js/ai-tactical-weights.js; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add config/ai-tactical-weights.json js/ai-tactical-weights.js
+            git commit -m "Promote tactical AI weights after tournament"
+            git push origin HEAD:main
+          else
+            echo "Nebyly vytvořeny žádné změny aktivních vah."
+          fi
+      - name: Uložit report tréninku a turnaje
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ai-weight-training-${{ github.run_number }}
+          name: ai-weight-cycle-${{ github.run_number }}
           path: artifacts/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 90
