@@ -8,7 +8,7 @@ import path from 'node:path';
 import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
-import { chooseStrategicDecision } from '../js/ai-strategy.js';
+import { chooseTacticalTeacherDecision } from '../js/ai-strategy.js';
 import { extractAIMoveFeatures } from '../js/ai-neural-network.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
@@ -108,9 +108,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             const move = movePiece(state, pieceId);
             return { pieceId, move, state, winningMove: state.winner === game.currentPlayer };
         });
-        const decision = chooseStrategicDecision(
-            game, dependencies, 'medium', random, {}, null
-        );
+        const decision = chooseTacticalTeacherDecision(game, dependencies);
         if (!decision || !legalMoves.includes(decision.pieceId)) {
             throw new Error('AI vrátila tah mimo seznam legálních tahů.');
         }
@@ -125,11 +123,14 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             legalMoveCount: legalMoves.length,
             candidates: candidates.map(candidate => ({
                 pieceId: candidate.pieceId,
-                features: extractAIMoveFeatures(game, candidate, legalMoves.length)
+                features: extractAIMoveFeatures(game, candidate, legalMoves.length),
+                teacherScore: decision.ranking.find(item => item.pieceId === candidate.pieceId)?.score ?? null,
+                teacherFactors: decision.ranking.find(item => item.pieceId === candidate.pieceId)?.factors ?? null
             })),
             selectedPieceId: decision.pieceId,
             selectedFeatures: extractAIMoveFeatures(game, selected, legalMoves.length),
-            selection: decision.breakdown?.selection || 'unknown'
+            selection: decision.reason,
+            teacherRanking: decision.ranking
         });
         movePiece(game, decision.pieceId);
         actions++;
