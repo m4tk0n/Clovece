@@ -1,4 +1,6 @@
 import { scoreAIMoveCandidates, isValidAINeuralModel } from './ai-neural-network.js';
+import { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
+export { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
 
 /**
  * Základní výpočtová vrstva a rozhodování AI.
@@ -10,17 +12,6 @@ import { scoreAIMoveCandidates, isValidAINeuralModel } from './ai-neural-network
 const BASE_DEPLOY_COST = 6;
 const EXPECTED_PIPS_PER_ACTIVE_TURN = 4.2;
 const MAX_THREAT_BONUS_ROLLS = 3;
-
-// Společná sada taktických vah; stejné hodnoty používá online PHP AI.
-export const AI_TACTICAL_WEIGHTS = Object.freeze({
-    immediateWin: 100000,
-    ownProgress: 0.08,
-    opponentSetback: 0.035,
-    threatReduction: 12,
-    captureOpponent: 5,
-    captureOwn: 7,
-    finishPiece: 8
-});
 
 export function estimateCaptureProbability(distance) {
     if (!Number.isInteger(distance) || distance < 1) return 0;
