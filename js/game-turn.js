@@ -142,7 +142,7 @@ export function createTurnController(deps) {
             if (trainingAI) {
                 const playerName = game.players[playerId].name;
                 // V herním chatu zůstane jen stručná značka; úplný rozbor patří do panelu.
-                addAITrainingEvaluation?.(playerName, 'vyhodnocení');
+                addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení');
                 window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
                     detail: {
                         ...pendingAIDebugExport,
@@ -355,6 +355,7 @@ export function createTurnController(deps) {
                 const automaticFirstDeployment = trainingAI && Number(game.diceValue) === 6 && allPiecesInBase;
                 // Nasazení první figurky šestkou je povinné a neobsahuje taktické rozhodnutí.
                 if (!automaticFirstDeployment) await chooseAndLogAIMove();
+                if (automationPaused || !game || game.phase !== 'move' || isPaused()) return;
                 if (debugAI) {
                     addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
                 }
