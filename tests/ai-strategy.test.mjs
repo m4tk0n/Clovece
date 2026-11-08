@@ -115,9 +115,9 @@ test('opponent start square becomes more dangerous with reserve pieces and near-
         const startSteps = (opponent.start - game.players[0].start + game.trackLength) % game.trackLength;
         game.pieces[0].pieces[0].steps = startSteps;
         game.pieces[1].pieces[0].steps = -1;
-        game.pieces[1].pieces[1].steps = nearGoal ? game.trackLength + 2 : game.trackLength - 10;
-        game.pieces[1].pieces[2].steps = game.trackLength + 1;
-        game.pieces[1].pieces[3].steps = game.trackLength + 3;
+        game.pieces[1].pieces[1].steps = nearGoal ? game.trackLength + 2 : 5;
+        game.pieces[1].pieces[2].steps = 10;
+        game.pieces[1].pieces[3].steps = 15;
 
         const next = JSON.parse(JSON.stringify(game));
         const ranked = evaluateTacticalCandidates(game, [{ pieceId: 0, state: next, move: {} }], undefined, aiDependencies);
