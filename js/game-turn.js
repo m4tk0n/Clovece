@@ -6,11 +6,13 @@ import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
-        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, setAIDebugExport
+        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, addAITrainingEvaluation, setAIDebugExport
     } = deps;
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
-    const debugAI = new URLSearchParams(window.location.search).get('debug') === '1';
+    const debugMode = new URLSearchParams(window.location.search).get('debug');
+    const debugAI = debugMode === '1';
+    const trainingAI = debugMode === 'training';
     let game = null;
     let aiTimer = null;
     let automationPaused = false;
@@ -58,13 +60,13 @@ export function createTurnController(deps) {
         const decision = chooseAIMoveDecision
             ? chooseAIMoveDecision(game)
             : { pieceId: chooseAIMove(game), reason: '' };
-        if (debugAI && decision?.reason) {
-            addGameLogEntry('AI rozhodování', decision.reason);
+        if ((debugAI || trainingAI) && decision?.reason) {
+            if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
             const alternatives = [
                 { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown },
                 ...(decision.alternatives || [])
             ].filter(item => item.pieceId !== null && item.pieceId !== undefined);
-            if (alternatives.length) {
+            if (debugAI && alternatives.length) {
                 addGameLogEntry('AI možnosti', alternatives.map(item =>
                     'figurka ' + (Number(item.pieceId) + 1) + ': ' +
                     Number(item.score || 0).toFixed(4) + ' bodů (' + (item.reason || 'vyhodnocení') + ')'
@@ -73,7 +75,7 @@ export function createTurnController(deps) {
             pendingAIDebugExport = {
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
-                strategyVersion: 'fixed-v1',
+                strategyVersion: trainingAI ? 'untrained-v1' : 'untrained-v1',
                 game: {
                     boardSize: game.boardSize || game.trackLength,
                     playerCount: game.players.length,
@@ -106,7 +108,7 @@ export function createTurnController(deps) {
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
-        if (debugAI && pendingAIDebugExport && game.players[playerId]?.isAI &&
+        if ((debugAI || trainingAI) && pendingAIDebugExport && game.players[playerId]?.isAI &&
             Number(pendingAIDebugExport.decision.selectedPieceId) === Number(pieceId)) {
             pendingAIDebugExport.result = {
                 move: { ...move },
@@ -114,7 +116,19 @@ export function createTurnController(deps) {
                 phaseAfter: game.phase,
                 winner: game.winner
             };
-            setAIDebugExport?.(pendingAIDebugExport);
+            if (debugAI) setAIDebugExport?.(pendingAIDebugExport);
+            if (trainingAI) {
+                const playerName = game.players[playerId].name;
+                const evaluation = pendingAIDebugExport.decision.explanation ||
+                    ('Vybrala jsem figurku ' + (Number(pieceId) + 1) + '.');
+                addAITrainingEvaluation?.(playerName, evaluation);
+                window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+                    detail: {
+                        ...pendingAIDebugExport,
+                        aiName: playerName
+                    }
+                }));
+            }
         }
         pendingAIDebugExport = null;
         return finishMove(move, { before, after });
