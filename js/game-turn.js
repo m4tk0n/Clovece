@@ -20,6 +20,7 @@ export function createTurnController(deps) {
     let modalOpen = false;
     let moveAnimating = false;
     let pendingAIDebugExport = null;
+    let pendingAIForcedMove = false;
     let trainingDecisionHistory = [];
     let trainingDecisionTurnKey = '';
     let trainingDecisionSequence = 0;
@@ -80,6 +81,7 @@ export function createTurnController(deps) {
                 ' · naučených situací: ' + (knowledge.situationCount || 0));
         }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
+        pendingAIForcedMove = false;
         if (trainingAI) {
             const turnKey = [game.currentPlayer, game.turnNumber].join(':');
             if (turnKey !== trainingDecisionTurnKey) {
@@ -88,6 +90,11 @@ export function createTurnController(deps) {
             }
         }
         const legalMoves = getValidMoves(game);
+        if (trainingAI && legalMoves.length === 1) {
+            // Jediný legální tah není taktické rozhodnutí a nepatří do výukového panelu.
+            pendingAIForcedMove = true;
+            return legalMoves[0];
+        }
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
         const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
         if (trainingAI && Number(game.diceValue) === 6 && allPiecesInBase) {
@@ -158,6 +165,10 @@ export function createTurnController(deps) {
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
+        if (trainingAI && pendingAIForcedMove && game.players[playerId]?.isAI) {
+            addAITrainingEvaluation?.(game.players[playerId].name, 'jediný možný tah');
+        }
+        pendingAIForcedMove = false;
         if ((debugAI || trainingAI) && pendingAIDebugExport && game.players[playerId]?.isAI &&
             Number(pendingAIDebugExport.decision.selectedPieceId) === Number(pieceId)) {
             pendingAIDebugExport.result = {
