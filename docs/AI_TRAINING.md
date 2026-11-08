@@ -487,3 +487,8 @@ Aktuální síť ale stále přijímá **18 vstupů**; pravděpodobnostní výpo
 - Model v aplikaci zůstává vypnutý, dokud není dokončen turnaj a regresní testy.
 - Při neplatném modelu runtime dál používá stávající náhradní strategii.
 - Herní engine zůstává jediným zdrojem legálních tahů a pravidel.
+
+
+### Regresní kontrola exportu modelu
+
+Test `tests/ai-train.test.mjs` spouští trénovací skript nad malou umělou sadou, načte vzniklý ES modul a ověří jej skutečným runtime validátorem `isValidAINeuralModel`. Kontroluje také rozměry první a poslední vrstvy a počet trénovacích dvojic. Tento test běží před každým trénováním v GitHub Actions, aby se nevyrobil kandidát, který herní runtime odmítne.
