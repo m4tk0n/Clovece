@@ -121,3 +121,18 @@
 .board-dice-trainer-slot .trainer-die{width:clamp(29px,7vw,38px);height:clamp(29px,7vw,38px);padding:3px;border-radius:6px}
 .board-dice-trainer-slot .trainer-ai-dice-mode{min-height:26px;padding:3px 5px;font-size:7px}
 .trainer-dice-controls.dice-display-hidden{display:none!important}
+
+
+.clovece-debug-overlay .debug-overlay-ai-weights {
+    display:none;
+    margin-top:5px;
+    padding-top:5px;
+    border-top:1px solid #a33;
+    max-height:45vh;
+    overflow:auto;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    color:#ffd28a;
+    font:9px/1.45 monospace;
+}
+.clovece-debug-overlay .debug-overlay-ai-weights.is-visible { display:block; }
