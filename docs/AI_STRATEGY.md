@@ -105,3 +105,7 @@ Místní hra načítá kompletní číselnou konfiguraci 1–1000 z `js/ai-weigh
 V lokální hře je dočasně upřednostněn váhový učitel nad neuronovým modelem, aby bylo možné ověřit skutečný vliv dodaných vah. Explicitní předání neuronového modelu do `chooseStrategicDecision` zůstává podporováno. Výuková paměť s přesnou shodou situace a okamžitá výhra mají vyšší prioritu než běžné vážené hodnocení.
 
 Při `?debug=1` se do herního logu vypíše počet načtených hodnot, zvolená obtížnost, její aktivní parametry a hodnoty hlavních strategických vah. Engine stále jako jediný určuje legální tahy; váhy smějí měnit pouze pořadí legálních možností.
+
+## 9. Riziko obsazení soupeřova startu
+
+Pokud AI postaví svou figurku na startovní pole soupeře, vyhodnotí zvláštní riziko opětovného nasazení soupeřovy figurky ze základny. Riziko roste podle počtu soupeřových figurek v základně. Ještě vyšší penalizace se použije, pokud má soupeř některou figurku v závěrečné části trasy nebo v cílovém sloupci. Výpočet současně zohledňuje skutečnou pravděpodobnost vyhození podle herního enginu. Debug faktory: `onOpponentStart`, `opponentStartBasePieces`, `opponentNearGoal`, `pieceThreat` a `startSquareDangerScore`.
