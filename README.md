@@ -123,11 +123,12 @@ Přehled verzovaných změn projektu je veden v [docs/VERSION_HISTORY.md](docs/V
 
 ## Cache statických souborů
 
-- Lokální CSS a JavaScriptové soubory načítané přes `index.php` používají verzovací parametr `?v=` odvozený z času poslední změny konkrétního souboru pomocí PHP `filemtime()`.
-- Verze se tedy změní pouze u souboru, který byl upraven. Ostatní soubory si mohou prohlížeče ponechat v cache.
-- Verze se používá u všech lokálních CSS odkazů, u lokálních JavaScriptových modulů v `importmap` i u vstupního `js/bootstrap.js`.
+- PHP v `index.php` rekurzivně projde adresáře `js/` a `css/` a pro každý lokální soubor načte jeho vlastní čas změny přes `filemtime()`.
+- Všechny JavaScriptové moduly jsou automaticky zapsány do `importmap` s parametrem `?v=` podle vlastního `filemtime()`. Platí to pro statické importy i pro pozdější dynamické importy, včetně vnořených modulů.
+- Mapa verzí všech CSS souborů se předá přes `data-css-versions`. Dynamicky načítané styly obrazovek, desky, kostek i diagnostiky používají tuto mapu.
+- Změna jednoho souboru zneplatní pouze jeho cache; ostatní soubory mohou zůstat v cache prohlížeče.
+- Vstupní skripty a statické CSS odkazy v `index.php` používají stejnou funkci `filemtime()`.
 - Externí knihovny a externí fonty mají vlastní URL a tímto mechanismem se neoznačují.
-- Pokud lokální soubor neexistuje nebo jeho čas změny nelze načíst, funkce použije záložní verzi `1`; chybějící soubor tím samozřejmě nebude nahrazen.
 
 
 ## Oddělení logiky kostky
