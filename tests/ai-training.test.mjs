@@ -99,3 +99,35 @@ test('training chat contains only a short evaluation marker and automatic first 
     assert.match(panel, /cleanExplanation/);
     assert.match(panel, /protože jsem v závod/);
 });
+
+
+test('AI checks the private instruction directory through a read-only protected endpoint', async () => {
+    const endpoint = await read('../ai-training-knowledge.php');
+    const client = await read('../js/ai-training-knowledge.js');
+    const turn = await read('../js/game-turn.js');
+    assert.match(endpoint, /HTTP_X_CSRF_TOKEN/);
+    assert.match(endpoint, /knowledgeSameOrigin/);
+    assert.match(endpoint, /storage\\/ai-training\\/instructions/);
+    assert.match(endpoint, /Require\\s\+all\\s+denied/);
+    assert.match(endpoint, /glob\\(/);
+    assert.match(endpoint, /feedbackType/);
+    assert.doesNotMatch(endpoint, /sessionFingerprint/);
+    assert.doesNotMatch(endpoint, /\\b(?:unlink|rename|file_put_contents)\\s*\\(/i);
+    assert.match(client, /ai-training-knowledge\\.php/);
+    assert.match(client, /instructionCache/);
+    assert.match(client, /since:/);
+    assert.match(turn, /refreshAITrainingKnowledge/);
+    assert.match(turn, /await refreshAITrainingKnowledge\\(\\)/);
+    assert.match(turn, /chooseAIMoveDecision\\(game, undefined, knowledge\\.instructions\\)/);
+});
+
+test('training panel explicitly identifies decisions influenced by stored instructions', async () => {
+    const panel = await read('../js/ai-training-overlay.js');
+    const styles = await read('../css/ai-training.css');
+    const turn = await read('../js/game-turn.js');
+    assert.match(panel, /NAUČENO/);
+    assert.match(panel, /usedInstructions/);
+    assert.match(styles, /ai-training-learned/);
+    assert.match(turn, /trainedKnowledge/);
+    assert.match(turn, /'naučeno'/);
+});
