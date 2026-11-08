@@ -159,7 +159,10 @@ export function initDebugOverlay() {
                 ['threatReduction', 'Snížení ohrožení'],
                 ['captureOpponent', 'Vyhození soupeře'],
                 ['captureOwn', 'Vyhození vlastní figurky'],
-                ['finishPiece', 'Dokončení figurky']
+                ['finishPiece', 'Dokončení figurky'],
+                ['deployPiece', 'Nasazení figurky'],
+                ['enterHome', 'Vstup do domečku'],
+                ['homeProgress', 'Postup v domečku']
             ];
             const oldWeights = state.previousWeights || state.baselineWeights || {};
             const nextWeights = state.candidateWeights || state.finalWeights || {};
