@@ -116,7 +116,7 @@ for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
     };
     let boardActions = 0;
     for (let gameIndex = 0; gameIndex < gamesPerBoard; gameIndex++) {
-        const random = makeRandom(seed + boardIndex * 100000 + Math.floor(gameIndex / playerCount));
+        const random = makeRandom(seed + boardIndex * 100000 + gameIndex);
         const candidateSeat = gameIndex % playerCount;
         const game = createGame(1, playerCount - 1, [], [], boardSize);
         game.players.forEach(player => { player.isAI = true; });
@@ -198,7 +198,7 @@ report.decision = report.accepted
     : 'REJECTED: kandidát nesplnil statistickou hranici na každé kombinaci, pokrytí všech her nebo ochranu proti neplatným a nedokončeným partiím.';
 report.safeguards = {
     sameProductionEngineAndRules: true,
-    sameDiceSeedWithinCandidateSeatCycle: true,
+    independentDiceSeedPerGame: true,
     candidateSeatRotatedAcrossAllPlayers: true,
     boardConfigurations: boards,
     baselineOpponentsPerGame: [3, 5, 7],
