@@ -417,3 +417,67 @@ Tím vznikají supervised trénovací preference: kandidát s vyšším učitels
 ### Omezení a další ověření
 
 Učitel je první vysvětlitelná heuristika, nikoli zaručeně optimální strategie. Váhy jeho faktorů je nutné ověřit turnajově pro 2–8 hráčů a desky 40/48/80. Než se jeho data použijí k exportu modelu, je potřeba porovnat jeho výsledky s náhodnou baseline a ověřit, že se výhry a průměrné pořadí zlepšují. Učitel ani simulátor nemění herní pravidla.
+
+
+---
+
+## 17. Offline neuronové trénování – třetí fáze
+
+**Stav:** trénovací skript a ruční GitHub Actions workflow jsou připravené. Výstupem je kandidátní model, nikoli automatická změna produkčních vah.
+
+### Spuštění lokálně
+
+Nejprve je potřeba mít stažené archivované soubory `*.jsonl.gz` z větve `ai-training-data` do `training-data/self-play/`. Potom:
+
+```bash
+npm run ai:train -- --input-dir=training-data/self-play --epochs=40 --seed=20261108
+```
+
+Volby:
+- `--input-dir`: adresář s archivovanými `.jsonl` nebo `.jsonl.gz` soubory.
+- `--epochs`: počet epoch (1–300, výchozí 40).
+- `--learning-rate`: rychlost učení (0.0001–0.1, výchozí 0.01).
+- `--seed`: reprodukovatelná inicializace vah a míchání příkladů.
+- `--output`: výstupní kandidátní ES modul.
+- `--metrics`: JSON report.
+
+### Co se trénuje
+
+- Vstup: stávajících 18 normalizovaných příznaků z `AI_FEATURE_SCHEMA_VERSION=1`.
+- Architektura: plně propojená síť 18 → 32 → 16 → 1, ReLU v skrytých vrstvách a lineární výstup.
+- Metoda: pairwise ranking. Pro každou situaci se porovnávají dvojice legálních kandidátů podle skóre taktického učitele. Síť se učí dát lepšímu kandidátu vyšší skóre.
+- Nedokončené partie a neplatné vzorky se vynechají; shodné učitelské skóre nevytváří umělou preferenci.
+- Validační rozdělení je oddělené po ID partie, nikoli náhodně po jednotlivých tazích.
+- Nejlepší validační epochu skript exportuje jako `artifacts/ludo-ai-candidate.js`; metriky ukládá do `artifacts/ai-training-metrics.json`.
+
+### Spuštění na GitHubu
+
+1. Otevři GitHub Actions v repozitáři.
+2. Vyber workflow **AI neuronové trénování (kandidát)**.
+3. Klikni **Run workflow**.
+4. Ponech 40 epoch a výchozí seed, případně změň hodnoty.
+5. Po dokončení stáhni artifact `ai-neural-candidate-N`; obsahuje kandidátní model a report.
+
+Workflow načte archiv z větve `ai-training-data`, spustí cílené testy a vyrobí kandidáta. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
+
+### Co znamenají metriky
+
+- `train.accuracy`: podíl dvojic, u kterých síť správně napodobila pořadí učitele na trénovací množině.
+- `validation.accuracy`: totéž na oddělených partiích.
+- `logLoss`: kvalita pravděpodobnostního pořadí dvojic; nižší je lepší.
+- `bestEpoch`: epocha s nejlepším validačním výsledkem.
+
+Tyto metriky měří napodobení taktického učitele. **Neprokazují vyšší úspěšnost ve hře.** Před nasazením musí následovat turnaj kandidáta proti učiteli a dosavadní AI na stejných seedech, s výměnou startovních pozic.
+
+### Pravděpodobnostní výpočty a vstupy
+
+Runtime již obsahuje `estimateCaptureProbability(distance)` a přesnější `estimatePieceThreat(...)`, která enumeruje možné hody soupeře přes produkční engine včetně bonusových šestek a legálních tahů. Tato enumerace je přesnější než zjednodušený odhad učitele.
+
+Aktuální síť ale stále přijímá **18 vstupů**; pravděpodobnostní výpočty nejsou samostatnými vstupy modelu verze 1. Učitel je používá při tvorbě taktického hodnocení. Rozšíření vstupního schématu o pravděpodobnost zásahu a další odvozené hodnoty vyžaduje novou verzi schématu, změnu runtime extrakce, trenéru i testů současně. Nesmí se potichu změnit pořadí ani význam existujících 18 hodnot.
+
+### Bezpečnost nasazení
+
+- Trénovací workflow nikdy nepřepisuje `js/models/ludo-ai.js`.
+- Model v aplikaci zůstává vypnutý, dokud není dokončen turnaj a regresní testy.
+- Při neplatném modelu runtime dál používá stávající náhradní strategii.
+- Herní engine zůstává jediným zdrojem legálních tahů a pravidel.
