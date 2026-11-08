@@ -1,0 +1,40 @@
+{
+  "format": "clovece-ai-self-play-report",
+  "formatVersion": 2,
+  "weightSchemaVersion": 2,
+  "weightKeys": [
+    "immediateWin",
+    "ownProgress",
+    "opponentSetback",
+    "threatReduction",
+    "captureOpponent",
+    "captureOwn",
+    "finishPiece",
+    "deployPiece",
+    "enterHome",
+    "homeProgress"
+  ],
+  "featureSchemaVersion": 3,
+  "featureCount": 26,
+  "createdAt": "2026-11-08T17:30:04.063Z",
+  "seed": 42505246444,
+  "gamesRequested": 1,
+  "gamesCompleted": 1,
+  "gamesTruncated": 0,
+  "playerCount": 2,
+  "boardSize": 40,
+  "explorationTemperature": 4,
+  "decisions": 128,
+  "winsByPlayer": [
+    0,
+    1
+  ],
+  "averageActions": 128,
+  "averageGameTurns": 107,
+  "placements": [
+    1,
+    1
+  ],
+  "gamesProcessed": 1,
+  "runId": "1794159004063-2480"
+}
