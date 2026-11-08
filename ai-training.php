@@ -131,18 +131,23 @@ if (!is_dir($directory) && !@mkdir($directory, 0700, true) && !is_dir($directory
 // Zajistíme zákaz přímého HTTP přístupu i na hostingu, kde storage/.htaccess
 // nebyl součástí FTP deploye. Existující ochranný soubor nikdy nepřepisujeme.
 $instructionsHtaccess = $directory . DIRECTORY_SEPARATOR . '.htaccess';
+$denyRule = "Require all denied\\n";
 if (!is_file($instructionsHtaccess)) {
     $denyHandle = @fopen($instructionsHtaccess, 'x');
     if ($denyHandle !== false) {
-        $denyWritten = fwrite($denyHandle, "Require all denied\\n");
+        $denyWritten = fwrite($denyHandle, $denyRule);
         fflush($denyHandle);
         fclose($denyHandle);
-        if ($denyWritten === false) {
+        if ($denyWritten !== strlen($denyRule)) {
             aiTrainingFail('Nepodařilo se zabezpečit úložiště instrukcí.', 500);
         }
     } elseif (!is_file($instructionsHtaccess)) {
         aiTrainingFail('Nepodařilo se zabezpečit úložiště instrukcí.', 500);
     }
+}
+$denyContents = @file_get_contents($instructionsHtaccess);
+if (!is_string($denyContents) || !preg_match('/^\\s*Require\\s+all\\s+denied\\s*$/mi', $denyContents)) {
+    aiTrainingFail('Úložiště instrukcí nemá potvrzenou ochranu proti přímému přístupu.', 500);
 }
 
 $realDirectory = realpath($directory);
