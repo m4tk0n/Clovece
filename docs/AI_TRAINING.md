@@ -45,10 +45,14 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 
 ## 2A. Rozdíl mezi běžným režimem a trenérem
 
+**Ano – i při běžném spuštění bez debug režimu AI používá to, co se už naučila.** Není potřeba spouštět trenéra, aby využívala dříve uložené zkušenosti.
+
 | Režim | Co načítá před tahem | Co zapisuje |
 |---|---|---|
-| Bez `debug` | Kompilovanou paměť z cache; při prvním tahu jednou načte `ai-memory.json`. | Nic. |
-| `?debug=trainer` | Přečte frontu od posledního uloženého offsetu a zpracuje pouze nové JSON. | Aktualizuje `ai-memory.json` před rozhodnutím. |
+| Bez `debug` | Používá kompilovanou paměť `ai-memory.json`, kterou načte při prvním použití a následně drží v cache stránky. Další tahy už kvůli výuce nevolají server. | Nic; pouze využívá již zpracované zkušenosti. |
+| `?debug=trainer` | Před každým rozhodnutím zkontroluje frontu od posledního uloženého offsetu a zpracuje pouze nové JSON záznamy. | Aktualizuje `ai-memory.json` před rozhodnutím, takže nově zpracované zkušenosti může ihned použít. |
+
+**Praktický postup:** nové hodnocení ulož v trenéru (`?debug=trainer`). Trenér ho zpracuje do trvalé paměti. Potom můžeš otevřít obyčejnou hru bez `debug` – AI už bude používat aktualizovanou paměť. Běžná hra sama nové výukové JSON nehledá ani nezpracovává.
 
 Fronta `.training-queue` se doplňuje při uložení každého nového hodnocení. Při prvním spuštění trenéra se vytvoří jednorázový seznam již existujících JSON, aby se neztratila starší výuka. Při dalších tazích se nepoužívá `glob()` ani procházení celého adresáře.
 
@@ -220,13 +224,16 @@ Aktuální místní strategie je v `js/ai-strategy.js`.
 
 - Herní engine určuje legální tahy.
 - AI nesmí měnit pravidla ani vytvořit vlastní nelegální tah.
-- Zachované výpočty (například odhad zbývajících kroků a ohrožení) jsou zatím pouze popisné.
-- Taktické váhy a dřívější naučené preference jsou vypnuté.
 - Pokud existuje okamžitě vítězný tah, AI ho upřednostní.
-- Jinak nyní vybírá náhodně z legálních možností.
-- Obtížnost v této fázi nepřidává naučené taktické znalosti.
+- Pokud kompilovaná paměť obsahuje naučenou preferenci pro přesně stejnou herní situaci, AI ji použije a vybere legální tah s nejvyšší podporou v uložených hodnoceních.
+- Pokud pro situaci žádná přesná naučená preference neexistuje, použije náhradní výběr z legálních tahů.
+- Odhady zbývajících kroků a ohrožení jsou zatím pouze popisné; obecné taktické váhy a zobecňování podobných situací ještě nejsou hotové.
 
-**Místní AI nyní JSON záznamy načítá a umí použít první omezený typ naučené preference.** Zatím však rozpoznává pouze přesnou shodu herní situace a opravnou instrukci s jednoznačně uvedeným číslem figurky. Obecné pokyny a podobné situace zatím neumí bezpečně zobecnit. Serverová AI online her zatím tuto znalostní vrstvu nepoužívá.
+**Běžná hra bez debug režimu naučené informace používá.** Načítá pouze hotovou kompilovanou paměť `ai-memory.json`, nikoli jednotlivé výukové JSON soubory. Paměť zůstává v cache stránky, takže se před každým tahem znovu neprohledává server ani adresář.
+
+**Nové záznamy zpracovává pouze trenér `/?debug=trainer`.** Ten před každým rozhodnutím kontroluje frontu nových záznamů, aktualizuje `ai-memory.json` a může nově zpracované zkušenosti hned použít.
+
+Současné učení je omezené: preference se použije při přesné shodě herní situace a oprava musí jednoznačně označit číslo figurky. Obecné pokyny a podobné situace AI zatím neumí bezpečně zobecnit. Serverová AI online her zatím tuto znalostní vrstvu nepoužívá.
 
 ## 9. Jak má fungovat skutečné učení – cílový návrh
 
