@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/ai-train.mjs'
+      - 'tests/ai-train.test.mjs'
       - '.github/workflows/ai-train.yml'
       - 'js/ai-neural-network.js'
   workflow_dispatch:
@@ -40,6 +41,8 @@ jobs:
           test -n "$(find training-data/self-play -name '*.jsonl.gz' -print -quit)"
       - name: Syntaxe trénovacího skriptu
         run: node --check scripts/ai-train.mjs
+      - name: Test exportu modelu kompatibilního s runtime
+        run: node --test tests/ai-train.test.mjs
       - name: Ověřit vstupní formát a neuronovou vrstvu
         run: node --test tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
       - name: Natrénovat kandidátní model
