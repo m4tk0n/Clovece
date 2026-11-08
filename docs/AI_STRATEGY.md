@@ -1,6 +1,6 @@
 # AI – strategie, výpočty a výuka
 
-**Aktuální stav:** místní JavaScriptová AI načítá nové lidské instrukce před každým rozhodnutím a umí je použít při přesné shodě herní situace. Rozpoznání textu je zatím omezené na výslovně uvedené číslo figurky; obecné podobné situace a online PHP AI jsou další práce.
+**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení, zpracuje nové JSON a aktualizuje trvalou paměť. Výuka zatím spojuje preference podle přesné shody herní situace; obecné zobecnění českých taktických pokynů a online PHP AI jsou další práce.
 
 **Místní implementace:** `js/ai-strategy.js`  
 **Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
@@ -53,14 +53,18 @@ Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `
 1. Engine vrátí seznam legálních tahů.
 2. AI ověří, zda některý z nich okamžitě vyhrává.
 3. Pokud ano, provede vítězný tah.
-4. Jinak vybere rovnoměrně jednu možnost ze seznamu.
-5. Výukový panel může rozhodnutí zobrazit a uložit lidské hodnocení.
+4. Pokud neexistuje naučená preference pro přesnou situaci, použije bezpečný náhradní výběr z legálních tahů.
 
-Místní AI před každým výběrem tahu volá `ai-training-knowledge.php`. Nové JSON soubory si uloží do paměti aktuální hry a další kontroly načítají pouze nově vytvořené soubory. `js/ai-strategy.js` porovnává přesnou situaci a vybírá pouze z legálních tahů. Rozhodnutí, které ovlivnila instrukce, vrací `trainedKnowledge: true` a ID použitého záznamu. Okamžitá výhra má přednost.\n\nToto je první omezená fáze učení, nikoli obecné porozumění libovolnému českému textu. Online PHP AI zatím používá oddělenou strategii.
+Běžný režim načítá pouze kompilovanou paměť `storage/ai-training/ai-memory.json`; zdrojové výukové JSON neprochází. Paměť se drží v cache prohlížeče po dobu běhu stránky.
 
+Režim `/?debug=trainer` před každým rozhodnutím zavolá `ai-training-knowledge.php`. Endpoint zpracovává pouze názvy souborů z append-only fronty `.training-queue`, pokračuje od uloženého bajtového offsetu a aktualizuje `ai-memory.json`. Celý adresář JSON se pro migraci starších záznamů prohledá pouze jednou. Po úspěšném zpracování lze původní JSON odstranit; kompilovaná paměť a fronta zůstávají.
+
+`js/ai-strategy.js` porovnává přesný podpis situace a vybere legální figurku s nejvyšším počtem naučených hlasů. Rozhodnutí ovlivněné pamětí vrací `trainedKnowledge: true` a souhrn počtu hodnocení. Okamžitá výhra má přednost.
+
+Jde o první omezenou fázi učení: ukládá se preference konkrétní figurky v přesné situaci, nikoli obecné pochopení libovolného českého taktického pokynu. Online PHP AI zatím používá oddělenou strategii.
 ## 5. Výuka člověkem
 
-Výukový režim se spouští přes `/?debug=training`. Člověk může rozhodnutí AI opravit, potvrdit jako správné nebo přeskočit. Každé odeslané hodnocení se ukládá jako nový neměnný JSON soubor do `storage/ai-training/instructions/`.
+Výukový režim se spouští přes `/?debug=trainer` (starší alias `/?debug=training` zůstává podporován). Člověk může rozhodnutí AI opravit, potvrdit jako správné nebo přeskočit. Každé odeslané hodnocení se ukládá jako nový neměnný JSON soubor do `storage/ai-training/instructions/`.
 
 Podrobný popis UI, JSON struktury, zabezpečení, současného stavu a úkolů je v [docs/AI_TRAINING.md](AI_TRAINING.md).
 
