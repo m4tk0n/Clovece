@@ -1,6 +1,12 @@
 name: AI neuronové trénování (kandidát)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/ai-train.mjs'
+      - '.github/workflows/ai-train.yml'
+      - 'js/ai-neural-network.js'
   workflow_dispatch:
     inputs:
       epochs:
@@ -32,6 +38,8 @@ jobs:
           mkdir -p training-data/self-play
           git archive FETCH_HEAD training-data/self-play | tar -x
           test -n "$(find training-data/self-play -name '*.jsonl.gz' -print -quit)"
+      - name: Syntaxe trénovacího skriptu
+        run: node --check scripts/ai-train.mjs
       - name: Ověřit vstupní formát a neuronovou vrstvu
         run: node --test tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
       - name: Natrénovat kandidátní model
