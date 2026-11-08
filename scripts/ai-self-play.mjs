@@ -116,7 +116,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         }
         const selected = candidates.find(candidate => candidate.pieceId === decision.pieceId);
         gameSamples.push({
-            gameId: gameIndex + 1,
+            gameId: String(seed) + '-' + (gameIndex + 1),
             playerCount,
             boardSize,
             turnNumber: game.turnNumber,
