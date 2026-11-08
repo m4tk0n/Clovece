@@ -120,6 +120,8 @@ export function createTurnController(deps) {
         } catch (error) {
             if (debugAI || trainingAI) addGameLogEntry('AI model', 'Neuronový model není dostupný: ' + error.message);
         }
+        if (!game || game !== gameAtDecision ||
+            [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
         const decision = chooseAIMoveDecision
             ? chooseAIMoveDecision(game, undefined, knowledge.memory, neuralModel)
             : { pieceId: chooseAIMove(game), reason: '' };
