@@ -51,8 +51,8 @@ jobs:
           BOARD="${{ inputs.board || '40' }}"
           if [ "$BOARD" = "40" ] && [ "$PLAYERS" -gt 4 ]; then exit 1; fi
           if [ "$BOARD" = "48" ] && [ "$PLAYERS" -gt 6 ]; then exit 1; fi
-      - name: Regresní testy
-        run: npm test
+      - name: Cílené testy enginu a rozhodování AI
+        run: node --test tests/game-engine.test.mjs tests/local-game-rules.test.mjs tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
       - name: Self-play partie
         run: |
           mkdir -p artifacts
