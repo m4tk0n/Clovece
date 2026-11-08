@@ -18,7 +18,9 @@ def sensitive_file(name):
     return name == ".env" or (name.startswith(".env.") and name != ".env.dist")
 
 def deployable(path):
-    path = path.replace("\\", "/").lstrip("./")
+    path = path.replace("\\", "/")
+    if path.startswith("./"):
+        path = path[2:]
     if not path or path.startswith(SKIP_PREFIXES):
         return False
     name = path.rsplit("/", 1)[-1]
@@ -97,10 +99,12 @@ def inventory(ftp, root):
                 dirs.append(path + "/")
                 try:
                     ftp.cwd(name)
-                    walk(path)
-                    ftp.cwd("..")
                 except all_errors as exc:
-                    warnings.append(f"Adresář {path} nelze projít ({type(exc).__name__}).")
+                    warnings.append(f"Adresář {path} nelze otevřít ({type(exc).__name__}).")
+                    continue
+                try:
+                    walk(path)
+                finally:
                     try:
                         ftp.cwd("..")
                     except all_errors:
