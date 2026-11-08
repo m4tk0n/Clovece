@@ -1,0 +1,26 @@
+name: Unit testy
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Načíst repozitář
+        uses: actions/checkout@v4
+      - name: Nastavit Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalovat závislosti
+        run: npm install
+      - name: Spustit regresní testy
+        run: npm test
