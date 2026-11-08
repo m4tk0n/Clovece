@@ -411,7 +411,7 @@ export function renderBoard(container, game) {
         let stage = container.querySelector('.three-board-stage');
         if (!stage) {
             container.innerHTML =
-                '<div class="premium-board-shell">' + SWITCH_CSS +
+                '<div class="premium-board-shell three-board-shell">' + SWITCH_CSS +
                     '<div class="board-topline"><span class="board-kicker">THE GRAND TABLE</span>' + styleSwitchMarkup() + '</div>' +
                     (trainingMode ? '<div class="board-dice-trainer-slot"></div>' : '') +
                     '<div class="three-board-stage" aria-label="Plně prostorová hrací deska"></div>' +
