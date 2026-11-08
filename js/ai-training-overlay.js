@@ -17,6 +17,8 @@ export function initAITrainingOverlay() {
                 <button id="ai-training-larger" type="button" aria-label="Zvětšit okno" title="Zvětšit">+</button>
             </div>
         </div>
+        <label class="ai-training-history-label" for="ai-training-history">Rozhodnutí v tomto tahu</label>
+        <select id="ai-training-history" class="ai-training-history" disabled><option>Čekám na rozhodnutí AI</option></select>
         <div id="ai-training-analysis" class="ai-training-analysis" aria-live="polite">
             Až AI provede tah, zobrazím zde její rozhodnutí a vysvětlení.
         </div>
@@ -90,12 +92,15 @@ export function initAITrainingOverlay() {
     const skip = panel.querySelector('#ai-training-skip');
     const correct = panel.querySelector('#ai-training-correct');
     let currentDecision = null;
+    let decisionHistory = [];
+    const reviewedDecisionIds = new Set();
+    let preferredPieceId = null;
     let csrfToken = null;
     let saving = false;
     let windowSize = 0;
 
     const setSubmitState = () => {
-        submit.disabled = saving || !currentDecision || !input.value.trim();
+        submit.disabled = saving || !currentDecision || (!input.value.trim() && preferredPieceId === null);
         skip.disabled = saving || !currentDecision;
         correct.disabled = saving || !currentDecision;
     };
@@ -151,6 +156,7 @@ export function initAITrainingOverlay() {
 
     function renderDecision(detail) {
         currentDecision = detail;
+        preferredPieceId = Number.isInteger(Number(detail.decision?.preferredPieceId)) ? Number(detail.decision.preferredPieceId) : null;
         saveStatus.textContent = '';
         analysis.replaceChildren();
 
@@ -187,10 +193,26 @@ export function initAITrainingOverlay() {
             const list = document.createElement('ul');
             list.className = 'ai-training-candidates';
             candidates.forEach(candidate => {
-                const chosen = Number(candidate.pieceId) === Number(selected);
+                const pieceId = Number(candidate.pieceId);
+                const chosen = pieceId === Number(selected);
+                const taught = preferredPieceId === pieceId;
                 const reason = candidate.reason || candidate.reasons?.join(', ') || 'bez taktického hodnocení';
-                addText(list, 'li', chosen ? 'is-selected' : '',
-                    'Figurka ' + (Number(candidate.pieceId) + 1) + (chosen ? ' – vybraná' : '') + ': ' + cleanExplanation(reason));
+                const item = document.createElement('li');
+                item.className = (chosen ? 'is-selected ' : '') + (taught ? 'is-teaching-target' : '');
+                const choose = document.createElement('button');
+                choose.type = 'button';
+                choose.className = 'ai-training-candidate-choice';
+                choose.textContent = 'Učit: figurka ' + (pieceId + 1) + (chosen ? ' (zvolená)' : '') + (taught ? ' ✓' : '');
+                choose.disabled = saving;
+                choose.addEventListener('click', () => {
+                    preferredPieceId = pieceId;
+                    renderDecision(currentDecision);
+                    input.focus();
+                    setSubmitState();
+                });
+                item.appendChild(choose);
+                addText(item, 'span', '', cleanExplanation(reason));
+                list.appendChild(item);
             });
             analysis.appendChild(list);
         }
@@ -250,8 +272,11 @@ export function initAITrainingOverlay() {
     input.addEventListener('input', setSubmitState);
     skip.addEventListener('click', () => {
         if (!currentDecision || saving) return;
+        reviewedDecisionIds.add(String(currentDecision.decisionId || currentDecision.id));
         currentDecision = null;
+        preferredPieceId = null;
         input.value = '';
+        updateDecisionHistory();
         saveStatus.textContent = 'Bez instrukce – nic nebylo uloženo.';
         status.textContent = 'Rozhodnutí přeskočeno.';
         setSubmitState();
@@ -260,8 +285,9 @@ export function initAITrainingOverlay() {
         const feedbackText = input.value.trim();
         const instruction = feedbackType === 'correction' ? feedbackText : '';
         const note = feedbackType === 'positive' ? feedbackText : '';
-        if (!currentDecision || saving || (feedbackType === 'correction' && !instruction)) return;
-        const decisionToSave = currentDecision;
+        if (!currentDecision || saving || (feedbackType === 'correction' && !instruction && preferredPieceId === null)) return;
+        const decisionToSave = JSON.parse(JSON.stringify(currentDecision));
+        if (feedbackType === 'correction' && preferredPieceId !== null) decisionToSave.decision.preferredPieceId = preferredPieceId;
         saving = true;
         setSubmitState();
         saveStatus.textContent = 'Ukládám…';
@@ -287,8 +313,11 @@ export function initAITrainingOverlay() {
             if (!response.ok || !payload.success || !payload.id) {
                 throw new Error(payload.error || 'Záznam se nepodařilo uložit.');
             }
+            reviewedDecisionIds.add(String(decisionToSave.decisionId || decisionToSave.id));
             currentDecision = null;
+            preferredPieceId = null;
             input.value = '';
+            updateDecisionHistory();
             saveStatus.textContent = (feedbackType === 'positive' ? 'Potvrzeno jako správné · ' : 'Oprava uložena · ') + payload.id;
             status.textContent = feedbackType === 'positive'
                 ? 'Správné rozhodnutí bylo uloženo jako pozitivní příklad.'
@@ -307,11 +336,41 @@ export function initAITrainingOverlay() {
     });
     correct.addEventListener('click', () => saveFeedback('positive'));
 
+    const historySelect = panel.querySelector('#ai-training-history');
+    function updateDecisionHistory(preferredId = null) {
+        const previous = preferredId || currentDecision?.decisionId || historySelect.value;
+        historySelect.replaceChildren();
+        decisionHistory.forEach(item => {
+            const option = document.createElement('option');
+            option.value = String(item.decisionId || item.id);
+            option.textContent = 'Hod ' + (item.game?.diceValue ?? '?') + ' · figurka ' +
+                (Number(item.decision?.selectedPieceId ?? -1) + 1) +
+                (reviewedDecisionIds.has(option.value) ? ' · vyhodnoceno' : '');
+            historySelect.appendChild(option);
+        });
+        historySelect.disabled = decisionHistory.length === 0;
+        if (!decisionHistory.length) return;
+        const target = decisionHistory.find(item => String(item.decisionId || item.id) === String(previous)) || decisionHistory[decisionHistory.length - 1];
+        historySelect.value = String(target.decisionId || target.id);
+        if (!currentDecision || String(currentDecision.decisionId || currentDecision.id) !== historySelect.value) renderDecision(target);
+    }
+    historySelect.addEventListener('change', () => {
+        const selectedItem = decisionHistory.find(item => String(item.decisionId || item.id) === historySelect.value);
+        if (selectedItem) renderDecision(selectedItem);
+    });
+    window.addEventListener('clovece:ai-training-decisions', event => {
+        decisionHistory = Array.isArray(event.detail?.decisions) ? event.detail.decisions : [];
+        decisionHistory.forEach(item => { item.id = item.id || item.decisionId || (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)); });
+        updateDecisionHistory(event.detail?.currentId || null);
+    });
     window.addEventListener('clovece:ai-training-decision', event => {
         const detail = event.detail;
         if (!detail || typeof detail !== 'object') return;
-        detail.id = detail.id || (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
-        renderDecision(detail);
+        const key = String(detail.decisionId || detail.id || '');
+        const index = decisionHistory.findIndex(item => String(item.decisionId || item.id) === key);
+        if (index >= 0) decisionHistory[index] = detail;
+        else decisionHistory.push(detail);
+        updateDecisionHistory(key);
     });
 
     getToken().catch(error => {
