@@ -12,6 +12,13 @@ function onlineAiLearningClamp(float $value, float $min = -1.0, float $max = 1.0
     return max($min, min($max, $value));
 }
 
+function onlineAiLearningRuleEnabled(array $game, string $key, bool $default): bool
+{
+    $rules = $game['rules'] ?? null;
+    if (!is_array($rules) || !array_key_exists($key, $rules)) return $default;
+    return (bool) $rules[$key];
+}
+
 function onlineAiLearningBaseNames(): array
 {
     return [
@@ -253,7 +260,11 @@ function onlineAiLearningActionFeatures(array $game, int $pieceId, float $strate
         $bonus['captureChance'],
         onlineAiLearningClamp(((int) ($game['diceValue'] ?? 0)) / 6, 0.0, 1.0),
         onlineAiLearningClamp(((int) ($game['consecutiveSixes'] ?? 0)) / 3, 0.0, 1.0),
-        1.0, 1.0, 0.0, 1.0, 0.0,
+        onlineAiLearningRuleEnabled($game, 'threeRolls', true) ? 1.0 : 0.0,
+        onlineAiLearningRuleEnabled($game, 'mustDeploy', true) ? 1.0 : 0.0,
+        onlineAiLearningRuleEnabled($game, 'skipHomePieces', false) ? 1.0 : 0.0,
+        onlineAiLearningRuleEnabled($game, 'mustEnterHome', false) ? 1.0 : 0.0,
+        onlineAiLearningRuleEnabled($game, 'threeSixesPenalty', false) ? 1.0 : 0.0,
         $activeCount / 4,
         $afterBase / 4,
         $afterHome / 4,
