@@ -5,9 +5,14 @@
  * Základny leží uvnitř desky ve volném místě, takže dráha může zabírat
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
-import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js?v=20261107-2';
-import { render2DBoard } from './game-board-2d.js?v=20261108-4';
+import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js';
+import { render2DBoard } from './game-board-2d.js';
 import { notifyGameExtensions } from './game-extensions.js';
+
+const cssAssetVersions = (() => {
+    try { return JSON.parse(document.body?.dataset.cssVersions || '{}'); }
+    catch { return {}; }
+})();
 
 const STYLE_KEY = 'clovece_board_style';
 // Mnohoúhelníková varianta je dočasně skrytá; aktivní je pouze klasická deska.
@@ -28,7 +33,7 @@ function loadThreeRenderer() {
     if (!threeRendererPromise) {
         const startedAt = performance.now();
         notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načítání', status: '…' });
-        threeRendererPromise = import('./game-board-3d.js?v=20261107-2').then(module => {
+        threeRendererPromise = import('./game-board-3d.js').then(module => {
             notifyGameExtensions('onResourceLoad', { name: 'game-board-3d.js – načteno', status: 'OK', duration: Math.round(performance.now() - startedAt) });
             return module;
         }).catch(error => {
@@ -54,7 +59,7 @@ function ensureStylesheet(name, mode = 'game') {
     link.id = 'clovece-' + name + '-styles';
     link.dataset.modeStyle = mode;
     link.rel = 'stylesheet';
-    link.href = new URL('../css/' + name + '.css?v=20261106-3', import.meta.url).href;
+    link.href = new URL('../css/' + name + '.css?v=' + encodeURIComponent(cssAssetVersions['css/' + name + '.css'] || 1), import.meta.url).href;
     const promise = new Promise((resolve, reject) => {
         notifyGameExtensions('onResourceLoad', { name: 'css/' + name + '.css – načítání', status: '…' });
         link.onload = () => {
