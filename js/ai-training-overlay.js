@@ -246,7 +246,9 @@ export function initAITrainingOverlay() {
         setSubmitState();
     });
     async function saveFeedback(feedbackType) {
-        const instruction = feedbackType === 'correction' ? input.value.trim() : '';
+        const feedbackText = input.value.trim();
+        const instruction = feedbackType === 'correction' ? feedbackText : '';
+        const note = feedbackType === 'positive' ? feedbackText : '';
         if (!currentDecision || saving || (feedbackType === 'correction' && !instruction)) return;
         const decisionToSave = currentDecision;
         saving = true;
@@ -266,6 +268,7 @@ export function initAITrainingOverlay() {
                 body: JSON.stringify({
                     feedbackType,
                     instruction: instruction || null,
+                    note: note || null,
                     context: decisionToSave
                 })
             });
