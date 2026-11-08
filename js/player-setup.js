@@ -15,6 +15,7 @@ const customPlayerColors = new Map();
 const manuallyEditedPlayerNames = new Set();
 const manuallyEditedPlayerColors = new Set();
 let profileDefaultsPromise = Promise.resolve();
+let profileCreatorColor = null;
 const PROFILE_TO_GAME_COLORS = {
     '#FF6B6B': '#E53935', '#4ECDC4': '#00ACC1', '#FFE66D': '#F9A825', '#A8E6CF': '#43A047',
     '#FF8B94': '#D81B60', '#B4A7D6': '#8E24AA', '#D4A373': '#FB8C00', '#9999FF': '#1E88E5'
@@ -24,6 +25,8 @@ const extendedRules = { threeRolls: true, mustDeploy: true, skipHomePieces: true
 // Obrazovka výběru zůstává po opuštění v DOM; posluchače proto registrujeme jen jednou.
 const initializedSetupRoots = new WeakSet();
 const PLAYER_COLOR_LABELS = ['Červená', 'Modrá', 'Zelená', 'Žlutá', 'Oranžová', 'Fialová', 'Tyrkysová', 'Růžová'];
+// První čtyři místa používají základní barvy; pořadí se losuje při sestavení hry.
+const FIRST_TABLE_COLORS = ['#F9A825', '#E53935', '#1E88E5', '#43A047'];
 // Krátká jména AI: ženská, mužská i genderově neutrální.
 const AI_NAMES = [
     'Claude', 'Alex', 'Sam', 'Robin', 'Kim', 'Charlie', 'Mika', 'Niki', 'Toni', 'Andrea',
@@ -118,7 +121,9 @@ function updateSetup() {
             isAI,
             number,
             key,
-            selectedColor: PLAYER_COLORS.includes(requestedColor) ? requestedColor : 'random',
+            selectedColor: !isAI && number === 1 && profileCreatorColor
+                ? profileCreatorColor
+                : (PLAYER_COLORS.includes(requestedColor) ? requestedColor : 'random'),
             name: customPlayerNames.get(key) || (isAI ? 'AI' + number + ' Max' : 'Hráč ' + number)
         };
     });
@@ -127,13 +132,22 @@ function updateSetup() {
     const reservedColors = new Set(players
         .filter(player => player.selectedColor !== 'random')
         .map(player => player.selectedColor));
-    const randomColors = shuffleColors(PLAYER_COLORS.filter(color => !reservedColors.has(color)));
-    let randomColorIndex = 0;
+    const randomCoreColors = shuffleColors(FIRST_TABLE_COLORS.filter(color => !reservedColors.has(color)));
+    const randomExtraColors = shuffleColors(PLAYER_COLORS.filter(color =>
+        !FIRST_TABLE_COLORS.includes(color) && !reservedColors.has(color)
+    ));
 
-    players.forEach(player => {
-        player.displayColor = player.selectedColor === 'random'
-            ? randomColors[randomColorIndex++]
-            : player.selectedColor;
+    players.forEach((player, index) => {
+        if (player.selectedColor !== 'random') {
+            player.displayColor = player.selectedColor;
+            return;
+        }
+
+        // První čtyři místa losují ze žluté, červené, modré a zelené.
+        // Další místa používají zbývající rozšiřující barvy.
+        player.displayColor = index < 4
+            ? (randomCoreColors.shift() || randomExtraColors.shift() || PLAYER_COLORS.find(color => !reservedColors.has(color)))
+            : (randomExtraColors.shift() || randomCoreColors.shift() || PLAYER_COLORS.find(color => !reservedColors.has(color)));
     });
 
     $('preview-players').innerHTML = players.map(player => {
@@ -147,7 +161,7 @@ function updateSetup() {
                 'aria-label="Jméno ' + (player.isAI ? 'AI ' : 'hráče ') + player.number + '" ' +
                 'data-name-key="' + player.key + '" value="' + escapeHtml(player.name) + '">' +
             '<label class="preview-color-label">' +
-                '<select class="preview-player-color" data-color-key="' + player.key + '" data-resolved-color="' + player.displayColor + '" aria-label="Barva hráče ' + escapeHtml(player.name) + '">' +
+                '<select class="preview-player-color" data-color-key="' + player.key + '" data-resolved-color="' + player.displayColor + '" aria-label="Barva hráče ' + escapeHtml(player.name) + '"' + (player.key === 'human:1' && profileCreatorColor ? ' disabled title="Barva je převzata z profilu přihlášeného hráče."' : '') + '>' +
                     '<option value="random"' + (player.selectedColor === 'random' ? ' selected' : '') + '>Náhodná</option>' +
                     availableColors.map(color => '<option value="' + color.value + '"' +
                         (color.value === player.selectedColor ? ' selected' : '') + '>' + color.label + '</option>').join('') +
@@ -176,6 +190,7 @@ function loadProfileDefaults() {
         const nameKey = 'human:1';
         const colorKey = 'human:1';
         if (!account) {
+            profileCreatorColor = null;
             if (!manuallyEditedPlayerNames.has(nameKey)) customPlayerNames.delete(nameKey);
             if (!manuallyEditedPlayerColors.has(colorKey)) customPlayerColors.delete(colorKey);
             updateSetup();
@@ -186,11 +201,10 @@ function loadProfileDefaults() {
             if (displayName) customPlayerNames.set(nameKey, displayName);
         }
 
-        if (!manuallyEditedPlayerColors.has(colorKey)) {
-            const profileColor = String(account.color_preference || '').trim().toUpperCase();
-            const gameColor = PROFILE_TO_GAME_COLORS[profileColor] || profileColor;
-            if (PLAYER_COLORS.includes(gameColor)) customPlayerColors.set(colorKey, gameColor);
-        }
+        const profileColor = String(account.color_preference || '').trim().toUpperCase();
+        const gameColor = PROFILE_TO_GAME_COLORS[profileColor] || profileColor;
+        profileCreatorColor = PLAYER_COLORS.includes(gameColor) ? gameColor : null;
+        if (profileCreatorColor) customPlayerColors.set(colorKey, profileCreatorColor);
         updateSetup();
     }).catch(error => {
         console.warn('Výchozí údaje profilu se nepodařilo načíst:', error);
@@ -240,6 +254,7 @@ export function initPlayerSetup() {
     });
     $('random-player-colors-btn')?.addEventListener('click', () => {
         $('preview-players')?.querySelectorAll('[data-color-key]').forEach(select => {
+            if (select.dataset.colorKey === 'human:1' && profileCreatorColor) return;
             customPlayerColors.set(select.dataset.colorKey, 'random');
             manuallyEditedPlayerColors.add(select.dataset.colorKey);
         });
