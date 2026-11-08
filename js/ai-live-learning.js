@@ -72,7 +72,6 @@ function rebaseLocalModel(localModel, sentModel, serverModel) {
         ));
     }
 
-    const localByKey = new Map((localModel.dynamicParameters || []).map(item => [item.key, item]));
     const sentByKey = new Map((sentModel.dynamicParameters || []).map(item => [item.key, item]));
     const merged = new Map();
     for (const item of localModel.dynamicParameters || []) {
@@ -133,7 +132,7 @@ function queueCentralSave(snapshot) {
             centralBaseModel = createSearchModel(snapshot);
         }
     }).catch(error => {
-        centralStorageAvailable = false;
+        // Nezavírej synchronizaci natrvalo; další rozhodnutí může zápis zopakovat.
         console.warn('Uložení centrálního modelu AI selhalo:', error);
     });
 }
