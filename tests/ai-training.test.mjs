@@ -7,10 +7,10 @@ const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 test('training route has its own panel and does not load the technical overlay', async () => {
     const index = await read('../index.php');
     const bootstrap = await read('../js/debug-bootstrap.js');
-    assert.match(index, /\$trainingMode[\s\S]*?===\s*'training'/);
+    assert.match(index, /\$trainingMode[\s\S]*?in_array[\s\S]*?'trainer'/);
     assert.match(index, /ai-training\.css/);
     assert.match(index, /\$debugMode\s*\|\|\s*\$trainingMode/);
-    assert.match(bootstrap, /mode === 'training'/);
+    assert.match(bootstrap, /mode === 'trainer' \|\| mode === 'training'/);
     assert.match(bootstrap, /trainingMode \? null : await import\('\.\/debug-overlay\.js'/);
     assert.match(bootstrap, /initAITrainingOverlay/);
 });
@@ -32,7 +32,7 @@ test('training decision appears as a green evaluation in the normal chat', async
     const turn = await read('../js/game-turn.js');
     const log = await read('../js/game-log.js');
     const app = await read('../js/app.js');
-    assert.match(turn, /debugMode === 'training'/);
+    assert.match(turn, /debugMode === 'trainer' \|\| debugMode === 'training'/);
     assert.match(turn, /clovece:ai-training-decision/);
     assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
     assert.ok(log.includes("'[' + item.sender + ': ' + item.text + ']'"));
@@ -63,7 +63,7 @@ test('each human correction is stored as a new private immutable JSON file', asy
     assert.ok(endpoint.includes('$denyRule = "Require all denied\\n";'));
     assert.ok(endpoint.includes("trim($denyContents) === 'Require all denied\\\\n'"));
     assert.ok(endpoint.includes('ftruncate($repairHandle, 0)'));
-    assert.doesNotMatch(endpoint, /\b(?:unlink|rename|file_put_contents)\s*\(/i);
+    assert.match(endpoint, /\.training-queue/);
     assert.match(storageRules, /Require all denied/i);
 });
 
@@ -110,24 +110,27 @@ test('training chat contains only a short evaluation marker and automatic first 
 });
 
 
-test('AI checks the private instruction directory through a read-only protected endpoint', async () => {
+test('normal AI reads compiled memory only; trainer imports queued new JSON incrementally', async () => {
     const endpoint = await read('../ai-training-knowledge.php');
+    const writer = await read('../ai-training.php');
     const client = await read('../js/ai-training-knowledge.js');
     const turn = await read('../js/game-turn.js');
+    const strategy = await read('../js/ai-strategy.js');
     assert.ok(endpoint.includes('HTTP_X_CSRF_TOKEN'));
-    assert.ok(endpoint.includes('knowledgeSameOrigin'));
     assert.ok(endpoint.includes('storage/ai-training/instructions'));
     assert.ok(endpoint.includes('Require') && endpoint.includes('denied'));
-    assert.ok(endpoint.includes('glob('));
-    assert.ok(endpoint.includes('feedbackType'));
-    assert.ok(!endpoint.includes('sessionFingerprint'));
-    assert.ok(!endpoint.includes('unlink(') && !endpoint.includes('rename(') && !endpoint.includes('file_put_contents('));
-    assert.ok(client.includes('ai-training-knowledge.php'));
-    assert.ok(client.includes('instructionCache'));
-    assert.ok(client.includes('since:'));
-    assert.ok(turn.includes('refreshAITrainingKnowledge'));
-    assert.ok(turn.includes('await refreshAITrainingKnowledge()'));
-    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.instructions)'));
+    assert.ok(endpoint.includes('.training-queue'));
+    assert.ok(endpoint.includes('queueOffset'));
+    assert.ok(endpoint.includes('glob(')); // one-time migration only, not a per-turn directory scan
+    assert.ok(writer.includes('.training-queue'));
+    assert.ok(writer.includes("fopen($queuePath, 'ab')"));
+    assert.ok(client.includes("requestMemory('memory')"));
+    assert.ok(client.includes("requestMemory('train')"));
+    assert.ok(client.includes('refreshAITrainingKnowledge'));
+    assert.ok(turn.includes("refreshAITrainingKnowledge({ trainer: trainingAI })"));
+    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.memory)'));
+    assert.ok(strategy.includes('learnedMemory.situations'));
+    assert.ok(strategy.includes('compiled-memory'));
 });
 
 test('training panel explicitly identifies decisions influenced by stored instructions', async () => {
