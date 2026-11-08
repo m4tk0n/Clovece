@@ -51,6 +51,9 @@ test('each human correction is stored as a new private immutable JSON file', asy
     assert.match(endpoint, /'note' => \$feedbackType === 'positive'/);
     assert.match(endpoint, /fopen\(\$filePath, 'x'\)/);
     assert.match(endpoint, /LOCK_EX/);
+    assert.ok(endpoint.includes('$denyRule = "Require all denied\\n";'));
+    assert.ok(endpoint.includes("trim($denyContents) === 'Require all denied\\\\n'"));
+    assert.ok(endpoint.includes('ftruncate($repairHandle, 0)'));
     assert.doesNotMatch(endpoint, /\b(?:unlink|rename|file_put_contents)\s*\(/i);
     assert.match(storageRules, /Require all denied/i);
 });
