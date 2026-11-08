@@ -384,3 +384,36 @@ Aktuální strategie bez aktivního naučeného modelu vybírá mimo okamžitou 
 - Výsledky oddělovat podle počtu hráčů a velikosti desky.
 - Uchovávat původní data jako neměnné workflow artifacts; lidské instrukce v `storage/ai-training/instructions/` jsou zcela oddělené.
 - Nový model nasadit pouze po statisticky smysluplném zlepšení a regresních testech.
+
+
+---
+
+## 16. Taktický učitel – druhá fáze
+
+**Stav:** první deterministická heuristická verze implementována. Jde o učitele pro generování kvalitnějších self-play příkladů, nikoli o natrénovaný neuronový model.
+
+### Co učitel hodnotí
+
+Funkce `chooseTacticalTeacherDecision` v `js/ai-strategy.js` sestaví kandidáty výhradně z `getValidMoves` a simuluje každý kandidát přes produkční `movePiece`. Hodnocení zohledňuje:
+- okamžitou výhru (má absolutní prioritu);
+- snížení vlastních zbývajících kroků;
+- zdržení soupeřů při vyhození;
+- změnu rychlého odhadu ohrožení vlastních figurek na hlavním okruhu;
+- dokončení figurky;
+- penalizaci vyhození vlastní figurky při povinném nasazení.
+
+Odhad ohrožení je záměrně rychlý: porovnává pozice figurek na okruhu a pravděpodobnost zásahu při vzdálenosti 1–6. Nenahrazuje přesnou enumeraci všech budoucích hodů a nesmí se vydávat za plnohodnotné prohledávání stromu hry.
+
+### Self-play s učitelem
+
+`scripts/ai-self-play.mjs` nyní vybírá tah taktickým učitelem a do každého rozhodnutí ukládá:
+- skóre všech legálních kandidátů;
+- rozpad skóre na postup, zdržení soupeře, změnu ohrožení, vyhození a dokončení;
+- pořadí kandidátů učitele a vybraný tah;
+- původní 18prvkové vstupní příznaky pro neuronovou síť.
+
+Tím vznikají supervised trénovací preference: kandidát s vyšším učitelským skóre je preferovanější než kandidát s nižším skóre. Výsledné pořadí partie se ukládá samostatně jako výsledek celé hry.
+
+### Omezení a další ověření
+
+Učitel je první vysvětlitelná heuristika, nikoli zaručeně optimální strategie. Váhy jeho faktorů je nutné ověřit turnajově pro 2–8 hráčů a desky 40/48/80. Než se jeho data použijí k exportu modelu, je potřeba porovnat jeho výsledky s náhodnou baseline a ověřit, že se výhry a průměrné pořadí zlepšují. Učitel ani simulátor nemění herní pravidla.
