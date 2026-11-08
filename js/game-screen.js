@@ -13,6 +13,16 @@ export function initGameScreen(deps) {
 
     $('roll-dice-btn')?.addEventListener('click', () => turnController.doRoll(false));
     $('game-screen')?.addEventListener('click', event => {
+        const displayToggle = event.target.closest('[data-dice-display]');
+        if (displayToggle) {
+            const controls = $('trainer-dice-controls');
+            if (!controls) return;
+            const hidden = controls.classList.toggle('dice-display-hidden');
+            displayToggle.setAttribute('aria-pressed', String(!hidden));
+            displayToggle.textContent = hidden ? 'KOSTKY +' : 'KOSTKY';
+            displayToggle.title = hidden ? 'Zobrazit výběr kostek' : 'Skrýt výběr kostek';
+            return;
+        }
         const diceButton = event.target.closest('#trainer-dice-options [data-dice-value]');
         if (diceButton && !diceButton.disabled) {
             turnController.selectDice(Number(diceButton.dataset.diceValue));
