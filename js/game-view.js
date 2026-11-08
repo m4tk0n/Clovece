@@ -74,6 +74,18 @@ export function createGameView({ getGame, renderBoard }) {
         $('dice-value').textContent = game.diceValue || '—';
         const trainerMode = ['trainer', 'training'].includes(new URLSearchParams(window.location.search).get('debug'));
         const diceControls = ensureTrainerDiceControls(trainerMode);
+        const boardSwitch = document.querySelector('#game-container .board-style-switch');
+        if (trainerMode && boardSwitch && !boardSwitch.querySelector('[data-dice-display]')) {
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'board-style-btn board-dice-display-btn';
+            toggle.dataset.diceDisplay = 'toggle';
+            toggle.setAttribute('aria-pressed', 'true');
+            toggle.title = 'Skrýt výběr kostek';
+            toggle.textContent = 'KOSTKY';
+            const infoButton = boardSwitch.querySelector('[data-game-info]');
+            boardSwitch.insertBefore(toggle, infoButton || boardSwitch.firstChild);
+        }
         if (diceControls) {
             diceControls.classList.toggle('hidden', !trainerMode);
             const aiDiceMode = (() => { try { return localStorage.getItem('clovece-trainer-ai-dice-mode') === 'auto' ? 'auto' : 'manual'; } catch { return 'manual'; } })();
