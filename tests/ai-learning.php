@@ -31,6 +31,26 @@ $model = onlineAiLearningDefaultModel();
 $decision = onlineAiLearningDecision($game, $model);
 $legal = onlineEngineValidMoves($game);
 
+aiLearningAssert($legal !== [], 'Testovací pozice musí mít legální tah.');
+$onlineFeatures = onlineAiLearningActionFeatures($game, $legal[0], 0.5, 0.0, 1.0);
+aiLearningAssert($onlineFeatures['base'][19] === 1.0, 'Online výchozí pravidlo tří pokusů musí být rozpoznáno.');
+aiLearningAssert($onlineFeatures['base'][20] === 1.0, 'Online výchozí povinné nasazení musí být rozpoznáno.');
+aiLearningAssert($onlineFeatures['base'][21] === 0.0, 'Online výchozí přeskakování domečku musí zůstat vypnuté.');
+aiLearningAssert($onlineFeatures['base'][22] === 0.0, 'Online výchozí povinný vstup do domečku musí zůstat vypnutý.');
+aiLearningAssert($onlineFeatures['base'][23] === 0.0, 'Online výchozí trest za tři šestky musí zůstat vypnutý.');
+
+$game['rules'] = [
+    'threeRolls' => false,
+    'mustDeploy' => false,
+    'skipHomePieces' => true,
+    'mustEnterHome' => true,
+    'threeSixesPenalty' => true,
+];
+$customRuleFeatures = onlineAiLearningActionFeatures($game, $legal[0], 0.5, 0.0, 1.0);
+aiLearningAssert(array_slice($customRuleFeatures['base'], 19, 5) === [0.0, 0.0, 1.0, 1.0, 1.0],
+    'AI musí do vektoru vlastností zapsat každé aktivní individuální nastavení pravidel.');
+unset($game['rules']);
+
 aiLearningAssert(in_array($decision['pieceId'], $legal, true), 'AI musí vybrat legální tah.');
 aiLearningAssert(count($model['weights']) === 1000, 'Model musí zachovat 1000 základních vah.');
 aiLearningAssert($model['version'] === 3 && $model['featureSchema']['totalFeatures'] === 1000, 'Online JSON model musí používat společné schéma v3.');
