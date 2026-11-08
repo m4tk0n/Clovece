@@ -17,7 +17,7 @@ test('offline trainer exports a runtime-valid neural model', async () => {
         const lines = [];
         for (let gameId = 1; gameId <= 120; gameId++) {
             const a = Array(AI_FEATURE_COUNT).fill(0);
-            const b = Array(18).fill(0);
+            const b = Array(AI_FEATURE_COUNT).fill(0);
             a[6] = gameId / 120;
             b[7] = gameId / 20;
             lines.push(JSON.stringify({
