@@ -16,7 +16,8 @@ let boardStyle = loadStyle();
 
 // SVG je vždy pevný pohled shora. 3D kamera patří výhradně Three.js rendereru.
 const VIEW_KEY = 'clovece_board_view';
-let view3d = loadView();
+const trainingMode = new URLSearchParams(window.location.search).get('debug') === 'training';
+let view3d = trainingMode ? false : loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
 const modeStylesPromises = new Map();
@@ -89,6 +90,11 @@ export function ensureModeStyles(mode) {
 /** Ověří reálnou možnost vytvořit Three.js renderer a přednačte styly režimů. */
 export async function prepareBoardRendering() {
     view3d = false;
+    if (trainingMode) {
+        view3dUnavailable = false;
+        await ensureModeStyles('2d');
+        return '2d';
+    }
     view3dUnavailable = false;
     let canUse3D = false;
     const probeCanvas = document.createElement('canvas');
@@ -215,8 +221,8 @@ function styleSwitchMarkup() {
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
-        '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
-            '" data-board-view="toggle" aria-pressed="' + view3d + '"' + (view3dUnavailable ? ' disabled title="3D není na tomto zařízení dostupné"' : '') + '>' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>' +
+        (trainingMode ? '' : '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
+            '" data-board-view="toggle" aria-pressed="' + view3d + '"' + (view3dUnavailable ? ' disabled title="3D není na tomto zařízení dostupné"' : '') + '>' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>') +
         '</div>';
 }
 
@@ -248,6 +254,7 @@ function bindStyleSwitch(container) {
         const viewButton = path.find(node => node instanceof Element && node.matches('[data-board-view]')) ||
             event.target.closest?.('[data-board-view]');
         if (viewButton && container.contains(viewButton)) {
+            if (trainingMode) return;
             event.preventDefault();
             if (view3dUnavailable) return;
             view3d = !view3d;

@@ -88,13 +88,36 @@ To umožňuje testerovi zkontrolovat dostupnou možnost a ručně vybrat figurku
 
 Toto nastavení se týká běžného zpracování tahu v lokální herní logice. Automatické rozhodování AI má vlastní větev a AI si tah vybírá sama.
 
-## 5. Průběžné učení AI
+## 5. Ruční trénink AI
 
-Při každém rozhodnutí místní AI i online AI se v chatu zobrazí samostatná zpráva **AI UČENÍ**. Obsahuje počet nově vytvořených parametrů, jejich ID a příklady kombinací, počet upravených vah, celkový počet parametrů a cross-entropy učícího rozhodnutí. Online záznam se ukládá do historie akce tahu; místní záznam vzniká při rozhodnutí v prohlížeči.
+Samostatný režim výuky se spouští adresou:
 
-Učení používá 1000 základních parametrů a dynamické parametry od ID 1001. Místní model se ukládá do localStorage daného zařízení; online model je globální řádek v databázi. Tyto dva modely zatím nejsou synchronizované.
+`/?debug=training`
 
-Debug režim nadále nezobrazuje kompletní interní stav herního enginu ani všechny síťové požadavky online hry.
+Po otevření se zobrazí výběr místní hry. Režim používá stejný herní engine a stejná aktivní pravidla jako běžná místní hra, ale vždy vynutí 2D desku.
+
+- Na všech polích hlavního okruhu jsou viditelná čísla 1 až 40, 1 až 48 nebo 1 až 80.
+- Cílová pole jsou označena `D1-1` až `D8-4` podle pozice ramene.
+- Technický debug panel, měření CSS, velikost okna, FPS a informace o 3D kameře se v tomto režimu nezobrazují.
+- Běžný herní chat zůstává zachován. Po tahu AI se přidá zelená zpráva ve formátu `[Jméno AI: vyhodnocení]`.
+- Plovoucí panel ukazuje, co AI vybrala, její vysvětlení, ostatní legální možnosti a výsledek tahu.
+- Ve spodní části panelu člověk napíše, co měla AI udělat a proč, a odešle instrukci.
+
+### Ukládání instrukcí
+
+Každá odeslaná oprava dostane nové náhodné ID a vlastní JSON soubor:
+
+`storage/ai-training/instructions/{id}.json`
+
+Záznam obsahuje čas vytvoření, text instrukce, verzi formátu a úplný kontext rozhodnutí: nastavení pravidel, hráče, stav figurek před tahem, legální možnosti, výběr AI, vysvětlení a výsledek tahu.
+
+- Soubor se vytváří výhradně v režimu „create new“; existující záznam se nikdy nepřepisuje.
+- Endpoint nemá operaci pro mazání ani úpravu instrukcí.
+- Úložiště je uvnitř složky `storage/`, kterou webový server blokuje přes `.htaccess`.
+- Ukládání používá session CSRF token, kontrolu původu požadavku a limit velikosti instrukce.
+- Záznamy se neodesílají do GitHubu ani do databáze. Zůstávají na serveru.
+
+**Důležité:** tato část zatím bezpečně shromažďuje tvoje opravy a kontext. Samotné vyhledávání podobných instrukcí, jejich zapojení do rozhodování AI a audit toho, které uložené instrukce AI při konkrétním tahu skutečně použila, bude navazující implementace. Uložené soubory se proto nesmějí považovat za již naučenou taktiku.
 
 ## 6. Vypnutí
 

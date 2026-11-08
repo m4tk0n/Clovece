@@ -161,6 +161,7 @@ export function render2DBoard(container, game, style, ui) {
     }
 
     const extensionMarkup = getGameExtensionValue('renderBoardOverlay2D', '', { game, style, boardGeometry: g });
+    const boardLabelsMarkup = getGameExtensionValue('renderBoardLabels2D', '', { game, style, boardGeometry: g });
 
     const bases = game.players.map(player => baseMarkup(game, player, validMoves, g)).join('');
 
@@ -196,7 +197,7 @@ export function render2DBoard(container, game, style, ui) {
                 '<rect x="13" y="13" width="694" height="694" rx="40" fill="url(#boardBg)" stroke="#c6a96b" stroke-opacity=".55" stroke-width="3"/>' +
                 homeLanes + links + track + extensionMarkup + bases +
                 '<circle cx="360" cy="360" r="22" fill="#0b1714" stroke="#c6a96b" stroke-width="2"/>' +
-                boardPieces +
+                boardPieces + boardLabelsMarkup +
             '</svg>' +
             '<div class="board-player-stats">' +
                 '<div class="players-panel" id="players-panel" aria-label="Stav figurek hráčů"></div>' +

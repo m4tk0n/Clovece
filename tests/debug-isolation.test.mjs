@@ -25,7 +25,7 @@ test('standard game modules do not import or contain debug implementation', asyn
 test('debug entry point is emitted only inside the server-side debug condition', async () => {
     const source = await read('../index.php');
     assert.match(source, /\$debugMode\s*=\s*isset\(\$_GET\['debug'\]\).*?===\s*'1'/s);
-    assert.match(source, /if\s*\(\$debugMode\)\s*:\s*\?>\s*<script type="module" src="js\/debug-bootstrap\.js/s);
+    assert.match(source, /if\s*\(\$debugMode\s*\|\|\s*\$trainingMode\)\s*:\s*\?>\s*<script type="module" src="js\/debug-bootstrap\.js/s);
     assert.doesNotMatch(source, /"\.\/js\/debug-overlay\.js"\s*:/);
 });
 

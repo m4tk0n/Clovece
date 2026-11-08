@@ -30,12 +30,16 @@ export function createGameLog(getGame) {
         messages.innerHTML = '';
         chatHistory.slice(-40).forEach(item => {
             const line = document.createElement('div');
-            line.className = 'game-chat-message';
-            const sender = document.createElement('strong');
-            sender.textContent = item.sender + ': ';
-            const body = document.createElement('span');
-            body.textContent = item.text;
-            line.append(sender, body);
+            line.className = 'game-chat-message' + (item.type === 'ai-evaluation' ? ' ai-training-evaluation' : '');
+            if (item.type === 'ai-evaluation') {
+                line.textContent = '[' + item.sender + ': ' + item.text + ']';
+            } else {
+                const sender = document.createElement('strong');
+                sender.textContent = item.sender + ': ';
+                const body = document.createElement('span');
+                body.textContent = item.text;
+                line.append(sender, body);
+            }
             messages.appendChild(line);
         });
         if (lastAIDebugExport) {
@@ -90,6 +94,13 @@ export function createGameLog(getGame) {
         renderChat();
     }
     
+    function addAITrainingEvaluation(sender, text) {
+        const message = String(text || '').trim().slice(0, 500);
+        if (!message) return;
+        chatHistory.push({ sender: String(sender || 'AI'), text: message, type: 'ai-evaluation' });
+        renderChat();
+    }
+
     function setAIDebugExport(value) {
         lastAIDebugExport = value && typeof value === 'object' ? value : null;
         renderChat();
@@ -117,6 +128,7 @@ export function createGameLog(getGame) {
         renderChat,
         addChatEntry,
         addGameLogEntry,
+        addAITrainingEvaluation,
         setAIDebugExport,
         sendChatMessage
     };

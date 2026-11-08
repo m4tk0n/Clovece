@@ -65,7 +65,7 @@ const { showGame, renderPlayers, updateTurnControls } = createGameView({
 });
 
 
-const { resetGameLog, updateStartLog, renderChat, addChatEntry, addGameLogEntry, setAIDebugExport, sendChatMessage } = createGameLog(() => game);
+const { resetGameLog, updateStartLog, renderChat, addChatEntry, addGameLogEntry, addAITrainingEvaluation, setAIDebugExport, sendChatMessage } = createGameLog(() => game);
 
 const turnController = createTurnController({
     getValidMoves,
@@ -83,6 +83,7 @@ const turnController = createTurnController({
     showGame,
     updateStartLog,
     addGameLogEntry,
+    addAITrainingEvaluation,
     setAIDebugExport
 });
 

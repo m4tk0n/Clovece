@@ -1,12 +1,21 @@
 /**
- * Vstupní bod diagnostiky. Tento soubor se vkládá do stránky pouze při ?debug=1.
- * Běžná hra nestahuje ani tento modul, ani žádný z jeho závislých debug modulů.
+ * Vstupní bod rozšířených režimů debug.
+ * ?debug=1 = technická diagnostika.
+ * ?debug=training = výuka AI bez technických diagnostických údajů.
  */
-import { initDebugOverlay } from './debug-overlay.js?v=20261106-1';
 import { registerGameExtension } from './game-extensions.js';
 import { buildDebugMovePaths } from './game-board-debug.js?v=20261106-1';
+import { geometry, trackPosition, armPoint, laneRadius } from './game-board-geometry.js';
 
-const log = initDebugOverlay();
+const mode = new URLSearchParams(window.location.search).get('debug');
+const trainingMode = mode === 'training';
+const log = trainingMode ? null : await import('./debug-overlay.js').then(module => module.initDebugOverlay());
+
+if (trainingMode) {
+    const { initAITrainingOverlay } = await import('./ai-training-overlay.js');
+    initAITrainingOverlay();
+}
+
 const format = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
 
 function cameraSnapshot(stage) {
@@ -49,17 +58,52 @@ function addFieldNumber(THREE, parent, label, x, y, z, size, color = '#18221e') 
     parent.add(mesh);
 }
 
+function trainingFieldNumbers({ game, style, boardGeometry }) {
+    const g = boardGeometry || geometry(game, style);
+    const labels = [];
+    for (let index = 0; index < game.trackLength; index++) {
+        const point = trackPosition(index, game, style);
+        const x = point.x + g.field * .58;
+        const y = point.y - g.field * .58;
+        const radius = Math.max(4.5, g.field * .48);
+        const fontSize = Math.max(6, g.field * .64);
+        labels.push(
+            '<g class="training-field-number">' +
+            '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + radius.toFixed(1) + '" fill="#07100e" fill-opacity=".88" stroke="#fff" stroke-opacity=".8" stroke-width=".8"/>' +
+            '<text x="' + x.toFixed(1) + '" y="' + (y + fontSize * .34).toFixed(1) + '" text-anchor="middle" font-family="Arial,sans-serif" font-size="' + fontSize.toFixed(1) + '" font-weight="900" fill="#fff">' + (index + 1) + '</text>' +
+            '</g>'
+        );
+    }
+    for (let slot = 0; slot < g.n; slot++) {
+        const angle = (-90 + slot * 360 / g.n) * Math.PI / 180;
+        for (let lane = 0; lane < 4; lane++) {
+            const point = armPoint(slot, g.n, laneRadius(g, lane), 0);
+            const x = point.x + Math.cos(angle) * g.field * .55;
+            const y = point.y + Math.sin(angle) * g.field * .55;
+            labels.push(
+                '<text class="training-home-number" x="' + x.toFixed(1) + '" y="' + (y + 2.1).toFixed(1) +
+                '" text-anchor="middle" font-family="Arial,sans-serif" font-size="' + Math.max(5, g.field * .43).toFixed(1) +
+                '" font-weight="900" fill="#fff" stroke="#07100e" stroke-width="1.8" paint-order="stroke">D' +
+                (slot + 1) + '-' + (lane + 1) + '</text>'
+            );
+        }
+    }
+    return labels.join('');
+}
+
 const debugExtension = {
     onResourceLoad({ name, status, duration }) {
         if (log) log(name, status, duration);
     },
 
     shouldAutoMoveForced() {
-        // V debug režimu necháváme i jediný možný tah potvrdit ručně.
-        return false;
+        // Technický debug ponechává i jediný tah k ručnímu potvrzení.
+        // Výukový režim naopak nesmí měnit běžné chování hry.
+        return trainingMode ? undefined : false;
     },
 
     renderBoardOverlay2D({ game, style, boardGeometry }) {
+        if (trainingMode) return '';
         const paths = buildDebugMovePaths(game, style);
         return paths.map(path => path.points.map(point => {
             const offset = (path.pieceId - 1.5) * boardGeometry.field * .12;
@@ -73,7 +117,12 @@ const debugExtension = {
         }).join('')).join('');
     },
 
+    renderBoardLabels2D(context) {
+        return trainingMode ? trainingFieldNumbers(context) : '';
+    },
+
     onBoardSceneBuilt({ THREE, board, data, unit }) {
+        if (trainingMode) return;
         data.track.forEach(cell => {
             addFieldNumber(THREE, board, String(cell.index + 1),
                 cell.x * unit, .415, cell.z * unit,
@@ -87,7 +136,7 @@ const debugExtension = {
     },
 
     onBoardStageReady(stage) {
-        if (!stage?._controls) return;
+        if (trainingMode || !stage?._controls) return;
         if (!stage._debugCameraListener) {
             stage._debugCameraListener = () => cameraSnapshot(stage);
             stage._controls.addEventListener('change', stage._debugCameraListener);
@@ -100,7 +149,9 @@ const debugExtension = {
             stage._controls?.removeEventListener('change', stage._debugCameraListener);
             stage._debugCameraListener = null;
         }
-        window.dispatchEvent(new CustomEvent('clovece:debug-camera', { detail: { active: false } }));
+        if (!trainingMode) {
+            window.dispatchEvent(new CustomEvent('clovece:debug-camera', { detail: { active: false } }));
+        }
     }
 };
 
