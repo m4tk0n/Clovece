@@ -105,12 +105,12 @@ Po otevření se zobrazí výběr místní hry. Režim používá stejný herní
 
 ### Ukládání instrukcí
 
-Každá odeslaná oprava dostane nové náhodné ID a vlastní JSON soubor:
-
-`storage/ai-training/instructions/{id}.json`
+Každé odeslané hodnocení dostane vlastní JSON soubor s názvem `YYYYMMDD-HHmmss-XXXX-[ok|err].json` ve složce `storage/ai-training/instructions/`. Pořadové číslo je společné pro oba typy záznamů a začíná hodnotou `0001`.
 
 Záznam obsahuje čas vytvoření, text instrukce, verzi formátu a úplný kontext rozhodnutí: nastavení pravidel, hráče, stav figurek před tahem, legální možnosti, výběr AI, vysvětlení a výsledek tahu.
 
+- `ok` označuje pozitivní hodnocení (`feedbackType: positive`), `err` opravnou instrukci (`feedbackType: correction`).
+- Pořadové číslo `XXXX` se zvyšuje společně pro všechny záznamy: `0001`, `0002`, `0003`…
 - Soubor se vytváří výhradně v režimu „create new“; existující záznam se nikdy nepřepisuje.
 - Endpoint nemá operaci pro mazání ani úpravu instrukcí.
 - Úložiště je uvnitř složky `storage/`, kterou webový server blokuje přes `.htaccess`.
