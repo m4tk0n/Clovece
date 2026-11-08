@@ -11,7 +11,7 @@ const BOARD_BY_TRACK = { 40: 4, 48: 6, 80: 8 };
 // r0 = vzdálenost sdíleného vnitřního rohu od středu.
 const CLASSIC = {
     4: { arm: 325, w: 51, r0: 51, field: 14.5, piece: 16, base: 54, baseDist: 205 },
-    6: { arm: 325, w: 42, r0: 42 / Math.tan(Math.PI / 6), field: 12.5, piece: 14.5, base: 46, baseDist: 218, laneStep: 64 },
+    6: { arm: 325, w: 42, r0: 42 / Math.tan(Math.PI / 6), field: 12.5, piece: 14.5, base: 46, baseDist: 248, laneStep: 64 },
     8: { arm: 325, w: 33, r0: 33 / Math.tan(Math.PI / 8), field: 11.5, piece: 13, base: 36, baseDist: 236 }
 };
 
