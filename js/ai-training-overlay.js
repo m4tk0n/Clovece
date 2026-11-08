@@ -131,6 +131,21 @@ export function initAITrainingOverlay() {
         return element;
     };
 
+    function positionLabel(steps, player, trackLength) {
+        const value = Number(steps);
+        if (!Number.isFinite(value) || value < 0) return 'základna';
+        if (value >= trackLength) return 'domeček D' + (value - trackLength + 1);
+        return 'pole ' + (((Number(player?.start || 0) + value) % trackLength) + 1);
+    }
+
+    function cleanExplanation(value) {
+        return String(value || '')
+            .replace(/[,;.]?\\s*protože jsem v závod(?:ě|u)\\s+vpřed[uě]\\.?/gi, '')
+            .replace(/\\s{2,}/g, ' ')
+            .replace(/\\s+([,.])/g, '$1')
+            .trim();
+    }
+
     function renderDecision(detail) {
         currentDecision = detail;
         saveStatus.textContent = '';
@@ -145,7 +160,7 @@ export function initAITrainingOverlay() {
 
         addText(analysis, 'div', 'ai-training-section-title', 'CO AI UDĚLALA');
         addText(analysis, 'p', 'ai-training-explanation',
-            decision.explanation || 'AI zatím nemá taktické zkušenosti. Vybrala legální tah podle aktuálního způsobu výběru.');
+            cleanExplanation(decision.explanation) || 'AI zatím nemá taktické zkušenosti. Vybrala legální tah podle aktuálního způsobu výběru.');
 
         const selected = decision.selectedPieceId;
         if (selected !== null && selected !== undefined) {
@@ -161,7 +176,7 @@ export function initAITrainingOverlay() {
                 const chosen = Number(candidate.pieceId) === Number(selected);
                 const reason = candidate.reason || candidate.reasons?.join(', ') || 'bez taktického hodnocení';
                 addText(list, 'li', chosen ? 'is-selected' : '',
-                    'Figurka ' + (Number(candidate.pieceId) + 1) + (chosen ? ' – vybraná' : '') + ': ' + reason);
+                    'Figurka ' + (Number(candidate.pieceId) + 1) + (chosen ? ' – vybraná' : '') + ': ' + cleanExplanation(reason));
             });
             analysis.appendChild(list);
         }
@@ -169,22 +184,20 @@ export function initAITrainingOverlay() {
         const move = result.move || {};
         if (move.pieceId !== undefined) {
             addText(analysis, 'div', 'ai-training-section-title', 'VÝSLEDEK TAHU');
+            const trackLength = Number(game.trackLength || game.boardSize || 40);
+            const beforePlayer = (game.piecesBefore || [])[Number(game.currentPlayer)];
+            const beforePiece = beforePlayer?.pieces?.[Number(move.pieceId)];
+            const afterPlayer = (result.piecesAfter || [])[Number(game.currentPlayer)];
+            const afterPiece = afterPlayer?.pieces?.[Number(move.pieceId)];
             let outcome = 'Figurka ' + (Number(move.pieceId) + 1);
+            if (beforePiece && afterPiece) {
+                outcome += ': ' + positionLabel(beforePiece.steps, player, trackLength) +
+                    ' → ' + positionLabel(afterPiece.steps, player, trackLength);
+            }
             if (move.captured) outcome += move.captured.ownPiece
                 ? ' – výměna vlastní figurky na startu'
                 : ' – vyhození soupeřovy figurky';
             if (move.finishedNow) outcome += ' – vstup do domečku';
-            const afterPlayer = (result.piecesAfter || [])[Number(game.currentPlayer)];
-            const afterPiece = afterPlayer?.pieces?.[Number(move.pieceId)];
-            if (afterPiece && Number.isFinite(Number(afterPiece.steps))) {
-                const steps = Number(afterPiece.steps);
-                const trackLength = Number(game.trackLength || game.boardSize || 40);
-                const playerStart = Number(player?.start || 0);
-                const destination = steps < 0 ? 'základna'
-                    : steps >= trackLength ? 'domeček D' + (steps - trackLength + 1)
-                        : 'pole ' + (((playerStart + steps) % trackLength) + 1);
-                outcome += ' → ' + destination;
-            }
             addText(analysis, 'p', 'ai-training-result', outcome);
         }
 
