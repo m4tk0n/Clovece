@@ -30,6 +30,8 @@ on:
     paths:
       - 'scripts/ai-self-play.mjs'
       - 'js/ai-strategy.js'
+      - 'js/ai-neural-network.js'
+      - 'tests/ai-neural-network.test.mjs'
       - 'tests/ai-strategy.test.mjs'
       - '.github/workflows/ai-self-play.yml'
   schedule:
