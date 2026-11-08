@@ -8,7 +8,7 @@ Připravena je pouze inferenční vrstva a rozhraní modelu. **Model zatím nen�
 
 1. `js/game-engine.js` vypočítá legální tahy a simuluje každý z nich. Pravidla ani generování tahů neuronová síť nepřebírá.
 2. `js/ai-neural-network.js` převede každý legální kandidátní tah na pevný vektor 18 čísel a provede dopředný průchod malou plně propojenou sítí.
-3. `models/ludo-ai.js` obsahuje export vah. Nyní je vypnutý prázdný model.
+3. `js/models/ludo-ai.js` obsahuje export vah. Nyní je vypnutý prázdný model.
 4. `js/ai-strategy.js` zachová prioritu okamžité výhry a přesné lidské výukové paměti. Pokud pro situaci není přesná lidská preference a model je platný, vybere kandidáta s nejvyšším neuronovým skóre.
 5. `js/game-turn.js` načítá model dynamicky až při rozhodování AI. Člověk ani běžná úvodní obrazovka nestahují model.
 
@@ -35,7 +35,7 @@ Aktivace: `relu`, `tanh`, `linear`. Runtime odmítne neplatné rozměry, nečís
 - Připravit offline trénovací pipeline a převod lidských rozhodnutí / partií na příklady.
 - Trénovat na přesných pravidlech našeho enginu, nikoliv na cizím Ludo prostředí.
 - Rozdělit data na trénovací a validační množinu a porovnat síť proti současné náhodné a lidsky učené AI.
-- Exportovat skutečné váhy do `models/ludo-ai.js`.
+- Exportovat skutečné váhy do `js/models/ludo-ai.js`.
 - Teprve po regresních testech zapnout `enabled: true`.
 
 Online PHP AI zatím zůstává beze změny. Před jejím napojením je potřeba rozhodnout o společném formátu inference pro PHP; pravidla v `lib/game-engine.php` se kvůli tomu nesmí měnit.
