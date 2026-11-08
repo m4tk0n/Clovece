@@ -4,8 +4,8 @@
  * Tento modul nikdy nevytváří tahy ani neobsahuje herní pravidla.
  */
 
-export const AI_FEATURE_SCHEMA_VERSION = 2;
-export const AI_FEATURE_COUNT = 23;
+export const AI_FEATURE_SCHEMA_VERSION = 3;
+export const AI_FEATURE_COUNT = 26;
 
 function clamp(value, min = -1, max = 1) {
     return Math.max(min, Math.min(max, Number.isFinite(Number(value)) ? Number(value) : 0));
@@ -20,6 +20,7 @@ function normalizedSteps(steps, trackLength) {
 /** Stejný pevný vektor se používá při trénování i při běžném rozhodování. */
 export function extractAIMoveFeatures(game, candidate, legalMoveCount) {
     const probabilities = candidate.probabilityFeatures || {};
+    const tactical = candidate.tacticalFeatures || {};
     const playerId = game.currentPlayer;
     const ownBefore = game.pieces[playerId]?.pieces || [];
     const ownAfter = candidate.state.pieces[playerId]?.pieces || [];
@@ -62,7 +63,10 @@ export function extractAIMoveFeatures(game, candidate, legalMoveCount) {
         clamp(probabilities.opponentCaptureChance, 0, 1),
         clamp(probabilities.safeFinishChance, 0, 1),
         clamp(probabilities.extraTurnChance, 0, 1),
-        clamp(probabilities.deployAttackRisk, 0, 1)
+        clamp(probabilities.deployAttackRisk, 0, 1),
+        clamp(Number(tactical.ownProgress) / (trackLength + 20), -1, 1),
+        clamp(Number(tactical.opponentSetback) / (trackLength + 3), -1, 1),
+        clamp(Number(tactical.threatReduction) / 4, -1, 1)
     ].map(value => clamp(value));
 }
 
