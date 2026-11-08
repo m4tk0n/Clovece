@@ -23,7 +23,7 @@ on:
       seed:
         description: Seed pro opakovatelnost
         required: false
-        default: "20261108"
+        default: ""
         type: string
   push:
     branches: [main]
@@ -36,6 +36,8 @@ on:
       - '.github/workflows/ai-self-play.yml'
   schedule:
     - cron: "17 3 * * 1"
+    - cron: "17 3 * * 3"
+    - cron: "17 3 * * 5"
 
 concurrency:
   group: ai-self-play-${{ github.ref }}
@@ -53,12 +55,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Kontrola kompatibility kombinace
+      - name: Nastavit variantu sběru a ověřit kombinaci
+        id: config
         run: |
           PLAYERS="${{ inputs.players || '4' }}"
           BOARD="${{ inputs.board || '40' }}"
+          SEED="${{ inputs.seed }}"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            case "${{ github.event.schedule }}" in
+              "17 3 * * 1") PLAYERS=4; BOARD=40 ;;
+              "17 3 * * 3") PLAYERS=6; BOARD=48 ;;
+              "17 3 * * 5") PLAYERS=8; BOARD=80 ;;
+            esac
+          fi
+          if [ -z "$SEED" ]; then SEED="${{ github.run_id }}"; fi
           if [ "$BOARD" = "40" ] && [ "$PLAYERS" -gt 4 ]; then exit 1; fi
           if [ "$BOARD" = "48" ] && [ "$PLAYERS" -gt 6 ]; then exit 1; fi
+          if [ "$BOARD" = "80" ] && [ "$PLAYERS" -gt 8 ]; then exit 1; fi
+          echo "players=$PLAYERS" >> "$GITHUB_OUTPUT"
+          echo "board=$BOARD" >> "$GITHUB_OUTPUT"
+          echo "seed=$SEED" >> "$GITHUB_OUTPUT"
       - name: Cílené testy enginu a rozhodování AI
         run: node --test tests/game-engine.test.mjs tests/local-game-rules.test.mjs tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
       - name: Self-play partie
@@ -66,9 +82,9 @@ jobs:
           mkdir -p artifacts
           node scripts/ai-self-play.mjs \
             --games="${{ inputs.games || '250' }}" \
-            --players="${{ inputs.players || '4' }}" \
-            --board="${{ inputs.board || '40' }}" \
-            --seed="${{ inputs.seed || '20261108' }}" \
+            --players="${{ steps.config.outputs.players }}" \
+            --board="${{ steps.config.outputs.board }}" \
+            --seed="${{ steps.config.outputs.seed }}"
             --output=artifacts/ai-self-play.jsonl \
             --metrics=artifacts/ai-self-play-metrics.json
       - name: Uložit trénovací data a výsledky
