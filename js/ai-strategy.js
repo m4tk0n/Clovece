@@ -425,14 +425,14 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             usedInstructions,
             legalMoveCount: validMoves.length,
             selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' :
-                (neuralSelected ? 'neural-network' : (tacticalSelected ? 'tactical-teacher' : 'no-selection')))
+                (neuralSelected ? 'neural-network' : (tacticalSelected ? 'weighted-ai' : 'no-selection')))
         },
         alternatives: candidates
             .filter(candidate => candidate.pieceId !== selected.pieceId)
             .map(candidate => ({
                 pieceId: candidate.pieceId,
                 score: candidate.winningMove ? 1 : (trained ? Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100 :
-                    (neuralByPiece.get(candidate.pieceId) ?? tacticalByPiece.get(candidate.pieceId)?.score ?? 0)),
+                    (tacticalByPiece.get(candidate.pieceId)?.score ?? neuralByPiece.get(candidate.pieceId) ?? 0)),
                 reason: candidate.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' :
                     (neuralByPiece.has(candidate.pieceId) ? 'neuronové skóre' :
                         (tacticalByPiece.has(candidate.pieceId) ? 'taktické vyhodnocení' : 'bez modelového skóre')))
