@@ -17,7 +17,7 @@ test('self-play ukládá úplný záznam po každé dokončené partii', () => {
             '--output=' + output, '--metrics=' + metrics
         ], { encoding: 'utf8', timeout: 120000 });
         assert.equal(result.status, 0, result.stderr || result.stdout);
-        const records = fs.readFileSync(output, 'utf8').trim().split(/\\r?\\n/).map(line => JSON.parse(line));
+        const records = fs.readFileSync(output, 'utf8').trim().split(/\r?\n/).map(line => JSON.parse(line));
         assert.ok(records.length > 0, 'musí být uložen alespoň jeden tah');
         assert.ok(records.every(record => record.gameId === 'self-play-test-1700000001-1'));
         assert.ok(records.every(record => record.gameState && Array.isArray(record.gameState.pieces)));
