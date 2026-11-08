@@ -140,9 +140,9 @@ export function initAITrainingOverlay() {
 
     function cleanExplanation(value) {
         return String(value || '')
-            .replace(/[,;.]?\\s*protože jsem v závod(?:ě|u)\\s+vpřed[uě]\\.?/gi, '')
-            .replace(/\\s{2,}/g, ' ')
-            .replace(/\\s+([,.])/g, '$1')
+            .replace(/[,;.]?\s*protože jsem v závod(?:ě|u)\\s+vpřed[uě]\\.?/gi, '')
+            .replace(/\s{2,}/g, ' ')
+            .replace(/\s+([,.])/g, '$1')
             .trim();
     }
 
