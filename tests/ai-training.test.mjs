@@ -199,18 +199,24 @@ test('trainer dice picker supports manual human rolls and selectable automatic/m
     assert.match(view, /AI KOSTKA: AUTOMATICKY/);
     assert.match(screen, /turnController\.selectDice/);
     assert.match(screen, /turnController\.toggleAIDiceMode/);
-    assert.equal((markup.match(/data-dice-value="[1-6]"/g) || []).length, 6);
-    assert.match(markup, /aria-label="Hodit 6"/);
+    assert.doesNotMatch(markup, /trainer-dice-controls|data-dice-value/);
+    assert.match(view, /ensureTrainerDiceControls\(trainerMode\)/);
+    assert.match(view, /insertAdjacentHTML\('afterend', markup\)/);
+    assert.equal((view.match(/data-dice-value="[1-6]"/g) || []).length, 6);
     assert.match(styles, /\.trainer-die \.pip\.p5/);
     assert.match(styles, /\.trainer-die\.is-selected/);
     assert.doesNotMatch(markup, /trainer-dice-player-name/);
 });
 
-test('trainer dice controls are not hidden in the initial game markup', async () => {
+test('trainer dice controls are injected only in trainer mode and delegated dynamically', async () => {
     const screen = await read('../screens/game.php');
     const view = await read('../js/game-view.js');
-    assert.match(screen, /id="trainer-dice-controls" class="trainer-dice-controls"/);
-    assert.doesNotMatch(screen, /id="trainer-dice-controls" class="trainer-dice-controls hidden"/);
-    assert.match(view, /diceControls\.classList\.toggle\('hidden', !trainerMode\)/);
+    const controls = await read('../js/game-screen.js');
+    assert.doesNotMatch(screen, /trainer-dice-controls|data-dice-value/);
+    assert.match(view, /ensureTrainerDiceControls\(trainerMode\)/);
+    assert.match(view, /if \(!trainerMode\)[\s\S]*?controls\?\.remove\(\)/);
+    assert.match(view, /insertAdjacentHTML\('afterend', markup\)/);
+    assert.match(controls, /#trainer-dice-options \[data-dice-value\]/);
+    assert.match(controls, /#trainer-ai-dice-mode/);
     assert.match(view, /diceRow\.classList\.toggle\('hidden', !\['start-roll', 'roll'\]\.includes\(game\.phase\)\)/);
 });
