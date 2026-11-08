@@ -38,7 +38,7 @@ jobs:
           echo "Archivované datové soubory: $COUNT"
           test "$COUNT" -gt 0
       - name: Ověřit reward trainer
-        run: node --test tests/ai-train-weights.test.mjs
+        run: node --test tests/ai-train-weights.test.mjs tests/ai-tactical-weights.test.mjs
       - name: Trénovat taktické váhy podle výsledků partií
         run: |
           mkdir -p artifacts
