@@ -297,3 +297,8 @@ Kompilátor paměti přijme strukturovanou preferenci pouze tehdy, pokud její f
 ## 12. Přehled nastavení vytvořené hry v traineru
 
 V režimu `/?debug=trainer` je před tlačítkem **KLASIK** informační tlačítko **i**. Otevře přehled skutečné konfigurace právě spuštěné partie: velikost desky, počet a typ hráčů, jejich jména a barvy, obtížnost AI a všechny volby rozšířených pravidel. Přehled čte přímo aktuální objekt hry; nezobrazuje výchozí hodnoty z formuláře pro vytvoření nové hry. Zavřít jej lze křížkem nebo opětovným kliknutím na **i**.
+
+
+## 13. Ruční výběr hodnoty kostky v trenéru
+
+V režimu `/?debug=trainer` je nad hrací deskou řada šesti kostek s puntíky 1–6. Člověk vždy vybírá hodnotu kliknutím na kostku; stejné ovládání platí i pro úvodní rozstřel a opakované hody po šestce. AI má přepínač `AI KOSTKA: RUČNĚ / AUTOMATICKY`. V ručním režimu čeká na výběr jedné z šesti hodnot, v automatickém režimu si hodnotu losuje jako dosud. Výchozí režim trenéru je ruční a volba se ukládá v localStorage daného prohlížeče. Po výběru hodnoty pokračuje původní herní engine; pravidla hodů, opakování šestek, tří pokusů, nasazení i trestů se nemění. Mimo trenérský režim zůstává původní automatické házení AI a tlačítko pro hod člověka beze změny.
