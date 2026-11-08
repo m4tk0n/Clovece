@@ -174,6 +174,31 @@ export function initDebugOverlay() {
             heading.className = 'debug-ai-heading';
             heading.textContent = 'AI VÁHY · ' + (state.statusLabel || state.status || 'stav neznámý');
             aiWeights.appendChild(heading);
+
+            const modelInfo = document.createElement('div');
+            modelInfo.className = 'debug-ai-model-status';
+            try {
+                const [modelModule, neuralModule] = await Promise.all([
+                    import('./models/ludo-ai.js'),
+                    import('./ai-neural-network.js')
+                ]);
+                const model = modelModule.default;
+                const valid = neuralModule.isValidAINeuralModel(model);
+                const layers = Array.isArray(model?.layers)
+                    ? model.layers.map(layer => layer.outputSize + ' neuronů').join(' → ')
+                    : 'neznámá architektura';
+                const initialization = model?.initialization === 'heuristic-seed-v1'
+                    ? 'HEURISTICKY INICIALIZOVANÝ – offline trénink neproběhl'
+                    : 'inicializace: ' + (model?.initialization || 'neuvedena');
+                modelInfo.textContent = 'NEURONOVÁ AI: ' + (model?.enabled ? 'ZAPNUTÁ' : 'VYPNUTÁ') +
+                    ' · ' + (valid ? 'MODEL PLATNÝ' : 'MODEL NEPLATNÝ') +
+                    ' · ' + initialization +
+                    ' · ' + (model?.inputSize ?? '—') + ' vstupů · ' + layers;
+            } catch (modelError) {
+                modelInfo.textContent = 'NEURONOVÁ AI: STAV NELZE OVĚŘIT (' + modelError.message + ').';
+            }
+            aiWeights.appendChild(modelInfo);
+
             const table = document.createElement('table');
             table.className = 'debug-ai-weight-table';
             const thead = document.createElement('thead');
