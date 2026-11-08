@@ -9,12 +9,17 @@ Pravidla hry ani legální tahy se v tomto režimu nemění. Číslování polí
 ## Ovládání výuky
 
 Po dokončení tahu AI okno zobrazí její rozhodnutí a vysvětlení. Člověk může:
-- napsat opravu a zvolit **ODESLAT** – vznikne nový samostatný JSON záznam;
+- napsat opravu a zvolit **ODESLAT** – vznikne nový samostatný JSON záznam s negativní zpětnou vazbou a vysvětlením správného postupu;
+- zvolit **SPRÁVNĚ** – vznikne samostatný JSON pozitivního příkladu se stejným kontextem rozhodnutí, ale bez opravné instrukce;
 - zvolit **PŘESKOČIT** – rozhodnutí se zahodí bez uložení a bez vytvoření prázdného či zavádějícího záznamu.
+
+Pozitivní potvrzení se ukládá jako feedbackType=positive a formát clovece-ai-positive-example. Nejde o další textové hodnocení ani o automaticky přičtené body v herním skóre. Je to samostatný kladný tréninkový signál, který bude možné využít při budoucím vyhledávání příkladů a vyhodnocování strategie. Po potvrzení se aktuální rozhodnutí uzavře a výuka pokračuje až u dalšího tahu AI.
 
 ## Co se zaznamenává
 
-Každá odeslaná oprava obsahuje:
+Každý uložený záznam obsahuje typ zpětné vazby (correction nebo positive) a úplný kontext rozhodnutí. Opravný záznam navíc obsahuje lidskou instrukci; pozitivní příklad má instruction=null.
+
+Každý záznam obsahuje:
 - verzi formátu a strategie;
 - velikost desky, délku okruhu, počet hráčů a jejich jména, barvy, typy a startovní pozice;
 - kompletní aktivní nastavení pravidel;
