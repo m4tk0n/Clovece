@@ -8,7 +8,7 @@ import { buildDebugMovePaths } from './game-board-debug.js?v=20261106-1';
 import { geometry, trackPosition, armPoint, laneRadius } from './game-board-geometry.js';
 
 const mode = new URLSearchParams(window.location.search).get('debug');
-const trainingMode = mode === 'training';
+const trainingMode = mode === 'trainer' || mode === 'training';
 const log = trainingMode ? null : await import('./debug-overlay.js').then(module => module.initDebugOverlay());
 
 if (trainingMode) {
