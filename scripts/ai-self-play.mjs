@@ -123,19 +123,24 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             playerId: game.currentPlayer,
             diceValue: game.diceValue,
             legalMoveCount: legalMoves.length,
-            candidates: candidates.map(candidate => ({
-                pieceId: candidate.pieceId,
-                features: extractAIMoveFeatures(game, {
-                    ...candidate,
-                    probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies)
-                }, legalMoves.length),
-                teacherScore: decision.ranking.find(item => item.pieceId === candidate.pieceId)?.score ?? null,
-                teacherFactors: decision.ranking.find(item => item.pieceId === candidate.pieceId)?.factors ?? null
-            })),
+            candidates: candidates.map(candidate => {
+                const teacher = decision.ranking.find(item => item.pieceId === candidate.pieceId);
+                return {
+                    pieceId: candidate.pieceId,
+                    features: extractAIMoveFeatures(game, {
+                        ...candidate,
+                        probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies),
+                        tacticalFeatures: teacher?.factors
+                    }, legalMoves.length),
+                    teacherScore: teacher?.score ?? null,
+                    teacherFactors: teacher?.factors ?? null
+                };
+            }),
             selectedPieceId: decision.pieceId,
             selectedFeatures: extractAIMoveFeatures(game, {
                 ...selected,
-                probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies)
+                probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies),
+                tacticalFeatures: decision.ranking.find(item => item.pieceId === selected.pieceId)?.factors
             }, legalMoves.length),
             selection: decision.reason,
             teacherRanking: decision.ranking
