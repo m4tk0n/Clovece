@@ -1,83 +1,66 @@
-/**
- * Keeps newly saved human AI instructions in memory for the current game.
- * The server is checked before every AI decision; immutable records are only
- * downloaded once per browser session and only new files are returned later.
- */
+/** Persistent compact AI memory. Only trainer mode imports source JSON files. */
 let csrfToken = null;
 let tokenPromise = null;
-let refreshPromise = null;
-let lastScanAt = 0;
-const instructionCache = new Map();
+let memoryPromise = null;
+let trainerPromise = null;
+let cachedMemory = null;
 
-async function getTrainingToken() {
+async function getToken() {
     if (csrfToken) return csrfToken;
     if (!tokenPromise) {
         tokenPromise = fetch('ai-training.php?action=token', {
-            credentials: 'same-origin',
-            cache: 'no-store',
-            headers: { Accept: 'application/json' }
+            credentials: 'same-origin', cache: 'no-store', headers: { Accept: 'application/json' }
         }).then(async response => {
-            const payload = await response.json();
-            if (!response.ok || !payload.success || !payload.token) {
-                throw new Error(payload.error || 'Nelze ověřit přístup k výuce AI.');
-            }
-            csrfToken = payload.token;
+            const data = await response.json();
+            if (!response.ok || !data.success || !data.token) throw new Error(data.error || 'Nelze ověřit přístup k paměti AI.');
+            csrfToken = data.token;
             return csrfToken;
         }).finally(() => { tokenPromise = null; });
     }
     return tokenPromise;
 }
 
-export async function refreshAITrainingKnowledge() {
-    if (refreshPromise) return refreshPromise;
-    refreshPromise = (async () => {
-        try {
-            const token = await getTrainingToken();
-            const response = await fetch('ai-training-knowledge.php', {
-                method: 'POST',
-                credentials: 'same-origin',
-                cache: 'no-store',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-Token': token
-                },
-                body: JSON.stringify({ action: 'knowledge', since: Math.max(0, lastScanAt - 2) })
-            });
-            const payload = await response.json();
-            if (response.status === 403) {
-                csrfToken = null;
-                throw new Error(payload.error || 'Bezpečnostní token vypršel.');
-            }
-            if (!response.ok || !payload.success || !Array.isArray(payload.instructions)) {
-                throw new Error(payload.error || 'Instrukce AI se nepodařilo načíst.');
-            }
-            lastScanAt = Math.max(lastScanAt, Number(payload.scanStartedAt) || 0);
-            for (const item of payload.instructions) {
-                if (item && typeof item.id === 'string' && item.id) instructionCache.set(item.id, item);
-            }
-            return {
-                instructions: Array.from(instructionCache.values()),
-                newInstructions: payload.instructions.length,
-                error: null
-            };
-        } catch (error) {
-            return {
-                instructions: Array.from(instructionCache.values()),
-                newInstructions: 0,
-                error: error instanceof Error ? error.message : 'Načítání instrukcí selhalo.'
-            };
-        } finally {
-            refreshPromise = null;
-        }
-    })();
-    return refreshPromise;
+async function requestMemory(action) {
+    const token = await getToken();
+    const response = await fetch('ai-training-knowledge.php', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': token },
+        body: JSON.stringify({ action })
+    });
+    const data = await response.json();
+    if (response.status === 403) csrfToken = null;
+    if (!response.ok || !data.success || !data.memory) throw new Error(data.error || 'Paměť AI se nepodařilo načíst.');
+    cachedMemory = data.memory;
+    return data;
+}
+
+/** Normal play: load the already compiled memory once; never scan the training directory. */
+export async function loadAITrainingMemory() {
+    if (cachedMemory) return { memory: cachedMemory, error: null, processedNow: 0 };
+    if (!memoryPromise) {
+        memoryPromise = requestMemory('memory')
+            .then(data => ({ memory: data.memory, error: null, processedNow: 0 }))
+            .catch(error => ({ memory: cachedMemory || { situations: {} }, error: error.message || 'Paměť AI není dostupná.', processedNow: 0 }))
+            .finally(() => { memoryPromise = null; });
+    }
+    return memoryPromise;
+}
+
+/** Trainer: import only files newer than persistent lastFile, then return updated compact memory. */
+export async function trainAIFromNewFeedback() {
+    if (trainerPromise) return trainerPromise;
+    trainerPromise = requestMemory('train')
+        .then(data => ({ memory: data.memory, error: null, processedNow: Number(data.processedNow) || 0,
+            totalProcessed: Number(data.totalProcessed) || 0, situationCount: Number(data.situationCount) || 0 }))
+        .catch(error => ({ memory: cachedMemory || { situations: {} }, error: error.message || 'Aktualizace výuky selhala.', processedNow: 0 }))
+        .finally(() => { trainerPromise = null; });
+    return trainerPromise;
 }
 
 export function resetAITrainingKnowledgeForTests() {
     csrfToken = null;
     tokenPromise = null;
-    refreshPromise = null;
-    lastScanAt = 0;
-    instructionCache.clear();
+    memoryPromise = null;
+    trainerPromise = null;
+    cachedMemory = null;
 }
