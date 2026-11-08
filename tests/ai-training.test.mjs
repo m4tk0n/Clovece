@@ -75,8 +75,9 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(panel, /saveFeedback\('positive'\)/);
     assert.match(panel, /feedbackType,/);
     assert.match(panel, /note: note \|\| null/);
-    assert.match(panel, /ai-training-smaller/);
-    assert.match(panel, /ai-training-larger/);
+    assert.match(panel, /ai-training-toggle/);
+    assert.match(panel, /setExpanded\(true\)/);
+    assert.match(panel, /setExpanded\(false\)/);
     assert.match(panel, /childElementCount > 0/);
     assert.match(panel, /currentDecision = null/);
     assert.match(panel, /Bez instrukce – nic nebylo uloženo/);
@@ -86,8 +87,8 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(styles, /left:2px;bottom:2px/);
     assert.match(panel, /pointerdown/);
     assert.match(panel, /pointermove/);
-    assert.match(styles, /data-size="1"/);
-    assert.match(styles, /data-size="2"/);
+    assert.match(styles, /\.ai-training-panel\.is-collapsed/);
+    assert.match(styles, /\.ai-training-panel:not\(\.is-collapsed\)/);
     assert.match(styles, /\.ai-training-buttons button\{[^}]*flex:1 1 0/);
     assert.match(styles, /\.ai-training-buttons\{display:flex;width:100%/);
     assert.match(panel, /context: decisionToSave/);
