@@ -22,24 +22,8 @@ export function createGameView({ getGame, renderBoard }) {
         updateTurnControls();
     }
     
-    function ensureDiceDisplayToggle() {
-        const trainerMode = ['trainer', 'training'].includes(new URLSearchParams(window.location.search).get('debug'));
-        if (!trainerMode) return;
-        const boardSwitch = document.querySelector('#game-container .board-style-switch');
-        if (!boardSwitch || boardSwitch.querySelector('[data-dice-display]')) return;
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'board-style-btn board-dice-display-btn';
-        toggle.dataset.diceDisplay = 'toggle';
-        toggle.setAttribute('aria-pressed', 'true');
-        toggle.title = 'Skrýt výběr kostek';
-        toggle.textContent = 'KOSTKY';
-        const infoButton = boardSwitch.querySelector('[data-game-info]');
-        boardSwitch.insertBefore(toggle, infoButton || boardSwitch.firstChild);
-    }
 
     function renderPlayers() {
-        ensureDiceDisplayToggle();
         const game = getGame();
         const panel = $('players-panel');
         if (!panel || !game) return;
