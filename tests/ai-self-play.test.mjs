@@ -23,6 +23,10 @@ test('self-play ukládá úplný záznam po každé dokončené partii', () => {
         assert.ok(records.every(record => record.gameState && Array.isArray(record.gameState.pieces)));
         assert.ok(records.every(record => record.candidates.length > 0 && Array.isArray(record.selectedFeatures)));
         assert.ok(records.every(record => typeof record.completed === 'boolean'));
+        assert.ok(records.every(record => record.selection === 'reinforce-softmax' || record.selection === 'forced-immediate-win'));
+        assert.ok(records.every(record => Number.isFinite(record.selectedProbability) && record.selectedProbability > 0));
+        assert.ok(records.every(record => Number.isFinite(record.policyTemperature) && record.policyTemperature >= 0.25));
+        assert.ok(records.every(record => record.behaviorWeights && record.behaviorWeights.immediateWin === 100000));
         assert.ok(records.every(record => record.completed || record.reward === null));
         const report = JSON.parse(fs.readFileSync(metrics, 'utf8'));
         assert.equal(report.gamesProcessed, 1);
