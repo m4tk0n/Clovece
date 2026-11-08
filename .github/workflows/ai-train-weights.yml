@@ -1,0 +1,67 @@
+name: AI reward-based weight training
+
+on:
+  workflow_run:
+    workflows: ["AI self-play sběr dat"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-reward-training
+  cancel-in-progress: false
+
+jobs:
+  train:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Nastavit Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Načíst archivované self-play partie
+        run: |
+          git fetch origin ai-training-data:refs/remotes/origin/ai-training-data
+          mkdir -p training-data/self-play
+          git archive origin/ai-training-data training-data/self-play | tar -x
+          COUNT=$(find training-data/self-play -type f \\( -name '*.jsonl' -o -name '*.jsonl.gz' \\) | wc -l)
+          echo "Archivované datové soubory: $COUNT"
+          test "$COUNT" -gt 0
+      - name: Ověřit reward trainer
+        run: node --test tests/ai-train-weights.test.mjs
+      - name: Trénovat taktické váhy podle výsledků partií
+        run: |
+          mkdir -p artifacts
+          node scripts/ai-train-weights.mjs \\
+            --input-dir=training-data/self-play \\
+            --weights=config/ai-tactical-weights.json \\
+            --module=js/ai-tactical-weights.js \\
+            --report=artifacts/ai-weight-training-report.json
+      - name: Uložit report tréninku
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-weight-training-${{ github.run_number }}
+          path: artifacts/ai-weight-training-report.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Zapsat přijaté váhy do main
+        run: |
+          if git diff --quiet -- config/ai-tactical-weights.json js/ai-tactical-weights.js; then
+            echo "Validační kontrola nepřijala lepší váhy. Stávající AI zůstává beze změny."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config/ai-tactical-weights.json js/ai-tactical-weights.js
+          git commit -m "Train improved shared AI tactical weights"
+          git push origin main
