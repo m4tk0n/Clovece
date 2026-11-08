@@ -206,6 +206,7 @@ export function initAITrainingOverlay() {
                 choose.disabled = saving;
                 choose.addEventListener('click', () => {
                     preferredPieceId = pieceId;
+                    currentDecision.decision.preferredPieceId = pieceId;
                     renderDecision(currentDecision);
                     input.focus();
                     setSubmitState();
@@ -350,7 +351,17 @@ export function initAITrainingOverlay() {
         });
         historySelect.disabled = decisionHistory.length === 0;
         if (!decisionHistory.length) return;
-        const target = decisionHistory.find(item => String(item.decisionId || item.id) === String(previous)) || decisionHistory[decisionHistory.length - 1];
+        const preferred = decisionHistory.find(item => String(item.decisionId || item.id) === String(previous)
+            && !reviewedDecisionIds.has(String(item.decisionId || item.id)));
+        const target = preferred || [...decisionHistory].reverse().find(item =>
+            !reviewedDecisionIds.has(String(item.decisionId || item.id)));
+        if (!target) {
+            currentDecision = null;
+            analysis.textContent = 'Všechna rozhodnutí v tomto tahu už byla vyhodnocena.';
+            status.textContent = 'Hodnocení tohoto tahu je dokončeno.';
+            setSubmitState();
+            return;
+        }
         historySelect.value = String(target.decisionId || target.id);
         if (!currentDecision || String(currentDecision.decisionId || currentDecision.id) !== historySelect.value) renderDecision(target);
     }
