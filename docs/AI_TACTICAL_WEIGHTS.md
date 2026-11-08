@@ -54,4 +54,4 @@ Report obsahuje původní, navržené a výsledné kandidátní váhy, počty pa
 - Nedokončené partie, staré deterministické záznamy a rozhodnutí s okamžitě vítězným tahem se do aktualizace běžných vah nezapočítávají.
 - Okamžitá výhra má vždy přednost.
 - Při nedostatku dat nebo chybějící oddělené validaci se trénink zastaví bez změny vah.
-- PHP a JavaScript používají stejné naučené číselné hodnoty.
+- Po schválení kandidáta v bodě 3 budou PHP a JavaScript používat stejnou aktivní sadu naučených číselných hodnot.
