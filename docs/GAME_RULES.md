@@ -27,7 +27,7 @@
 
 ## 4. Základna, nasazení a šestka
 - Figurka v základně se může nasadit pouze při hodu 6.
-- Pokud má hráč při šestce alespoň jednu figurku v základně, musí nasadit jednu z nich. Nesmí místo toho táhnout jinou figurkou.
+- Pokud má hráč při šestce alespoň jednu figurku v základně a je zapnutá volba POVINNOST NASADIT, musí nasadit jednu z nich. Při vypnuté volbě může nasazení zvolit, nebo táhnout jinou legální figurkou.
 - Nasazení spotřebuje celý hod šestky. Nově nasazená figurka se neposouvá o dalších šest polí.
 - Je-li vlastní startovní pole obsazeno vlastní figurkou, vrátí se tato figurka do základny a nově nasazená figurka obsadí start. To je jediný případ, kdy hráč smí vyhodit vlastní figurku.
 - Je-li startovní pole obsazeno soupeřovou figurkou, vrátí se soupeřova figurka do své základny.
@@ -54,16 +54,16 @@
 ## 7. Cílová dráha
 - Po jednom oběhnutí hlavního okruhu pokračuje figurka do vlastní cílové dráhy D1, D2, D3 a D4.
 - Vstup do cílové dráhy i dojezd na D4 musí být přesný. Přestřelení D4 není možné.
-- Ve výchozím režimu se vlastní figurky v cílové dráze nesmějí přeskakovat; každé mezilehlé pole musí být volné.
-- Je-li v rozšířených pravidlech místní hry zapnuto **Přeskakování v domečku**, lze vlastní figurky v cílové dráze přeskočit. Hod kostkou ale vždy určuje přesnou cílovou pozici; například z D1 při hodu 2 lze skončit na D3, i když je D2 obsazené.
+- V místní hře je výchozí nastavení PŘESKAKOVÁNÍ V DOMEČKU zapnuté: vlastní figurky v cílové dráze lze přeskočit, cílové pole ale musí být volné. Při vypnutí musí být všechna mezilehlá pole volná.
+- Je-li v rozšířených pravidlech místní hry zapnuto **Přeskakování v domečku** (výchozí ANO), lze vlastní figurky v cílové dráze přeskočit. Hod kostkou ale vždy určuje přesnou cílovou pozici; například z D1 při hodu 2 lze skončit na D3, i když je D2 obsazené. Při vypnutí přeskakování blokuje tah každá obsazená mezilehlá pozice.
 - Tah nesmí skončit na obsazeném cílovém poli. Přeskočení je možné pouze přes mezilehlá obsazená pole, nikoli na obsazené cílové pole.
 - V místní hře lze zapnout volitelné pravidlo **Povinně do domečku** (výchozí ANO). Je-li zapnuté a alespoň jedna figurka může podle aktuálního hodu legálně a přesně vstoupit do volného cílového pole, hráč musí zvolit některý takový tah a nesmí táhnout jinou figurkou.
 - Za legální vstup se považuje pouze tah, který splňuje všechna ostatní aktivní pravidla, včetně přesného počtu kroků, volného cílového pole a případného pravidla přeskakování vlastních figurek.
 - Pokud žádná figurka nemá legální vstup do cílové dráhy, povinnost se neuplatní a hráč může využít jiný legální tah.
 - Při vypnutí pravidla může hráč zvolit libovolný jiný legální tah, i když má možnost vstoupit do domečku.
-- Toto volitelné pravidlo je dostupné pouze pro místní hru. Online hra zůstává beze změny.
+- Toto volitelné pravidlo je dostupné pouze pro místní hru. Online hra má pevně nastavený vstup do domečku jako povinný.
 - Cílová pole se nehromadí; na každém může stát nejvýše jedna figurka.
-- Volitelné pravidlo Přeskakování v domečku je v této verzi dostupné pouze pro místní hru. Online hra nadále používá dosavadní pravidlo bez přeskakování; online engine se touto změnou nemění.
+- Volitelné pravidlo Přeskakování v domečku je dostupné pouze pro místní hru. Online hra používá pevné pravidlo bez přeskakování.
 
 ## 8. Vyhazování
 - Při běžném pohybu se vyhazují pouze soupeřovy figurky.
