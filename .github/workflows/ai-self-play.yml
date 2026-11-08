@@ -41,7 +41,7 @@ on:
 
 concurrency:
   group: ai-self-play-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: write
