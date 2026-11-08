@@ -1,6 +1,6 @@
 /**
  * Diagnostický panel aktivovaný pouze v režimu ?debug=1.
- * Zobrazuje stav modelu, tréninku a všech 1000 konfiguračních hodnot.
+ * Zobrazuje stav modelu, tréninku a jednotlivé taktické váhy AI.
  */
 import model from './models/ludo-ai.js';
 import { isValidAINeuralModel } from './ai-neural-network.js';
@@ -18,6 +18,7 @@ export function initDebugOverlay() {
     const panel = document.createElement('section');
     panel.id = 'clovece-debug-overlay';
     panel.className = 'clovece-debug-overlay';
+
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'debug-overlay-toggle';
@@ -27,16 +28,21 @@ export function initDebugOverlay() {
 
     const content = document.createElement('div');
     content.className = 'debug-overlay-content';
+
     const summary = document.createElement('div');
     summary.className = 'debug-overlay-summary';
     summary.textContent = 'DEBUG';
+
     const camera = document.createElement('div');
     camera.className = 'debug-overlay-camera';
     camera.textContent = '3D KAMERA –';
+
     const details = document.createElement('pre');
     details.className = 'debug-overlay-details';
+
     const aiWeights = document.createElement('div');
     aiWeights.className = 'debug-overlay-ai-weights';
+
     content.append(summary, camera, details, aiWeights);
     panel.append(toggle, content);
     document.body.appendChild(panel);
@@ -63,11 +69,29 @@ export function initDebugOverlay() {
                 entry.name + suffix;
         }).join('\n');
     }
+
     function log(name, status = 'OK', duration = null, size = null) {
-        entries.push({ name: String(name), status: String(status), duration: Number.isFinite(Number(duration)) ? Number(duration) : null, size: Number.isFinite(Number(size)) ? Number(size) : null });
+        entries.push({
+            name: String(name),
+            status: String(status),
+            duration: Number.isFinite(Number(duration)) ? Number(duration) : null,
+            size: Number.isFinite(Number(size)) ? Number(size) : null
+        });
         if (entries.length > 80) entries.shift();
         renderLog();
     }
+
+    const weightNames = [
+        'Postup (ownProgress)',
+        'Zpomalení soupeře (opponentSetback)',
+        'Snížení hrozby (threatReduction)',
+        'Vyhození soupeře (captureOpponent)',
+        'Vyhození vlastní (captureOwn)',
+        'Dokončení figurky (finishPiece)',
+        'Nasazení figurky (deployPiece)',
+        'Vstup do domku (enterHome)',
+        'Postup v domku (homeProgress)'
+    ];
 
     function renderWeights(state = null) {
         const modelValid = isValidAINeuralModel(model);
@@ -75,6 +99,7 @@ export function initDebugOverlay() {
             ? 'HEURISTICKY INICIALIZOVANÝ – offline trénink neproběhl'
             : modelValid ? 'Neuronový model je načten' : 'Neuronový model není platný';
         const trainingStatus = state?.statusLabel || 'Stav tréninku zatím není uložen';
+
         const heading = document.createElement('div');
         heading.className = 'debug-overlay-weight-status';
         heading.textContent = modelStatus + '\n' + trainingStatus + '\nNačteno vah: ' + AI_WEIGHT_COUNT;
@@ -83,21 +108,26 @@ export function initDebugOverlay() {
         table.className = 'debug-overlay-weight-table';
         const head = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        ['ID', 'Hodnota'].forEach(label => {
+        ['ID', 'Název váhy', 'Hodnota'].forEach(labelText => {
             const cell = document.createElement('th');
-            cell.textContent = label;
+            cell.textContent = labelText;
             headerRow.appendChild(cell);
         });
         head.appendChild(headerRow);
         table.appendChild(head);
+
         const body = document.createElement('tbody');
         for (let id = 1; id <= AI_WEIGHT_COUNT; id++) {
             const row = document.createElement('tr');
             const idCell = document.createElement('td');
+            const nameCell = document.createElement('td');
             const valueCell = document.createElement('td');
+
             idCell.textContent = String(id);
+            nameCell.textContent = weightNames[id - 1] || `Váha ${id}`;
             valueCell.textContent = formatDebugWeight(AI_WEIGHT_VALUES[id - 1]);
-            row.append(idCell, valueCell);
+
+            row.append(idCell, nameCell, valueCell);
             body.appendChild(row);
         }
         table.appendChild(body);
@@ -128,9 +158,11 @@ export function initDebugOverlay() {
             ' Y ' + formatDebugWeight(value.y) + ' Z ' + formatDebugWeight(value.z) +
             ' | NÁKLON ' + formatDebugWeight(value.tilt) + '°';
     });
+
     document.addEventListener('visibilitychange', loadAIWeightState);
     window.setInterval(loadAIWeightState, 30000);
     renderWeights(null);
     void loadAIWeightState();
+
     return log;
 }
