@@ -64,6 +64,64 @@ function aiLearningReadModel(string $path): array
     return $stored;
 }
 
+function aiLearningMergeModel(array $current, array $base, array $incoming): array
+{
+    $merged = $current;
+    for ($index = 0; $index < 1000; $index++) {
+        $delta = (float) $incoming['weights'][$index] - (float) $base['weights'][$index];
+        $merged['weights'][$index] = max(-5.0, min(5.0, (float) $current['weights'][$index] + $delta));
+    }
+
+    $currentByKey = [];
+    foreach ($current['dynamicParameters'] as $parameter) $currentByKey[$parameter['key']] = $parameter;
+    $baseByKey = [];
+    foreach ($base['dynamicParameters'] as $parameter) $baseByKey[$parameter['key']] = $parameter;
+    $incomingByKey = [];
+    foreach ($incoming['dynamicParameters'] as $parameter) $incomingByKey[$parameter['key']] = $parameter;
+
+    $nextId = 1001;
+    foreach ($current['dynamicParameters'] as $parameter) $nextId = max($nextId, (int) $parameter['id'] + 1);
+    foreach ($incomingByKey as $key => $parameter) {
+        $old = $baseByKey[$key] ?? null;
+        $existing = $currentByKey[$key] ?? null;
+        if ($old === null) {
+            if ($existing === null) {
+                $parameter['id'] = $nextId++;
+                $currentByKey[$key] = $parameter;
+            } else {
+                $existing['weight'] = max(-5.0, min(5.0, (float) $existing['weight'] + (float) $parameter['weight']));
+                $existing['visits'] += (int) $parameter['visits'];
+                $existing['teacherSupport'] += (int) $parameter['teacherSupport'];
+                $existing['teacherRejects'] += (int) $parameter['teacherRejects'];
+                $currentByKey[$key] = $existing;
+            }
+            continue;
+        }
+
+        if ($existing === null) {
+            $existing = $parameter;
+            $existing['id'] = $nextId++;
+        } else {
+            $existing['weight'] = max(-5.0, min(5.0,
+                (float) $existing['weight'] + ((float) $parameter['weight'] - (float) $old['weight'])
+            ));
+            $existing['visits'] = max(0, (int) $existing['visits'] + (int) $parameter['visits'] - (int) $old['visits']);
+            $existing['teacherSupport'] = max(0, (int) $existing['teacherSupport'] + (int) $parameter['teacherSupport'] - (int) $old['teacherSupport']);
+            $existing['teacherRejects'] = max(0, (int) $existing['teacherRejects'] + (int) $parameter['teacherRejects'] - (int) $old['teacherRejects']);
+            $existing['lastUpdatedGeneration'] = max((int) $existing['lastUpdatedGeneration'], (int) $parameter['lastUpdatedGeneration']);
+        }
+        $currentByKey[$key] = $existing;
+    }
+
+    $merged['dynamicParameters'] = array_values($currentByKey);
+    $merged['decisionsTrained'] = max(0, (int) $current['decisionsTrained']
+        + (int) $incoming['decisionsTrained'] - (int) $base['decisionsTrained']);
+    $merged['gamesTrained'] = max(0, (int) $current['gamesTrained']
+        + (int) $incoming['gamesTrained'] - (int) $base['gamesTrained']);
+    $merged['generation'] = max((int) $current['generation'], (int) $incoming['generation']);
+    return $merged;
+}
+
 function aiLearningValidateModel(mixed $model): array
 {
     if (!is_array($model)
@@ -135,6 +193,7 @@ try {
         aiLearningRespond([
             'success' => true,
             'model' => $stored['model'],
+            'base_model' => $stored['model'],
             'revision' => $stored['revision'],
             'csrf_token' => $_SESSION['ai_learning_csrf'],
         ]);
@@ -161,6 +220,7 @@ try {
     }
 
     $incoming = aiLearningValidateModel($request['model'] ?? null);
+    $base = aiLearningValidateModel($request['base_model'] ?? null);
     $expectedRevision = filter_var($request['revision'] ?? null, FILTER_VALIDATE_INT);
     if ($expectedRevision === false || $expectedRevision < 0) {
         aiLearningRespond(['success' => false, 'error' => 'Chybí verze modelu.'], 422);
@@ -169,20 +229,16 @@ try {
     if (!flock($lock, LOCK_EX)) throw new RuntimeException('Nelze zamknout centrální model AI.');
     try {
         $stored = aiLearningReadModel($dataPath);
-        if ($stored['revision'] !== $expectedRevision) {
-            aiLearningRespond([
-                'success' => false,
-                'conflict' => true,
-                'error' => 'Model mezitím aktualizovalo jiné zařízení. Načti nejnovější model.',
-                'revision' => $stored['revision'],
-                'model' => $stored['model'],
-            ], 409);
-        }
+        // Změny se slučují jako rozdíly proti základní verzi. Souběžná zařízení
+        // tak nepřepisují celý model navzájem a nové taktické klíče dostanou unikátní ID.
+        $merged = $stored['revision'] === $expectedRevision
+            ? $incoming
+            : aiLearningMergeModel($stored['model'], $base, $incoming);
 
         $next = [
             'revision' => $stored['revision'] + 1,
             'updatedAt' => gmdate('c'),
-            'model' => $incoming,
+            'model' => $merged,
         ];
         $temporaryPath = $dataPath . '.' . bin2hex(random_bytes(6)) . '.tmp';
         $json = json_encode($next, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
@@ -199,7 +255,7 @@ try {
         fclose($lock);
     }
 
-    aiLearningRespond(['success' => true, 'revision' => $next['revision']]);
+    aiLearningRespond(['success' => true, 'revision' => $next['revision'], 'model' => $next['model']]);
 } catch (Throwable $error) {
     error_log('AI learning storage: ' . $error->getMessage());
     aiLearningRespond(['success' => false, 'error' => 'Centrální učení AI se nepodařilo uložit.'], 500);
