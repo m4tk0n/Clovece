@@ -7,7 +7,7 @@ import { renderBoard, prepareBoardRendering } from './game-board.js';
 import { showScreen, loadScreen } from './navigation.js';
 import { settings } from './settings.js';
 import { getPlayerSetup, initPlayerSetup, updateSetup, waitForPlayerProfileDefaults, getExtendedRules, setExtendedRulesForTest } from './player-setup.js';
-import { createGameView } from './game-view.js?v=20261108-2';
+import { createGameView } from './game-view.js';
 import { createGameLog } from './game-log.js';
 import { createTurnController } from './game-turn.js';
 
