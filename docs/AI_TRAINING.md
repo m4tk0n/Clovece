@@ -492,3 +492,18 @@ Aktuální síť ale stále přijímá **18 vstupů**; pravděpodobnostní výpo
 ### Regresní kontrola exportu modelu
 
 Test `tests/ai-train.test.mjs` spouští trénovací skript nad malou umělou sadou, načte vzniklý ES modul a ověří jej skutečným runtime validátorem `isValidAINeuralModel`. Kontroluje také rozměry první a poslední vrstvy a počet trénovacích dvojic. Tento test běží před každým trénováním v GitHub Actions, aby se nevyrobil kandidát, který herní runtime odmítne.
+
+
+## 18. Pravděpodobnostní vstupy neuronové sítě – schema v2
+
+Vstupní vektor se změnil z 18 na 23 hodnot. Verze schématu je nyní 2. Prvních 18 hodnot zachovává původní pořadí; posledních pět tvoří:
+
+1. `ownCaptureRisk` – pravděpodobnost, že vybranou figurku může vyhodit některý soupeř při jednom hodu každého soupeře.
+2. `opponentCaptureChance` – podíl vlastních hodů, při kterých existuje alespoň jeden legální tah vyhazující soupeře.
+3. `safeFinishChance` – podíl vlastních hodů, při kterých lze vybranou figurku legálně dokončit.
+4. `extraTurnChance` – podíl vlastních hodů, při kterých existuje alespoň jeden legální tah poskytující další hod.
+5. `deployAttackRisk` – riziko vyhození právě nasazené figurky; u ostatních tahů je nula.
+
+Všechny hodnoty jsou v rozsahu 0–1 a vznikají enumerací šesti výsledků kostky přes `rollDice`, `getValidMoves` a `movePiece` z produkčního enginu. Nejde o samostatně napsaná pravidla. Riziko vyhození je omezeno na jeden hod každého soupeře a nepočítá řetěz bonusových šestek ani návazné změny po předchozím soupeři. Příležitosti vlastního vyhození, dokončení a bonusového hodu jsou vyhodnoceny jako existence alespoň jednoho legálního tahu při jednom vlastním hodu.
+
+**Důležitá migrace dat:** self-play data se schématem v1 mají 18 hodnot a trenér v2 je odmítne. Je nutné spustit nové self-play partie po této změně. Starý kandidátní model zůstává historický a nesmí být načten jako model v2. Produkční model zůstává vypnutý.
