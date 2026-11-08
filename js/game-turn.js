@@ -64,6 +64,11 @@ export function createTurnController(deps) {
         if (knowledge.error && (debugAI || trainingAI)) {
             addGameLogEntry('AI učení', 'Paměť se nepodařilo aktualizovat: ' + knowledge.error);
         }
+        if (trainingAI && Number(knowledge.processedNow) > 0) {
+            addGameLogEntry('AI učení', 'Zpracováno nových hodnocení: ' + knowledge.processedNow +
+                ' · celkem: ' + (knowledge.totalProcessed || 0) +
+                ' · naučených situací: ' + (knowledge.situationCount || 0));
+        }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         const legalMoves = getValidMoves(game);
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
