@@ -1,6 +1,6 @@
 # AI – strategie, výpočty a výuka
 
-**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení, zpracuje nové JSON a aktualizuje trvalou paměť. Výuka zatím spojuje preference podle přesné shody herní situace; trenér uchovává jednotlivá rozhodnutí i při opakovaných hodech v jednom tahu; obecné zobecnění českých taktických pokynů a online PHP AI jsou další práce.
+**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení a aktualizuje trvalou paměť. Připravená je také inferenční vrstva neuronové sítě (`js/ai-neural-network.js`) a její rozhraní modelu (`models/ludo-ai.js`); model je zatím záměrně vypnutý, protože nemáme natrénované váhy. Detail: [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
 
 **Místní implementace:** `js/ai-strategy.js`  
 **Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
@@ -53,7 +53,7 @@ Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `
 1. Engine vrátí seznam legálních tahů.
 2. AI ověří, zda některý z nich okamžitě vyhrává.
 3. Pokud ano, provede vítězný tah.
-4. Pokud neexistuje naučená preference pro přesnou situaci, použije bezpečný náhradní výběr z legálních tahů.
+4. Pokud neexistuje naučená preference pro přesnou situaci a je načten platný neuronový model, ohodnotí jím všechny legální kandidáty a vybere nejvyšší skóre.\n5. Pokud není dostupný platný model, použije bezpečný náhradní výběr z legálních tahů.
 
 Běžný režim načítá pouze kompilovanou paměť `storage/ai-training/ai-memory.json`; zdrojové výukové JSON neprochází. Paměť se drží v cache prohlížeče po dobu běhu stránky.
 
