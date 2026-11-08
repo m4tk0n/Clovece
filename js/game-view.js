@@ -75,7 +75,7 @@ export function createGameView({ getGame, renderBoard }) {
                         ? 'Hra skončila.'
                         : (isHuman ? (trainerMode ? 'Vyber hodnotu kostky.' : 'Hoď kostkou a hraj.') : (trainerMode && (() => { try { return localStorage.getItem('clovece-trainer-ai-dice-mode') !== 'auto'; } catch { return true; } })() ? 'AI čeká na výběr kostky.' : 'AI hází kostkou…'));
     
-        const canRoll = isHuman && ['start-roll', 'roll'].includes(game.phase);
+        const canRoll = !trainerMode && isHuman && ['start-roll', 'roll'].includes(game.phase);
         $('roll-dice-btn').classList.toggle('hidden', !canRoll);
         $('roll-dice-btn').disabled = !canRoll;
         const rollLabel = $('roll-dice-btn').querySelector('span');
