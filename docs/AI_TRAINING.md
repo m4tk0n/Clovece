@@ -561,3 +561,25 @@ Kandidát se následně porovná s aktivní sadou vah ve stejném produkčním J
 Při přijetí workflow aktualizuje společně `config/ai-tactical-weights.json` a `js/ai-tactical-weights.js`, zapíše commit do `main` a přímo spustí FTP deploy. Přímé nasazení je nutné, protože push vytvořený tokenem GitHub Actions sám o sobě nemusí spustit další workflow přes událost `push`. PHP serverová strategie načítá stejný JSON; místní JavaScript importuje jeho generovaný modul.
 
 Každý úspěšně dokončený tréninkový běh publikuje `config/ai-training-state.json` s původními vahami, kandidátem, výslednými vahami, rozdíly, validačním výsledkem a výsledkem turnaje. Tento soubor se také přímo nasazuje na server a zobrazuje se v rozbaleném panelu `?debug=1`. Hodnoty kandidáta se zobrazují i při zamítnutí, aby bylo vidět, co se trénink pokusil změnit.
+
+
+## 16. Rozšířený model taktických vah – aktivní verze 2
+
+Aktivní taktický model má nyní 10 hodnot. Devět z nich trenér optimalizuje z výsledků dokončených self-play partií; okamžitá výhra zůstává pevnou prioritou.
+
+| Váha | Co ovlivňuje | Trénink |
+|---|---|---|
+| `immediateWin` | Okamžitě vítězný tah | Pevná hodnota 100000 |
+| `ownProgress` | Celkový postup vlastních figurek | Ano |
+| `opponentSetback` | Zdržení soupeřů vyhozením či zhoršením jejich postupu | Ano |
+| `threatReduction` | Snížení souhrnného ohrožení vlastních figurek | Ano |
+| `captureOpponent` | Přímé vyhození soupeřovy figurky | Ano |
+| `captureOwn` | Penalizace za vyhození vlastní figurky při nasazení | Ano |
+| `finishPiece` | Dokončení figurky v domečku | Ano |
+| `deployPiece` | Nasazení nové figurky ze základny | Ano |
+| `enterHome` | Vstup figurky do domácí sloupce | Ano |
+| `homeProgress` | Postup figurky uvnitř domácího sloupce | Ano |
+
+Nové tři faktory jsou součástí skóre každého legálního kandidátního tahu, zapisují se do self-play záznamu, vstupují do reward-based trenéru a do turnaje. Stejná sada vah je načítána v JavaScriptové místní AI i v PHP serverové AI z `config/ai-tactical-weights.json`.
+
+Self-play záznamy nesou `weightSchemaVersion: 2` a úplnou sadu `behaviorWeights`. Trenér ověřuje, že zaznamenané skóre odpovídá všem faktorům a vahám, a nekompatibilní záznamy nepoužije.
