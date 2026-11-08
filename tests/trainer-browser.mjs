@@ -18,7 +18,7 @@
 import process from 'node:process';
 
 const BASE_URL = (process.env.BASE_URL || 'https://7x.wz.cz/clovece/').replace(/\/$/, '') + '/';
-const GAME_URL = new URL('?debug=trainer&test=1', BASE_URL).toString();
+const GAME_URL = process.env.GAME_URL || new URL('?debug=trainer&test=1', BASE_URL).toString();
 
 let chromium;
 try {
@@ -56,7 +56,7 @@ try {
     return document.readyState === 'complete' &&
       document.querySelector('#main-menu') &&
       !document.querySelector('#main-menu').classList.contains('hidden');
-  }, { timeout: 60000 });
+  }, null, { timeout: 60000 });
 
   await page.waitForFunction(() => Boolean(window.__cloveceTest?.start), {
     timeout: 30000
