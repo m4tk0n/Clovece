@@ -86,6 +86,16 @@ Každý faktor je vypočítán pro simulovaný legální tah a jeho příspěvek
 
 ## 8. Konfigurace 1000 vah z `vahy.txt`
 
+Místní rozhodovací vrstva načítá všech 1000 číselných položek z `js/ai-weight-config.js` a při vyhodnocení každého legálního kandidáta prochází všechna ID 1–1000. Hodnoty strategických položek se normalizují funkcí `tanh(value / 100)` a násobí jedním z deseti stavových signálů: postup, útok, obrana, domácí sloupec, nasazení, tlak na soupeře, dokončení figurky, pozice na trase, flexibilita a riziko. Součet je normalizován odmocninou z počtu aktivních vah.
+
+**Rozdělení položek:**
+- 876 strategických / ladicích vah vstupuje do součtu skóre každého legálního tahu.
+- 124 položek je v dodaném souboru výslovně označeno jako systémová metadata, kontrolní značky, telemetrie, příznaky nebo rezervované sloty. Ty se načítají a procházejí, ale jejich příspěvek je záměrně neutrální, aby například kontrolní token `99999` nebo checksum neovládal strategii.
+- ID 401–416 současně nastavují profil obtížnosti; jejich hodnoty jsou rovněž součástí strategického součtu, pokud nejde o výše uvedená metadata.
+
+Příspěvek celého 1000-slot ensemble je součástí konečného skóre. Debug zobrazuje počet načtených položek, počet skutečných skórovacích vah, počet neutrálních systémových položek a číselný příspěvek ensemble pro vybraný tah i alternativy. Engine zůstává jediným zdrojem legálních tahů.
+
+
 Místní hra načítá kompletní číselnou konfiguraci 1–1000 z `js/ai-weight-config.js`. Index pole odpovídá ID minus jedna; hodnoty jsou beze změny převzaté z dodaného `vahy.txt`. Konfigurace se načítá spolu s modulem AI, nikoli na úvodní obrazovce.
 
 - ID 1–100: základní strategické, poziční, rizikové, postupové a pravidlové parametry. Významné herní faktory z této skupiny vstupují do váženého skóre kandidátních tahů.
