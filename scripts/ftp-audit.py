@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 SENSITIVE_DIRS = {".git", ".github", "storage", "sessions", "cache", "logs", "log", "backup", "backups", "uploads", "private", "data", "database", "db", "node_modules", "vendor"}
-SKIP_PREFIXES = (".github/", "docs/", "tests/", "node_modules/", "playwright-report/", "test-results/", "vendor/")
+SKIP_PREFIXES = (".github/", "docs/", "tests/", "scripts/", "storage/", "sessions/", "cache/", "logs/", "backup/", "backups/", "uploads/", "private/", "data/", "database/", "db/", "node_modules/", "playwright-report/", "test-results/", "vendor/")
 SKIP_FILES = {".env", "README.md", "package.json", "package-lock.json", "playwright.config.js"}
 
 def safe_name(name):
@@ -132,7 +132,7 @@ def main():
     if args.self_test:
         assert deployable("index.php") and deployable(".env.dist")
         assert not deployable(".env") and not deployable("docs/README.md")
-        assert not deployable("storage/private.json")
+        assert not deployable("storage/private.json") and not deployable("scripts/ftp-audit.py")
         assert parse_list("drwxr-xr-x 2 user group 4096 Jan 01 12:00 assets")[0] == "dir"
         assert parse_list("lrwxrwxrwx 1 user group 12 Jan 01 12:00 link -> /tmp") is None
         print("PASS: FTP audit self-test")
