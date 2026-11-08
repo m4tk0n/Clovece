@@ -28,7 +28,7 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Pouze `/?debug=trainer` před každým rozhodnutím volá `ai-training-knowledge.php` a zpracuje nové záznamy z append-only fronty.
 - Nové záznamy se zpracují pouze jednou podle fronty `.training-queue` a uloženého bajtového offsetu. Adresář se pro migraci starších záznamů prohledá pouze při prvotním vytvoření fronty.
 - Přesná shoda situace porovnává desku, pravidla, hráče, startovní sloty, kostku a pozice všech figurek.
-- Opravná instrukce se použije, pokud výslovně označí figurku (např. „figurku 2“) a tato figurka je v dané situaci legální.
+- Opravná instrukce může obsahovat výslovné číslo figurky nebo může být cílová figurka vybrána přímo z nabídky legálních kandidátů. Kompilátor ověří, že cílová figurka byla v daném rozhodnutí legální.
 - Pozitivní příklad znovu upřednostní dříve potvrzenou legální figurku ve stejné situaci.
 - AI do rozhodnutí přidá `trainedKnowledge` a ID skutečně použité instrukce; debug log a výukový panel zobrazí `NAUČENO`.
 - Naučená preference nikdy nepřekročí seznam legálních tahů a okamžitá výhra má stále přednost.
@@ -82,14 +82,14 @@ Panel obsahuje:
 - tlačítka − / + pro změnu velikosti;
 - rozbor rozhodnutí AI;
 - textové pole „Co měla AI udělat správně a proč?“;
-- tlačítka **PŘESKOČIT**, **SPRÁVNĚ** a **ODESLAT**;
+- seznam všech rozhodnutí AI v aktuálním tahu (včetně dřívějších hodů, například šestky);\n- tlačítka pro výběr konkrétní legální figurky, kterou měla AI zvolit;\n- tlačítka **PŘESKOČIT**, **SPRÁVNĚ** a **ODESLAT**;
 - stav ukládání a ID uloženého záznamu.
 
 Panel je možné uchopit za hlavičku a přesunout. Umístění se omezuje na viditelný viewport, aby okno nezůstalo mimo obrazovku při otevřené klávesnici nebo změně velikosti okna.
 
 ### Co se v panelu zobrazuje
 
-- jméno AI, číslo tahu a hod kostkou;
+- jméno AI, číslo tahu a hod kostkou;\n- přepínač rozhodnutí v rámci tahu, aby bylo možné zpětně otevřít i rozhodnutí po předchozím hodu;
 - vysvětlení vybraného tahu;
 - vybraná figurka;
 - ostatní zvažované legální možnosti a stručné důvody;
@@ -233,7 +233,7 @@ Aktuální místní strategie je v `js/ai-strategy.js`.
 
 **Nové záznamy zpracovává pouze trenér `/?debug=trainer`.** Ten před každým rozhodnutím kontroluje frontu nových záznamů, aktualizuje `ai-memory.json` a může nově zpracované zkušenosti hned použít.
 
-Současné učení je omezené: preference se použije při přesné shodě herní situace a oprava musí jednoznačně označit číslo figurky. Obecné pokyny a podobné situace AI zatím neumí bezpečně zobecnit. Serverová AI online her zatím tuto znalostní vrstvu nepoužívá.
+Současné učení je omezené: preference se použije při přesné shodě herní situace. Oprava může určit figurku strukturovaně z nabídky legálních kandidátů nebo textovým zápisem čísla figurky. Obecné pokyny a podobné situace AI zatím neumí bezpečně zobecnit. Serverová AI online her zatím tuto znalostní vrstvu nepoužívá.
 
 ## 9. Jak má fungovat skutečné učení – cílový návrh
 
@@ -281,3 +281,14 @@ Na FTP auditu byly dříve nalezeny staré soubory a adresáře související s 
 - Do budoucna starý trénovací systém nevracet do deploy workflow ani do runtime.
 
 Dokumentace se ukládá v repozitáři v `docs/`; díky výjimce `docs/**` ve FTP workflow se na server nekopíruje. Na server patří jen soubory potřebné pro běh aplikace a zabezpečené úložiště uživatelských záznamů.
+
+
+## 11. Hodnocení více rozhodnutí během jednoho tahu
+
+Každé taktické rozhodnutí AI po hodu se uloží do historie aktuálního tahu. Historie je oddělená podle hráče a čísla tahu a resetuje se při nové hře. Další hod (například šestka a následná trojka) přidá další položku; nepřepíše předchozí rozhodnutí.
+
+Ve výukovém panelu je seznam **Rozhodnutí v tomto tahu**. Lze přepnout na dřívější hod, zkontrolovat jeho původní pozice, kostku a legální možnosti a samostatně jej potvrdit, opravit nebo přeskočit. Již vyhodnocené položky zůstávají v seznamu označené jako vyhodnocené.
+
+Oprava může být zadána textem (například „měla pohnout figurkou 3“) nebo výběrem tlačítka **Učit: figurka N** u konkrétního legálního kandidáta. Strukturovaná oprava uloží `decision.preferredPieceId`; textové vysvětlení je volitelné.
+
+Kompilátor paměti přijme strukturovanou preferenci pouze tehdy, pokud její figurka patří do `decision.legalMoves` uloženého pro hodnocené rozhodnutí. Oprava rozhodnutí po šestce se tak nepřipíše následnému rozhodnutí po trojce a učení nikdy nevytvoří nelegální tah.
