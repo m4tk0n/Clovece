@@ -3,14 +3,14 @@
 Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, nezlob se. Popisuje spuštění, uživatelské rozhraní, tok dat, serverové ukládání, současné chování AI, bezpečnost i další práci.
 
 **Stav dokumentace:** 2026-11-08  
-**Vstupní adresa:** `/?debug=training`  
+**Vstupní adresa:** `/?debug=trainer` (starší alias `/?debug=training`)  
 **Poznámka k názvu:** správný parametr je `training`, nikoli `trainer`.
 
 ## 1. Stav v kostce
 
 ### HOTOVO
 
-- Samostatný režim ruční výuky na `/?debug=training`.
+- Samostatný režim ruční výuky a průběžného importu na `/?debug=trainer` (`training` zůstává jako alias).
 - Výukový režim se zapíná přes `index.php` a debug bootstrap; používá lokální hru a vynucuje 2D zobrazení.
 - Číslování polí na 2D desce pro přesný popis situace.
 - Malé plovoucí okno výuky AI, které se zobrazí až po zobrazení hrací desky.
@@ -24,8 +24,9 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Ukládání je append-only: endpoint vytváří nový soubor a neposkytuje operaci pro přepsání ani smazání záznamu.
 - Ochrana úložiště proti přímému HTTP přístupu, CSRF token, kontrola původu požadavku a limit velikosti vstupu.
 - Regresní testy v `tests/ai-training.test.mjs` a `tests/ai-strategy.test.mjs`.
-- Před každým rozhodnutím místní AI se volá read-only endpoint `ai-training-knowledge.php`; server kontroluje adresář s instrukcemi.
-- Nové záznamy se stahují pouze jednou a drží se v paměti aktuální hry; při dalších tazích se kontrolují jen novější soubory.
+- Běžný režim bez debug načte pouze kompilovanou paměť `ai-memory.json` a drží ji v cache; neprochází zdrojové JSON.
+- Pouze `/?debug=trainer` před každým rozhodnutím volá `ai-training-knowledge.php` a zpracuje nové záznamy z append-only fronty.
+- Nové záznamy se zpracují pouze jednou podle fronty `.training-queue` a uloženého bajtového offsetu. Adresář se pro migraci starších záznamů prohledá pouze při prvotním vytvoření fronty.
 - Přesná shoda situace porovnává desku, pravidla, hráče, startovní sloty, kostku a pozice všech figurek.
 - Opravná instrukce se použije, pokud výslovně označí figurku (např. „figurku 2“) a tato figurka je v dané situaci legální.
 - Pozitivní příklad znovu upřednostní dříve potvrzenou legální figurku ve stejné situaci.
@@ -42,13 +43,26 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Změnit názvy JSON souborů na časové názvy s výsledkem `ok` / `err` (viz kapitola 6).
 - Prověřit a odstranit ze serveru staré nepoužívané checkpointy původního trénovacího systému. Nesmí se při tom odstranit nové lidské instrukce.
 
+## 2A. Rozdíl mezi běžným režimem a trenérem
+
+| Režim | Co načítá před tahem | Co zapisuje |
+|---|---|---|
+| Bez `debug` | Kompilovanou paměť z cache; při prvním tahu jednou načte `ai-memory.json`. | Nic. |
+| `?debug=trainer` | Přečte frontu od posledního uloženého offsetu a zpracuje pouze nové JSON. | Aktualizuje `ai-memory.json` před rozhodnutím. |
+
+Fronta `.training-queue` se doplňuje při uložení každého nového hodnocení. Při prvním spuštění trenéra se vytvoří jednorázový seznam již existujících JSON, aby se neztratila starší výuka. Při dalších tazích se nepoužívá `glob()` ani procházení celého adresáře.
+
+Kompilovaná paměť je uložena v `storage/ai-training/ai-memory.json`. Uchovává agregované počty preferovaných figurek pro přesnou herní situaci, nikoli kopie celých původních záznamů. Po zpracování lze původní JSON smazat; paměť se tím nemaže. Neodstraňuj však `.training-queue`, `.training-queue.initialized` ani `ai-memory.json`.
+
 ## 2. Jak výukový režim spustit
 
 Otevři:
 
 ```
-https://7x.wz.cz/clovece/?debug=training
+https://7x.wz.cz/clovece/?debug=trainer
 ```
+
+Běžná hra bez parametru `debug` pouze načítá kompilovanou paměť. Nečte adresář s výukovými JSON.
 
 Vstupní bod je `index.php`. Rozpozná parametr `debug=training`, načte CSS výukového panelu a připojí `js/debug-bootstrap.js`. Samotná výuka je určena pro místní hru; panel se zobrazí až ve chvíli, kdy je herní deska skutečně vykreslená.
 
