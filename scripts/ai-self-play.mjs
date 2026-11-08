@@ -9,7 +9,7 @@ import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
 import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
-import { extractAIMoveFeatures } from '../js/ai-neural-network.js';
+import { AI_FEATURE_COUNT, AI_FEATURE_SCHEMA_VERSION, extractAIMoveFeatures } from '../js/ai-neural-network.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
     const match = value.match(/^--([^=]+)=(.*)$/);
@@ -56,6 +56,8 @@ const allSamples = [];
 const summary = {
     format: 'clovece-ai-self-play-report',
     formatVersion: 1,
+    featureSchemaVersion: AI_FEATURE_SCHEMA_VERSION,
+    featureCount: AI_FEATURE_COUNT,
     createdAt: new Date().toISOString(),
     seed,
     gamesRequested: games,
