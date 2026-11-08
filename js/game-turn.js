@@ -57,6 +57,12 @@ export function createTurnController(deps) {
     function chooseAndLogAIMove() {
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         const legalMoves = getValidMoves(game);
+        const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
+        const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
+        if (trainingAI && Number(game.diceValue) === 6 && allPiecesInBase) {
+            // První povinné nasazení není taktické rozhodnutí, proto se nevytváří rozbor.
+            return legalMoves[0] ?? null;
+        }
         const decision = chooseAIMoveDecision
             ? chooseAIMoveDecision(game)
             : { pieceId: chooseAIMove(game), reason: '' };
@@ -120,9 +126,8 @@ export function createTurnController(deps) {
             if (debugAI) setAIDebugExport?.(pendingAIDebugExport);
             if (trainingAI) {
                 const playerName = game.players[playerId].name;
-                const evaluation = pendingAIDebugExport.decision.explanation ||
-                    ('Vybrala jsem figurku ' + (Number(pieceId) + 1) + '.');
-                addAITrainingEvaluation?.(playerName, evaluation);
+                // V herním chatu zůstane jen stručná značka; úplný rozbor patří do panelu.
+                addAITrainingEvaluation?.(playerName, 'vyhodnocení');
                 window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
                     detail: {
                         ...pendingAIDebugExport,
@@ -330,7 +335,11 @@ export function createTurnController(deps) {
         const autoMoveForced = getGameExtensionValue('shouldAutoMoveForced', true, game);
         if (forcedMove !== null && autoMoveForced) {
             if (isAI) {
-                chooseAndLogAIMove();
+                const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
+                const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
+                const automaticFirstDeployment = trainingAI && Number(game.diceValue) === 6 && allPiecesInBase;
+                // Nasazení první figurky šestkou je povinné a neobsahuje taktické rozhodnutí.
+                if (!automaticFirstDeployment) chooseAndLogAIMove();
                 if (debugAI) {
                     addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
                 }
