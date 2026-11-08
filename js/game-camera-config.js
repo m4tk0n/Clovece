@@ -5,7 +5,7 @@
 export const BOARD_CAMERA_CONFIG = Object.freeze({
     target: Object.freeze({ x: 0, y: 0, z: 0 }),
     tiltDegrees: 55,
-    distance: 32.6065620543,
+    distance: 29.9,
     azimuthX: 0.4385559757,
     azimuthZ: -0.8987038757,
     fov: 34,
