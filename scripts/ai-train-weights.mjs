@@ -13,8 +13,9 @@ const args = Object.fromEntries(process.argv.slice(2).map(value => {
     return match ? [match[1], match[2]] : [value.replace(/^--/, ''), true];
 }));
 const inputDir = path.resolve(String(args['input-dir'] || 'training-data/self-play'));
-const weightsPath = path.resolve(String(args.weights || 'config/ai-tactical-weights.json'));
-const modulePath = path.resolve(String(args.module || 'js/ai-tactical-weights.js'));
+const currentWeightsPath = path.resolve(String(args['current-weights'] || 'config/ai-tactical-weights.json'));
+const outputWeightsPath = path.resolve(String(args['output-weights'] || 'artifacts/ai-tactical-weights-candidate.json'));
+const modulePath = path.resolve(String(args.module || 'artifacts/ai-tactical-weights-candidate.js'));
 const reportPath = path.resolve(String(args.report || 'artifacts/ai-weight-training-report.json'));
 const epochs = Math.max(1, Math.min(200, Number(args.epochs) || 30));
 const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']) || 0.015));
@@ -121,7 +122,7 @@ function policyLogLikelihood(records, parameters) {
     return count ? total / count : 0;
 }
 
-const currentConfig = readJson(weightsPath, { version: 1, weights: INITIAL });
+const currentConfig = readJson(currentWeightsPath, { version: 1, weights: INITIAL });
 const previousWeights = { ...INITIAL, ...(currentConfig.weights || {}) };
 for (const key of Object.keys(INITIAL)) {
     if (!Number.isFinite(Number(previousWeights[key]))) throw new Error('Neplatná současná váha: ' + key);
@@ -296,15 +297,20 @@ fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
 if (accepted) {
     const config = {
         version: 1,
-        trainedAt: report.createdAt,
+        candidateCreatedAt: report.createdAt,
         trainingMethod: report.method,
         sourceGames: games.size,
+        basedOnWeights: previousWeights,
         weights: finalWeights
     };
-    fs.mkdirSync(path.dirname(weightsPath), { recursive: true });
-    fs.writeFileSync(weightsPath, JSON.stringify(config, null, 2) + '\n');
+    fs.mkdirSync(path.dirname(outputWeightsPath), { recursive: true });
+    fs.writeFileSync(outputWeightsPath, JSON.stringify(config, null, 2) + '\n');
     fs.mkdirSync(path.dirname(modulePath), { recursive: true });
-    fs.writeFileSync(modulePath, '// Generated from config/ai-tactical-weights.json by scripts/ai-train-weights.mjs.\n' +
+    fs.writeFileSync(modulePath, '// Candidate only; generated from reward-based self-play training.\n' +
         'export const AI_TACTICAL_WEIGHTS = Object.freeze(' + JSON.stringify(finalWeights, null, 2) + ');\n');
+} else {
+    for (const file of [outputWeightsPath, modulePath]) {
+        if (fs.existsSync(file)) fs.rmSync(file);
+    }
 }
 process.stdout.write(JSON.stringify(report, null, 2) + '\n');
