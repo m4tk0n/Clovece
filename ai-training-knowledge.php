@@ -105,20 +105,80 @@ if (is_file($memoryPath) && !is_link($memoryPath)) {
 }
 $processedNow = 0;
 if ($action === 'train') {
-    $files = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
-    sort($files, SORT_STRING);
-    foreach ($files as $filePath) {
-        $name = basename($filePath);
-        if ($name <= (string)($memory['lastFile'] ?? '')) continue;
-        if (!preg_match('/^\d{8}-\d{6}-\d{4,}-(ok|err)\.json$/', $name, $nameMatch)) continue;
-        if (is_link($filePath) || !is_file($filePath) || filesize($filePath) > 65536) continue;
+    // The queue is append-only. It is initialized from old JSON files once,
+    // then each new feedback save appends one filename. No directory scan per turn.
+    $queuePath = $realRoot . '/.training-queue';
+    $queueLock = @fopen($realRoot . '/.training-queue.lock', 'c');
+    if (!$queueLock || !flock($queueLock, LOCK_EX)) {
+        if (is_resource($queueLock)) fclose($queueLock);
+        flock($lock, LOCK_UN); fclose($lock);
+        aiMemoryFail('Fronta výuky AI je právě uzamčena.', 503);
+    }
+    $initializedPath = $realRoot . '/.training-queue.initialized';
+    if (!is_file($initializedPath)) {
+        $existing = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
+        sort($existing, SORT_STRING);
+        $queueTemp = $queuePath . '.tmp';
+        $queueHandle = @fopen($queueTemp, 'wb');
+        $queueOk = $queueHandle !== false;
+        if ($queueOk) {
+            foreach ($existing as $existingPath) {
+                $line = basename($existingPath) . "\n";
+                if (fwrite($queueHandle, $line) !== strlen($line)) { $queueOk = false; break; }
+            }
+            $queueOk = fflush($queueHandle) && $queueOk;
+            fclose($queueHandle);
+        }
+        if (!$queueOk || !rename($queueTemp, $queuePath) || file_put_contents($initializedPath, "1\n", LOCK_EX) === false) {
+            @unlink($queueTemp);
+            flock($queueLock, LOCK_UN); fclose($queueLock);
+            flock($lock, LOCK_UN); fclose($lock);
+            aiMemoryFail('Frontu výuky AI se nepodařilo bezpečně připravit.', 500);
+        }
+    }
+    $queueHandle = @fopen($queuePath, 'rb');
+    if ($queueHandle === false || is_link($queuePath)) {
+        if (is_resource($queueHandle)) fclose($queueHandle);
+        flock($queueLock, LOCK_UN); fclose($queueLock);
+        flock($lock, LOCK_UN); fclose($lock);
+        aiMemoryFail('Fronta výuky AI není dostupná.', 500);
+    }
+    $offset = max(0, (int)($memory['queueOffset'] ?? 0));
+    if (fseek($queueHandle, $offset) !== 0) {
+        fclose($queueHandle); flock($queueLock, LOCK_UN); fclose($queueLock);
+        flock($lock, LOCK_UN); fclose($lock);
+        aiMemoryFail('Nelze pokračovat ve frontě výuky AI.', 500);
+    }
+    while (($line = fgets($queueHandle)) !== false) {
+        $nextOffset = ftell($queueHandle);
+        $name = trim($line);
+        if ($name === '' || !preg_match('/^\\d{8}-\\d{6}-\\d{4,}-(ok|err)\\.json$/', $name, $nameMatch)) {
+            $memory['queueOffset'] = $nextOffset;
+            continue;
+        }
+        if ($name <= (string)($memory['lastFile'] ?? '')) {
+            $memory['queueOffset'] = $nextOffset;
+            continue;
+        }
+        $filePath = $realDirectory . DIRECTORY_SEPARATOR . $name;
+        if (is_link($filePath) || !is_file($filePath) || filesize($filePath) > 65536) {
+            $memory['lastFile'] = $name;
+            $memory['queueOffset'] = $nextOffset;
+            continue;
+        }
         $record = json_decode((string)@file_get_contents($filePath), true);
         if (!is_array($record) || !in_array($record['feedbackType'] ?? '', ['correction', 'positive'], true)
             || !is_array($record['context']['game'] ?? null) || !is_array($record['context']['decision'] ?? null)) {
-            $memory['lastFile'] = $name; continue;
+            $memory['lastFile'] = $name;
+            $memory['queueOffset'] = $nextOffset;
+            continue;
         }
         $expected = $record['feedbackType'] === 'positive' ? 'ok' : 'err';
-        if (!hash_equals($expected, $nameMatch[1])) { $memory['lastFile'] = $name; continue; }
+        if (!hash_equals($expected, $nameMatch[1])) {
+            $memory['lastFile'] = $name;
+            $memory['queueOffset'] = $nextOffset;
+            continue;
+        }
         $pieceId = aiMemoryPieceId($record);
         $signature = aiMemorySignature($record['context']['game']);
         if ($pieceId !== null && $signature !== null) {
@@ -128,12 +188,15 @@ if ($action === 'train') {
             $memory['situations'][$signature]['samples'] = (int)($memory['situations'][$signature]['samples'] ?? 0) + 1;
         }
         $memory['lastFile'] = $name;
+        $memory['queueOffset'] = $nextOffset;
         $memory['totalProcessed'] = (int)($memory['totalProcessed'] ?? 0) + 1;
         $processedNow++;
     }
     $memory['updatedAt'] = gmdate('c');
     $json = json_encode($memory, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
     $temp = $memoryPath . '.tmp';
+    fclose($queueHandle);
+    flock($queueLock, LOCK_UN); fclose($queueLock);
     if (!is_string($json) || file_put_contents($temp, $json, LOCK_EX) === false || !rename($temp, $memoryPath)) {
         @unlink($temp); flock($lock, LOCK_UN); fclose($lock);
         aiMemoryFail('Zápis trvalé paměti AI selhal; zdrojové JSON zůstaly zachovány.', 500);
