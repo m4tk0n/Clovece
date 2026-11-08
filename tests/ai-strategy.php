@@ -37,9 +37,11 @@ $first = onlineEngineChooseAIMoveDecision($game, static fn(int $count): int => 0
 $last = onlineEngineChooseAIMoveDecision($game, static fn(int $count): int => $count - 1);
 aiStrategyAssert(in_array($first['pieceId'], $legal, true), 'První náhodná volba musí být legální.');
 aiStrategyAssert(in_array($last['pieceId'], $legal, true), 'Poslední náhodná volba musí být legální.');
-aiStrategyAssert($first['pieceId'] !== $last['pieceId'], 'Náhodný výběr musí umět zvolit různé legální tahy.');
-aiStrategyAssert(str_contains($first['reason'], 'nemám naučenou taktiku'),
-    'Nevyučená AI musí v debug vysvětlení přiznat, že taktiku nemá.');
+aiStrategyAssert($first['pieceId'] === $last['pieceId'], 'Stejný stav musí vracet deterministické taktické rozhodnutí.');
+aiStrategyAssert($first['selectedScore'] >= $last['selectedScore'],
+    'AI musí vybrat kandidáta s nejvyšším taktickým skóre.');
+aiStrategyAssert(str_contains($first['reason'], 'Taktická AI vyhodnotila'),
+    'AI musí v debug vysvětlení uvést taktické vyhodnocení.');
 aiStrategyAssert(is_float(onlineEngineAiPips($game, 0)), 'Výpočet zbývajících kroků musí zůstat dostupný.');
 aiStrategyAssert(is_float(onlineEngineAiThreatLoss($game, 0)), 'Výpočet ohrožení musí zůstat dostupný.');
 
