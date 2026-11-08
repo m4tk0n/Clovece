@@ -79,6 +79,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
             'css/components-local-games.css' => $assetVersion('css/components-local-games.css'),
             'css/components-game.css' => $assetVersion('css/components-game.css'),
             'css/game-premium.css' => $assetVersion('css/game-premium.css'),
+            'css/debug.css' => $assetVersion('css/debug.css'),
             'css/animations.css' => $assetVersion('css/animations.css')
         ]), ENT_QUOTES, 'UTF-8') ?>'>
 <?php if ($testMode): ?>
