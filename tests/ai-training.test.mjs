@@ -238,6 +238,8 @@ test('debug weight formatting preserves integer scale and useful decimal precisi
     assert.equal(formatDebugWeight(0.00000001), '1e-8');
     assert.equal(formatDebugWeight(Number.NaN), '—');
     assert.equal(formatDebugWeight(undefined), '—');
+    assert.equal(formatDebugWeight(null), '—');
+    assert.equal(formatDebugWeight(''), '—');
 });
 
 test('debug diagnostics report neural model provenance and refresh training state', async () => {
