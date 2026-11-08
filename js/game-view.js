@@ -37,6 +37,33 @@ export function createGameView({ getGame, renderBoard }) {
         }).join('');
     }
     
+    function ensureTrainerDiceControls(trainerMode) {
+        const gameScreen = $('game-screen');
+        if (!gameScreen) return null;
+        let controls = $('trainer-dice-controls');
+        if (!trainerMode) {
+            controls?.remove();
+            return null;
+        }
+        if (controls) return controls;
+        const markup = [
+            '<div id="trainer-dice-controls" class="trainer-dice-controls" aria-label="Výběr hodnoty kostky">',
+            '<div id="trainer-dice-options" class="trainer-dice-options">',
+            '<button type="button" class="trainer-die" data-dice-value="1" aria-label="Hodit 1"><span class="pip p5"></span></button>',
+            '<button type="button" class="trainer-die" data-dice-value="2" aria-label="Hodit 2"><span class="pip p1"></span><span class="pip p9"></span></button>',
+            '<button type="button" class="trainer-die" data-dice-value="3" aria-label="Hodit 3"><span class="pip p1"></span><span class="pip p5"></span><span class="pip p9"></span></button>',
+            '<button type="button" class="trainer-die" data-dice-value="4" aria-label="Hodit 4"><span class="pip p1"></span><span class="pip p3"></span><span class="pip p7"></span><span class="pip p9"></span></button>',
+            '<button type="button" class="trainer-die" data-dice-value="5" aria-label="Hodit 5"><span class="pip p1"></span><span class="pip p3"></span><span class="pip p5"></span><span class="pip p7"></span><span class="pip p9"></span></button>',
+            '<button type="button" class="trainer-die" data-dice-value="6" aria-label="Hodit 6"><span class="pip p1"></span><span class="pip p3"></span><span class="pip p4"></span><span class="pip p6"></span><span class="pip p7"></span><span class="pip p9"></span></button>',
+            '</div>',
+            '<button type="button" id="trainer-ai-dice-mode" class="trainer-ai-dice-mode" aria-pressed="true">AI KOSTKA: RUČNĚ</button>',
+            '</div>'
+        ].join('');
+        const header = gameScreen.querySelector('.game-header');
+        if (!header) return null;
+        header.insertAdjacentHTML('afterend', markup);
+        return $('trainer-dice-controls');
+    }
     function updateTurnControls() {
             const game = getGame();
             if (!game) return;
@@ -46,7 +73,7 @@ export function createGameView({ getGame, renderBoard }) {
         $('current-player-display').style.setProperty('--player-color', player.color);
         $('dice-value').textContent = game.diceValue || '—';
         const trainerMode = ['trainer', 'training'].includes(new URLSearchParams(window.location.search).get('debug'));
-        const diceControls = $('trainer-dice-controls');
+        const diceControls = ensureTrainerDiceControls(trainerMode);
         if (diceControls) {
             diceControls.classList.toggle('hidden', !trainerMode);
             const aiDiceMode = (() => { try { return localStorage.getItem('clovece-trainer-ai-dice-mode') === 'auto' ? 'auto' : 'manual'; } catch { return 'manual'; } })();
