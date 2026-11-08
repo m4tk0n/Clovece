@@ -283,10 +283,12 @@ if ($queueHandle === false || fwrite($queueHandle, $queueLine) !== strlen($queue
 if (is_resource($queueHandle)) fclose($queueHandle);
 if (is_resource($queueLock)) {
     if ($queueOk) flock($queueLock, LOCK_UN);
-    else @file_put_contents($trainingRoot . DIRECTORY_SEPARATOR . '.training-queue.needs-rebuild', "1\n", LOCK_EX);
     fclose($queueLock);
 }
-if (!$queueOk) aiTrainingFail('Záznam byl uložen, ale frontu výuky je nutné obnovit.', 500);
+if (!$queueOk) {
+    @file_put_contents($trainingRoot . DIRECTORY_SEPARATOR . '.training-queue.needs-rebuild', "1\n", LOCK_EX);
+    aiTrainingFail('Záznam byl uložen, ale frontu výuky je nutné obnovit.', 500);
+}
 
 aiTrainingRespond([
     'success' => true,
