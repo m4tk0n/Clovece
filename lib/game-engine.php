@@ -506,16 +506,14 @@ function onlineEngineAiThreatLoss(array $game, int $playerId): float
 }
 
 /**
- * Vrací výběr i rozbor pro debug chat. Skóre je deterministické pro stejný stav.
+ * Načte společné taktické váhy vytvořené tréninkem AI.
+ * JSON je jediný zdroj pravdy pro serverovou PHP strategii.
  */
-function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = null): array
+function onlineEngineAiTacticalWeights(): array
 {
-    $valid = onlineEngineValidMoves($game);
-    if ($valid === []) {
-        return ['pieceId' => null, 'reason' => 'AI nemá žádný legální tah.', 'candidates' => []];
-    }
+    static $weights = null;
+    if ($weights !== null) return $weights;
 
-    // Stejné koeficienty jako AI_TACTICAL_WEIGHTS v js/ai-strategy.js.
     $weights = [
         'immediateWin' => 100000.0,
         'ownProgress' => 0.08,
@@ -525,6 +523,37 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
         'captureOwn' => 7.0,
         'finishPiece' => 8.0,
     ];
+
+    $configPath = dirname(__DIR__) . '/config/ai-tactical-weights.json';
+    if (!is_file($configPath)) return $weights;
+
+    $config = json_decode((string) file_get_contents($configPath), true);
+    $configured = is_array($config) && is_array($config['weights'] ?? null)
+        ? $config['weights']
+        : [];
+
+    foreach ($weights as $key => $default) {
+        if ($key === 'immediateWin') continue;
+        if (isset($configured[$key]) && is_numeric($configured[$key]) &&
+            is_finite((float) $configured[$key])) {
+            $weights[$key] = (float) $configured[$key];
+        }
+    }
+
+    return $weights;
+}
+
+/**
+ * Vrací výběr i rozbor pro debug chat. Skóre je deterministické pro stejný stav.
+ */
+function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = null): array
+{
+    $valid = onlineEngineValidMoves($game);
+    if ($valid === []) {
+        return ['pieceId' => null, 'reason' => 'AI nemá žádný legální tah.', 'candidates' => []];
+    }
+
+    $weights = onlineEngineAiTacticalWeights();
     $playerId = (int) $game['currentPlayer'];
     $beforeOwnPips = onlineEngineAiPips($game, $playerId);
     $beforeThreat = onlineEngineAiThreatLoss($game, $playerId);
