@@ -82,6 +82,31 @@ test('AI uses tactical evaluation instead of random selection when no trained mo
     assert.match(first.reason, /VÁHOVÁ AI/);
 });
 
+test('deployment is rewarded when a safe newly deployed piece creates a bonus-roll capture', () => {
+    const game = createGame(1, 1, [], [], 40);
+    game.phase = 'move';
+    game.diceValue = 6;
+    game.pieces[0].pieces[0].steps = -1;
+    game.pieces[0].pieces[1].steps = game.trackLength;
+    game.pieces[0].pieces[2].steps = game.trackLength + 1;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+
+    // Soupeř stojí tři pole před naším startem po směru našeho pohybu.
+    const targetPosition = 3;
+    game.pieces[1].pieces[0].steps =
+        (targetPosition - game.players[1].start + game.trackLength) % game.trackLength;
+    game.pieces[1].pieces[1].steps = game.trackLength;
+    game.pieces[1].pieces[2].steps = game.trackLength + 1;
+    game.pieces[1].pieces[3].steps = game.trackLength + 2;
+
+    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0);
+    assert.equal(decision.pieceId, 0);
+    assert.equal(decision.breakdown.selectedWeightFactors.deployedPiece, true);
+    assert.equal(decision.breakdown.selectedWeightFactors.deploymentAttackChance, 1 / 6);
+    assert.equal(decision.breakdown.selectedWeightFactors.deployedPieceThreat, 0);
+    assert.ok(decision.breakdown.selectedWeightFactors.deploymentTacticalScore > 0);
+});
+
 test('AI still chooses an immediate winning move', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
