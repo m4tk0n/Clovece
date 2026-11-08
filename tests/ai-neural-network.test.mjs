@@ -18,7 +18,7 @@ function modelForFeature(index) {
     return {
         format: 'clovece-ai-neural-model',
         version: 1,
-        featureSchemaVersion: 2,
+        featureSchemaVersion: 3,
         enabled: true,
         inputSize: AI_FEATURE_COUNT,
         layers: [{ outputSize: 1, activation: 'linear', weights: [weights], biases: [0] }]
@@ -83,15 +83,21 @@ test('probability features enumerate legal dice outcomes and stay within zero an
     assert.ok(Math.abs(deployed.deployAttackRisk - 1 / 6) < 1e-12);
 });
 
-test('probability features occupy the final five stable positions in schema v2', () => {
+test('probability and tactical features occupy stable positions in schema v3', () => {
     const game = createGame(1, 1);
     game.phase = 'move'; game.diceValue = 1; game.pieces[0].pieces[0].steps = 0;
     const legal = getValidMoves(game); const pieceId = legal[0];
     const state = structuredClone(game); const move = movePiece(state, pieceId);
     const probabilities = { ownCaptureRisk: 0.1, opponentCaptureChance: 0.2, safeFinishChance: 0.3, extraTurnChance: 1 / 6, deployAttackRisk: 0.5 };
     const features = extractAIMoveFeatures(game, { pieceId, move, state, probabilityFeatures: probabilities }, legal.length);
-    assert.equal(features.length, 23);
-    assert.deepEqual(features.slice(18), [0.1, 0.2, 0.3, 1 / 6, 0.5]);
+    assert.equal(features.length, 26);
+    assert.deepEqual(features.slice(18, 23), [0.1, 0.2, 0.3, 1 / 6, 0.5]);
+    const withTactics = extractAIMoveFeatures(game, {
+        pieceId, move, state,
+        probabilityFeatures: probabilities,
+        tacticalFeatures: { ownProgress: 12, opponentSetback: 43, threatReduction: 2 }
+    }, legal.length);
+    assert.deepEqual(withTactics.slice(23), [0.2, 1, 0.5]);
 });
 test('neural AI ranks only engine-legal moves and selects the highest score', () => {
     const game = createGame(1, 1);
