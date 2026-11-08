@@ -222,7 +222,7 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
     const candidates = validMoves.map(pieceId => {
         const simulated = cloneGame(game);
         const move = dependencies.movePiece(simulated, pieceId);
-        return { pieceId, move, winningMove: simulated.winner === game.currentPlayer };
+        return { pieceId, move, state: simulated, winningMove: simulated.winner === game.currentPlayer };
     });
 
     const winning = candidates.find(candidate => candidate.winningMove);
