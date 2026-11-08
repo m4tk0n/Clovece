@@ -71,7 +71,7 @@ test('untrained AI chooses uniformly from legal moves using injected random sour
     assert.equal(first.pieceId, legal[0]);
     assert.equal(last.pieceId, legal[1]);
     assert.equal(first.breakdown.trainedKnowledge, false);
-    assert.match(first.reason, /nemám naučenou taktiku/i);
+    assert.match(first.reason, /nemám použitelnou naučenou instrukci/i);
 });
 
 test('AI still chooses an immediate winning move', () => {
