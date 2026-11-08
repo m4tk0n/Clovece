@@ -634,7 +634,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
 
         const score = winning ? 1000000 :
             progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
-            allWeightsScore +
+            allWeightsScore + deploymentTacticalScore +
             (enemyCapture ? weights.captureOpponent : 0) -
             (selfCapture ? weights.captureOwn : 0) +
             (deployedPiece ? weights.deployPiece : 0) +
