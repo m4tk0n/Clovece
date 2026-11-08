@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Offline pairwise trainer for the 23-feature legal-move ranker (schema v2).
+ * Offline pairwise trainer for the 26-feature legal-move ranker (schema v3).
  * Reads immutable teacher self-play JSONL(.gz), holds out whole games,
  * and exports a candidate model. It never modifies the runtime model.
  */
@@ -173,6 +173,7 @@ const report = {
     formatVersion: 1,
     createdAt: new Date().toISOString(),
     seed, epochs, learningRate, architecture: sizes,
+    featureSchemaVersion: AI_FEATURE_SCHEMA_VERSION,
     featureCount: AI_FEATURE_COUNT,
     source: stats,
     pairs: { total: pairs.length, train: train.length, validation: validation.length },
