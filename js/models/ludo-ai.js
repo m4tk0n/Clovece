@@ -3,7 +3,7 @@ export default Object.freeze({
   "format": "clovece-ai-neural-model",
   "version": 1,
   "featureSchemaVersion": 3,
-  "enabled": false,
+  "enabled": true,
   "inputSize": 26,
   "initialization": "heuristic-seed-v1",
   "initializationNote": "Nenulove vahy rucne inicializovane z taktickych faktoru. Nejde o vysledek offline trenovani.",
