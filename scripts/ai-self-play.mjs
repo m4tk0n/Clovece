@@ -18,7 +18,8 @@ const args = Object.fromEntries(process.argv.slice(2).map(value => {
 const games = Math.max(1, Math.min(10000, Number(args.games) || 100));
 const playerCount = Number(args.players) || 4;
 const boardSize = Number(args.board) || (playerCount <= 4 ? 40 : playerCount <= 6 ? 48 : 80);
-const seed = Number(args.seed) || 20261108;
+const seed = Number.isFinite(Number(args.seed)) && args.seed !== undefined ? Number(args.seed) : 20261108;
+const runId = String(args['run-id'] || (Date.now() + '-' + process.pid));
 const output = String(args.output || 'artifacts/ai-self-play.jsonl');
 const metricsOutput = String(args.metrics || 'artifacts/ai-self-play-metrics.json');
 const maxActions = Math.max(1000, Number(args['max-actions']) || 20000);
@@ -52,7 +53,10 @@ function rankPlayers(game) {
 }
 
 const dependencies = { getValidMoves, movePiece, rollDice };
-const allSamples = [];
+fs.mkdirSync(path.dirname(output), { recursive: true });
+fs.mkdirSync(path.dirname(metricsOutput), { recursive: true });
+fs.writeFileSync(output, '', 'utf8');
+let totalDecisions = 0;
 const summary = {
     format: 'clovece-ai-self-play-report',
     formatVersion: 1,
@@ -116,11 +120,12 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         }
         const selected = candidates.find(candidate => candidate.pieceId === decision.pieceId);
         gameSamples.push({
-            gameId: String(seed) + '-' + (gameIndex + 1),
+            gameId: runId + '-' + String(seed) + '-' + (gameIndex + 1),
             playerCount,
             boardSize,
             turnNumber: game.turnNumber,
             playerId: game.currentPlayer,
+            gameState: { trackLength: game.trackLength, boardSize: game.boardSize, currentPlayer: game.currentPlayer, phase: game.phase, diceValue: game.diceValue, rules: structuredClone(game.rules), players: game.players.map(player => ({ id: player.id, slot: player.slot, start: player.start, color: player.color })), pieces: game.pieces.map(group => ({ playerId: group.playerId, positions: group.pieces.map(piece => piece.steps) })) },
             diceValue: game.diceValue,
             legalMoveCount: legalMoves.length,
             candidates: candidates.map(candidate => {
@@ -166,21 +171,25 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         sample.reward = completed
             ? (sample.finalRank === 1 ? 1 : -((sample.finalRank - 1) / Math.max(1, playerCount - 1)))
             : null;
-        allSamples.push(sample);
+
     }
     totalActions += actions;
     totalTurns += game.turnNumber;
+    totalDecisions += gameSamples.length;
+    summary.decisions = totalDecisions;
+    summary.averageActions = Number((totalActions / (gameIndex + 1)).toFixed(2));
+    summary.averageGameTurns = Number((totalTurns / (gameIndex + 1)).toFixed(2));
+    fs.appendFileSync(output, gameSamples.map(sample => JSON.stringify(sample)).join('\\n') + (gameSamples.length ? '\\n' : ''), 'utf8');
+    const metricsTemp = metricsOutput + '.tmp';
+    fs.writeFileSync(metricsTemp, JSON.stringify({ ...summary, gamesProcessed: gameIndex + 1, runId }, null, 2) + '\\n');
+    fs.renameSync(metricsTemp, metricsOutput);
     if ((gameIndex + 1) % 25 === 0 || gameIndex + 1 === games) {
         process.stdout.write('Odehráno ' + (gameIndex + 1) + '/' + games + ' her; dokončeno ' +
             summary.gamesCompleted + ', nedokončeno ' + summary.gamesTruncated + '\n');
     }
 }
 
-summary.decisions = allSamples.length;
 summary.averageActions = games ? Number((totalActions / games).toFixed(2)) : 0;
 summary.averageGameTurns = games ? Number((totalTurns / games).toFixed(2)) : 0;
-fs.mkdirSync(path.dirname(output), { recursive: true });
-fs.mkdirSync(path.dirname(metricsOutput), { recursive: true });
-fs.writeFileSync(output, allSamples.map(sample => JSON.stringify(sample)).join('\n') + (allSamples.length ? '\n' : ''));
-fs.writeFileSync(metricsOutput, JSON.stringify(summary, null, 2) + '\n');
+fs.writeFileSync(metricsOutput, JSON.stringify({ ...summary, gamesProcessed: games, runId }, null, 2) + '\\n');
 process.stdout.write(JSON.stringify(summary, null, 2) + '\n');
