@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { isValidAINeuralModel } from '../js/ai-neural-network.js';
+import { AI_FEATURE_COUNT, isValidAINeuralModel } from '../js/ai-neural-network.js';
 
 test('offline trainer exports a runtime-valid neural model', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'clovece-ai-train-'));
@@ -16,7 +16,7 @@ test('offline trainer exports a runtime-valid neural model', async () => {
         fs.mkdirSync(input);
         const lines = [];
         for (let gameId = 1; gameId <= 120; gameId++) {
-            const a = Array(18).fill(0);
+            const a = Array(AI_FEATURE_COUNT).fill(0);
             const b = Array(18).fill(0);
             a[6] = gameId / 120;
             b[7] = gameId / 20;
