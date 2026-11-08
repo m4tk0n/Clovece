@@ -508,86 +508,61 @@ function onlineEngineAiThreatLoss(array $game, int $playerId): float
 /**
  * Vrací výběr i rozbor pro debug chat. Skóre je deterministické pro stejný stav.
  */
-function onlineEngineChooseAIMoveDecision(array $game): array
+function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = null): array
 {
     $valid = onlineEngineValidMoves($game);
-    if ($valid === []) return ['pieceId' => null, 'reason' => 'AI nemá žádný legální tah.', 'candidates' => []];
+    if ($valid === []) {
+        return ['pieceId' => null, 'reason' => 'AI nemá žádný legální tah.', 'candidates' => []];
+    }
 
     $playerId = (int) $game['currentPlayer'];
-    $playerPieces = $game['pieces'][$playerId]['pieces'];
-    $track = (int) $game['trackLength'];
-    $activeBefore = 0;
-    foreach ($playerPieces as $piece) {
-        $steps = (int) $piece['steps'];
-        if ($steps >= 0 && $steps < $track) $activeBefore++;
-    }
-
-    $beforeOwnPips = onlineEngineAiPips($game, $playerId);
-    $beforeThreat = onlineEngineAiThreatLoss($game, $playerId);
-    $beforeOpponentPips = [];
-    foreach ($game['players'] as $opponentId => $_player) {
-        if ((int) $opponentId === $playerId) continue;
-        $beforeOpponentPips[(int) $opponentId] = onlineEngineAiPips($game, (int) $opponentId);
-    }
-
-    $ranked = [];
+    $candidates = [];
     foreach ($valid as $pieceId) {
         $simulation = json_decode(json_encode($game, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
         $move = onlineEngineMovePiece($simulation, (int) $pieceId);
-        $afterOwnPips = onlineEngineAiPips($simulation, $playerId);
-        $afterThreat = onlineEngineAiThreatLoss($simulation, $playerId);
-        $progress = $beforeOwnPips - $afterOwnPips;
-        $opponentImpact = 0.0;
-        foreach ($beforeOpponentPips as $opponentId => $beforePips) {
-            $opponentImpact += onlineEngineAiPips($simulation, $opponentId) - $beforePips;
-        }
-        $riskReduction = $beforeThreat - $afterThreat;
-        $pieceBefore = $playerPieces[$pieceId];
-        $deployed = (int) $pieceBefore['steps'] < 0;
-        $deploymentBalance = $deployed
-            ? [0 => 2.0, 1 => 0.5, 2 => -1.0, 3 => -2.5][$activeBefore] ?? -2.5
-            : 0.0;
-        $captureBonus = !empty($move['captured']) && empty($move['captured']['ownPiece']) ? 2.0 : 0.0;
-        $homeBonus = !empty($move['finishedNow']) ? 2.5 : 0.0;
         $winning = (int) ($simulation['winner'] ?? -1) === $playerId;
-        $score = $progress + ($opponentImpact * 0.6) + ($riskReduction * 0.55)
-            + $deploymentBalance + $captureBonus + $homeBonus;
-        if ($winning) $score = 1000000.0;
-
-        $reasons = [];
-        if ($winning) $reasons[] = 'okamžité vítězství';
-        if ($deployed) $reasons[] = 'nasazení při ' . $activeBefore . ' aktivních figurkách';
-        else $reasons[] = 'postup figurky o ' . (int) $game['diceValue'] . ' polí';
-        if (!empty($move['captured']['ownPiece'])) $reasons[] = 'výměna vlastní figurky na startu';
-        elseif (!empty($move['captured'])) $reasons[] = 'vyhození soupeře';
-        if (!empty($move['finishedNow'])) $reasons[] = 'dokončení figurky';
-        if (abs($riskReduction) > 0.01) $reasons[] = ($riskReduction > 0 ? 'snížení' : 'zvýšení') . ' rizika ohrožení';
-        $ranked[] = [
+        $candidates[] = [
             'pieceId' => (int) $pieceId,
-            'score' => round($score, 4),
-            'progress' => round($progress, 4),
-            'opponentImpact' => round($opponentImpact, 4),
-            'riskReduction' => round($riskReduction, 4),
-            'deploymentBalance' => $deploymentBalance,
-            'captureBonus' => $captureBonus,
-            'homeBonus' => $homeBonus,
-            'reasons' => $reasons,
+            'score' => $winning ? 1.0 : 0.0,
+            'winning' => $winning,
+            'reason' => $winning ? 'okamžité vítězství' : 'bez naučené taktiky',
             'destinationSteps' => (int) $simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'],
+            'move' => $move,
         ];
     }
 
-    usort($ranked, static fn(array $a, array $b): int =>
-        ($b['score'] <=> $a['score']) ?: ($a['pieceId'] <=> $b['pieceId'])
+    $winningMoves = array_values(array_filter(
+        $candidates,
+        static fn(array $candidate): bool => $candidate['winning']
+    ));
+
+    if ($winningMoves !== []) {
+        $selected = $winningMoves[0];
+    } else {
+        $randomIndex ??= static fn(int $count): int => random_int(0, $count - 1);
+        $index = (int) $randomIndex(count($candidates));
+        $index = max(0, min(count($candidates) - 1, $index));
+        $selected = $candidates[$index];
+    }
+
+    $alternatives = array_map(
+        static fn(array $candidate): array => [
+            'pieceId' => $candidate['pieceId'],
+            'score' => $candidate['score'],
+            'reason' => $candidate['reason'],
+            'destinationSteps' => $candidate['destinationSteps'],
+        ],
+        $candidates
     );
-    $selected = $ranked[0];
-    $reason = 'Vybrala figurku ' . ((int) $selected['pieceId'] + 1) . ' (skóre ' .
-        number_format((float) $selected['score'], 2, ',', ' ') . '): ' .
-        implode(', ', $selected['reasons']) . '.';
+
     return [
-        'pieceId' => (int) $selected['pieceId'],
-        'reason' => $reason,
-        'selectedScore' => (float) $selected['score'],
-        'candidates' => $ranked,
+        'pieceId' => $selected['pieceId'],
+        'reason' => $selected['winning']
+            ? 'Okamžitě vítězný tah – hra tím končí.'
+            : 'Zatím nemám naučenou taktiku. Náhodně jsem vybrala z ' .
+                count($valid) . ' legálních možností.',
+        'selectedScore' => $selected['score'],
+        'candidates' => $alternatives,
     ];
 }
 
