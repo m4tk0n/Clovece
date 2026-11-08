@@ -431,7 +431,8 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             usedInstructions,
             legalMoveCount: validMoves.length,
             selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' :
-                (neuralSelected ? 'neural-network' : (tacticalSelected ? 'weighted-ai' : 'no-selection')))
+                (neuralSelected ? 'neural-network' : (tacticalSelected ? 'weighted-ai-1000' : 'no-selection'))),
+            selectedWeightFactors: tacticalSelected ? tacticalByPiece.get(selected.pieceId)?.factors ?? null : null
         },
         alternatives: candidates
             .filter(candidate => candidate.pieceId !== selected.pieceId)
@@ -441,7 +442,8 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
                     (neuralSelected ? (neuralByPiece.get(candidate.pieceId) ?? 0) : (tacticalByPiece.get(candidate.pieceId)?.score ?? 0))),
                 reason: candidate.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' :
                     (neuralByPiece.has(candidate.pieceId) ? 'neuronové skóre' :
-                        (tacticalByPiece.has(candidate.pieceId) ? 'taktické vyhodnocení' : 'bez modelového skóre')))
+                        (tacticalByPiece.has(candidate.pieceId) ? 'váhové skóre 1000-slot ensemble' : 'bez modelového skóre'))),
+                weightFactors: tacticalByPiece.get(candidate.pieceId)?.factors ?? null
             }))
     };
 }
