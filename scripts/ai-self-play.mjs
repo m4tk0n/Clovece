@@ -143,7 +143,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         summary.gamesTruncated++;
     }
     const rankings = rankPlayers(game);
-    rankings.forEach(item => { summary.placements[item.rank - 1]++; });
+    if (completed) rankings.forEach(item => { summary.placements[item.rank - 1]++; });
     const rankByPlayer = new Map(rankings.map(item => [item.playerId, item.rank]));
     for (const sample of gameSamples) {
         sample.completed = completed;
