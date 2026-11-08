@@ -91,7 +91,8 @@ try {
 
 $instruction = trim((string) ($payload['instruction'] ?? ''));
 $context = $payload['context'] ?? null;
-if ($instruction === '' || mb_strlen($instruction, 'UTF-8') > 3000) {
+$instructionLength = preg_match_all('/./us', $instruction, $instructionCharacters);
+if ($instruction === '' || $instructionLength === false || $instructionLength > 3000) {
     aiTrainingFail('Instrukce musí obsahovat 1 až 3000 znaků.', 400);
 }
 if (!is_array($context)
