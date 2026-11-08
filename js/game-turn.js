@@ -78,10 +78,11 @@ export function createTurnController(deps) {
                 strategyVersion: trainingAI ? 'untrained-v1' : 'untrained-v1',
                 game: {
                     boardSize: game.boardSize || game.trackLength,
+                    trackLength: game.trackLength,
                     playerCount: game.players.length,
                     players: game.players.map(player => ({
                         id: player.id, name: player.name, color: player.color,
-                        type: player.isAI ? 'ai' : 'human', start: player.start
+                        type: player.isAI ? 'ai' : 'human', start: player.start, slot: player.slot
                     })),
                     rules: { ...game.rules },
                     currentPlayer: game.currentPlayer,
