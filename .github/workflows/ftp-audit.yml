@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/ftp-audit.yml"
       - "scripts/ftp-audit.py"
+      - "scripts/ftp-audit.mjs"
 
 permissions:
   contents: read
@@ -16,14 +17,17 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - name: Checkout GitHub main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Install the same FTP client library as deployment
+        run: npm install --no-save --no-package-lock basic-ftp@5.0.5
 
       - name: Check FTP audit script
-        run: python3 scripts/ftp-audit.py --self-test
+        run: node scripts/ftp-audit.mjs --self-test
 
       - name: Compare FTP inventory with GitHub main
         if: github.event_name == 'workflow_dispatch'
@@ -31,17 +35,15 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          python3 scripts/ftp-audit.py \
-            --repo-root . \
-            --remote-root /clovece/ \
-            --output-dir audit-output
+          FTP_AUDIT_REMOTE_ROOT: /clovece/
+          FTP_AUDIT_OUTPUT_DIR: audit-output
+        run: node scripts/ftp-audit.mjs
 
       - name: Publish sanitized audit report
         if: always() && github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: clovece-ftp-audit
           path: audit-output/
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
