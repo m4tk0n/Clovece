@@ -8,7 +8,7 @@ import {
     isValidAINeuralModel,
     scoreAIMoveCandidates
 } from '../js/ai-neural-network.js';
-import { chooseStrategicDecision } from '../js/ai-strategy.js';
+import { chooseStrategicDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
 
 const dependencies = { getValidMoves, movePiece };
 
@@ -18,7 +18,7 @@ function modelForFeature(index) {
     return {
         format: 'clovece-ai-neural-model',
         version: 1,
-        featureSchemaVersion: 1,
+        featureSchemaVersion: 2,
         enabled: true,
         inputSize: AI_FEATURE_COUNT,
         layers: [{ outputSize: 1, activation: 'linear', weights: [weights], biases: [0] }]
