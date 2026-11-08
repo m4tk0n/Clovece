@@ -143,3 +143,27 @@ test('training panel explicitly identifies decisions influenced by stored instru
     assert.match(turn, /trainedKnowledge/);
     assert.match(turn, /'naučeno'/);
 });
+
+
+test('trainer preserves each decision across chained rolls and exposes earlier decisions', async () => {
+    const turn = await read('../js/game-turn.js');
+    const panel = await read('../js/ai-training-overlay.js');
+    assert.match(turn, /trainingDecisionHistory = \[\]/);
+    assert.match(turn, /trainingDecisionHistory\.push\(pendingAIDebugExport\)/);
+    assert.match(turn, /clovece:ai-training-decisions/);
+    assert.match(turn, /publishTrainingDecisionHistory\(\)/);
+    assert.match(panel, /ai-training-history/);
+    assert.match(panel, /decisionHistory/);
+    assert.match(panel, /reviewedDecisionIds/);
+    assert.match(panel, /Učit: figurka/);
+});
+
+test('structured correction is compiled only when the preferred piece was legal in that decision', async () => {
+    const panel = await read('../js/ai-training-overlay.js');
+    const compiler = await read('../ai-training-knowledge.php');
+    assert.match(panel, /decisionToSave\.decision\.preferredPieceId = preferredPieceId/);
+    assert.match(panel, /context: decisionToSave/);
+    assert.match(compiler, /preferredPieceId/);
+    assert.match(compiler, /legalMoves/);
+    assert.match(compiler, /in_array\(\$id, array_map\('intval', \$legalMoves\), true\)/);
+});
