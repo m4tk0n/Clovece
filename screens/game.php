@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <div id="trainer-dice-controls" class="trainer-dice-controls hidden" aria-label="Výběr hodnoty kostky">
+        <div id="trainer-dice-controls" class="trainer-dice-controls" aria-label="Výběr hodnoty kostky">
             <div id="trainer-dice-options" class="trainer-dice-options">
                 <button type="button" class="trainer-die" data-dice-value="1" aria-label="Hodit 1"><span class="pip p5"></span></button>
                 <button type="button" class="trainer-die" data-dice-value="2" aria-label="Hodit 2"><span class="pip p1"></span><span class="pip p9"></span></button>
