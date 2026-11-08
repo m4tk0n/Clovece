@@ -62,6 +62,51 @@ async function initializeCentralModel() {
 // Načtení proběhne před prvním rozhodnutím AI, aby nová hra použila společný model.
 await initializeCentralModel();
 
+function rebaseLocalModel(localModel, sentModel, serverModel) {
+    const rebased = JSON.parse(JSON.stringify(localModel));
+    for (let index = 0; index < 1000; index++) {
+        rebased.weights[index] = Math.max(-5, Math.min(5,
+            Number(localModel.weights[index]) +
+            Number(serverModel.weights[index]) -
+            Number(sentModel.weights[index])
+        ));
+    }
+
+    const localByKey = new Map((localModel.dynamicParameters || []).map(item => [item.key, item]));
+    const sentByKey = new Map((sentModel.dynamicParameters || []).map(item => [item.key, item]));
+    const merged = new Map();
+    for (const item of localModel.dynamicParameters || []) {
+        merged.set(item.key, { ...item });
+    }
+    for (const remote of serverModel.dynamicParameters || []) {
+        const local = merged.get(remote.key);
+        const sent = sentByKey.get(remote.key);
+        if (!local) {
+            merged.set(remote.key, { ...remote });
+            continue;
+        }
+        local.weight = Math.max(-5, Math.min(5,
+            Number(local.weight) + Number(remote.weight) - Number(sent?.weight || 0)
+        ));
+        for (const field of ['visits', 'teacherSupport', 'teacherRejects']) {
+            local[field] = Math.max(0, Number(local[field] || 0) +
+                Number(remote[field] || 0) - Number(sent?.[field] || 0));
+        }
+        local.id = remote.id;
+        local.lastUpdatedGeneration = Math.max(
+            Number(local.lastUpdatedGeneration || 0),
+            Number(remote.lastUpdatedGeneration || 0)
+        );
+    }
+    rebased.dynamicParameters = [...merged.values()];
+    for (const field of ['decisionsTrained', 'gamesTrained']) {
+        rebased[field] = Math.max(0, Number(localModel[field] || 0) +
+            Number(serverModel[field] || 0) - Number(sentModel[field] || 0));
+    }
+    rebased.generation = Math.max(Number(localModel.generation || 0), Number(serverModel.generation || 0));
+    return createSearchModel(rebased);
+}
+
 function queueCentralSave(snapshot) {
     if (!centralStorageAvailable || !centralCsrfToken || typeof fetch !== 'function') return;
     centralSaveQueue = centralSaveQueue.then(async () => {
@@ -80,8 +125,10 @@ function queueCentralSave(snapshot) {
         if (!response.ok || !payload.success) throw new Error(payload.error || ('HTTP ' + response.status));
         centralRevision = Number(payload.revision) || centralRevision;
         if (payload.model) {
-            centralBaseModel = createSearchModel(payload.model);
-            model = centralBaseModel;
+            const serverModel = createSearchModel(payload.model);
+            // Zachovej tahy, které se mezitím naučily lokálně během čekání na síť.
+            model = rebaseLocalModel(model, snapshot, serverModel);
+            centralBaseModel = serverModel;
         } else {
             centralBaseModel = createSearchModel(snapshot);
         }
