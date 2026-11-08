@@ -9,6 +9,11 @@
 #game-screen .game-container>.premium-board-shell{box-sizing:border-box;width:100%;max-width:none;margin:0}
 @media(max-width:600px){#game-screen .premium-board-shell{padding:1px}}
 
+/* 2D deska vyplní dostupnou výšku kontejneru a nezačne se vertikálně centrovat. */
+#game-screen .game-container {
+    align-items: stretch;
+}
+
 /* 2D SVG renderer. */
 .premium-board{display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 16px 22px rgba(0,0,0,.24))}
 .board-piece{cursor:default}
