@@ -1,3 +1,23 @@
+## 1.00.00.27 – Respektování profilové barvy při vytváření místní hry
+
+**Datum:** 8. 11. 2026  
+**Typ:** Úprava přednastavení místní hry
+
+- První čtyři místa u stolu používají základní barvy žlutou, červenou, modrou a zelenou.
+- Pokud hráči nemají barvu pevně určenou, pořadí základních barev se náhodně zamíchá.
+- Přihlášený hráč, který místní hru vytvořil, si vždy zachová barvu nastavenou ve svém profilu.
+- Barva zakladatele je v přednastavení uzamčená a nelze ji změnit hromadnou volbou náhodných barev.
+- Ostatním hráčům se rozdělí zbývající barvy bez duplicit; pro další místa se použijí rozšiřující barvy.
+- Změna se týká pouze přednastavení místní hry.
+
+**Dotčené soubory:**
+- `js/player-setup.js`
+- `docs/VERSION_HISTORY.md`
+
+**Ověření:** změna JavaScriptu byla nasazena na FTP. PHP AI testy a vzdálený smoke test prošly; v době zápisu ještě dobíhaly další testy a jeden běh testu herního enginu skončil chybou v syntaxi souboru `tests/ai-training.test.mjs`, mimo upravený soubor.
+
+---
+
 ## 1.00.00.26 – Volitelné pravidlo tří šestek za sebou
 
 **Datum:** 7. 11. 2026  
