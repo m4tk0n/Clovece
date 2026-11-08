@@ -61,7 +61,7 @@ export function createTurnController(deps) {
         const knowledge = await refreshAITrainingKnowledge();
         if (!game || game !== gameAtDecision ||
             [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
-        if (knowledge.error && (debugAI || trainingAI)) {
+        if (knowledge.error && debugAI) {
             addGameLogEntry('AI učení', 'Instrukce se nepodařilo načíst: ' + knowledge.error);
         }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
@@ -77,7 +77,7 @@ export function createTurnController(deps) {
             : { pieceId: chooseAIMove(game), reason: '' };
         if ((debugAI || trainingAI) && decision?.reason) {
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
-            if (decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
+            if (debugAI && decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
                 const usedIds = decision.breakdown.usedInstructions.map(item => item.id).join(', ');
                 addGameLogEntry('AI učení', 'NAUČENO – použité instrukce: ' + usedIds);
             }
@@ -116,7 +116,8 @@ export function createTurnController(deps) {
                     selectedPieceId: decision.pieceId,
                     explanation: decision.reason || '',
                     trainedKnowledge: Boolean(decision.breakdown?.trainedKnowledge),
-                    usedInstructions: decision.breakdown?.usedInstructions || []
+                    usedInstructions: decision.breakdown?.usedInstructions || [],
+                    knowledgeError: knowledge.error || null
                 },
                 result: null
             };
