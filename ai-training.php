@@ -265,6 +265,29 @@ if (!$writeOk || $written !== $totalBytes) {
     aiTrainingFail('Soubor instrukce se nepodařilo celý uložit. Původní záznam nebyl přepsán.', 500);
 }
 
+// Queue append makes new feedback discoverable without scanning the directory on every AI turn.
+$trainingRoot = dirname($realDirectory);
+$queuePath = $trainingRoot . DIRECTORY_SEPARATOR . '.training-queue';
+$queueLockPath = $trainingRoot . DIRECTORY_SEPARATOR . '.training-queue.lock';
+if (is_link($queuePath) || is_link($queueLockPath)) {
+    @file_put_contents($trainingRoot . DIRECTORY_SEPARATOR . '.training-queue.needs-rebuild', "1\n", LOCK_EX);
+    aiTrainingFail('Záznam byl uložen, ale frontu výuky je nutné obnovit.', 500);
+}
+$queueLock = @fopen($queueLockPath, 'c');
+$queueOk = $queueLock !== false && flock($queueLock, LOCK_EX);
+$queueHandle = $queueOk ? @fopen($queuePath, 'ab') : false;
+$queueLine = $fileName . "\n";
+if ($queueHandle === false || fwrite($queueHandle, $queueLine) !== strlen($queueLine) || !fflush($queueHandle)) {
+    $queueOk = false;
+}
+if (is_resource($queueHandle)) fclose($queueHandle);
+if (is_resource($queueLock)) {
+    if ($queueOk) flock($queueLock, LOCK_UN);
+    else @file_put_contents($trainingRoot . DIRECTORY_SEPARATOR . '.training-queue.needs-rebuild', "1\n", LOCK_EX);
+    fclose($queueLock);
+}
+if (!$queueOk) aiTrainingFail('Záznam byl uložen, ale frontu výuky je nutné obnovit.', 500);
+
 aiTrainingRespond([
     'success' => true,
     'id' => $record['id'],
