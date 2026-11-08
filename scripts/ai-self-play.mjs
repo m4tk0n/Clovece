@@ -8,7 +8,7 @@ import path from 'node:path';
 import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
-import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
+import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures, AI_TACTICAL_WEIGHTS } from '../js/ai-strategy.js';
 import { AI_FEATURE_COUNT, AI_FEATURE_SCHEMA_VERSION, extractAIMoveFeatures } from '../js/ai-neural-network.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
@@ -167,6 +167,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             selectedPieceId,
             selectedProbability: sampledDecision.probability,
             policyTemperature: explorationTemperature,
+            behaviorWeights: AI_TACTICAL_WEIGHTS,
             selectedFeatures: extractAIMoveFeatures(game, {
                 ...selected,
                 probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies),
