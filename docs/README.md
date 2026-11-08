@@ -4,6 +4,8 @@ Technická a funkční dokumentace projektu Člověče, nezlob se! je soustřed�
 
 ## Dokumenty
 
+- [Zobrazení herní desky](BOARD_DISPLAY.md) – dostupné varianty a jejich viditelnost v nabídce.
+
 - [Pravidla hry](GAME_RULES.md) – jediný závazný zdroj herních pravidel.
 - [Strategie AI](AI_STRATEGY.md) – pevná taktika a rozhodování počítačových hráčů.
 - [Zpětná vazba AI](AI_STRATEGY_FEEDBACK.md) – debug rozbor, JSON export posledního tahu a postup oprav strategie.
