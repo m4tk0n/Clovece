@@ -1,4 +1,4 @@
-import { scoreAIMoveCandidates } from './ai-neural-network.js';
+import { scoreAIMoveCandidates, isValidAINeuralModel } from './ai-neural-network.js';
 
 /**
  * Základní výpočtová vrstva a rozhodování AI.
@@ -333,7 +333,7 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
         ? learnedCandidates[0]
         : null;
 
-    const neuralCandidatesWithProbabilities = !winning && !learned && neuralModel
+    const neuralCandidatesWithProbabilities = !winning && !learned && isValidAINeuralModel(neuralModel)
         ? candidates.map(candidate => ({
             ...candidate,
             probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies)
