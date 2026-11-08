@@ -113,12 +113,11 @@
     overflow-wrap:anywhere;
 }
 
-/* Výběr kostek je přímo pod tlačítkem KOSTKY nad hrací deskou. */
-.board-dice-trainer-group{display:flex;flex-direction:column;align-items:center;gap:5px}
-.board-dice-trainer-slot{width:100%}
+/* Kostky jsou v samostatném řádku pod celou horní lištou desky. */
+.board-dice-trainer-slot{display:flex;justify-content:center;width:100%;margin:5px 0 7px}
 .board-dice-display-btn{font:700 7px/1.2 "Press Start 2P",monospace!important}
-.board-dice-trainer-slot .trainer-dice-controls{width:auto;min-height:0;padding:0;gap:5px;flex-direction:column}
-.board-dice-trainer-slot .trainer-dice-options{gap:3px}
-.board-dice-trainer-slot .trainer-die{width:clamp(27px,6vw,34px);height:clamp(27px,6vw,34px);padding:3px;border-radius:6px}
+.board-dice-trainer-slot .trainer-dice-controls{width:100%;min-height:0;padding:0;gap:7px;flex-direction:row;flex-wrap:wrap}
+.board-dice-trainer-slot .trainer-dice-options{gap:clamp(4px,1.5vw,8px)}
+.board-dice-trainer-slot .trainer-die{width:clamp(29px,7vw,38px);height:clamp(29px,7vw,38px);padding:3px;border-radius:6px}
 .board-dice-trainer-slot .trainer-ai-dice-mode{min-height:26px;padding:3px 5px;font-size:7px}
 .trainer-dice-controls.dice-display-hidden{display:none!important}
