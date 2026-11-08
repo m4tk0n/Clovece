@@ -1,9 +1,9 @@
 {
   "format": "clovece-ai-training-state",
   "version": 1,
-  "updatedAt": null,
-  "status": "baseline-expanded-features",
-  "statusLabel": "ROZŠÍŘENÉ VÁHY · ZATÍM BEZ NOVÉHO TRÉNINKU",
+  "updatedAt": "2026-11-08T17:58:16.688Z",
+  "status": "validation-rejected",
+  "statusLabel": "VALIDACE ZAMÍTLA KANDIDÁTA",
   "previousWeights": {
     "immediateWin": 100000,
     "ownProgress": 0.08,
@@ -19,14 +19,14 @@
   "candidateWeights": {
     "immediateWin": 100000,
     "ownProgress": 0.08,
-    "opponentSetback": 0.035,
+    "opponentSetback": 0.034944073199964606,
     "threatReduction": 12,
-    "captureOpponent": 5,
+    "captureOpponent": 4.9995250594789065,
     "captureOwn": 7,
-    "finishPiece": 8,
+    "finishPiece": 8.000036702595997,
     "deployPiece": 1.5,
     "enterHome": 2.5,
-    "homeProgress": 0.4
+    "homeProgress": 0.40038876748044855
   },
   "finalWeights": {
     "immediateWin": 100000,
@@ -43,15 +43,39 @@
   "delta": {
     "immediateWin": 0,
     "ownProgress": 0,
-    "opponentSetback": 0,
+    "opponentSetback": -0.00005593,
     "threatReduction": 0,
-    "captureOpponent": 0,
+    "captureOpponent": -0.00047494,
     "captureOwn": 0,
-    "finishPiece": 0,
+    "finishPiece": 0.0000367,
     "deployPiece": 0,
     "enterHome": 0,
-    "homeProgress": 0
+    "homeProgress": 0.00038877
   },
-  "training": null,
+  "training": {
+    "accepted": false,
+    "source": {
+      "files": 9,
+      "records": 647888,
+      "incompleteSkipped": 0,
+      "malformedSkipped": 0,
+      "winningMoveRecordsSkipped": 298963,
+      "nonExploratorySkipped": 346807,
+      "behaviorPolicyMismatchSkipped": 1202,
+      "completedGames": 11,
+      "trainingGames": 9,
+      "validationGames": 2
+    },
+    "decisions": {
+      "training": 776,
+      "validation": 140
+    },
+    "validation": {
+      "baselineRewardWeightedLogLikelihood": -0.18562213,
+      "candidateRewardWeightedLogLikelihood": -0.1856335,
+      "improvement": -0.00001137
+    },
+    "method": "Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction"
+  },
   "tournament": null
 }
