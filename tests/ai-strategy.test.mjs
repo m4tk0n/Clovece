@@ -160,3 +160,30 @@ test('compiled AI memory is not applied to a different board position', () => {
 });
 
 
+
+test('tactical teacher always chooses an immediate winning legal move', async () => {
+    const { chooseTacticalTeacherDecision } = await import('../js/ai-strategy.js');
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 4;
+    game.pieces[0].pieces[0].steps = game.trackLength;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
+    game.pieces[0].pieces[2].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength - 1;
+    const decision = chooseTacticalTeacherDecision(game, aiDependencies);
+    assert.equal(decision.pieceId, 3);
+    assert.equal(decision.reason, 'immediate-win');
+    assert.ok(decision.ranking.every(item => Number.isFinite(item.score)));
+});
+
+test('tactical teacher ranks only engine-provided legal candidates', async () => {
+    const { chooseTacticalTeacherDecision } = await import('../js/ai-strategy.js');
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = 0;
+    game.pieces[0].pieces[1].steps = 5;
+    const decision = chooseTacticalTeacherDecision(game, aiDependencies);
+    assert.ok(getValidMoves(game).includes(decision.pieceId));
+    assert.deepEqual(decision.ranking.map(item => item.pieceId).sort(), getValidMoves(game).sort());
+});
