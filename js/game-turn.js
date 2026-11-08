@@ -124,10 +124,12 @@ export function createTurnController(deps) {
         if ((debugAI || trainingAI) && decision?.reason) {
             if (debugAI && decision.breakdown?.weightConfig) {
                 const config = decision.breakdown.weightConfig;
-                addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' + config.difficulty +
-                    ' · agrese ' + config.aggression + ' · riziko ×' + config.riskMultiplier +
-                    ' · chyba ' + config.blunderRate + ' · náhodnost ' + config.randomness);
-                addGameLogEntry('AI aktivní váhy', config.activeWeightIds.map(item => '#' + item.id + '=' + item.value).join(' | '));
+                addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' +
+                    (config.scoredWeightCount || 876) + ' zapojených do skóre · ' +
+                    (config.neutralConfigWeightCount || 124) + ' systémových / rezervních položek neutrálních · ' +
+                    config.difficulty + ' · agrese ' + config.aggression +
+                    ' · riziko ×' + config.riskMultiplier + ' · chyba ' + config.blunderRate +
+                    ' · náhodnost ' + config.randomness);
             }
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
             if (debugAI && decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
