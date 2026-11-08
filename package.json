@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node --experimental-default-type=module --test tests/*.test.mjs",
     "test:e2e": "playwright test",
-    "ai:self-play": "node scripts/ai-self-play.mjs"
+    "ai:self-play": "node scripts/ai-self-play.mjs",
+    "ai:train": "node scripts/ai-train.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"
