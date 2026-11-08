@@ -187,7 +187,7 @@ function getTaughtPieceId(record) {
         return selected !== null && selected !== undefined && Number.isInteger(Number(selected)) ? Number(selected) : null;
     }
     const instruction = String(record.instruction || '').toLocaleLowerCase('cs');
-    const match = instruction.match(/(?:figurk(?:u|a|y)?|fig\.?|\bf)\s*(?:č(?:íslo)?\.?\s*)?([1-4])\b/i);
+    const match = instruction.match(/(?:figurk(?:u|a|y|ou)?|fig\.?|\bf)\s*(?:č(?:íslo)?\.?\s*)?([1-4])\b/i);
     if (!match) return null;
     return Number(match[1]) - 1;
 }
