@@ -72,15 +72,15 @@ test('probability features enumerate legal dice outcomes and stay within zero an
     const state = structuredClone(game);
     const candidate = { pieceId: 0, move: { deployed: false }, state, winningMove: false };
     const probabilities = calculateAIMoveProbabilityFeatures(game, candidate, dependencies);
-    assert.equal(probabilities.ownCaptureRisk, 1 / 6);
+    assert.ok(Math.abs(probabilities.ownCaptureRisk - 1 / 6) < 1e-12);
     assert.equal(probabilities.deployAttackRisk, 0);
     assert.equal(probabilities.opponentCaptureChance, 0);
     assert.equal(probabilities.safeFinishChance, 0);
-    assert.equal(probabilities.extraTurnChance, 1 / 6);
+    assert.ok(Math.abs(probabilities.extraTurnChance - 1 / 6) < 1e-12);
     assert.ok(Object.values(probabilities).every(value => value >= 0 && value <= 1));
     candidate.move.deployed = true;
     const deployed = calculateAIMoveProbabilityFeatures(game, candidate, dependencies);
-    assert.equal(deployed.deployAttackRisk, 1 / 6);
+    assert.ok(Math.abs(deployed.deployAttackRisk - 1 / 6) < 1e-12);
 });
 
 test('probability features occupy the final five stable positions in schema v2', () => {
