@@ -8,7 +8,8 @@
     "ai:self-play": "node scripts/ai-self-play.mjs",
     "ai:train": "node scripts/ai-train.mjs",
     "ai:tournament": "node scripts/ai-tournament.mjs",
-    "ai:train-weights": "node scripts/ai-train-weights.mjs"
+    "ai:train-weights": "node scripts/ai-train-weights.mjs",
+    "ai:weight-tournament": "node scripts/ai-weight-tournament.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"
