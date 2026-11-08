@@ -62,7 +62,7 @@ jobs:
           import fs from 'node:fs';
           import path from 'node:path';
           import zlib from 'node:zlib';
-          import { AI_FEATURE_COUNT } from './js/ai-neural-network.js';
+          import { AI_FEATURE_COUNT, AI_FEATURE_SCHEMA_VERSION } from './js/ai-neural-network.js';
           const dir = 'training-data/self-play';
           let pairs = 0;
           for (const name of fs.readdirSync(dir).filter(file => /\.jsonl\.gz$/i.test(file))) {
@@ -77,7 +77,7 @@ jobs:
             }
           }
           const ready = pairs >= 100;
-          console.log('Kompatibilní párové příklady schema v' + AI_FEATURE_COUNT + ': ' + pairs);
+          console.log('Kompatibilní párové příklady schema v' + AI_FEATURE_SCHEMA_VERSION + ' (' + AI_FEATURE_COUNT + ' příznaků): ' + pairs);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ready=' + ready + '\n');
           NODE
       - name: Natrénovat kandidátní model
