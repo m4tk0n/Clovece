@@ -12,11 +12,14 @@ export function initGameScreen(deps) {
     gameScreenInitialized = true;
 
     $('roll-dice-btn')?.addEventListener('click', () => turnController.doRoll(false));
-    $('trainer-dice-options')?.addEventListener('click', event => {
-        const button = event.target.closest('[data-dice-value]');
-        if (button && !button.disabled) turnController.selectDice(Number(button.dataset.diceValue));
+    $('game-screen')?.addEventListener('click', event => {
+        const diceButton = event.target.closest('#trainer-dice-options [data-dice-value]');
+        if (diceButton && !diceButton.disabled) {
+            turnController.selectDice(Number(diceButton.dataset.diceValue));
+            return;
+        }
+        if (event.target.closest('#trainer-ai-dice-mode')) turnController.toggleAIDiceMode();
     });
-    $('trainer-ai-dice-mode')?.addEventListener('click', () => turnController.toggleAIDiceMode());
 
     const audioToggle = $('game-audio-toggle');
     const volumeSlider = $('game-volume');
