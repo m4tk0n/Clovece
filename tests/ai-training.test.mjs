@@ -102,7 +102,7 @@ test('training chat contains only a short evaluation marker and automatic first 
     const log = await read('../js/game-log.js');
     const panel = await read('../js/ai-training-overlay.js');
     assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
-    assert.match(turn, /allPiecesInBase[\s\S]*?trainingAI && Number\(game\.diceValue\) === 6/);
+    assert.match(turn, /trainingAI && legalMoves\.length === 1[\s\S]*?pendingAIForcedMove = true[\s\S]*?return legalMoves\[0\]/);\n    assert.match(turn, /addAITrainingEvaluation\?\.\(game\.players\[playerId\]\.name, 'jediný možný tah'\)/);\n    assert.match(turn, /allPiecesInBase[\s\S]*?trainingAI && Number\(game\.diceValue\) === 6/);
     assert.match(turn, /První povinné nasazení není taktické/);
     assert.ok(log.includes("'[' + item.sender + ': ' + item.text + ']'"));
     assert.match(panel, /positionLabel\(beforePiece\.steps[\s\S]*?positionLabel\(afterPiece\.steps/);
