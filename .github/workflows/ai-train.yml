@@ -84,6 +84,17 @@ jobs:
             --seed="${{ inputs.seed }}" \
             --output=artifacts/ludo-ai-candidate.js \
             --metrics=artifacts/ai-training-metrics.json
+      - name: Porovnat kandidáta proti taktickému učiteli
+        if: steps.dataset.outputs.ready == 'true'
+        run: |
+          node --check scripts/ai-tournament.mjs
+          node scripts/ai-tournament.mjs \
+            --model=artifacts/ludo-ai-candidate.js \
+            --games=200 \
+            --players=4 \
+            --board=40 \
+            --seed="${{ inputs.seed }}" \
+            --output=artifacts/ai-tournament-metrics.json
       - name: Uložit kandidáta a výsledky (bez nasazení)
         if: steps.dataset.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
