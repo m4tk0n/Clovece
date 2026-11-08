@@ -193,19 +193,22 @@ export function initDebugOverlay() {
             const keys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece'];
             const oldWeights = state.previousWeights || {};
             const nextWeights = state.candidateWeights || state.finalWeights || {};
+            const activeWeights = state.finalWeights || nextWeights;
             const delta = state.delta || {};
             const lines = [
                 'AI VÁHY · ' + (state.statusLabel || state.status || 'stav neznámý'),
-                'Položka             Původní → Nové (rozdíl)'
+                'Položka: původní → kandidát (rozdíl) [aktivní]'
             ];
             keys.forEach(key => {
                 const oldValue = Number(oldWeights[key]);
                 const newValue = Number(nextWeights[key]);
+                const activeValue = Number(activeWeights[key]);
                 const change = Number(delta[key]);
                 if (!Number.isFinite(oldValue) || !Number.isFinite(newValue)) return;
                 const fmt = value => Number(value.toFixed(5)).toString();
                 lines.push(key.padEnd(19) + fmt(oldValue) + ' → ' + fmt(newValue) +
-                    ' (' + (Number.isFinite(change) ? (change > 0 ? '+' : '') + fmt(change) : '—') + ')');
+                    ' (' + (Number.isFinite(change) ? (change > 0 ? '+' : '') + fmt(change) : '—') +
+                    ') [' + (Number.isFinite(activeValue) ? fmt(activeValue) : '—') + ']');
             });
             if (state.training?.validation) {
                 lines.push('Validace: ' + state.training.validation.improvement);
@@ -214,6 +217,13 @@ export function initDebugOverlay() {
                 lines.push('Turnaj: ' + (state.tournament.accepted ? 'VÍTĚZSTVÍ KANDIDÁTA' : 'KANDIDÁT ZAMÍTNUT') +
                     ' · ' + (state.tournament.gamesCompleted ?? 0) + ' her · výhry ' +
                     (state.tournament.candidateWins ?? 0) + '/' + (state.tournament.baselineWins ?? 0));
+                Object.entries(state.tournament.boards || {}).forEach(([board, result]) => {
+                    lines.push(board + '/' + result.playerCount + ' hráčů: ' +
+                        result.candidateWins + '/' + result.gamesCompleted + ' (' +
+                        Math.round(Number(result.candidateWinRate || 0) * 100) + '%), 95% dolní mez ' +
+                        Math.round(Number(result.candidateWinRate95CI?.lower || 0) * 100) + '%; základ ' +
+                        Math.round(Number(result.expectedRandomWinRate || 0) * 100) + '%');
+                });
             } else {
                 lines.push('Turnaj: zatím neproběhl');
             }
