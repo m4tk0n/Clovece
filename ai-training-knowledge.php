@@ -85,14 +85,14 @@ $directory = $root . '/instructions';
 $storageRoot = realpath(__DIR__ . '/storage');
 $realRoot = realpath($root);
 $realDirectory = realpath($directory);
-$rootDeny = $root . '/.htaccess';
+$storageDeny = $storageRoot . '/.htaccess';
 $instructionsDeny = $directory . '/.htaccess';
 if ($storageRoot === false || $realRoot === false || $realDirectory === false
     || !str_starts_with($realRoot . DIRECTORY_SEPARATOR, $storageRoot . DIRECTORY_SEPARATOR)
     || !str_starts_with($realDirectory . DIRECTORY_SEPARATOR, $realRoot . DIRECTORY_SEPARATOR)
     || is_link($root) || is_link($directory)
-    || !is_file($rootDeny) || !preg_match('/^\s*Require\s+all\s+denied\s*$/mi', (string)@file_get_contents($rootDeny))
-    || !is_file($instructionsDeny) || !preg_match('/^\s*Require\s+all\s+denied\s*$/mi', (string)@file_get_contents($instructionsDeny))) {
+    || !is_file($storageDeny) || !preg_match('/^\\s*Require\\s+all\\s+denied\\s*$/mi', (string)@file_get_contents($storageDeny))
+    || !is_file($instructionsDeny) || !preg_match('/^\\s*Require\\s+all\\s+denied\\s*$/mi', (string)@file_get_contents($instructionsDeny))) {
     aiMemoryFail('Úložiště AI nemá potvrzenou ochranu.', 500);
 }
 $memoryPath = $realRoot . '/ai-memory.json';
