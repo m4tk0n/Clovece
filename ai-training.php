@@ -128,6 +128,23 @@ if (!is_dir($directory) && !@mkdir($directory, 0700, true) && !is_dir($directory
     aiTrainingFail('Na serveru nelze vytvořit úložiště výuky AI.', 500);
 }
 
+// Zajistíme zákaz přímého HTTP přístupu i na hostingu, kde storage/.htaccess
+// nebyl součástí FTP deploye. Existující ochranný soubor nikdy nepřepisujeme.
+$instructionsHtaccess = $directory . DIRECTORY_SEPARATOR . '.htaccess';
+if (!is_file($instructionsHtaccess)) {
+    $denyHandle = @fopen($instructionsHtaccess, 'x');
+    if ($denyHandle !== false) {
+        $denyWritten = fwrite($denyHandle, "Require all denied\\n");
+        fflush($denyHandle);
+        fclose($denyHandle);
+        if ($denyWritten === false) {
+            aiTrainingFail('Nepodařilo se zabezpečit úložiště instrukcí.', 500);
+        }
+    } elseif (!is_file($instructionsHtaccess)) {
+        aiTrainingFail('Nepodařilo se zabezpečit úložiště instrukcí.', 500);
+    }
+}
+
 $realDirectory = realpath($directory);
 $storageRoot = realpath(__DIR__ . '/storage');
 if ($realDirectory === false || $storageRoot === false
