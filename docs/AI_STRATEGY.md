@@ -1,6 +1,6 @@
 # AI – strategie, výpočty a výuka
 
-**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení a aktualizuje trvalou paměť. Připravená je také inferenční vrstva neuronové sítě (`js/ai-neural-network.js`) a její rozhraní modelu (`models/ludo-ai.js`); model je zatím záměrně vypnutý, protože nemáme natrénované váhy. Detail: [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
+**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení a aktualizuje trvalou paměť. Připravená je také inferenční vrstva neuronové sítě (`js/ai-neural-network.js`) a její rozhraní modelu (`js/models/ludo-ai.js`); model je zatím záměrně vypnutý, protože nemáme natrénované váhy. Detail: [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
 
 **Místní implementace:** `js/ai-strategy.js`  
 **Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
@@ -11,7 +11,8 @@
 - Herní engine rozhoduje, co je legální. AI nesmí vytvářet vlastní tahy ani měnit pravidla.
 - Výpočtová vrstva poskytuje číselné údaje, například zbývající postup, pravděpodobnost dosažení cíle a pravděpodobnost ohrožení figurky.
 - Výpočty samy o sobě neurčují, který tah je dobrý.
-- Místní taktická vrstva může použít uloženou lidskou instrukci, pouze pokud přesně odpovídá aktuálnímu stavu a cílová figurka je legální.\n- Serverová AI online her zatím lidské instrukce nepoužívá.
+- Místní taktická vrstva může použít uloženou lidskou instrukci, pouze pokud přesně odpovídá aktuálnímu stavu a cílová figurka je legální.
+- Serverová AI online her zatím lidské instrukce nepoužívá.
 - Okamžitě vítězný tah má přednost, protože přímo ukončuje hru ve prospěch AI.
 
 ## 2. Zachované výpočty
@@ -53,7 +54,8 @@ Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `
 1. Engine vrátí seznam legálních tahů.
 2. AI ověří, zda některý z nich okamžitě vyhrává.
 3. Pokud ano, provede vítězný tah.
-4. Pokud neexistuje naučená preference pro přesnou situaci a je načten platný neuronový model, ohodnotí jím všechny legální kandidáty a vybere nejvyšší skóre.\n5. Pokud není dostupný platný model, použije bezpečný náhradní výběr z legálních tahů.
+4. Pokud neexistuje naučená preference pro přesnou situaci a je načten platný neuronový model, ohodnotí jím všechny legální kandidáty a vybere nejvyšší skóre.
+5. Pokud není dostupný platný model, použije bezpečný náhradní výběr z legálních tahů.
 
 Běžný režim načítá pouze kompilovanou paměť `storage/ai-training/ai-memory.json`; zdrojové výukové JSON neprochází. Paměť se drží v cache prohlížeče po dobu běhu stránky.
 
