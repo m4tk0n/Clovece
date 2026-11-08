@@ -18,7 +18,6 @@ const modulePath = path.resolve(String(args.module || 'js/ai-tactical-weights.js
 const reportPath = path.resolve(String(args.report || 'artifacts/ai-weight-training-report.json'));
 const epochs = Math.max(1, Math.min(200, Number(args.epochs) || 30));
 const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']) || 0.015));
-const temperature = Math.max(0.25, Math.min(20, Number(args.temperature) || 4));
 const minGames = Math.max(4, Number(args['min-games']) || 10);
 const minRecords = Math.max(50, Number(args['min-records']) || 100);
 
@@ -251,7 +250,8 @@ const report = {
     method: 'Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction',
     source: { ...stats, completedGames: games.size, trainingGames: trainGames.size, validationGames: validationGames.size },
     decisions: { training: training.length, validation: validation.length },
-    epochs, learningRate, temperature,
+    epochs, learningRate,
+    policyTemperatures: [...new Set([...training, ...validation].map(record => record.policyTemperature))].sort((a, b) => a - b),
     previousWeights,
     candidateWeights,
     finalWeights,
