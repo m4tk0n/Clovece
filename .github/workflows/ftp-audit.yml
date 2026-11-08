@@ -5,7 +5,6 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ftp-audit.yml"
-      - "scripts/ftp-audit.py"
       - "scripts/ftp-audit.mjs"
 
 permissions:
