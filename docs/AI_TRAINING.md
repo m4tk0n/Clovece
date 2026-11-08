@@ -32,7 +32,7 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Pozitivní příklad znovu upřednostní dříve potvrzenou legální figurku ve stejné situaci.
 - AI do rozhodnutí přidá `trainedKnowledge` a ID skutečně použité instrukce; debug log a výukový panel zobrazí `NAUČENO`.
 - Naučená preference nikdy nepřekročí seznam legálních tahů a okamžitá výhra má stále přednost.
-- Připravena inferenční vrstva neuronové sítě v `js/ai-neural-network.js` s verzovaným 18prvkovým vstupem.
+- Připravena inferenční vrstva neuronové sítě v `js/ai-neural-network.js` s verzovaným 23prvkovým vstupem (schema v2).
 - Místní AI umí neuronovým modelem ohodnotit pouze kandidáty vrácené herním enginem; výsledek se označuje `neuralNetwork` a `neural-network-v1`.
 - Model se načítá dynamicky až při tahu AI ze souboru `js/models/ludo-ai.js`.
 - Okamžitá výhra a přesná lidská naučená preference mají před neuronovým skóre přednost.
@@ -237,7 +237,7 @@ Aktuální místní strategie je v `js/ai-strategy.js`.
 - Pokud není dostupná ani lidská preference, ani platný model, použije se náhradní výběr z legálních tahů.
 - Aktuální neuronový model je záměrně vypnutý (`enabled: false`), protože zatím nemá natrénované váhy. Běžné chování AI se proto nemění.
 - Odhady zbývajících kroků a ohrožení jsou zatím pouze popisné; offline trénování a zobecňování lidských příkladů ještě nejsou hotové.
-- Technický popis neuronové vrstvy, 18 vstupních příznaků, formátu modelu a podmínek zapnutí je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
+- Technický popis neuronové vrstvy, 23 vstupních příznaků, formátu modelu a podmínek zapnutí je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
 
 **Běžná hra bez debug režimu naučené informace používá.** Načítá pouze hotovou kompilovanou paměť `ai-memory.json`, nikoli jednotlivé výukové JSON soubory. Paměť zůstává v cache stránky, takže se před každým tahem znovu neprohledává server ani adresář.
 
