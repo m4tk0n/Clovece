@@ -2,8 +2,8 @@
   "format": "clovece-ai-training-state",
   "version": 1,
   "updatedAt": null,
-  "status": "baseline",
-  "statusLabel": "ZÁKLADNÍ VÁHY · ZATÍM BEZ TRÉNINKU",
+  "status": "baseline-expanded-features",
+  "statusLabel": "ROZŠÍŘENÉ VÁHY · ZATÍM BEZ NOVÉHO TRÉNINKU",
   "previousWeights": {
     "immediateWin": 100000,
     "ownProgress": 0.08,
@@ -11,7 +11,10 @@
     "threatReduction": 12,
     "captureOpponent": 5,
     "captureOwn": 7,
-    "finishPiece": 8
+    "finishPiece": 8,
+    "deployPiece": 1.5,
+    "enterHome": 2.5,
+    "homeProgress": 0.4
   },
   "candidateWeights": {
     "immediateWin": 100000,
@@ -20,7 +23,10 @@
     "threatReduction": 12,
     "captureOpponent": 5,
     "captureOwn": 7,
-    "finishPiece": 8
+    "finishPiece": 8,
+    "deployPiece": 1.5,
+    "enterHome": 2.5,
+    "homeProgress": 0.4
   },
   "finalWeights": {
     "immediateWin": 100000,
@@ -29,7 +35,10 @@
     "threatReduction": 12,
     "captureOpponent": 5,
     "captureOwn": 7,
-    "finishPiece": 8
+    "finishPiece": 8,
+    "deployPiece": 1.5,
+    "enterHome": 2.5,
+    "homeProgress": 0.4
   },
   "delta": {
     "immediateWin": 0,
@@ -38,7 +47,10 @@
     "threatReduction": 0,
     "captureOpponent": 0,
     "captureOwn": 0,
-    "finishPiece": 0
+    "finishPiece": 0,
+    "deployPiece": 0,
+    "enterHome": 0,
+    "homeProgress": 0
   },
   "training": null,
   "tournament": null
