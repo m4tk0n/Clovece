@@ -34,7 +34,7 @@ jobs:
           git fetch origin ai-training-data:refs/remotes/origin/ai-training-data
           mkdir -p training-data/self-play
           git archive origin/ai-training-data training-data/self-play | tar -x
-          COUNT=$(find training-data/self-play -type f \\( -name '*.jsonl' -o -name '*.jsonl.gz' \\) | wc -l)
+          COUNT=$(find training-data/self-play -type f -name '*.jsonl*' | wc -l)
           echo "Archivované datové soubory: $COUNT"
           test "$COUNT" -gt 0
       - name: Ověřit reward trainer
@@ -42,11 +42,7 @@ jobs:
       - name: Trénovat taktické váhy podle výsledků partií
         run: |
           mkdir -p artifacts
-          node scripts/ai-train-weights.mjs \\
-            --input-dir=training-data/self-play \\
-            --weights=config/ai-tactical-weights.json \\
-            --module=js/ai-tactical-weights.js \\
-            --report=artifacts/ai-weight-training-report.json
+          node scripts/ai-train-weights.mjs --input-dir=training-data/self-play --weights=config/ai-tactical-weights.json --module=js/ai-tactical-weights.js --report=artifacts/ai-weight-training-report.json
       - name: Uložit report tréninku
         uses: actions/upload-artifact@v4
         with:
