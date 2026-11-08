@@ -5,8 +5,8 @@
 import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
-        getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision, chooseAIMoveLearningDecision,
-        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, completeLocalAiLearningGame
+        getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
+        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry
     } = deps;
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
@@ -52,40 +52,11 @@ export function createTurnController(deps) {
     }
     
     function chooseAndLogAIMove() {
-        const decision = chooseAIMoveLearningDecision
-            ? chooseAIMoveLearningDecision(game)
-            : chooseAIMoveDecision
-                ? chooseAIMoveDecision(game)
-                : { pieceId: chooseAIMove(game), reason: '' };
+        const decision = chooseAIMoveDecision
+            ? chooseAIMoveDecision(game)
+            : { pieceId: chooseAIMove(game), reason: '' };
         if (debugAI && decision?.reason) {
             addGameLogEntry('AI rozhodování', decision.reason);
-        }
-        if (debugAI && decision?.learning) {
-            const learning = decision.learning;
-            if (learning.error) {
-                addGameLogEntry('AI UČENÍ', 'Učení se nepodařilo: ' + learning.error + '. Tah zůstává podle původní strategie.');
-            } else {
-                const created = learning.newParameterCount || 0;
-                const ids = learning.newParameters || [];
-                const firstId = ids.length ? ids[0].id : null;
-                const lastId = ids.length ? ids[ids.length - 1].id : null;
-                let message = 'Rozhodnutí ' + learning.decisionsTrained +
-                    ': ' + (created ? 'objeveno ' + created + ' nových parametrů' +
-                        (firstId !== null ? ' (#' + firstId + (lastId !== firstId ? ' až #' + lastId : '') + ')' : '') :
-                        'nový parametr nebyl potřeba') +
-                    ', upraveno vah: ' + learning.changedParameters +
-                    ', celkem parametrů: ' + learning.totalParameters +
-                    ', MCTS loss: ' + Number(learning.averageCrossEntropy || 0).toFixed(4) + '.';
-                if (learning.policyInfluencedChoice) {
-                    message += ' Naučená politika změnila výběr figurky na ' + (decision.pieceId + 1) + '.';
-                }
-                if (!learning.storageSaved) message += ' Uložení modelu na zařízení se nezdařilo.';
-                const examples = ids.slice(0, 3).map(item =>
-                    '#' + item.id + ' ' + (item.featureNames || []).join(' × ')
-                );
-                if (examples.length) message += ' Nové vzorce: ' + examples.join('; ') + '.';
-                addGameLogEntry('AI UČENÍ', message);
-            }
         }
         return decision?.pieceId ?? null;
     }
@@ -185,27 +156,6 @@ export function createTurnController(deps) {
         $('win-title').textContent = winner.isAI ? 'AI VYHRÁLA!' : 'VÍTĚZSTVÍ!';
         $('win-message').textContent = winner.name + ' dostal všechny čtyři figurky domů.';
         $('win-modal').classList.remove('hidden');
-        if (!game.aiLearningSummaryLogged && game.players.some(player => player.isAI) && completeLocalAiLearningGame) {
-            game.aiLearningSummaryLogged = true;
-            const summary = completeLocalAiLearningGame();
-            if (debugAI && summary) {
-                addGameLogEntry('AI UČENÍ',
-                    'Souhrn partie: parametry na začátku ' + summary.parametersAtStart +
-                    ', nově vytvořeno +' + summary.newParameters +
-                    ', na konci ' + summary.parametersAtEnd +
-                    ', rozhodnutí ' + summary.decisions +
-                    ', upravené váhy ' + summary.changedParameters +
-                    ', průměrná loss ' + Number(summary.averageCrossEntropy || 0).toFixed(4) +
-                    ', dokončených partií modelu ' + summary.gamesTrained + '.' +
-                    (summary.topPatterns?.length
-                        ? ' MCTS nejčastěji podporovalo: ' + summary.topPatterns.map(item =>
-                            '#' + item.id + ' ' + item.featureNames.join(' × ') +
-                            ' (podpora ' + item.teacherSupport + ', odmítnutí ' + item.teacherRejects + ')'
-                        ).join('; ') + '.'
-                        : '') +
-                    (summary.storageSaved ? '' : ' Model se nepodařilo uložit na zařízení.'));
-            }
-        }
         play('win-sound');
         const confetti = $('confetti');
         if (confetti) {
