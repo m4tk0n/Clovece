@@ -6,7 +6,7 @@ import { getGameExtensionValue } from './game-extensions.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
-        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry
+        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, setAIDebugExport
     } = deps;
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
@@ -16,6 +16,7 @@ export function createTurnController(deps) {
     let automationPaused = false;
     let modalOpen = false;
     let moveAnimating = false;
+    let pendingAIDebugExport = null;
 
     function openKickModal(move) {
         modalOpen = true;
@@ -52,20 +53,70 @@ export function createTurnController(deps) {
     }
     
     function chooseAndLogAIMove() {
+        const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
+        const legalMoves = getValidMoves(game);
         const decision = chooseAIMoveDecision
             ? chooseAIMoveDecision(game)
             : { pieceId: chooseAIMove(game), reason: '' };
         if (debugAI && decision?.reason) {
             addGameLogEntry('AI rozhodování', decision.reason);
+            const alternatives = [
+                { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown },
+                ...(decision.alternatives || [])
+            ].filter(item => item.pieceId !== null && item.pieceId !== undefined);
+            if (alternatives.length) {
+                addGameLogEntry('AI možnosti', alternatives.map(item =>
+                    'figurka ' + (Number(item.pieceId) + 1) + ': ' +
+                    Number(item.score || 0).toFixed(4) + ' bodů (' + (item.reason || 'vyhodnocení') + ')'
+                ).join('; '));
+            }
+            pendingAIDebugExport = {
+                format: 'clovece-ai-debug',
+                formatVersion: 1,
+                strategyVersion: 'fixed-v1',
+                game: {
+                    boardSize: game.boardSize || game.trackLength,
+                    playerCount: game.players.length,
+                    players: game.players.map(player => ({
+                        id: player.id, name: player.name, color: player.color,
+                        type: player.isAI ? 'ai' : 'human', start: player.start
+                    })),
+                    rules: { ...game.rules },
+                    currentPlayer: game.currentPlayer,
+                    phase: game.phase,
+                    diceValue: game.diceValue,
+                    turnNumber: game.turnNumber,
+                    piecesBefore
+                },
+                decision: {
+                    legalMoves,
+                    candidates: alternatives,
+                    selectedPieceId: decision.pieceId,
+                    explanation: decision.reason || ''
+                },
+                result: null
+            };
         }
         return decision?.pieceId ?? null;
     }
 
     function performMove(pieceId) {
         if (!game || moveAnimating) return;
+        const playerId = game.currentPlayer;
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
+        if (debugAI && pendingAIDebugExport && game.players[playerId]?.isAI &&
+            Number(pendingAIDebugExport.decision.selectedPieceId) === Number(pieceId)) {
+            pendingAIDebugExport.result = {
+                move: { ...move },
+                piecesAfter: JSON.parse(JSON.stringify(game.pieces)),
+                phaseAfter: game.phase,
+                winner: game.winner
+            };
+            setAIDebugExport?.(pendingAIDebugExport);
+        }
+        pendingAIDebugExport = null;
         return finishMove(move, { before, after });
     }
     
@@ -342,6 +393,8 @@ export function createTurnController(deps) {
         stopAI();
         modalOpen = false;
         moveAnimating = false;
+        pendingAIDebugExport = null;
+        setAIDebugExport?.(null);
     }
 
     return {

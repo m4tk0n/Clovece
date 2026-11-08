@@ -230,12 +230,47 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
                 $actionResult = onlineEngineRollDice($state);
             } elseif ($state['phase'] === 'move') {
                 $actionType = 'move';
+                $aiStateBefore = $state;
                 $decision = onlineEngineChooseAIMoveDecision($state);
                 $pieceId = $decision['pieceId'];
                 if ($pieceId === null) throw new RuntimeException('AI nemá dostupný platný tah.');
                 $actionResult = onlineEngineMovePiece($state, $pieceId);
                 $actionResult['pieceId'] = $pieceId;
                 $actionResult['aiDecision'] = $decision;
+                $actionResult['aiDebug'] = [
+                    'format' => 'clovece-ai-debug',
+                    'formatVersion' => 1,
+                    'strategyVersion' => 'fixed-v1',
+                    'game' => [
+                        'boardSize' => (int) ($aiStateBefore['boardSize'] ?? $aiStateBefore['trackLength']),
+                        'playerCount' => count($aiStateBefore['players']),
+                        'players' => array_map(static fn(array $player): array => [
+                            'id' => (int) $player['id'],
+                            'name' => (string) $player['name'],
+                            'color' => (string) $player['color'],
+                            'type' => !empty($player['isAI']) ? 'ai' : 'human',
+                            'start' => (int) $player['start'],
+                        ], $aiStateBefore['players']),
+                        'rules' => $aiStateBefore['rules'] ?? null,
+                        'currentPlayer' => (int) $aiStateBefore['currentPlayer'],
+                        'phase' => (string) $aiStateBefore['phase'],
+                        'diceValue' => (int) $aiStateBefore['diceValue'],
+                        'turnNumber' => (int) ($aiStateBefore['turnNumber'] ?? 0),
+                        'piecesBefore' => $aiStateBefore['pieces'],
+                    ],
+                    'decision' => [
+                        'legalMoves' => onlineEngineValidMoves($aiStateBefore),
+                        'candidates' => $decision['candidates'],
+                        'selectedPieceId' => $pieceId,
+                        'explanation' => $decision['reason'],
+                    ],
+                    'result' => [
+                        'move' => $actionResult,
+                        'piecesAfter' => $state['pieces'],
+                        'phaseAfter' => $state['phase'],
+                        'winner' => $state['winner'] ?? null,
+                    ],
+                ];
             } elseif ($state['phase'] === 'no-move') {
                 $actionType = 'pass_turn';
                 onlineEngineAdvanceTurn($state);
