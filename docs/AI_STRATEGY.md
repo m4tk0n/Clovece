@@ -1,6 +1,6 @@
 # AI – strategie, výpočty a výuka
 
-**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení, zpracuje nové JSON a aktualizuje trvalou paměť. Výuka zatím spojuje preference podle přesné shody herní situace; obecné zobecnění českých taktických pokynů a online PHP AI jsou další práce.
+**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení, zpracuje nové JSON a aktualizuje trvalou paměť. Výuka zatím spojuje preference podle přesné shody herní situace; trenér uchovává jednotlivá rozhodnutí i při opakovaných hodech v jednom tahu; obecné zobecnění českých taktických pokynů a online PHP AI jsou další práce.
 
 **Místní implementace:** `js/ai-strategy.js`  
 **Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
@@ -64,7 +64,7 @@ Režim `/?debug=trainer` před každým rozhodnutím zavolá `ai-training-knowle
 Jde o první omezenou fázi učení: ukládá se preference konkrétní figurky v přesné situaci, nikoli obecné pochopení libovolného českého taktického pokynu. Online PHP AI zatím používá oddělenou strategii.
 ## 5. Výuka člověkem
 
-Výukový režim se spouští přes `/?debug=trainer` (starší alias `/?debug=training` zůstává podporován). Člověk může rozhodnutí AI opravit, potvrdit jako správné nebo přeskočit. Každé odeslané hodnocení se ukládá jako nový neměnný JSON soubor do `storage/ai-training/instructions/`.
+Výukový režim se spouští přes `/?debug=trainer` (starší alias `/?debug=training` zůstává podporován). Člověk může přepínat mezi všemi rozhodnutími AI v aktuálním tahu (například samostatně hodnotit rozhodnutí po šestce i po dalším hodu), opravit je, potvrdit jako správné nebo přeskočit. Opravu lze cílit přímo na konkrétní legální figurku pomocí strukturovaného `preferredPieceId`. Každé odeslané hodnocení se ukládá jako nový neměnný JSON soubor do `storage/ai-training/instructions/`.
 
 Podrobný popis UI, JSON struktury, zabezpečení, současného stavu a úkolů je v [docs/AI_TRAINING.md](AI_TRAINING.md).
 
