@@ -507,3 +507,8 @@ Vstupní vektor se změnil z 18 na 23 hodnot. Verze schématu je nyní 2. První
 Všechny hodnoty jsou v rozsahu 0–1 a vznikají enumerací šesti výsledků kostky přes `rollDice`, `getValidMoves` a `movePiece` z produkčního enginu. Nejde o samostatně napsaná pravidla. Riziko vyhození je omezeno na jeden hod každého soupeře a nepočítá řetěz bonusových šestek ani návazné změny po předchozím soupeři. Příležitosti vlastního vyhození, dokončení a bonusového hodu jsou vyhodnoceny jako existence alespoň jednoho legálního tahu při jednom vlastním hodu.
 
 **Důležitá migrace dat:** self-play data se schématem v1 mají 18 hodnot a trenér v2 je odmítne. Je nutné spustit nové self-play partie po této změně. Starý kandidátní model zůstává historický a nesmí být načten jako model v2. Produkční model zůstává vypnutý.
+
+
+## 19. Turnaj kandidátního modelu
+
+Po úspěšném trénování workflow spustí 200 her na desce 40 se čtyřmi hráči. Kandidát hraje proti třem kopiím taktického učitele; jeho hráčská pozice se mezi hrami střídá. Výstup `ai-tournament-metrics.json` obsahuje počet výher, umístění, průměrné pořadí, 95% Wilsonův interval spolehlivosti a počet neplatných tahů. Kandidát překoná základní hranici pouze tehdy, pokud dolní mez 95% intervalu jeho výhernosti přesáhne 25% (rovnoměrná základní šance ve čtyřech hráčích) a proběhne alespoň 200 dokončených her. Jde o první filtr, nikoli důkaz obecné převahy; před zapnutím je třeba širší testování na deskách 48/80, různých počtech hráčů a více seedech. Výsledek se pouze archivuje jako artefakt, model se automaticky nenasazuje.
