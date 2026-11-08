@@ -106,10 +106,10 @@ foreach ($files as $filePath) {
     } catch (JsonException $error) {
         continue;
     }
+    if (!is_array($record)) continue;
     $recordId = strtolower((string) ($record['id'] ?? ''));
     $expectedSuffix = ($record['feedbackType'] ?? '') === 'positive' ? 'ok' : 'err';
-    if (!is_array($record)
-        || !preg_match('/^[a-f0-9]{32}$/', $recordId)
+    if (!preg_match('/^[a-f0-9]{32}$/', $recordId)
         || !in_array($record['feedbackType'] ?? '', ['correction', 'positive'], true)
         || !hash_equals($expectedSuffix, $matches[2])
         || !is_array($record['context'] ?? null)
