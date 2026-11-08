@@ -171,7 +171,6 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         sample.reward = completed
             ? (sample.finalRank === 1 ? 1 : -((sample.finalRank - 1) / Math.max(1, playerCount - 1)))
             : null;
-
     }
     totalActions += actions;
     totalTurns += game.turnNumber;
@@ -179,9 +178,9 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
     summary.decisions = totalDecisions;
     summary.averageActions = Number((totalActions / (gameIndex + 1)).toFixed(2));
     summary.averageGameTurns = Number((totalTurns / (gameIndex + 1)).toFixed(2));
-    fs.appendFileSync(output, gameSamples.map(sample => JSON.stringify(sample)).join('\\n') + (gameSamples.length ? '\\n' : ''), 'utf8');
+    fs.appendFileSync(output, gameSamples.map(sample => JSON.stringify(sample)).join('\n') + (gameSamples.length ? '\n' : ''), 'utf8');
     const metricsTemp = metricsOutput + '.tmp';
-    fs.writeFileSync(metricsTemp, JSON.stringify({ ...summary, gamesProcessed: gameIndex + 1, runId }, null, 2) + '\\n');
+    fs.writeFileSync(metricsTemp, JSON.stringify({ ...summary, gamesProcessed: gameIndex + 1, runId }, null, 2) + '\n');
     fs.renameSync(metricsTemp, metricsOutput);
     if ((gameIndex + 1) % 25 === 0 || gameIndex + 1 === games) {
         process.stdout.write('Odehráno ' + (gameIndex + 1) + '/' + games + ' her; dokončeno ' +
@@ -191,5 +190,5 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
 
 summary.averageActions = games ? Number((totalActions / games).toFixed(2)) : 0;
 summary.averageGameTurns = games ? Number((totalTurns / games).toFixed(2)) : 0;
-fs.writeFileSync(metricsOutput, JSON.stringify({ ...summary, gamesProcessed: games, runId }, null, 2) + '\\n');
+fs.writeFileSync(metricsOutput, JSON.stringify({ ...summary, gamesProcessed: games, runId }, null, 2) + '\n');
 process.stdout.write(JSON.stringify(summary, null, 2) + '\n');
