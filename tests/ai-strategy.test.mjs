@@ -100,7 +100,7 @@ test('AI returns null when the engine provides no legal moves', () => {
 test('pip calculation supports 40, 48 and 80 field boards', () => {
     for (const length of [40, 48, 80]) {
         const game = createGame(1, 1, [], [], length);
-        assert.equal(calculatePlayerPips(game, 0), 4 * (length + 3 + 6) + 4.2 * 5);
+        assert.equal(calculatePlayerPips(game, 0), 4 * (length + 3 + 6) + 4.2 * ((5 / 6) ** 3 / (1 - (5 / 6) ** 3)));
     }
 });
 
