@@ -172,11 +172,11 @@ Příklady:
 Význam jednotlivých částí:
 
 - `YYYYMMDD-HHmmss` – datum a čas vytvoření záznamu na serveru.
-- `XXXX` – společné pořadové číslo se čtyřmi číslicemi, první záznam má `0001`, další `0002`, `0003` atd. Číslování se nezávisle neresetuje pro `ok` a `err`.
+- `XXXX` – společné pořadové číslo s minimálně čtyřmi číslicemi, první záznam má `0001`, další `0002`, `0003` atd. Po dosažení `9999` pokračuje `10000`. Číslování se nezávisle neresetuje pro `ok` a `err`.
 - `ok` – člověk označil rozhodnutí AI jako správné (`feedbackType: positive`).
 - `err` – člověk odeslal opravu rozhodnutí AI (`feedbackType: correction`).
 
-Pořadové číslo se přiděluje podle dosavadních záznamů v adresáři a musí být jedinečné i při souběžném ukládání. Nový soubor se vytváří výhradně; existující záznam se nikdy nepřepisuje. Čas v názvu ani pořadové číslo nemění obsah a strukturu JSON. Starší záznamy se kvůli změně pojmenování nepřejmenovávají.
+Pořadové číslo se přiděluje podle dosavadních záznamů v adresáři pod výhradním zámkem `.sequence.lock`, aby bylo jedinečné i při souběžném ukládání. Nový soubor se vytváří výhradně; existující záznam se nikdy nepřepisuje. Čas v názvu ani pořadové číslo nemění obsah a strukturu JSON. Starší záznamy se kvůli změně pojmenování nepřejmenovávají.
 
 ## 7. Serverové úložiště a ochrana dat
 
