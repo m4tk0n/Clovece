@@ -338,7 +338,7 @@ export function initAITrainingOverlay() {
     correct.addEventListener('click', () => saveFeedback('positive'));
 
     const historySelect = panel.querySelector('#ai-training-history');
-    function updateDecisionHistory(preferredId = null) {
+    function updateDecisionHistory(preferredId = null, forceRender = false) {
         const previous = preferredId || currentDecision?.decisionId || historySelect.value;
         historySelect.replaceChildren();
         decisionHistory.forEach(item => {
@@ -363,7 +363,7 @@ export function initAITrainingOverlay() {
             return;
         }
         historySelect.value = String(target.decisionId || target.id);
-        if (!currentDecision || String(currentDecision.decisionId || currentDecision.id) !== historySelect.value) renderDecision(target);
+        if (forceRender || !currentDecision || String(currentDecision.decisionId || currentDecision.id) !== historySelect.value) renderDecision(target);
     }
     historySelect.addEventListener('change', () => {
         const selectedItem = decisionHistory.find(item => String(item.decisionId || item.id) === historySelect.value);
@@ -372,7 +372,7 @@ export function initAITrainingOverlay() {
     window.addEventListener('clovece:ai-training-decisions', event => {
         decisionHistory = Array.isArray(event.detail?.decisions) ? event.detail.decisions : [];
         decisionHistory.forEach(item => { item.id = item.id || item.decisionId || (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)); });
-        updateDecisionHistory(event.detail?.currentId || null);
+        updateDecisionHistory(event.detail?.currentId || null, true);
     });
     window.addEventListener('clovece:ai-training-decision', event => {
         const detail = event.detail;
@@ -381,7 +381,7 @@ export function initAITrainingOverlay() {
         const index = decisionHistory.findIndex(item => String(item.decisionId || item.id) === key);
         if (index >= 0) decisionHistory[index] = detail;
         else decisionHistory.push(detail);
-        updateDecisionHistory(key);
+        updateDecisionHistory(key, true);
     });
 
     getToken().catch(error => {
