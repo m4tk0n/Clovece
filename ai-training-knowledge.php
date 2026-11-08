@@ -128,6 +128,7 @@ if ($action === 'train') {
         aiMemoryFail('Fronta výuky AI je právě uzamčena.', 503);
     }
     $initializedPath = $realRoot . '/.training-queue.initialized';
+    $queueRebuilt = false;
     if (!is_file($initializedPath) || !is_file($queuePath) || is_file($realRoot . '/.training-queue.needs-rebuild')) {
         $existing = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
         sort($existing, SORT_STRING);
@@ -149,6 +150,8 @@ if ($action === 'train') {
             aiMemoryFail('Frontu výuky AI se nepodařilo bezpečně připravit.', 500);
         }
         @unlink($realRoot . '/.training-queue.needs-rebuild');
+        $memory['queueOffset'] = 0;
+        $queueRebuilt = true;
     }
     $queueHandle = @fopen($queuePath, 'rb');
     if ($queueHandle === false || is_link($queuePath)) {
@@ -208,7 +211,7 @@ if ($action === 'train') {
         $processedNow++;
     }
     $newQueueOffset = (int)($memory['queueOffset'] ?? 0);
-    $memoryChanged = $processedNow > 0 || $newQueueOffset !== $originalQueueOffset || !is_file($memoryPath);
+    $memoryChanged = $queueRebuilt || $processedNow > 0 || $newQueueOffset !== $originalQueueOffset || !is_file($memoryPath);
     fclose($queueHandle);
     flock($queueLock, LOCK_UN); fclose($queueLock);
     if ($memoryChanged) {
