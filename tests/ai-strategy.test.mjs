@@ -237,6 +237,10 @@ test('tactical teacher always chooses an immediate winning legal move', async ()
     const learnedWeights = AI_TACTICAL_WEIGHTS;
     for (const item of decision.ranking) {
         const f = item.factors;
+        if (f.winning) {
+            assert.equal(item.trainingScore, 1000000);
+            continue;
+        }
         const expectedTrainingScore = f.ownProgress * learnedWeights.ownProgress +
             f.opponentSetback * learnedWeights.opponentSetback +
             f.threatReduction * learnedWeights.threatReduction +
