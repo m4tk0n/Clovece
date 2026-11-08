@@ -3,6 +3,7 @@
  * Herní stav je držen v tomto modulu; app.js předává pouze závislosti.
  */
 import { getGameExtensionValue } from './game-extensions.js';
+import { refreshAITrainingKnowledge } from './ai-training-knowledge.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
@@ -54,7 +55,15 @@ export function createTurnController(deps) {
         return new Promise(resolve => window.setTimeout(resolve, ms));
     }
     
-    function chooseAndLogAIMove() {
+    async function chooseAndLogAIMove() {
+        const gameAtDecision = game;
+        const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
+        const knowledge = await refreshAITrainingKnowledge();
+        if (!game || game !== gameAtDecision ||
+            [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
+        if (knowledge.error && (debugAI || trainingAI)) {
+            addGameLogEntry('AI učení', 'Instrukce se nepodařilo načíst: ' + knowledge.error);
+        }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         const legalMoves = getValidMoves(game);
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
@@ -64,10 +73,14 @@ export function createTurnController(deps) {
             return legalMoves[0] ?? null;
         }
         const decision = chooseAIMoveDecision
-            ? chooseAIMoveDecision(game)
+            ? chooseAIMoveDecision(game, undefined, knowledge.instructions)
             : { pieceId: chooseAIMove(game), reason: '' };
         if ((debugAI || trainingAI) && decision?.reason) {
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
+            if (decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
+                const usedIds = decision.breakdown.usedInstructions.map(item => item.id).join(', ');
+                addGameLogEntry('AI učení', 'NAUČENO – použité instrukce: ' + usedIds);
+            }
             const alternatives = [
                 { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown },
                 ...(decision.alternatives || [])
@@ -81,7 +94,7 @@ export function createTurnController(deps) {
             pendingAIDebugExport = {
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
-                strategyVersion: trainingAI ? 'untrained-v1' : 'untrained-v1',
+                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : 'untrained-v1',
                 game: {
                     boardSize: game.boardSize || game.trackLength,
                     trackLength: game.trackLength,
@@ -101,7 +114,9 @@ export function createTurnController(deps) {
                     legalMoves,
                     candidates: alternatives,
                     selectedPieceId: decision.pieceId,
-                    explanation: decision.reason || ''
+                    explanation: decision.reason || '',
+                    trainedKnowledge: Boolean(decision.breakdown?.trainedKnowledge),
+                    usedInstructions: decision.breakdown?.usedInstructions || []
                 },
                 result: null
             };
@@ -339,7 +354,7 @@ export function createTurnController(deps) {
                 const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
                 const automaticFirstDeployment = trainingAI && Number(game.diceValue) === 6 && allPiecesInBase;
                 // Nasazení první figurky šestkou je povinné a neobsahuje taktické rozhodnutí.
-                if (!automaticFirstDeployment) chooseAndLogAIMove();
+                if (!automaticFirstDeployment) await chooseAndLogAIMove();
                 if (debugAI) {
                     addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
                 }
@@ -350,7 +365,7 @@ export function createTurnController(deps) {
     
         showGame();
         if (isAI) {
-            const selected = chooseAndLogAIMove();
+            const selected = await chooseAndLogAIMove();
             if (selected !== null) {
                 aiTimer = setTimeout(() => {
                     if (!game || automationPaused || game.phase !== 'move' || isPaused()) return;
@@ -366,13 +381,13 @@ export function createTurnController(deps) {
         const player = game.players[game.currentPlayer];
         if (!player || !player.isAI) return;
     
-        aiTimer = setTimeout(() => {
+        aiTimer = setTimeout(async () => {
             if (!game || automationPaused || modalOpen || moveAnimating || game.winner !== null || isPaused()) return;
             if (game.phase === 'start-roll' || game.phase === 'roll') {
                 doRoll(true);
             } else if (game.phase === 'move') {
-                const selected = chooseAndLogAIMove();
-                if (selected !== null) performMove(selected);
+                const selected = await chooseAndLogAIMove();
+                if (selected !== null && !automationPaused && game?.phase === 'move' && !isPaused()) performMove(selected);
             }
         }, speedDelay());
     }
