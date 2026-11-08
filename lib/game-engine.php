@@ -522,6 +522,9 @@ function onlineEngineAiTacticalWeights(): array
         'captureOpponent' => 5.0,
         'captureOwn' => 7.0,
         'finishPiece' => 8.0,
+        'deployPiece' => 1.5,
+        'enterHome' => 2.5,
+        'homeProgress' => 0.4,
     ];
 
     $configPath = dirname(__DIR__) . '/config/ai-tactical-weights.json';
@@ -581,18 +584,27 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
         $capturedOwn = !empty($move['captured']['ownPiece']);
         $capturedOpponent = !empty($move['captured']) && !$capturedOwn;
         $finishedPiece = !empty($move['finishedNow']);
+        $beforeSteps = (int) ($game['pieces'][$playerId]['pieces'][$pieceId]['steps'] ?? -1);
+        $afterSteps = (int) ($simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'] ?? -1);
+        $deployedPiece = !empty($move['deployed']) || ($beforeSteps === -1 && $afterSteps >= 0);
+        $enteredHome = $beforeSteps < (int) $game['trackLength'] && $afterSteps >= (int) $game['trackLength'];
+        $homeProgress = $beforeSteps >= (int) $game['trackLength'] && $afterSteps >= $beforeSteps
+            ? $afterSteps - $beforeSteps : 0;
         $score = $winning ? $weights['immediateWin'] :
             $ownProgress * $weights['ownProgress'] +
             $opponentSetback * $weights['opponentSetback'] +
             $threatReduction * $weights['threatReduction'] +
             ($capturedOpponent ? $weights['captureOpponent'] : 0.0) -
             ($capturedOwn ? $weights['captureOwn'] : 0.0) +
-            ($finishedPiece ? $weights['finishPiece'] : 0.0);
+            ($finishedPiece ? $weights['finishPiece'] : 0.0) +
+            ($deployedPiece ? $weights['deployPiece'] : 0.0) +
+            ($enteredHome ? $weights['enterHome'] : 0.0) +
+            ($homeProgress * $weights['homeProgress']);
         $candidates[] = [
             'pieceId' => (int) $pieceId,
             'score' => $score,
             'winning' => $winning,
-            'reason' => $winning ? 'okamžité vítězství' : 'taktické vyhodnocení vahami v1',
+            'reason' => $winning ? 'okamžité vítězství' : 'taktické vyhodnocení společnými vahami v2',
             'destinationSteps' => (int) $simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'],
             'move' => $move,
         ];
