@@ -82,3 +82,16 @@ Pravidla zůstávají oddělená od strategie. Lidská výuka může ovlivnit po
 Výběr legálního tahu používá společné váhy z `config/ai-tactical-weights.json`. Model obsahuje devět trénovatelných parametrů: vlastní postup, zdržení soupeře, snížení ohrožení, vyhození soupeře, penalizaci vlastního vyhození, dokončení figurky, nasazení figurky, vstup do domečku a postup v domečku. Okamžitá výhra je samostatná pevná priorita 100000.
 
 Každý faktor je vypočítán pro simulovaný legální tah a jeho příspěvek vstupuje do skóre. Self-play zaznamená faktory, vybrané rozhodnutí, pravděpodobnost výběru a výsledek celé partie. Trenér optimalizuje všech devět proměnných z výsledků partií; turnaj porovnává kompletní sadu parametrů proti aktivní baseline. PHP online strategie i místní JavaScriptová strategie načítají stejný JSON.
+
+
+## 8. Konfigurace 1000 vah z `vahy.txt`
+
+Místní hra načítá kompletní číselnou konfiguraci 1–1000 z `js/ai-weight-config.js`. Index pole odpovídá ID minus jedna; hodnoty jsou beze změny převzaté z dodaného `vahy.txt`. Konfigurace se načítá spolu s modulem AI, nikoli na úvodní obrazovce.
+
+- ID 1–100: základní strategické, poziční, rizikové, postupové a pravidlové parametry. Významné herní faktory z této skupiny vstupují do váženého skóre kandidátních tahů.
+- ID 401–416: aktivní předvolby obtížnosti. Lehká používá agresi 50, riziko 0,2, chybu 0,15 a náhodnost 0,35; střední 150, 1,0, 0,05 a 0,1; těžká 250, 1,8, 0 a 0. Hloubka těžké simulace je 4.
+- Ostatní ID jsou rovněž načtena a dostupná přes `getAIWeight(id)`; jejich skupiny slouží jako další konfigurační/ladicí parametry. Ne všechny mají zatím jednoznačně definovaný samostatný herní faktor, proto se nesmějí vydávat za 1000 nezávislých aktivních taktických schopností.
+
+V lokální hře je dočasně upřednostněn váhový učitel nad neuronovým modelem, aby bylo možné ověřit skutečný vliv dodaných vah. Explicitní předání neuronového modelu do `chooseStrategicDecision` zůstává podporováno. Výuková paměť s přesnou shodou situace a okamžitá výhra mají vyšší prioritu než běžné vážené hodnocení.
+
+Při `?debug=1` se do herního logu vypíše počet načtených hodnot, zvolená obtížnost, její aktivní parametry a hodnoty hlavních strategických vah. Engine stále jako jediný určuje legální tahy; váhy smějí měnit pouze pořadí legálních možností.
