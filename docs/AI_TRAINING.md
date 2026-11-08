@@ -32,9 +32,16 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Pozitivní příklad znovu upřednostní dříve potvrzenou legální figurku ve stejné situaci.
 - AI do rozhodnutí přidá `trainedKnowledge` a ID skutečně použité instrukce; debug log a výukový panel zobrazí `NAUČENO`.
 - Naučená preference nikdy nepřekročí seznam legálních tahů a okamžitá výhra má stále přednost.
+- Připravena inferenční vrstva neuronové sítě v `js/ai-neural-network.js` s verzovaným 18prvkovým vstupem.
+- Místní AI umí neuronovým modelem ohodnotit pouze kandidáty vrácené herním enginem; výsledek se označuje `neuralNetwork` a `neural-network-v1`.
+- Model se načítá dynamicky až při tahu AI ze souboru `js/models/ludo-ai.js`.
+- Okamžitá výhra a přesná lidská naučená preference mají před neuronovým skóre přednost.
+- Přidány regresní testy v `tests/ai-neural-network.test.mjs`.
 
 ### DODĚLAT
 
+- Offline trénovací pipeline, která převede ověřené partie a lidská hodnocení na trénovací příklady a vyexportuje skutečné váhy do `js/models/ludo-ai.js`.
+- Validační sadu a měření úspěšnosti proti dosavadní AI; dokud model neprojde testy, musí zůstat `enabled: false`.
 - Vyhledávání relevantních uložených lidských instrukcí při rozhodování AI.
 - Vyhodnocení podobnosti situace podle pravidel, desky, hráčů, pozic figurek, kostky a legálních tahů.
 - Bezpečné zapojení nalezených instrukcí do taktického hodnocení. Instrukce nikdy nesmí změnit pravidla ani vytvořit nelegální tah.
@@ -226,8 +233,11 @@ Aktuální místní strategie je v `js/ai-strategy.js`.
 - AI nesmí měnit pravidla ani vytvořit vlastní nelegální tah.
 - Pokud existuje okamžitě vítězný tah, AI ho upřednostní.
 - Pokud kompilovaná paměť obsahuje naučenou preferenci pro přesně stejnou herní situaci, AI ji použije a vybere legální tah s nejvyšší podporou v uložených hodnoceních.
-- Pokud pro situaci žádná přesná naučená preference neexistuje, použije náhradní výběr z legálních tahů.
-- Odhady zbývajících kroků a ohrožení jsou zatím pouze popisné; obecné taktické váhy a zobecňování podobných situací ještě nejsou hotové.
+- Pokud přesná lidská preference neexistuje a je dostupný platný zapnutý model, neuronová síť ohodnotí legální kandidáty a vybere nejvyšší skóre.
+- Pokud není dostupná ani lidská preference, ani platný model, použije se náhradní výběr z legálních tahů.
+- Aktuální neuronový model je záměrně vypnutý (`enabled: false`), protože zatím nemá natrénované váhy. Běžné chování AI se proto nemění.
+- Odhady zbývajících kroků a ohrožení jsou zatím pouze popisné; offline trénování a zobecňování lidských příkladů ještě nejsou hotové.
+- Technický popis neuronové vrstvy, 18 vstupních příznaků, formátu modelu a podmínek zapnutí je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
 
 **Běžná hra bez debug režimu naučené informace používá.** Načítá pouze hotovou kompilovanou paměť `ai-memory.json`, nikoli jednotlivé výukové JSON soubory. Paměť zůstává v cache stránky, takže se před každým tahem znovu neprohledává server ani adresář.
 
@@ -302,3 +312,18 @@ V režimu `/?debug=trainer` je před tlačítkem **KLASIK** informační tlačí
 ## 13. Ruční výběr hodnoty kostky v trenéru
 
 V režimu `/?debug=trainer` je nad hrací deskou řada šesti kostek s puntíky 1–6. Člověk vždy vybírá hodnotu kliknutím na kostku; stejné ovládání platí i pro úvodní rozstřel a opakované hody po šestce. AI má přepínač `AI KOSTKA: RUČNĚ / AUTOMATICKY`. V ručním režimu čeká na výběr jedné z šesti hodnot, v automatickém režimu si hodnotu losuje jako dosud. Výchozí režim trenéru je ruční a volba se ukládá v localStorage daného prohlížeče. Po výběru hodnoty pokračuje původní herní engine; pravidla hodů, opakování šestek, tří pokusů, nasazení i trestů se nemění. Mimo trenérský režim zůstává původní automatické házení AI a tlačítko pro hod člověka beze změny.
+
+
+## 14. Neuronová síť – připravená inferenční vrstva
+
+Neuronová síť je samostatná hodnoticí vrstva nad existujícím herním enginem. Engine nadále vytváří legální tahy a simuluje jejich výsledky; síť nesmí vytvářet tahy ani implementovat vlastní pravidla.
+
+- Runtime: `js/ai-neural-network.js`.
+- Rozhodování místní AI: `js/ai-strategy.js`; předání modelu: `js/game-engine.js`; dynamické načtení při tahu: `js/game-turn.js`.
+- Váhy modelu: `js/models/ludo-ai.js`. Aktuální soubor obsahuje pouze vypnutou prázdnou kostru, nikoli natrénovaný model.
+- Vstupní vektor verze 1 obsahuje 18 normalizovaných hodnot a podporuje délky okruhu 40, 48 a 80.
+- Model je plně propojená síť s vrstvami `weights`, `biases` a aktivacemi `relu`, `tanh` nebo `linear`. Runtime ověřuje formát, verzi, rozměry a konečné číselné hodnoty vah.
+- Výběr tahu: okamžitá výhra → přesná lidská preference → neuronové skóre (pokud je model platný a zapnutý) → náhradní výběr.
+- Testy: `tests/ai-neural-network.test.mjs`.
+
+**Co zatím není hotové:** sběr a příprava trénovací množiny pro neuronovou síť, offline trénovací skript, validace výsledného modelu a export skutečných vah. Online PHP AI zatím neuronový model nepoužívá. Detailní technický popis je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
