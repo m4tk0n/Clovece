@@ -1,0 +1,45 @@
+{
+  "format": "clovece-ai-training-state",
+  "version": 1,
+  "updatedAt": null,
+  "status": "baseline",
+  "statusLabel": "ZÁKLADNÍ VÁHY · ZATÍM BEZ TRÉNINKU",
+  "previousWeights": {
+    "immediateWin": 100000,
+    "ownProgress": 0.08,
+    "opponentSetback": 0.035,
+    "threatReduction": 12,
+    "captureOpponent": 5,
+    "captureOwn": 7,
+    "finishPiece": 8
+  },
+  "candidateWeights": {
+    "immediateWin": 100000,
+    "ownProgress": 0.08,
+    "opponentSetback": 0.035,
+    "threatReduction": 12,
+    "captureOpponent": 5,
+    "captureOwn": 7,
+    "finishPiece": 8
+  },
+  "finalWeights": {
+    "immediateWin": 100000,
+    "ownProgress": 0.08,
+    "opponentSetback": 0.035,
+    "threatReduction": 12,
+    "captureOpponent": 5,
+    "captureOwn": 7,
+    "finishPiece": 8
+  },
+  "delta": {
+    "immediateWin": 0,
+    "ownProgress": 0,
+    "opponentSetback": 0,
+    "threatReduction": 0,
+    "captureOpponent": 0,
+    "captureOwn": 0,
+    "finishPiece": 0
+  },
+  "training": null,
+  "tournament": null
+}
