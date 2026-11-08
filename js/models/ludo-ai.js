@@ -5,8 +5,8 @@
 export default Object.freeze({
     format: 'clovece-ai-neural-model',
     version: 1,
-    featureSchemaVersion: 1,
+    featureSchemaVersion: 2,
     enabled: false,
-    inputSize: 18,
+    inputSize: 23,
     layers: []
 });
