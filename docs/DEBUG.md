@@ -172,3 +172,8 @@ Kompletní popis režimu `/?debug=training`, výukového panelu, tlačítek ODES
 - Stejné oddělení platí pro všechny prvky určené výhradně pro debug a výuku AI: jejich vzhled patří do `css/debug.css`, nikoli do běžných herních stylesheetů.
 - Při přidání nového debug prvku se jeho styly zapisují rovnou do `css/debug.css`; do běžných CSS souborů se nepřidávají.
 
+
+
+## Stav a změny taktických vah AI
+
+V rozbaleném panelu `?debug=1` se načítá `config/ai-training-state.json`. Panel zobrazuje původní a kandidátní hodnotu každé taktické váhy, rozdíl po tréninku, validační zlepšení a výsledek turnaje. Kandidát může být zobrazen i tehdy, když jej turnaj zamítl; produkční hodnoty se v takovém případě nemění.
