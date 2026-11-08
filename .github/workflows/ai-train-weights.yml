@@ -121,9 +121,9 @@ jobs:
         id: state
         if: always() && steps.tournament.outcome == 'success' && steps.train-weights.outcome == 'success'
         run: |
-          node --input-type=module <<'NODE'
           git fetch origin main
           git merge --ff-only origin/main
+          node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const training = JSON.parse(fs.readFileSync('artifacts/ai-weight-training-report.json', 'utf8'));
           const tournament = fs.existsSync('artifacts/ai-weight-tournament-report.json')
