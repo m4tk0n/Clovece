@@ -3,7 +3,7 @@
  * Kliknutím se rozbalí/zabalí; rozšířený režim zobrazuje pořadí načítání modulů.
  */
 export function formatDebugWeight(value) {
-    if (!Number.isFinite(Number(value))) return '—';
+    if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return '—';
     return String(Number(Number(value).toFixed(8)));
 }
 
