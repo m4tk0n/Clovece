@@ -520,3 +520,10 @@ Automatický sběr používá jedinečný seed běhu, aby opakované spuštění
 
 
 Identifikátor partie v JSONL je složený ze seedu sběru a pořadí partie (`seed-gameIndex`). Díky tomu trenér odděluje validační a trénovací množinu podle skutečné partie, nikoli pouze podle pořadového čísla, které se opakuje v různých sběrech.
+
+
+## 21. První turnaj a zamítnutí kandidáta
+
+První ověřený kandidát schema v2 byl trénován z 30 484 párových porovnání (24 096 trénovacích, 6 388 validačních). Validační přesnost napodobení taktického učitele byla 82,013 % při log-loss 0,40179. V následném turnaji na desce 40 proti třem kopiím učitele odehrál 200/200 dokončených her, vyhrál 29 (14,5 %), průměrné umístění bylo 2,945/4 a 95% Wilsonův interval výhernosti 10,29–20,05 %. Kandidát nesplnil hranici 25 % a zůstává zamítnutý; produkční model se nezapíná.
+
+Kontrola archivních metrik ukázala, že předchozí sběry používaly opakovaně stejný seed 20261108. Automatický sběr proto nyní používá seed odvozený od ID běhu, střídá varianty 40/4, 48/6 a 80/8 a používá unikátní `gameId` složené ze seedu a pořadí partie. Další trénink má smysl vyhodnotit až po nasbírání těchto různorodých dat.
