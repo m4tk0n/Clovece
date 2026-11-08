@@ -56,6 +56,6 @@ $winning['pieces'][0]['pieces'][3]['steps'] = 43;
 $winningDecision = onlineEngineChooseAIMoveDecision($winning, static fn(int $count): int => $count - 1);
 aiStrategyAssert($winningDecision['pieceId'] !== null, 'AI musí najít vítězný tah.');
 aiStrategyAssert($winningDecision['pieceId'] === 0, 'Okamžité vítězství musí mít přednost před náhodným výběrem.');
-aiStrategyAssert($winningDecision['selectedScore'] === 1.0, 'Vítězný tah musí být označen jako okamžitá výhra.');
+aiStrategyAssert($winningDecision['selectedScore'] === 100000.0, 'Vítězný tah musí používat pevnou prioritu okamžité výhry.');
 
 fwrite(STDOUT, "OK: online AI je nevyučená, zachovává výpočty a vybírá pouze legální tahy.\n");
