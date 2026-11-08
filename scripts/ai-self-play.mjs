@@ -23,6 +23,7 @@ const runId = String(args['run-id'] || (Date.now() + '-' + process.pid));
 const output = String(args.output || 'artifacts/ai-self-play.jsonl');
 const metricsOutput = String(args.metrics || 'artifacts/ai-self-play-metrics.json');
 const maxActions = Math.max(1000, Number(args['max-actions']) || 20000);
+const explorationTemperature = Math.max(0.25, Math.min(20, Number(args['exploration-temperature']) || 4));
 const allowedBoards = { 40: 4, 48: 6, 80: 8 };
 if (playerCount < 2 || playerCount > 8 || !allowedBoards[boardSize] || playerCount > allowedBoards[boardSize]) {
     throw new Error('Nepovolená kombinace hráčů a desky. 40: 2–4, 48: 2–6, 80: 2–8.');
@@ -35,6 +36,24 @@ function makeRandom(initialSeed) {
         return state / 0x100000000;
     };
 }
+function samplePolicyDecision(ranking, random, temperature) {
+    const winning = ranking.find(item => item.factors?.winning);
+    if (winning) return { pieceId: winning.pieceId, probability: 1, forced: true };
+
+    const maximum = Math.max(...ranking.map(item => item.score));
+    const weights = ranking.map(item => Math.exp(Math.max(-40, (item.score - maximum) / temperature)));
+    const total = weights.reduce((sum, value) => sum + value, 0);
+    const probabilities = weights.map(value => value / total);
+    let draw = random();
+    for (let index = 0; index < probabilities.length; index++) {
+        draw -= probabilities[index];
+        if (draw <= 0 || index === probabilities.length - 1) {
+            return { pieceId: ranking[index].pieceId, probability: probabilities[index], forced: false };
+        }
+    }
+    return { pieceId: ranking[0].pieceId, probability: probabilities[0], forced: false };
+}
+
 function progress(game, playerId) {
     return game.pieces[playerId].pieces.reduce((sum, piece) => {
         if (piece.steps < 0) return sum;
@@ -69,6 +88,7 @@ const summary = {
     gamesTruncated: 0,
     playerCount,
     boardSize,
+    explorationTemperature,
     decisions: 0,
     winsByPlayer: Array(playerCount).fill(0),
     averageActions: 0,
@@ -118,7 +138,10 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         if (!decision || !legalMoves.includes(decision.pieceId)) {
             throw new Error('AI vrátila tah mimo seznam legálních tahů.');
         }
-        const selected = candidates.find(candidate => candidate.pieceId === decision.pieceId);
+        const sampledDecision = samplePolicyDecision(decision.ranking, random, explorationTemperature);
+        const selectedPieceId = sampledDecision.pieceId;
+        const selected = candidates.find(candidate => candidate.pieceId === selectedPieceId);
+        if (!selected) throw new Error('Self-play vybralo tah mimo seznam kandidátů.');
         gameSamples.push({
             gameId: runId + '-' + String(seed) + '-' + (gameIndex + 1),
             playerCount,
@@ -141,16 +164,18 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
                     teacherFactors: teacher?.factors ?? null
                 };
             }),
-            selectedPieceId: decision.pieceId,
+            selectedPieceId,
+            selectedProbability: sampledDecision.probability,
+            policyTemperature: explorationTemperature,
             selectedFeatures: extractAIMoveFeatures(game, {
                 ...selected,
                 probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies),
                 tacticalFeatures: decision.ranking.find(item => item.pieceId === selected.pieceId)?.factors
             }, legalMoves.length),
-            selection: decision.reason,
+            selection: sampledDecision.forced ? 'forced-immediate-win' : 'reinforce-softmax',
             teacherRanking: decision.ranking
         });
-        movePiece(game, decision.pieceId);
+        movePiece(game, selectedPieceId);
         actions++;
     }
 
