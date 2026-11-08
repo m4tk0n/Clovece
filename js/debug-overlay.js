@@ -8,36 +8,28 @@ export function initDebugOverlay() {
 
     const panel = document.createElement('div');
     panel.id = 'clovece-debug-overlay';
-    panel.style.cssText = [
-        'position:fixed','left:2px','bottom:2px','z-index:2147483647',
-        'box-sizing:border-box','max-width:calc(100vw - 8px)','width:max-content',
-        'display:flex','align-items:stretch','gap:6px',
-        'padding:4px 6px','border:1px solid rgba(255,0,0,.7)','border-radius:4px',
-        'background:rgba(0,0,0,.9)','color:#ff4545','font:10px/1.4 monospace',
-        'white-space:normal','overflow-wrap:anywhere','pointer-events:auto',
-        'user-select:none','-webkit-user-select:none'
-    ].join(';');
+    panel.className = 'clovece-debug-overlay';
 
     const toggleButton = document.createElement('button');
     toggleButton.type = 'button';
     toggleButton.textContent = '+';
     toggleButton.setAttribute('aria-label', 'Rozbalit debug panel');
     toggleButton.setAttribute('aria-expanded', 'false');
-    toggleButton.style.cssText = 'align-self:stretch;min-width:20px;padding:0 4px;border:1px solid #a33;border-radius:3px;background:#260000;color:#ff5555;font:bold 14px/1 monospace;cursor:pointer;touch-action:manipulation';
+    toggleButton.className = 'debug-overlay-toggle';
 
     const content = document.createElement('div');
-    content.style.cssText = 'display:flex;flex-direction:column;justify-content:center;min-width:0;gap:2px';
+    content.className = 'debug-overlay-content';
     const summary = document.createElement('div');
     summary.textContent = 'DEBUG';
     const viewportSummary = document.createElement('div');
     viewportSummary.textContent = 'VIDITELNÉ –';
     const cameraSummary = document.createElement('div');
     cameraSummary.textContent = '3D KAMERA –';
-    cameraSummary.style.cssText = 'display:none;color:#ffb45e';
+    cameraSummary.className = 'debug-overlay-camera';
     const metaSummary = document.createElement('div');
-    metaSummary.style.cssText = 'display:none;color:#ff8888';
+    metaSummary.className = 'debug-overlay-meta';
     const details = document.createElement('div');
-    details.style.cssText = 'display:none;margin-top:5px;padding-top:5px;border-top:1px solid #a33;max-height:55vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere';
+    details.className = 'debug-overlay-details';
     content.appendChild(summary);
     content.appendChild(viewportSummary);
     content.appendChild(cameraSummary);
@@ -55,8 +47,7 @@ export function initDebugOverlay() {
     let dragged = false;
 
     // Přetažení panelu za jeho informační část; tlačítko +/− zůstává klikací.
-    content.style.cursor = 'grab';
-    content.style.touchAction = 'none';
+    content.classList.add('is-draggable');
     content.addEventListener('pointerdown', event => {
         if (event.target === details || details.contains(event.target)) return;
         if (event.button !== 0 && event.pointerType !== 'touch') return;
@@ -70,7 +61,7 @@ export function initDebugOverlay() {
         panel.style.top = Math.round(rect.top) + 'px';
         panel.style.right = 'auto';
         panel.style.bottom = 'auto';
-        content.style.cursor = 'grabbing';
+        content.classList.add('is-dragging');
         content.setPointerCapture?.(event.pointerId);
         event.preventDefault();
     });
@@ -90,7 +81,7 @@ export function initDebugOverlay() {
         if (!isDragging || (event && event.pointerId !== dragPointerId)) return;
         isDragging = false;
         dragPointerId = null;
-        content.style.cursor = 'grab';
+        content.classList.remove('is-dragging');
     };
     content.addEventListener('pointerup', stopDragging);
     content.addEventListener('pointercancel', stopDragging);
@@ -108,8 +99,8 @@ export function initDebugOverlay() {
     }
     function toggle() {
         expanded = !expanded;
-        details.style.display = expanded ? 'block' : 'none';
-        metaSummary.style.display = expanded ? 'block' : 'none';
+        details.classList.toggle('is-visible', expanded);
+        metaSummary.classList.toggle('is-visible', expanded);
         toggleButton.textContent = expanded ? '−' : '+';
         toggleButton.setAttribute('aria-label', expanded ? 'Sbalit debug panel' : 'Rozbalit debug panel');
         toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
@@ -188,7 +179,7 @@ export function initDebugOverlay() {
     window.addEventListener('clovece:debug-camera', event => {
         const camera = event.detail || {};
         if (camera.active === false) {
-            cameraSummary.style.display = 'none';
+            cameraSummary.classList.remove('is-visible');
             return;
         }
         const fmt = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
@@ -196,7 +187,7 @@ export function initDebugOverlay() {
         cameraSummary.textContent = '3D KAMERA X ' + fmt(camera.x) + ' Y ' + fmt(camera.y) + ' Z ' + fmt(camera.z) +
             ' | NÁKLON ' + camera.tilt.toFixed(1) + '° | CÍL ' +
             fmt(camera.targetX) + ' / ' + fmt(camera.targetY) + ' / ' + fmt(camera.targetZ);
-        cameraSummary.style.display = 'block';
+        cameraSummary.classList.add('is-visible');
     });
 
     window.addEventListener('clovece:debug-log', event => {
