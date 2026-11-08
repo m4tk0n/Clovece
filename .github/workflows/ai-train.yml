@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/ai-train.mjs'
+      - 'scripts/ai-tournament.mjs'
       - 'tests/ai-train.test.mjs'
       - '.github/workflows/ai-train.yml'
       - 'js/ai-neural-network.js'
@@ -24,6 +25,10 @@ on:
     workflows: ["AI self-play sběr dat"]
     types: [completed]
     branches: [main]
+
+concurrency:
+  group: ai-neural-training-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
