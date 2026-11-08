@@ -41,11 +41,12 @@ Trénink nepoužívá `teacherScore` jako cílovou hodnotu. Starší determinist
 
 - Workflow `.github/workflows/ai-self-play.yml` vytváří partie a archivuje je ve větvi `ai-training-data`.
 - Workflow `.github/workflows/ai-train-weights.yml` se spustí po úspěšném dokončení self-play workflow.
-- Trénink vytvoří report `ai-weight-training-report.json`.
-- Pokud validační kontrola přijme lepší hodnoty, aktualizuje společný JSON a JS modul a uloží změny do `main`.
-- Pokud se zlepšení nepotvrdí, aktuální váhy zůstanou beze změny.
+- Trénink vytvoří report `ai-weight-training-report.json` a při úspěšné validaci kandidátní soubory `ai-tactical-weights-candidate.json` a `ai-tactical-weights-candidate.js`.
+- Kandidát se uloží jako GitHub Actions artefakt; aktivní `config/ai-tactical-weights.json` ani `js/ai-tactical-weights.js` se v tomto kroku nemění.
+- Pokud se validační zlepšení nepotvrdí, kandidátní soubory se nevytvoří.
+- Teprve samostatný turnaj v bodě 3 rozhodne, zda se kandidát smí stát aktivní sadou vah.
 
-Report obsahuje původní, navržené a výsledné váhy, počty partií a rozhodnutí, validační skóre i informaci, zda byl kandidát přijat.
+Report obsahuje původní, navržené a výsledné kandidátní váhy, počty partií a rozhodnutí, validační skóre i informaci, zda byl kandidát přijat. Přijetí v této fázi znamená pouze úspěšnou offline validaci, nikoliv nasazení do hry.
 
 ## Ochrany
 
