@@ -160,7 +160,7 @@ export function calculatePlayerPips(game, playerId) {
     return Math.max(0, pips);
 }
 
-function normalizeTrainingSituation(game, piecesSource = game.pieces) {
+export function normalizeTrainingSituation(game, piecesSource = game.pieces) {
     const players = [...(game.players || [])].sort((a, b) => Number(a.slot) - Number(b.slot));
     const currentPlayer = players.find(player => Number(player.id) === Number(game.currentPlayer));
     return JSON.stringify({
