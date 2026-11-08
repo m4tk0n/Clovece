@@ -530,6 +530,36 @@ function estimateDeploymentBonusAttackChance(deployedState, playerId, dependenci
     return attackDiceCount / 6;
 }
 
+function estimateOpponentStartSquareRisk(game, playerId, pieceId) {
+    const piece = game.pieces[playerId]?.pieces[pieceId];
+    if (!piece || !isMainTrackPiece(piece, game.trackLength)) {
+        return { risk: 0, onOpponentStart: false, basePieces: 0, nearGoal: false, opponentId: null };
+    }
+
+    const position = (game.players[playerId].start + piece.steps) % game.trackLength;
+    let highestRisk = { risk: 0, onOpponentStart: false, basePieces: 0, nearGoal: false, opponentId: null };
+
+    for (const opponent of game.players) {
+        if (opponent.id === playerId || opponent.finished || position !== opponent.start) continue;
+
+        const opponentPieces = game.pieces[opponent.id]?.pieces || [];
+        const basePieces = opponentPieces.filter(item => item.steps === -1).length;
+        const nearGoal = opponentPieces.some(item =>
+            item.steps >= game.trackLength - 6 && item.steps <= game.trackLength + 3
+        );
+        if (basePieces === 0) continue;
+
+        // Na soupeřově startu může soupeř při hodu šestky povinně nasadit
+        // další figurku a naši figurku tím vyhodit. Riziko roste s počtem
+        // figurek v základně a ještě více, pokud už soupeř míří do cíle.
+        const risk = Math.min(1, 0.25 + basePieces * 0.15 + (nearGoal ? 0.3 : 0));
+        if (risk > highestRisk.risk) {
+            highestRisk = { risk, onOpponentStart: true, basePieces, nearGoal, opponentId: opponent.id };
+        }
+    }
+    return highestRisk;
+}
+
 export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTICAL_WEIGHTS, dependencies = {}) {
     const playerId = game.currentPlayer;
     const beforeOwnPips = calculatePlayerPips(game, playerId);
@@ -587,6 +617,13 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         const deployedPieceThreat = deployedPiece
             ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
             : 0;
+        const pieceThreat = isMainTrackPiece(state.pieces[playerId]?.pieces[candidate.pieceId], state.trackLength)
+            ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
+            : 0;
+        const startSquareRisk = estimateOpponentStartSquareRisk(state, playerId, candidate.pieceId);
+        const startSquareDangerScore = startSquareRisk.risk * pieceThreat *
+            (Number(weights.captureOwn) || AI_TACTICAL_WEIGHTS.captureOwn) *
+            (startSquareRisk.nearGoal ? 3 : 2);
         const deploymentTacticalScore = deployedPiece
             ? deploymentAttackChance * (Number(weights.captureOpponent) || AI_TACTICAL_WEIGHTS.captureOpponent) * 2 -
                 deployedPieceThreat * (Number(weights.captureOwn) || AI_TACTICAL_WEIGHTS.captureOwn) * 2
@@ -634,7 +671,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
 
         const score = winning ? 1000000 :
             progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
-            allWeightsScore + deploymentTacticalScore +
+            allWeightsScore + deploymentTacticalScore - startSquareDangerScore +
             (enemyCapture ? weights.captureOpponent : 0) -
             (selfCapture ? weights.captureOwn : 0) +
             (deployedPiece ? weights.deployPiece : 0) +
@@ -654,6 +691,12 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 deploymentAttackChance: Number(deploymentAttackChance.toFixed(4)),
                 deployedPieceThreat: Number(deployedPieceThreat.toFixed(4)),
                 deploymentTacticalScore: Number(deploymentTacticalScore.toFixed(4)),
+                pieceThreat: Number(pieceThreat.toFixed(4)),
+                onOpponentStart: startSquareRisk.onOpponentStart,
+                opponentStartRisk: Number(startSquareRisk.risk.toFixed(4)),
+                opponentStartBasePieces: startSquareRisk.basePieces,
+                opponentNearGoal: startSquareRisk.nearGoal,
+                startSquareDangerScore: Number(startSquareDangerScore.toFixed(4)),
                 enteredHome,
                 homeProgress: Number(homeProgress.toFixed(3)),
                 aggressionScale: Number(aggressionScale.toFixed(3)),
