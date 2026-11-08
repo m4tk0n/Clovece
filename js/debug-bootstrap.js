@@ -9,6 +9,18 @@ import { geometry, trackPosition, armPoint, laneRadius } from './game-board-geom
 
 const mode = new URLSearchParams(window.location.search).get('debug');
 const trainingMode = mode === 'trainer' || mode === 'training';
+
+if (mode) {
+    const cssVersions = (() => {
+        try { return JSON.parse(document.body.dataset.cssVersions || '{}'); }
+        catch { return {}; }
+    })();
+    const debugStyles = document.createElement('link');
+    debugStyles.rel = 'stylesheet';
+    debugStyles.href = 'css/debug.css?v=' + encodeURIComponent(cssVersions['css/debug.css'] || 1);
+    debugStyles.dataset.debugStylesheet = 'true';
+    document.head.append(debugStyles);
+}
 const log = trainingMode ? null : await import('./debug-overlay.js').then(module => module.initDebugOverlay());
 
 if (trainingMode) {
