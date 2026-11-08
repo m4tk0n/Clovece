@@ -1,5 +1,7 @@
+import { scoreAIMoveCandidates } from './ai-neural-network.js';
+
 /**
- * Základní výpočtová vrstva a zatím nevyučený výběr tahu AI.
+ * Základní výpočtová vrstva a rozhodování AI.
  *
  * Pravidla a legální tahy poskytuje výhradně game-engine.js.
  * Výpočty zde vracejí popisné údaje; samy neurčují taktické preference.
@@ -213,7 +215,7 @@ function findMatchingTrainingExamples(game, instructions) {
  * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
  * random je injektovatelný kvůli reprodukovatelným testům.
  */
-export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random, learnedMemory = {}) {
+export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random, learnedMemory = {}, neuralModel = null) {
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
 
@@ -237,11 +239,22 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
         ? learnedCandidates[0]
         : null;
 
-    const selected = winning || learned || candidates[Math.min(
+    const neuralScores = !winning && !learned
+        ? scoreAIMoveCandidates(game, candidates, validMoves.length, neuralModel)
+        : null;
+    const neuralByPiece = new Map((neuralScores || []).map(item => [item.pieceId, item.score]));
+    const neuralCandidates = neuralScores
+        ? candidates.map(candidate => ({ ...candidate, neuralScore: neuralByPiece.get(candidate.pieceId) }))
+            .filter(candidate => Number.isFinite(candidate.neuralScore))
+            .sort((a, b) => b.neuralScore - a.neuralScore || a.pieceId - b.pieceId)
+        : [];
+    const neural = neuralCandidates[0] || null;
+    const selected = winning || learned || neural || candidates[Math.min(
         candidates.length - 1,
         Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * candidates.length)
     )];
     const trained = Boolean(learned && !winning && selected.pieceId === learned.pieceId);
+    const neuralSelected = Boolean(!winning && !learned && neural && selected.pieceId === neural.pieceId);
     const usedInstructions = trained ? [{
         id: 'memory:' + signature,
         feedbackType: 'compiled-memory',
@@ -261,21 +274,26 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
             : trained
                 ? 'NAUČENO: paměť AI doporučuje figurku ' + (learned.pieceId + 1) +
                     ' na základě ' + learned.votes + ' výukových hodnocení.'
-                : 'Pro tuto přesnou situaci zatím nemám použitelné naučené hodnocení. Tah jsem vybrala náhodně z ' +
-                    validMoves.length + ' legálních možností.',
-        score: winning ? 1 : (trained ? Math.min(0.99, 0.5 + learned.votes / 100) : 0),
+                : neuralSelected
+                    ? 'NEURONOVÁ AI: model vyhodnotil ' + validMoves.length + ' legálních tahů a doporučuje figurku ' +
+                        (neural.pieceId + 1) + ' (skóre ' + neural.neuralScore.toFixed(4) + ').'
+                    : 'Pro tuto přesnou situaci zatím nemám použitelné naučené hodnocení ani aktivní neuronový model. Tah jsem vybrala náhodně z ' +
+                        validMoves.length + ' legálních možností.',
+        score: winning ? 1 : (trained ? Math.min(0.99, 0.5 + learned.votes / 100) : (neuralSelected ? neural.neuralScore : 0)),
         breakdown: {
             trainedKnowledge: trained,
+            neuralNetwork: neuralSelected,
+            neuralModelVersion: neuralSelected ? neuralModel.version : null,
             usedInstructions,
             legalMoveCount: validMoves.length,
-            selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' : 'untrained-random')
+            selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' : (neuralSelected ? 'neural-network' : 'untrained-random'))
         },
         alternatives: candidates
             .filter(candidate => candidate.pieceId !== selected.pieceId)
             .map(candidate => ({
                 pieceId: candidate.pieceId,
-                score: candidate.winningMove ? 1 : Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100,
-                reason: candidate.winningMove ? 'okamžitá výhra' : 'bez vyššího naučeného hodnocení'
+                score: candidate.winningMove ? 1 : (trained ? Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100 : (neuralByPiece.get(candidate.pieceId) ?? 0)),
+                reason: candidate.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' : (neuralByPiece.has(candidate.pieceId) ? 'neuronové skóre' : 'bez modelového skóre'))
             }))
     };
 }
