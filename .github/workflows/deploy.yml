@@ -24,6 +24,7 @@ jobs:
             .env
             README.md
             docs/**
+            scripts/**
             tests/
             package.json
             package-lock.json
