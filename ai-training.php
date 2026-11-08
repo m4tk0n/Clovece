@@ -167,6 +167,28 @@ if (!is_file($instructionsHtaccess)) {
     }
 }
 $denyContents = @file_get_contents($instructionsHtaccess);
+// Opravíme pouze přesně známý chybný soubor vytvořený starší verzí endpointu.
+// Jiné existující ochranné soubory nikdy automaticky nepřepisujeme.
+if (is_string($denyContents)
+    && trim($denyContents) === 'Require all denied\\n'
+    && !is_link($instructionsHtaccess)
+) {
+    $repairHandle = @fopen($instructionsHtaccess, 'c');
+    if ($repairHandle === false) {
+        aiTrainingFail('Chybně vytvořenou ochranu úložiště nelze opravit.', 500);
+    }
+    $repairOk = flock($repairHandle, LOCK_EX)
+        && ftruncate($repairHandle, 0)
+        && rewind($repairHandle)
+        && fwrite($repairHandle, $denyRule) === strlen($denyRule)
+        && fflush($repairHandle);
+    flock($repairHandle, LOCK_UN);
+    fclose($repairHandle);
+    if (!$repairOk) {
+        aiTrainingFail('Chybně vytvořenou ochranu úložiště nelze opravit.', 500);
+    }
+    $denyContents = @file_get_contents($instructionsHtaccess);
+}
 if (!is_string($denyContents) || !preg_match('/^\\s*Require\\s+all\\s+denied\\s*$/mi', $denyContents)) {
     aiTrainingFail('Úložiště instrukcí nemá potvrzenou ochranu proti přímému přístupu.', 500);
 }
