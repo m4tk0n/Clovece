@@ -28,3 +28,9 @@
 #ai-training-submit{border-color:#c6a96b;background:#304637}
 #ai-training-correct{border-color:#83bd8b;background:#244b32;color:#d9f5dd}
 @media(max-width:520px){.ai-training-panel{left:2px;bottom:2px;width:min(var(--training-panel-width),calc(100vw - 6px));max-height:min(var(--training-panel-height),42dvh);padding:5px;border-radius:5px}.ai-training-panel[data-size="2"]{max-height:55dvh}.ai-training-analysis{padding:3px 1px}.ai-training-form textarea{min-height:34px}.ai-training-buttons button{padding:5px;font-size:8px}}
+
+.ai-training-history-label{display:block;margin:4px 0 2px;color:#c9d5cb;font-size:9px;font-weight:700}
+.ai-training-history{box-sizing:border-box;width:100%;min-height:25px;padding:3px 5px;border:1px solid #66766b;border-radius:4px;background:#17231e;color:#fff;font:10px system-ui,sans-serif}
+.ai-training-history:disabled{opacity:.6}
+.ai-training-candidate-choice{margin-right:5px;padding:2px 4px;border:1px solid #718075;border-radius:3px;background:#23352b;color:#f3eddf;font:9px system-ui,sans-serif}
+.ai-training-candidates li.is-teaching-target .ai-training-candidate-choice{border-color:#c6a96b;background:#4a3b20;color:#ffe4a4}
