@@ -29,6 +29,8 @@ on:
     branches: [main]
     paths:
       - 'scripts/ai-self-play.mjs'
+      - 'js/ai-strategy.js'
+      - 'tests/ai-strategy.test.mjs'
       - '.github/workflows/ai-self-play.yml'
   schedule:
     - cron: "17 3 * * 1"
