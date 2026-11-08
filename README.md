@@ -12,6 +12,7 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 - Podrobná a závazná pravidla hry včetně dostupných desek jsou vedena výhradně v [GAME_RULES.md](docs/GAME_RULES.md)
 - Automatické tahy AI se třemi úrovněmi obtížnosti (lehká, střední, těžká); taktika a pravděpodobnostní model jsou popsány v [AI_STRATEGY.md](docs/AI_STRATEGY.md)
 - AI využívá kompilovanou paměť lidských oprav a potvrzených tahů; ve výukovém režimu lze samostatně hodnotit i více rozhodnutí po sobě jdoucích hodech (např. po šestce a následném hodu). Podrobnosti: [AI_TRAINING.md](docs/AI_TRAINING.md)
+- Místní AI má připravenou, zatím vypnutou inferenční vrstvu neuronové sítě; natrénované váhy a offline trénovací pipeline jsou další fáze. Technický popis: [AI_NEURAL_NETWORK.md](docs/AI_NEURAL_NETWORK.md).
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
 
