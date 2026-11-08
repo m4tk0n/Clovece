@@ -4,7 +4,7 @@
  * ?debug=training = výuka AI bez technických diagnostických údajů.
  */
 import { registerGameExtension } from './game-extensions.js';
-import { buildDebugMovePaths } from './game-board-debug.js?v=20261106-1';
+import { buildDebugMovePaths } from './game-board-debug.js';
 import { geometry, trackPosition, armPoint, laneRadius } from './game-board-geometry.js';
 
 const mode = new URLSearchParams(window.location.search).get('debug');
