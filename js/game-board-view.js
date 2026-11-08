@@ -220,6 +220,7 @@ export function getBoardStyle() {
 function styleSwitchMarkup() {
     const label = { classic: 'KLASIK', polygon: 'MNOHOÚHELNÍK' };
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
+        (trainingMode ? '<button type="button" class="board-style-btn board-dice-display-btn" data-dice-display="toggle" aria-pressed="true" title="Skrýt výběr kostek">KOSTKY</button>' : '') +
         (trainingMode ? '<button type="button" class="board-style-btn board-game-info-btn" data-game-info="toggle" aria-label="Zobrazit nastavení vytvořené hry" aria-expanded="false" title="Nastavení vytvořené hry">i</button>' : '') +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
@@ -234,6 +235,8 @@ const SWITCH_CSS = '<style>' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
     '.board-style-btn.is-active{background:rgba(198,169,107,.22);border-color:#c6a96b;color:#f3eddf}' +
+    '.board-dice-display-btn{font:700 7px/1.2 "Press Start 2P",monospace}' +
+    '.trainer-dice-controls.dice-display-hidden{display:none!important}' +
     '.board-game-info-btn{min-width:20px;padding:3px 5px;border-radius:50%;font:800 10px/1 system-ui,sans-serif;text-transform:none}' +
     '.board-game-info-panel{position:absolute;top:34px;right:6px;z-index:30;box-sizing:border-box;width:min(290px,calc(100% - 12px));max-height:min(65dvh,420px);overflow:auto;padding:10px;border:1px solid rgba(198,169,107,.75);border-radius:9px;background:rgba(9,17,15,.98);color:#f3eddf;box-shadow:0 8px 26px rgba(0,0,0,.5);font:11px/1.4 system-ui,sans-serif;letter-spacing:normal}' +
     '.board-game-info-panel h3{margin:0 0 7px;color:#e6c98a;font-size:12px}' +
@@ -260,6 +263,19 @@ function bindStyleSwitch(container) {
 
     container.addEventListener('click', event => {
         const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+        const diceDisplayButton = path.find(node => node instanceof Element && node.matches('[data-dice-display]')) ||
+            event.target.closest?.('[data-dice-display]');
+        if (diceDisplayButton && container.contains(diceDisplayButton)) {
+            event.preventDefault();
+            const controls = document.getElementById('trainer-dice-controls');
+            if (!controls) return;
+            const hidden = controls.classList.toggle('dice-display-hidden');
+            diceDisplayButton.setAttribute('aria-pressed', String(!hidden));
+            diceDisplayButton.textContent = hidden ? 'KOSTKY +' : 'KOSTKY';
+            diceDisplayButton.title = hidden ? 'Zobrazit výběr kostek' : 'Skrýt výběr kostek';
+            return;
+        }
+
         const infoButton = path.find(node => node instanceof Element && node.matches('[data-game-info]')) ||
             event.target.closest?.('[data-game-info]');
         if (infoButton && container.contains(infoButton)) {
