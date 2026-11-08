@@ -354,7 +354,7 @@ Simulátor vytváří hru přes `createGame`, všechny hráče přepne na AI a t
 ### Výstupy
 
 - `artifacts/ai-self-play.jsonl`: jeden řádek na každé rozhodnutí; obsahuje legální kandidáty, 18prvkové vstupní vektory, vybraný tah, hráče, hod a konečný výsledek partie.
-- `artifacts/ai-self-play-metrics.json`: souhrn počtu dokončených/nedokončených partií, vítězů, rozhodnutí a průměrné délky.
+- `artifacts/ai-self-play-metrics.json`: souhrn počtu dokončených/nedokončených partií, vítězů, rozhodnutí a průměrné délky. Počty umístění se počítají pouze z dokončených partií.
 
 Nedokončené partie mají `reward: null` a nesmějí být použity jako dokončené výsledkové příklady.
 
