@@ -340,9 +340,7 @@ function bindStyleSwitch(container) {
             infoButton.setAttribute('aria-expanded', 'true');
             return;
         }
-        // Najdřív hledáme přepínač režimu. Použijeme i composedPath(),
-        // aby delegace fungovala také při události z vnořeného/canvas prvku.
-        const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+        // Přepínač režimu vykreslení (v traineru je skrytý).
         const viewButton = path.find(node => node instanceof Element && node.matches('[data-board-view]')) ||
             event.target.closest?.('[data-board-view]');
         if (viewButton && container.contains(viewButton)) {
