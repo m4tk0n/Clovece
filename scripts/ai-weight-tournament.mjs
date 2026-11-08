@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Nezávislý turnaj kandidátních taktických vah proti aktivní sadě.
- * Obě AI používají stejné produkční herní jádro, pravidla i sekvence hodů.
- * Kandidát střídá pozici hráče; testuje se na deskách 40, 48 a 80.
+ * Turnaj kandidátních taktických vah proti kopiím aktivní AI.
+ * Používá produkční herní jádro a ověřuje všechny aktivní kombinace 40/4, 48/6 a 80/8.
+ * Kandidát střídá všechna hráčská místa; pro každou skupinu míst se opakuje stejný seed.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,10 +18,14 @@ const args = Object.fromEntries(process.argv.slice(2).map(value => {
 const candidatePath = path.resolve(String(args.candidate || 'artifacts/ai-tactical-weights-candidate.json'));
 const baselinePath = path.resolve(String(args.baseline || 'config/ai-tactical-weights.json'));
 const outputPath = path.resolve(String(args.output || 'artifacts/ai-weight-tournament-report.json'));
-const gamesPerBoard = Math.max(20, Math.min(2000, Number(args['games-per-board']) || 120));
+const gamesPerBoard = Math.max(24, Math.min(2000, Number(args['games-per-board']) || 120));
 const maxActions = Math.max(1000, Number(args['max-actions']) || 20000);
 const seed = Number.isFinite(Number(args.seed)) && args.seed !== undefined ? Number(args.seed) : 20261108;
-const boards = [40, 48, 80];
+const boards = [
+    { boardSize: 40, playerCount: 4 },
+    { boardSize: 48, playerCount: 6 },
+    { boardSize: 80, playerCount: 8 }
+];
 const weightKeys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece'];
 
 function readJson(file) {
@@ -69,7 +73,7 @@ if (sameWeights(candidate, baseline)) throw new Error('Kandidát je totožný s 
 const dependencies = { getValidMoves, movePiece, rollDice };
 const report = {
     format: 'clovece-ai-tactical-weight-tournament',
-    formatVersion: 1,
+    formatVersion: 2,
     createdAt: new Date().toISOString(),
     seed,
     gamesPerBoard,
@@ -81,32 +85,40 @@ const report = {
     candidateWeights: candidate,
     delta: Object.fromEntries(weightKeys.map(key => [key, Number((candidate[key] - baseline[key]).toFixed(8))])),
     boards: {},
-    overall: { candidateWins: 0, baselineWins: 0, candidateWinRate: 0, candidateWinRate95CI: { lower: 0, upper: 0 } },
+    overall: {
+        candidateWins: 0,
+        baselineWins: 0,
+        candidateWinRate: 0,
+        candidateWinRate95CI: { lower: 0, upper: 0 },
+        expectedRandomWinRate: boards.reduce((sum, item) => sum + 1 / item.playerCount, 0) / boards.length
+    },
     accepted: false,
     decision: 'not-evaluated'
 };
 let totalActions = 0;
 
 for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
-    const boardSize = boards[boardIndex];
+    const { boardSize, playerCount } = boards[boardIndex];
     const stats = {
         boardSize,
-        playerCount: 2,
+        playerCount,
         gamesRequested: gamesPerBoard,
         gamesCompleted: 0,
+        gamesTruncated: 0,
         candidateWins: 0,
         baselineWins: 0,
         candidateWinRate: 0,
         candidateWinRate95CI: { lower: 0, upper: 0 },
+        expectedRandomWinRate: Number((1 / playerCount).toFixed(4)),
         averageActions: 0,
-        candidateWinsBySeat: [0, 0],
-        baselineWinsBySeat: [0, 0]
+        candidateWinsBySeat: Array(playerCount).fill(0),
+        baselineWinsBySeat: Array(playerCount).fill(0)
     };
     let boardActions = 0;
     for (let gameIndex = 0; gameIndex < gamesPerBoard; gameIndex++) {
-        const random = makeRandom(seed + boardIndex * 100000 + Math.floor(gameIndex / 2));
-        const candidateSeat = gameIndex % 2;
-        const game = createGame(1, 1, [], [], boardSize);
+        const random = makeRandom(seed + boardIndex * 100000 + Math.floor(gameIndex / playerCount));
+        const candidateSeat = gameIndex % playerCount;
+        const game = createGame(1, playerCount - 1, [], [], boardSize);
         game.players.forEach(player => { player.isAI = true; });
         determineStartingPlayer(game, () => Math.floor(random() * 6) + 1);
         let actions = 0;
@@ -175,22 +187,23 @@ report.averageActions = completed ? Number((totalActions / completed).toFixed(2)
 
 const boardResults = Object.values(report.boards);
 const everyBoardHasCoverage = boardResults.every(item => item.gamesCompleted === gamesPerBoard);
-const noBoardRegression = boardResults.every(item => item.candidateWinRate >= 0.45);
-const statisticallyBetter = completed >= 300 && report.overall.candidateWinRate95CI.lower > 0.5;
+const betterOnEveryBoard = boardResults.every(item =>
+    item.candidateWinRate95CI.lower > item.expectedRandomWinRate
+);
+const statisticallyBetter = completed === gamesPerBoard * boards.length && betterOnEveryBoard;
 report.accepted = everyBoardHasCoverage && report.invalidMoves === 0 &&
-    report.gamesTruncated === 0 && noBoardRegression && statisticallyBetter;
+    report.gamesTruncated === 0 && statisticallyBetter;
 report.decision = report.accepted
-    ? 'ACCEPTED: kandidát má statisticky průkaznou výhodu nad 50 % a neklesl pod 45 % na žádné desce.'
-    : 'REJECTED: kandidát nesplnil statistickou hranici, pokrytí všech desek nebo ochranu proti regresi.';
+    ? 'ACCEPTED: kandidát statisticky překonal rovnoměrnou základní šanci na všech třech podporovaných kombinacích.'
+    : 'REJECTED: kandidát nesplnil statistickou hranici na každé kombinaci, pokrytí všech her nebo ochranu proti neplatným a nedokončeným partiím.';
 report.safeguards = {
     sameProductionEngineAndRules: true,
-    sameDiceSeedWithinSeatPair: true,
-    candidateSeatAlternated: true,
-    boards: [40, 48, 80],
-    twoPlayerHeadToHead: true,
-    minimumOverallGames: 300,
-    overallWilson95LowerBoundMustExceed: 0.5,
-    minimumWinRateOnEveryBoard: 0.45,
+    sameDiceSeedWithinCandidateSeatCycle: true,
+    candidateSeatRotatedAcrossAllPlayers: true,
+    boardConfigurations: boards,
+    baselineOpponentsPerGame: [3, 5, 7],
+    overallMinimumGames: gamesPerBoard * boards.length,
+    wilson95LowerBoundMustExceedRandomWinRateOnEveryBoard: true,
     noTruncatedGames: true,
     noInvalidMoves: true
 };
