@@ -11,6 +11,7 @@ import {
 import {
     estimateCaptureProbability,
     estimatePieceThreat,
+    evaluateTacticalCandidates,
     calculatePlayerPips,
     chooseStrategicDecision,
     normalizeTrainingSituation
@@ -105,6 +106,30 @@ test('deployment is rewarded when a safe newly deployed piece creates a bonus-ro
     assert.ok(Math.abs(decision.breakdown.selectedWeightFactors.deploymentAttackChance - 1 / 6) < 0.001);
     assert.equal(decision.breakdown.selectedWeightFactors.deployedPieceThreat, 0);
     assert.ok(decision.breakdown.selectedWeightFactors.deploymentTacticalScore > 0);
+});
+
+test('opponent start square becomes more dangerous with reserve pieces and near-goal progress', () => {
+    function scoreStartSquareRisk(nearGoal) {
+        const game = createGame(1, 1, [], [], 40);
+        const opponent = game.players[1];
+        const startSteps = (opponent.start - game.players[0].start + game.trackLength) % game.trackLength;
+        game.pieces[0].pieces[0].steps = startSteps;
+        game.pieces[1].pieces[0].steps = -1;
+        game.pieces[1].pieces[1].steps = nearGoal ? game.trackLength + 2 : game.trackLength;
+        game.pieces[1].pieces[2].steps = game.trackLength + 1;
+        game.pieces[1].pieces[3].steps = game.trackLength + 3;
+
+        const next = JSON.parse(JSON.stringify(game));
+        const ranked = evaluateTacticalCandidates(game, [{ pieceId: 0, state: next, move: {} }], undefined, aiDependencies);
+        return ranked[0].factors;
+    }
+
+    const riskWithoutNearGoal = scoreStartSquareRisk(false);
+    const riskNearGoal = scoreStartSquareRisk(true);
+    assert.equal(riskNearGoal.onOpponentStart, true);
+    assert.equal(riskNearGoal.opponentStartBasePieces, 1);
+    assert.equal(riskNearGoal.opponentNearGoal, true);
+    assert.ok(riskNearGoal.startSquareDangerScore > riskWithoutNearGoal.startSquareDangerScore);
 });
 
 test('AI still chooses an immediate winning move', () => {
