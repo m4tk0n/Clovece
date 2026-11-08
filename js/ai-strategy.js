@@ -210,6 +210,100 @@ function findMatchingTrainingExamples(game, instructions) {
 }
 
 /**
+ * Pravděpodobnosti pro konkrétní legální kandidátní tah.
+ * Výpočty používají skutečný engine a enumeraci všech šesti hodnot kostky.
+ * Zachycení soupeřem je příležitost při jednom hodu každého soupeře;
+ * nezahrnuje bonusové hody ani změny pozic způsobené předchozími soupeři.
+ */
+export function calculateAIMoveProbabilityFeatures(game, candidate, dependencies) {
+    const { getValidMoves, movePiece, rollDice } = dependencies;
+    const playerId = game.currentPlayer;
+    const pieceId = candidate.pieceId;
+    const stateAfter = candidate.state;
+    const target = stateAfter.pieces[playerId]?.pieces[pieceId];
+    const maxSteps = stateAfter.trackLength + 3;
+
+    function prepareRollState(source, activePlayerId) {
+        const state = cloneGame(source);
+        state.currentPlayer = activePlayerId;
+        state.phase = 'roll';
+        state.diceValue = 0;
+        state.baseRollAttempts = 0;
+        state.thirdAttemptSix = false;
+        state.consecutiveSixes = 0;
+        state.threeSixesPenaltyPending = false;
+        return state;
+    }
+
+    function enumerateOneRoll(source, activePlayerId, inspect) {
+        let successfulDice = 0;
+        for (let dice = 1; dice <= 6; dice++) {
+            const rolled = prepareRollState(source, activePlayerId);
+            const result = rollDice(rolled, dice);
+            if (rolled.phase !== 'move') continue;
+            const legal = result.validMoves || getValidMoves(rolled, activePlayerId);
+            if (!legal.length) continue;
+            let success = false;
+            for (const legalPieceId of legal) {
+                const next = cloneGame(rolled);
+                const move = movePiece(next, legalPieceId);
+                if (inspect({ next, move, legalPieceId, dice })) {
+                    success = true;
+                    break;
+                }
+            }
+            if (success) successfulDice++;
+        }
+        return successfulDice / 6;
+    }
+
+    let captureRisk = 0;
+    if (target && target.steps >= 0 && target.steps < stateAfter.trackLength &&
+        typeof rollDice === 'function' && typeof movePiece === 'function' &&
+        typeof getValidMoves === 'function') {
+        let survival = 1;
+        for (const opponent of stateAfter.players) {
+            if (opponent.id === playerId || opponent.finished) continue;
+            const opponentChance = enumerateOneRoll(stateAfter, opponent.id, ({ move }) =>
+                Boolean(move.captured && !move.captured.ownPiece &&
+                    move.captured.playerId === playerId && move.captured.pieceId === pieceId)
+            );
+            survival *= 1 - opponentChance;
+        }
+        captureRisk = 1 - survival;
+    }
+
+    const canEnumerate = typeof rollDice === 'function' &&
+        typeof movePiece === 'function' && typeof getValidMoves === 'function';
+    const opponentCaptureChance = canEnumerate
+        ? enumerateOneRoll(stateAfter, playerId, ({ move }) =>
+            Boolean(move.captured && !move.captured.ownPiece)
+        )
+        : 0;
+    const safeFinishChance = canEnumerate && target && target.steps >= 0 && target.steps < maxSteps
+        ? enumerateOneRoll(stateAfter, playerId, ({ next, legalPieceId }) =>
+            legalPieceId === pieceId &&
+            next.pieces[playerId].pieces[pieceId].steps === maxSteps
+        )
+        : 0;
+    const extraTurnChance = canEnumerate
+        ? enumerateOneRoll(stateAfter, playerId, ({ next }) =>
+            next.winner === null && next.currentPlayer === playerId && next.phase === 'roll'
+        )
+        : 0;
+
+    return {
+        ownCaptureRisk: Math.max(0, Math.min(1, captureRisk)),
+        opponentCaptureChance: Math.max(0, Math.min(1, opponentCaptureChance)),
+        safeFinishChance: Math.max(0, Math.min(1, safeFinishChance)),
+        extraTurnChance: Math.max(0, Math.min(1, extraTurnChance)),
+        deployAttackRisk: candidate.move?.deployed
+            ? Math.max(0, Math.min(1, captureRisk))
+            : 0
+    };
+}
+
+/**
  * AI vybírá výhradně z legálních tahů herního enginu.
  * Naučené příklady se použijí jen při přesné shodě herní situace; textová
  * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
@@ -239,8 +333,14 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
         ? learnedCandidates[0]
         : null;
 
+    const neuralCandidatesWithProbabilities = !winning && !learned && neuralModel
+        ? candidates.map(candidate => ({
+            ...candidate,
+            probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies)
+        }))
+        : candidates;
     const neuralScores = !winning && !learned
-        ? scoreAIMoveCandidates(game, candidates, validMoves.length, neuralModel)
+        ? scoreAIMoveCandidates(game, neuralCandidatesWithProbabilities, validMoves.length, neuralModel)
         : null;
     const neuralByPiece = new Map((neuralScores || []).map(item => [item.pieceId, item.score]));
     const neuralCandidates = neuralScores
