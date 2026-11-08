@@ -78,7 +78,9 @@ fs.writeFileSync(output, '', 'utf8');
 let totalDecisions = 0;
 const summary = {
     format: 'clovece-ai-self-play-report',
-    formatVersion: 1,
+    formatVersion: 2,
+    weightSchemaVersion: 2,
+    weightKeys: Object.keys(AI_TACTICAL_WEIGHTS),
     featureSchemaVersion: AI_FEATURE_SCHEMA_VERSION,
     featureCount: AI_FEATURE_COUNT,
     createdAt: new Date().toISOString(),
@@ -167,6 +169,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             selectedPieceId,
             selectedProbability: sampledDecision.probability,
             policyTemperature: explorationTemperature,
+            weightSchemaVersion: 2,
             behaviorWeights: AI_TACTICAL_WEIGHTS,
             selectedFeatures: extractAIMoveFeatures(game, {
                 ...selected,
