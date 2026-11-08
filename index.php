@@ -15,6 +15,7 @@ $assetVersion = static function (string $path): int {
     return is_file($file) ? (int) filemtime($file) : 1;
 };
 $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
+$trainingMode = isset($_GET['debug']) && (string) $_GET['debug'] === 'training';
 $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
 ?>
 
@@ -31,6 +32,9 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
     <link rel="stylesheet" href="css/toast.css?v=<?= $assetVersion('css/toast.css') ?>">
     <?php if ($testMode): ?>
     <link rel="stylesheet" href="css/test-runner.css?v=<?= $assetVersion('css/test-runner.css') ?>">
+    <?php endif; ?>
+    <?php if ($trainingMode): ?>
+    <link rel="stylesheet" href="css/ai-training.css?v=<?= $assetVersion('css/ai-training.css') ?>">
     <?php endif; ?>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rubik:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -203,7 +207,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
     <audio id="win-sound" src="https://assets.mixkit.co/active_storage/sfx/284/284-preview.mp3" preload="none"></audio>
     <audio id="move-sound" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="none"></audio>
     <!-- JavaScript -->
-    <?php if ($debugMode): ?>
+    <?php if ($debugMode || $trainingMode): ?>
     <script type="module" src="js/debug-bootstrap.js?v=<?= $assetVersion('js/debug-bootstrap.js') ?>"></script>
     <?php endif; ?>
     <script type="module" src="js/bootstrap.js?v=<?= $assetVersion('js/bootstrap.js') ?>"></script>
