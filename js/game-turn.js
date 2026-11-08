@@ -310,7 +310,7 @@ export function createTurnController(deps) {
         const value = selectedValue === null ? Math.floor(Math.random() * 6) + 1 : Math.max(1, Math.min(6, Number(selectedValue) || 1));
         game.testRollSequence = (game.testRollSequence || 0) + 1;
         game.diceValue = value;
-        await animateDice(value, settings);
+        if (selectedValue === null) await animateDice(value, settings);
         if (!game || automationPaused || game.phase !== 'start-roll' || game.currentPlayer !== playerId || isPaused()) return;
     
         const roundIndex = game.startRolls.length - 1;
@@ -358,7 +358,7 @@ export function createTurnController(deps) {
     
         const result = rollDice(game, selectedValue === null ? undefined : selectedValue);
         game.testRollSequence = (game.testRollSequence || 0) + 1;
-        await animateDice(result.value, settings);
+        if (selectedValue === null) await animateDice(result.value, settings);
         if (!game || automationPaused || game.winner !== null || isPaused()) return;
     
         if (result.turnEnded) {
