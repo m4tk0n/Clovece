@@ -60,9 +60,9 @@ jobs:
           import { AI_FEATURE_COUNT } from './js/ai-neural-network.js';
           const dir = 'training-data/self-play';
           let pairs = 0;
-          for (const name of fs.readdirSync(dir).filter(file => /\\.jsonl\\.gz$/i.test(file))) {
+          for (const name of fs.readdirSync(dir).filter(file => /\.jsonl\.gz$/i.test(file))) {
             const text = zlib.gunzipSync(fs.readFileSync(path.join(dir, name))).toString('utf8');
-            for (const line of text.split(/\\r?\\n/).filter(Boolean)) {
+            for (const line of text.split(/\r?\n/).filter(Boolean)) {
               const record = JSON.parse(line);
               if (record.completed !== true || !Array.isArray(record.candidates)) continue;
               const candidates = record.candidates.filter(item =>
@@ -73,7 +73,7 @@ jobs:
           }
           const ready = pairs >= 100;
           console.log('Kompatibilní párové příklady schema v' + AI_FEATURE_COUNT + ': ' + pairs);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ready=' + ready + '\\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ready=' + ready + '\n');
           NODE
       - name: Natrénovat kandidátní model
         if: steps.dataset.outputs.ready == 'true'
