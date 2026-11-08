@@ -220,6 +220,7 @@ export function getBoardStyle() {
 function styleSwitchMarkup() {
     const label = { classic: 'KLASIK', polygon: 'MNOHOÚHELNÍK' };
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
+        (trainingMode ? '<button type="button" class="board-style-btn board-dice-display-btn" data-dice-display="toggle" aria-pressed="true" title="Skrýt výběr kostek">KOSTKY</button>' : '') +
         (trainingMode ? '<button type="button" class="board-style-btn board-game-info-btn" data-game-info="toggle" aria-label="Zobrazit nastavení vytvořené hry" aria-expanded="false" title="Nastavení vytvořené hry">i</button>' : '') +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
