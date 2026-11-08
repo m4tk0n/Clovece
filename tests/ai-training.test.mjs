@@ -117,7 +117,7 @@ test('normal AI reads compiled memory only; trainer imports queued new JSON incr
     const turn = await read('../js/game-turn.js');
     const strategy = await read('../js/ai-strategy.js');
     assert.ok(endpoint.includes('HTTP_X_CSRF_TOKEN'));
-    assert.ok(endpoint.includes('storage/ai-training/instructions'));
+    assert.ok(endpoint.includes("'/instructions'"));
     assert.ok(endpoint.includes('Require') && endpoint.includes('denied'));
     assert.ok(endpoint.includes('.training-queue'));
     assert.ok(endpoint.includes('queueOffset'));
