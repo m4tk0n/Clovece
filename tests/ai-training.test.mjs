@@ -172,10 +172,9 @@ test('structured correction is compiled only when the preferred piece was legal 
 });
 
 
-test('trainer info button displays the settings of the created game before the classic style button', async () => {
+test('trainer toolbar renders the dice visibility toggle before the info button', async () => {
     const board = await read('../js/game-board-view.js');
     assert.match(board, /data-dice-display="toggle"/);
-    assert.match(board, /dice-display-hidden/);
     assert.ok(board.indexOf('data-dice-display="toggle"') < board.indexOf('data-game-info="toggle"'));
     assert.match(board, /data-game-info="toggle"/);
     assert.ok(board.indexOf('data-game-info="toggle"') < board.indexOf('data-board-style="\' + style'));
@@ -199,8 +198,9 @@ test('trainer dice picker supports manual human rolls and selectable automatic/m
     assert.match(turn, /rollDice\(game, selectedValue === null \? undefined : selectedValue\)/);
     assert.match(turn, /doStartingRoll\(isAI, selectedValue\)/);
     assert.match(view, /trainer-dice-controls/);
-    assert.match(view, /function ensureDiceDisplayToggle\(\)/);
-    assert.match(view, /boardSwitch\.insertBefore\(toggle, infoButton \|\| boardSwitch\.firstChild\)/);
+    assert.match(board, /data-dice-display="toggle"/);
+    assert.ok(board.indexOf('data-dice-display="toggle"') < board.indexOf('data-game-info="toggle"'));
+    assert.doesNotMatch(view, /ensureDiceDisplayToggle/);
     assert.match(screen, /\[data-dice-display\]/);
     assert.match(screen, /dice-display-hidden/);
     assert.match(view, /AI KOSTKA: AUTOMATICKY/);
