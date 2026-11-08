@@ -663,3 +663,41 @@
 
 /* Výsledek uvažování AI je v tréninkovém režimu odlišen zeleně. */
 #game-screen .game-chat-message.ai-training-evaluation{color:#8ee6a0;font-weight:700}
+
+
+/* Výběr kostky v režimu výuky AI – šest skutečných stěn s puntíky. */
+#game-screen .trainer-dice-controls {
+    flex:0 0 auto; display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; min-height:48px; padding:3px 4px; box-sizing:border-box;
+}
+#game-screen .trainer-dice-controls.hidden { display:none; }
+#game-screen .trainer-dice-options { display:flex; align-items:center; justify-content:center; gap:clamp(4px,2vw,12px); }
+#game-screen .trainer-die {
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:2px;
+    width:clamp(34px,8vw,48px); height:clamp(34px,8vw,48px); padding:5px;
+    border:1px solid rgba(198,169,107,.7); border-radius:9px; background:#f4eddd;
+    box-shadow:0 2px 5px rgba(0,0,0,.35); cursor:pointer; touch-action:manipulation;
+}
+#game-screen .trainer-die:disabled { opacity:.45; cursor:default; }
+#game-screen .trainer-die.is-selected { outline:3px solid #c6a96b; outline-offset:2px; }
+#game-screen .trainer-die .pip { width:100%; height:100%; border-radius:50%; }
+#game-screen .trainer-die .pip.p1 { grid-area:1 / 1; }
+#game-screen .trainer-die .pip.p2 { grid-area:1 / 2; }
+#game-screen .trainer-die .pip.p3 { grid-area:1 / 3; }
+#game-screen .trainer-die .pip.p4 { grid-area:2 / 1; }
+#game-screen .trainer-die .pip.p5 { grid-area:2 / 2; }
+#game-screen .trainer-die .pip.p6 { grid-area:2 / 3; }
+#game-screen .trainer-die .pip.p7 { grid-area:3 / 1; }
+#game-screen .trainer-die .pip.p8 { grid-area:3 / 2; }
+#game-screen .trainer-die .pip.p9 { grid-area:3 / 3; }
+#game-screen .trainer-die .pip { background:#17221d; }
+#game-screen .trainer-ai-dice-mode {
+    min-height:32px; padding:5px 8px; border:1px solid rgba(198,169,107,.55); border-radius:8px;
+    background:rgba(198,169,107,.12); color:#e8d7ae; font:700 8px/1.2 inherit; cursor:pointer;
+}
+@media(max-width:420px) {
+    #game-screen .trainer-dice-controls { gap:5px; min-height:40px; }
+    #game-screen .trainer-dice-options { gap:4px; }
+    #game-screen .trainer-die { width:clamp(30px,8.2vw,36px); height:clamp(30px,8.2vw,36px); padding:4px; border-radius:7px; }
+    #game-screen .trainer-ai-dice-mode { min-height:29px; padding:4px 5px; font-size:7px; }
+}
