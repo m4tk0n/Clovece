@@ -125,6 +125,7 @@
 }
 .clovece-debug-overlay .debug-overlay-ai-weights.is-visible { display:block; }
 .clovece-debug-overlay .debug-ai-heading { margin-bottom:5px; font-weight:800; color:#fff0c8; }
+.clovece-debug-overlay .debug-ai-model-status { margin:4px 0 6px; padding:4px 5px; border:1px solid rgba(255,210,138,.35); border-radius:3px; color:#ffe0a8; white-space:normal; overflow-wrap:anywhere; }
 .clovece-debug-overlay .debug-ai-weight-table { width:100%; border-collapse:collapse; table-layout:auto; white-space:nowrap; }
 .clovece-debug-overlay .debug-ai-weight-table th,
 .clovece-debug-overlay .debug-ai-weight-table td { padding:3px 5px; border-bottom:1px solid rgba(255,255,255,.14); text-align:right; font:inherit; }
