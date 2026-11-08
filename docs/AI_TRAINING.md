@@ -3,6 +3,10 @@
 Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, nezlob se. Popisuje spuštění, uživatelské rozhraní, tok dat, serverové ukládání, současné chování AI, bezpečnost i další práci.
 
 **Stav dokumentace:** 2026-11-08  
+
+> **Aktuální stav (2026-11-08):** Runtime neuronové AI je zapnutý a používá 26 vstupních příznaků a model 26→32→1. Produkční model v `js/models/ludo-ai.js` je však označen `heuristic-seed-v1`: jde o ručně/heuristicky inicializované nenulové váhy, nikoli o výsledek offline trénování neuronové sítě. Nezaměňovat zapnutou inferenci s natrénovaným modelem. Samostatně existuje reward-based offline trénink **taktických vah** v `scripts/ai-train-weights.mjs`; tyto dvě věci nejsou totožné.
+>
+> Poslední zveřejněný běh taktického tréninku zpracoval 261 dokončených partií (212 trénovacích, 49 validačních), ale kandidát byl zamítnut: validační změna `-0.00000028`. Aktivní taktická váhová sada proto zůstala beze změny. Debug panel zobrazuje stav z `config/ai-training-state.json` a načítá aktuální stav modelu z jeho JS modulu.
 **Vstupní adresa:** `/?debug=trainer` (starší alias `/?debug=training`)  
 **Parametr:** `trainer` je hlavní název; `training` zůstává podporovaný jako alias.
 
@@ -40,15 +44,11 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 
 ### DODĚLAT
 
-- Offline trénovací pipeline, která převede ověřené partie a lidská hodnocení na trénovací příklady a vyexportuje skutečné váhy do `js/models/ludo-ai.js`.
-- Validační sadu a měření úspěšnosti proti dosavadní AI; dokud model neprojde testy, musí zůstat `enabled: false`.
-- Vyhledávání relevantních uložených lidských instrukcí při rozhodování AI.
-- Vyhodnocení podobnosti situace podle pravidel, desky, hráčů, pozic figurek, kostky a legálních tahů.
-- Bezpečné zapojení nalezených instrukcí do taktického hodnocení. Instrukce nikdy nesmí změnit pravidla ani vytvořit nelegální tah.
-- Audit každého rozhodnutí: uložit ID instrukcí, které AI skutečně použila, míru shody a důvod jejich použití.
-- Přehled využití výuky: kolik je oprav, pozitivních příkladů a kolik z nich AI skutečně použila.
-- Změnit názvy JSON souborů na časové názvy s výsledkem `ok` / `err` (viz kapitola 6).
-- Prověřit a odstranit ze serveru staré nepoužívané checkpointy původního trénovacího systému. Nesmí se při tom odstranit nové lidské instrukce.
+- Připravit skutečný offline trénink neuronového modelu `js/models/ludo-ai.js` ze self-play dat a ověřit jej nezávislou validační sadou.
+- Neuronový model nasadit jako skutečně natrénovaný až po úspěšné validaci a turnaji; samotné `enabled: true` znamená pouze povolenou inferenci.
+- Nasbírat různorodější self-play partie na deskách 40/4, 48/6 a 80/8. Poslední reward trénink taktických vah byl validačně zamítnut a nesmí být vydáván za zlepšení.
+- Zkontrolovat skutečné výsledky GitHub Actions po každé změně a řešit případné neúspěšné regresní nebo deploy joby.
+- Udržovat diagnostiku `?debug=1` v souladu s aktivním JSON zdrojem vah, generovaným JS modulem a metadaty neuronového modelu.
 
 ## 2A. Rozdíl mezi běžným režimem a trenérem
 
@@ -537,7 +537,7 @@ První turnaj modelu v2 ukázal, že 82% přesnost napodobování učitele nezna
 - `opponentSetback` – normalizovaný postup vrácený soupeři vyhozením.
 - `threatReduction` – změna součtu ohrožení vlastních figurek po tahu.
 
-Jde o číselné faktory stejného taktického vyhodnocení, které vytváří cílové pořadí učitele. Runtime je vypočítá pouze pro platný zapnutý model. Self-play data schema v1/v2 nejsou pro trénování v3 kompatibilní; musí se nasbírat nové záznamy. Model zůstává vypnutý do nového tréninku a turnajového ověření.
+Jde o číselné faktory stejného taktického vyhodnocení, které vytváří cílové pořadí učitele. Runtime je vypočítá pouze pro platný zapnutý model. Self-play data schema v1/v2 nejsou pro trénování v3 kompatibilní; musí se nasbírat nové záznamy. Aktuální produkční model je zapnutý pro inferenci, ale má inicializaci `heuristic-seed-v1`; nejde o model natrénovaný offline. Skutečné neuronové trénování a jeho nezávislé turnajové ověření zůstává nedokončené.
 
 
 ## 23. Rozšířený turnaj napříč deskami
