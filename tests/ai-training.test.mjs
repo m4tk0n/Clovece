@@ -131,7 +131,7 @@ test('normal AI reads compiled memory only; trainer imports queued new JSON incr
     assert.ok(client.includes("requestMemory('train')"));
     assert.ok(client.includes('refreshAITrainingKnowledge'));
     assert.ok(turn.includes("refreshAITrainingKnowledge({ trainer: trainingAI })"));
-    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.memory)'));
+    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.memory, neuralModel)'));
     assert.ok(strategy.includes('learnedMemory.situations'));
     assert.ok(strategy.includes('compiled-memory'));
 });
@@ -192,6 +192,7 @@ test('trainer dice picker supports manual human rolls and selectable automatic/m
     const screen = await read('../js/game-screen.js');
     const markup = await read('../screens/game.php');
     const styles = await read('../css/debug.css');
+    const board = await read('../js/game-board-view.js');
     assert.match(turn, /trainerDiceModeKey/);
     assert.match(turn, /needsManualAIDice\(\)/);
     assert.match(turn, /function selectDice\(value\)/);
