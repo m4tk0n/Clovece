@@ -30,11 +30,15 @@ export function initDebugOverlay() {
     metaSummary.className = 'debug-overlay-meta';
     const details = document.createElement('div');
     details.className = 'debug-overlay-details';
+    const aiWeights = document.createElement('div');
+    aiWeights.className = 'debug-overlay-ai-weights';
+    aiWeights.textContent = 'AI VÁHY: načítám…';
     content.appendChild(summary);
     content.appendChild(viewportSummary);
     content.appendChild(cameraSummary);
     content.appendChild(metaSummary);
     content.appendChild(details);
+    content.appendChild(aiWeights);
     panel.appendChild(toggleButton);
     panel.appendChild(content);
     document.body.appendChild(panel);
@@ -100,6 +104,7 @@ export function initDebugOverlay() {
     function toggle() {
         expanded = !expanded;
         details.classList.toggle('is-visible', expanded);
+        aiWeights.classList.toggle('is-visible', expanded);
         metaSummary.classList.toggle('is-visible', expanded);
         toggleButton.textContent = expanded ? '−' : '+';
         toggleButton.setAttribute('aria-label', expanded ? 'Sbalit debug panel' : 'Rozbalit debug panel');
@@ -175,6 +180,50 @@ export function initDebugOverlay() {
         renderLog();
         updateSummary();
     }
+
+    async function loadAIWeightState() {
+        try {
+            const response = await fetch('config/ai-training-state.json?v=' + Date.now(), {
+                cache: 'no-store',
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json' }
+            });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const state = await response.json();
+            const keys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece'];
+            const oldWeights = state.previousWeights || {};
+            const nextWeights = state.candidateWeights || state.finalWeights || {};
+            const delta = state.delta || {};
+            const lines = [
+                'AI VÁHY · ' + (state.statusLabel || state.status || 'stav neznámý'),
+                'Položka             Původní → Nové (rozdíl)'
+            ];
+            keys.forEach(key => {
+                const oldValue = Number(oldWeights[key]);
+                const newValue = Number(nextWeights[key]);
+                const change = Number(delta[key]);
+                if (!Number.isFinite(oldValue) || !Number.isFinite(newValue)) return;
+                const fmt = value => Number(value.toFixed(5)).toString();
+                lines.push(key.padEnd(19) + fmt(oldValue) + ' → ' + fmt(newValue) +
+                    ' (' + (Number.isFinite(change) ? (change > 0 ? '+' : '') + fmt(change) : '—') + ')');
+            });
+            if (state.training?.validation) {
+                lines.push('Validace: ' + state.training.validation.improvement);
+            }
+            if (state.tournament) {
+                lines.push('Turnaj: ' + (state.tournament.accepted ? 'VÍTĚZSTVÍ KANDIDÁTA' : 'KANDIDÁT ZAMÍTNUT') +
+                    ' · ' + (state.tournament.gamesCompleted ?? 0) + ' her · výhry ' +
+                    (state.tournament.candidateWins ?? 0) + '/' + (state.tournament.baselineWins ?? 0));
+            } else {
+                lines.push('Turnaj: zatím neproběhl');
+            }
+            if (state.updatedAt) lines.push('Aktualizováno: ' + state.updatedAt);
+            aiWeights.textContent = lines.join('\n');
+        } catch (error) {
+            aiWeights.textContent = 'AI VÁHY: report zatím není dostupný (' + error.message + ').';
+        }
+    }
+    loadAIWeightState();
 
     window.addEventListener('clovece:debug-camera', event => {
         const camera = event.detail || {};
