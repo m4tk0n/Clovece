@@ -12,6 +12,11 @@ export function initGameScreen(deps) {
     gameScreenInitialized = true;
 
     $('roll-dice-btn')?.addEventListener('click', () => turnController.doRoll(false));
+    $('trainer-dice-options')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-dice-value]');
+        if (button && !button.disabled) turnController.selectDice(Number(button.dataset.diceValue));
+    });
+    $('trainer-ai-dice-mode')?.addEventListener('click', () => turnController.toggleAIDiceMode());
 
     const audioToggle = $('game-audio-toggle');
     const volumeSlider = $('game-volume');
