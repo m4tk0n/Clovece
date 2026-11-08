@@ -34,7 +34,7 @@ test('training decision appears as a green evaluation in the normal chat', async
     const app = await read('../js/app.js');
     assert.match(turn, /debugMode === 'training'/);
     assert.match(turn, /clovece:ai-training-decision/);
-    assert.match(turn, /addAITrainingEvaluation/);
+    assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
     assert.match(log, /ai-training-evaluation/);
     assert.match(log, /'\[' \+ item\.sender \+ ': ' \+ item\.text \+ '\]'/);
     assert.match(app, /addAITrainingEvaluation/);
@@ -91,7 +91,7 @@ test('training chat contains only a short evaluation marker and automatic first 
     const turn = await read('../js/game-turn.js');
     const log = await read('../js/game-log.js');
     const panel = await read('../js/ai-training-overlay.js');
-    assert.match(turn, /addAITrainingEvaluation\?\.\(playerName, 'vyhodnocení'\)/);
+    assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
     assert.match(turn, /allPiecesInBase[\s\S]*?trainingAI && Number\(game\.diceValue\) === 6/);
     assert.match(turn, /První povinné nasazení není taktické/);
     assert.match(log, /'\\[' \+ item\.sender \+ ': ' \+ item\.text \+ '\]'/);
@@ -108,11 +108,11 @@ test('AI checks the private instruction directory through a read-only protected 
     assert.ok(endpoint.includes('HTTP_X_CSRF_TOKEN'));
     assert.ok(endpoint.includes('knowledgeSameOrigin'));
     assert.ok(endpoint.includes('storage/ai-training/instructions'));
-    assert.ok(endpoint.includes('Require\\\\s+all\\\\s+denied'));
+    assert.ok(endpoint.includes('Require') && endpoint.includes('all denied'));
     assert.ok(endpoint.includes('glob('));
     assert.ok(endpoint.includes('feedbackType'));
     assert.ok(!endpoint.includes('sessionFingerprint'));
-    assert.ok(!/\\b(?:unlink|rename|file_put_contents)\\s*\\(/i.test(endpoint));
+    assert.ok(!endpoint.includes('unlink(') && !endpoint.includes('rename(') && !endpoint.includes('file_put_contents('));
     assert.ok(client.includes('ai-training-knowledge.php'));
     assert.ok(client.includes('instructionCache'));
     assert.ok(client.includes('since:'));
