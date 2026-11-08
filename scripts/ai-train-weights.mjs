@@ -18,7 +18,16 @@ const outputWeightsPath = path.resolve(String(args['output-weights'] || 'artifac
 const modulePath = path.resolve(String(args.module || 'artifacts/ai-tactical-weights-candidate.js'));
 const reportPath = path.resolve(String(args.report || 'artifacts/ai-weight-training-report.json'));
 const epochs = Math.max(1, Math.min(200, Number(args.epochs) || 30));
-const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']) || 0.05));
+const trainingStatePath = path.resolve(String(args['training-state'] || 'config/ai-training-state.json'));
+const priorTrainingState = readJson(trainingStatePath, {});
+const stablePromotionCount = Math.max(0, Number(priorTrainingState.stablePromotionCount) || 0);
+const requestedLearningRate = args['learning-rate'] !== undefined
+    ? Number(args['learning-rate'])
+    : (stablePromotionCount >= 3 ? 0.01 : 0.05);
+const learningRate = Math.max(0.0001, Math.min(0.1, requestedLearningRate || 0.05));
+const learningRatePhase = args['learning-rate'] !== undefined
+    ? 'manual-override'
+    : (stablePromotionCount >= 3 ? 'fine-tuning-0.01' : 'initial-learning-0.05');
 const minGames = Math.max(4, Number(args['min-games']) || 10);
 const minRecords = Math.max(50, Number(args['min-records']) || 100);
 
@@ -289,7 +298,7 @@ const report = {
     method: 'Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction',
     source: { ...stats, completedGames: games.size, trainingGames: trainGames.size, validationGames: validationGames.size },
     decisions: { training: training.length, validation: validation.length },
-    epochs, learningRate,
+    epochs, learningRate, learningRatePhase, stablePromotionCountAtStart: stablePromotionCount,
     policyTemperatures: [...new Set([...training, ...validation].map(record => record.policyTemperature))].sort((a, b) => a - b),
     previousWeights,
     candidateWeights,
