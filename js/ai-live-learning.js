@@ -18,6 +18,7 @@ const STORAGE_PARAMETER_LIMIT = 5000;
 const CENTRAL_API = 'ai-learning-api.php';
 let model = loadCachedModel();
 let centralRevision = 0;
+let centralBaseModel = null;
 let centralCsrfToken = '';
 let centralStorageAvailable = false;
 let centralSaveQueue = Promise.resolve();
@@ -45,6 +46,7 @@ async function initializeCentralModel() {
         }
         model = createSearchModel(payload.model);
         centralRevision = Number(payload.revision) || 0;
+        centralBaseModel = createSearchModel(payload.base_model || payload.model);
         centralCsrfToken = payload.csrf_token;
         centralStorageAvailable = true;
         try {
@@ -70,20 +72,19 @@ function queueCentralSave(snapshot) {
             body: JSON.stringify({
                 csrf_token: centralCsrfToken,
                 revision: centralRevision,
+                base_model: centralBaseModel || snapshot,
                 model: snapshot
             })
         });
         const payload = await response.json();
-        if (response.status === 409 && payload.conflict) {
-            // Nikdy nepřepisujeme novější data starou kopií z jiného zařízení.
-            centralRevision = Number(payload.revision) || centralRevision;
-            if (payload.model) model = createSearchModel(payload.model);
-            centralStorageAvailable = false;
-            console.warn('Centrální AI model změnilo jiné zařízení. Zápis byl bezpečně zastaven; obnov stránku hry.');
-            return;
-        }
         if (!response.ok || !payload.success) throw new Error(payload.error || ('HTTP ' + response.status));
         centralRevision = Number(payload.revision) || centralRevision;
+        if (payload.model) {
+            centralBaseModel = createSearchModel(payload.model);
+            model = centralBaseModel;
+        } else {
+            centralBaseModel = createSearchModel(snapshot);
+        }
     }).catch(error => {
         centralStorageAvailable = false;
         console.warn('Uložení centrálního modelu AI selhalo:', error);
