@@ -23,7 +23,14 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Každé hodnocení se ukládá jako samostatný JSON soubor.
 - Ukládání je append-only: endpoint vytváří nový soubor a neposkytuje operaci pro přepsání ani smazání záznamu.
 - Ochrana úložiště proti přímému HTTP přístupu, CSRF token, kontrola původu požadavku a limit velikosti vstupu.
-- Regresní testy v `tests/ai-training.test.mjs`.
+- Regresní testy v `tests/ai-training.test.mjs` a `tests/ai-strategy.test.mjs`.
+- Před každým rozhodnutím místní AI se volá read-only endpoint `ai-training-knowledge.php`; server kontroluje adresář s instrukcemi.
+- Nové záznamy se stahují pouze jednou a drží se v paměti aktuální hry; při dalších tazích se kontrolují jen novější soubory.
+- Přesná shoda situace porovnává desku, pravidla, hráče, startovní sloty, kostku a pozice všech figurek.
+- Opravná instrukce se použije, pokud výslovně označí figurku (např. „figurku 2“) a tato figurka je v dané situaci legální.
+- Pozitivní příklad znovu upřednostní dříve potvrzenou legální figurku ve stejné situaci.
+- AI do rozhodnutí přidá `trainedKnowledge` a ID skutečně použité instrukce; debug log a výukový panel zobrazí `NAUČENO`.
+- Naučená preference nikdy nepřekročí seznam legálních tahů a okamžitá výhra má stále přednost.
 
 ### DODĚLAT
 
@@ -100,7 +107,7 @@ Panel je možné uchopit za hlavičku a přesunout. Umístění se omezuje na vi
 | `js/ai-training-overlay.js` | Vykreslení panelu, zobrazení rozhodnutí, obsluha tlačítek a odeslání JSON. |
 | `css/ai-training.css` | Vzhled plovoucího panelu. |
 | Událost `clovece:ai-training-decision` | Předává panelu kontext rozhodnutí AI. |
-| `ai-training.php` | Vydání CSRF tokenu a bezpečné uložení jednoho záznamu. |
+| `ai-training.php` | Vydání CSRF tokenu a bezpečné uložení jednoho záznamu. |\n| `ai-training-knowledge.php` | Read-only načtení nových souborů z privátní složky po ověření CSRF a ochrany úložiště. |\n| `js/ai-training-knowledge.js` | Kontrola serveru před každým rozhodnutím a cache načtených instrukcí v paměti hry. |
 | `storage/ai-training/instructions/` | Trvalé soubory jednotlivých lidských hodnocení. |
 | `tests/ai-training.test.mjs` | Regresní kontroly výukového režimu a ukládání. |
 | `docs/AI_TRAINING.md` | Tento hlavní popis výuky a plánu dalšího vývoje. |
@@ -215,7 +222,7 @@ Aktuální místní strategie je v `js/ai-strategy.js`.
 - Jinak nyní vybírá náhodně z legálních možností.
 - Obtížnost v této fázi nepřidává naučené taktické znalosti.
 
-**Současné JSON záznamy AI automaticky nenačítá.** Samotné ukládání oprav tedy ještě není skutečné učení a nesmí se tak prezentovat.
+**Místní AI nyní JSON záznamy načítá a umí použít první omezený typ naučené preference.** Zatím však rozpoznává pouze přesnou shodu herní situace a opravnou instrukci s jednoznačně uvedeným číslem figurky. Obecné pokyny a podobné situace zatím neumí bezpečně zobecnit. Serverová AI online her zatím tuto znalostní vrstvu nepoužívá.
 
 ## 9. Jak má fungovat skutečné učení – cílový návrh
 
