@@ -138,6 +138,11 @@ jobs:
           const alreadyPromoted = tournament?.accepted === true && same(active, candidate);
           const stale = !alreadyPromoted && !same(active, previous);
           const finalWeights = active;
+          const previousState = fs.existsSync('config/ai-training-state.json')
+            ? JSON.parse(fs.readFileSync('config/ai-training-state.json', 'utf8')) : {};
+          const stablePromotionCount = alreadyPromoted
+            ? (Number(previousState.stablePromotionCount) || 0) + 1
+            : 0;
           const keys = Object.keys(previous);
           const delta = Object.fromEntries(keys.map(key => [key,
             Number((Number(candidate[key]) - Number(previous[key])).toFixed(8))]));
@@ -149,6 +154,8 @@ jobs:
               stale ? 'stale-candidate' :
               tournament ? 'tournament-rejected' :
               training.accepted ? 'promotion-not-confirmed' : 'validation-rejected',
+            stablePromotionCount,
+            learningRateNextRun: stablePromotionCount >= 3 ? 0.01 : 0.05,
             statusLabel: alreadyPromoted ? 'NOVÉ VÁHY NASAZENY' :
               stale ? 'KANDIDÁT ZASTARAL · AKTIVNÍ VÁHY SE MEZITÍM ZMĚNILY' :
               tournament ? 'KANDIDÁT ZAMÍTNUT' :
