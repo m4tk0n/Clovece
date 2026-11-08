@@ -58,6 +58,7 @@ test('each human correction is stored as a new private immutable JSON file', asy
     const knowledge = await read('../ai-training-knowledge.php');
     assert.match(knowledge, /\\d\\{8\\}-\\d\\{6\\}-\\(\\d\\{4,\\}\\)-\\(ok\\|err\\)/);
     assert.match(knowledge, /hash_equals\\(\\$expectedSuffix, \\$matches\\[2\\]\\)/);
+    assert.match(knowledge, /isLegacyName/);
     assert.match(endpoint, /LOCK_EX/);
     assert.ok(endpoint.includes('$denyRule = "Require all denied\\n";'));
     assert.ok(endpoint.includes("trim($denyContents) === 'Require all denied\\\\n'"));
