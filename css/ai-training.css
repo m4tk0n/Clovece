@@ -9,7 +9,7 @@
 .ai-training-window-controls button,.ai-training-buttons button{min-width:24px;padding:3px 6px;border:1px solid #718075;border-radius:4px;background:#23352b;color:#fff;font-size:11px;font-weight:800;touch-action:manipulation}
 .ai-training-window-controls button:disabled,.ai-training-buttons button:disabled{opacity:.35}
 .ai-training-analysis{min-height:26px;overflow:auto;padding:4px 1px;white-space:normal;overscroll-behavior:contain}
-.ai-training-player{margin-bottom:3px;color:#e6c98a;font-weight:700}\n.ai-training-learned{margin:3px 0;padding:3px 5px;border-left:2px solid #83bd8b;background:#1d3525;color:#baf0c2;font-size:9px;font-weight:800;overflow-wrap:anywhere}
+.ai-training-player{margin-bottom:3px;color:#e6c98a;font-weight:700}\n.ai-training-learned{margin:3px 0;padding:3px 5px;border-left:2px solid #83bd8b;background:#1d3525;color:#baf0c2;font-size:9px;font-weight:800;overflow-wrap:anywhere}\n.ai-training-knowledge-error{margin:3px 0;color:#f0b1a5;font-size:9px;overflow-wrap:anywhere}
 .ai-training-section-title{margin-top:4px;color:#aeb9ac;font-size:8px;font-weight:800;letter-spacing:.06em}
 .ai-training-explanation,.ai-training-result{margin:2px 0;color:#fff}
 .ai-training-selected{margin:3px 0;color:#f6d98f;font-weight:700}
