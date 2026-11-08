@@ -84,7 +84,7 @@ jobs:
             --games="${{ inputs.games || '250' }}" \
             --players="${{ steps.config.outputs.players }}" \
             --board="${{ steps.config.outputs.board }}" \
-            --seed="${{ steps.config.outputs.seed }}"
+            --seed="${{ steps.config.outputs.seed }}" \
             --output=artifacts/ai-self-play.jsonl \
             --metrics=artifacts/ai-self-play-metrics.json
       - name: Uložit trénovací data a výsledky
