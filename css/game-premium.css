@@ -693,7 +693,7 @@
 #game-screen .trainer-die .pip { background:#17221d; }
 #game-screen .trainer-ai-dice-mode {
     min-height:32px; padding:5px 8px; border:1px solid rgba(198,169,107,.55); border-radius:8px;
-    background:rgba(198,169,107,.12); color:#e8d7ae; font:700 8px/1.2 inherit; cursor:pointer;
+    background:rgba(198,169,107,.12); color:#e8d7ae; font-family:inherit; font-size:8px; font-weight:700; line-height:1.2; cursor:pointer;
 }
 @media(max-width:420px) {
     #game-screen .trainer-dice-controls { gap:5px; min-height:40px; }
