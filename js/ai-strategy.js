@@ -213,7 +213,7 @@ function findMatchingTrainingExamples(game, instructions) {
  * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
  * random je injektovatelný kvůli reprodukovatelným testům.
  */
-export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random, learnedInstructions = []) {
+export function chooseStrategicDecision(game, dependencies, _difficulty = 'medium', random = Math.random, learnedMemory = {}) {
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
 
@@ -224,45 +224,34 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
     });
 
     const winning = candidates.find(candidate => candidate.winningMove);
-    const matchingExamples = findMatchingTrainingExamples(game, learnedInstructions)
-        .filter(item => validMoves.includes(item.pieceId))
-        .sort((a, b) => String(b.record.createdAt || '').localeCompare(String(a.record.createdAt || '')));
+    const signature = normalizeTrainingSituation(game);
+    const learnedEntry = learnedMemory && !Array.isArray(learnedMemory)
+        ? learnedMemory.situations?.[signature]
+        : null;
+    const votes = Array.isArray(learnedEntry?.votes) ? learnedEntry.votes : [];
+    const learnedCandidates = candidates
+        .filter(candidate => !candidate.winningMove)
+        .map(candidate => ({ ...candidate, votes: Math.max(0, Number(votes[candidate.pieceId]) || 0) }))
+        .sort((a, b) => b.votes - a.votes || a.pieceId - b.pieceId);
+    const learned = !winning && learnedCandidates.length && learnedCandidates[0].votes > 0
+        ? learnedCandidates[0]
+        : null;
 
-    let learned = null;
-    if (!winning) {
-        const latestCorrection = matchingExamples.find(item => item.record.feedbackType === 'correction');
-        if (latestCorrection) {
-            learned = {
-                ...latestCorrection,
-                explanation: String(latestCorrection.record.instruction || '').trim()
-            };
-        } else {
-            const positive = matchingExamples.find(item => item.record.feedbackType === 'positive');
-            if (positive) {
-                learned = {
-                    ...positive,
-                    explanation: String(positive.record.note || 'Člověk dříve potvrdil tento tah jako správný.').trim()
-                };
-            }
-        }
-    }
-
-    const selected = winning || (learned
-        ? candidates.find(candidate => candidate.pieceId === learned.pieceId)
-        : null) || candidates[Math.min(
-            candidates.length - 1,
-            Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * candidates.length)
-        )];
-
+    const selected = winning || learned || candidates[Math.min(
+        candidates.length - 1,
+        Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * candidates.length)
+    )];
     const trained = Boolean(learned && !winning && selected.pieceId === learned.pieceId);
     const usedInstructions = trained ? [{
-        id: learned.record.id,
-        feedbackType: learned.record.feedbackType,
-        createdAt: learned.record.createdAt || null,
+        id: 'memory:' + signature,
+        feedbackType: 'compiled-memory',
         matchedBy: 'exact-situation',
         similarity: 1,
         preferredPieceId: learned.pieceId,
-        explanation: learned.explanation
+        votes: learned.votes,
+        positiveCount: Number(learnedEntry.ok) || 0,
+        correctionCount: Number(learnedEntry.err) || 0,
+        explanation: 'Tuto volbu potvrzuje ' + learned.votes + ' uložených výukových hodnocení.'
     }] : [];
 
     return {
@@ -270,22 +259,23 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
         reason: winning
             ? 'Okamžitě vítězný tah – hra tím končí.'
             : trained
-                ? 'NAUČENO: použila jsem lidskou instrukci pro tuto přesnou herní situaci. ' + learned.explanation
-                : 'Zatím nemám použitelnou naučenou instrukci pro tuto situaci. Tah jsem vybrala náhodně z ' +
+                ? 'NAUČENO: paměť AI doporučuje figurku ' + (learned.pieceId + 1) +
+                    ' na základě ' + learned.votes + ' výukových hodnocení.'
+                : 'Pro tuto přesnou situaci zatím nemám použitelné naučené hodnocení. Tah jsem vybrala náhodně z ' +
                     validMoves.length + ' legálních možností.',
-        score: winning ? 1 : (trained ? 0.9 : 0),
+        score: winning ? 1 : (trained ? Math.min(0.99, 0.5 + learned.votes / 100) : 0),
         breakdown: {
             trainedKnowledge: trained,
             usedInstructions,
             legalMoveCount: validMoves.length,
-            selection: winning ? 'immediate-win' : (trained ? 'learned-instruction' : 'untrained-random')
+            selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' : 'untrained-random')
         },
         alternatives: candidates
             .filter(candidate => candidate.pieceId !== selected.pieceId)
             .map(candidate => ({
                 pieceId: candidate.pieceId,
-                score: candidate.winningMove ? 1 : 0,
-                reason: candidate.winningMove ? 'okamžitá výhra' : 'bez odpovídající naučené instrukce'
+                score: candidate.winningMove ? 1 : Math.max(0, Number(votes[candidate.pieceId]) || 0) / 100,
+                reason: candidate.winningMove ? 'okamžitá výhra' : 'bez vyššího naučeného hodnocení'
             }))
     };
 }
