@@ -831,37 +831,50 @@ function onlineAiLearningCompleteGame(PDO $db, int $gameId, array $currentAction
 
 function onlineAiLearningEnsureSchema(PDO $db): void
 {
-    $db->exec(
-        'CREATE TABLE IF NOT EXISTS ' . onlineTable('ai_learning_model') . ' (
-            id TINYINT UNSIGNED NOT NULL,
-            model_json JSON NOT NULL,
-            generation BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
-    );
-    $initial = json_encode(onlineAiLearningDefaultModel(), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-    $stmt = $db->prepare('INSERT IGNORE INTO ' . onlineTable('ai_learning_model') . ' (id, model_json, generation) VALUES (1, ?, 0)');
-    $stmt->execute([$initial]);
-    $migration = $db->prepare(
-        'INSERT INTO ' . onlineTable('schema_migrations') . ' (version, name) VALUES (3, ?) ' .
-        'ON DUPLICATE KEY UPDATE name = VALUES(name)'
-    );
-    $migration->execute(['global_online_ai_learning_model']);
+    // Model už není uložen v MySQL. Všechny režimy používají jeden centrální JSON soubor.
 }
 
 function onlineAiLearningChooseMove(PDO $db, array $game): array
 {
-    $stmt = $db->query('SELECT model_json FROM ' . onlineTable('ai_learning_model') . ' WHERE id = 1 FOR UPDATE');
-    $json = $stmt->fetchColumn();
-    $model = is_string($json) ? json_decode($json, true) : null;
-    if (!is_array($model) || count($model['weights'] ?? []) !== 1000) $model = onlineAiLearningDefaultModel();
+    $directory = dirname(__DIR__) . '/storage';
+    if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory)) {
+        throw new RuntimeException('Nelze vytvořit úložiště společného modelu AI.');
+    }
 
-    $decision = onlineAiLearningDecision($game, $model);
-    $stmt = $db->prepare('UPDATE ' . onlineTable('ai_learning_model') . ' SET model_json = ?, generation = ? WHERE id = 1');
-    $stmt->execute([
-        json_encode($model, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
-        (int) ($model['generation'] ?? 0),
-    ]);
-    return $decision;
+    $lock = fopen($directory . '/ai-learning-data.lock', 'c');
+    if ($lock === false || !flock($lock, LOCK_EX)) {
+        if (is_resource($lock)) fclose($lock);
+        throw new RuntimeException('Nelze zamknout společný model AI.');
+    }
+
+    try {
+        $path = $directory . '/ai-learning-data.json';
+        $stored = ['revision' => 0, 'model' => onlineAiLearningDefaultModel()];
+        if (is_file($path)) {
+            $raw = file_get_contents($path);
+            $decoded = is_string($raw) ? json_decode($raw, true) : null;
+            if (is_array($decoded) && is_array($decoded['model'] ?? null)
+                && count($decoded['model']['weights'] ?? []) === 1000) {
+                $stored = $decoded;
+            }
+        }
+
+        $model = $stored['model'];
+        $decision = onlineAiLearningDecision($game, $model);
+        $next = [
+            'revision' => (int) ($stored['revision'] ?? 0) + 1,
+            'updatedAt' => gmdate('c'),
+            'model' => $model,
+        ];
+        $temporary = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
+        $json = json_encode($next, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        if (file_put_contents($temporary, $json, LOCK_EX) !== strlen($json) || !rename($temporary, $path)) {
+            @unlink($temporary);
+            throw new RuntimeException('Nepodařilo se bezpečně uložit společný model AI.');
+        }
+        return $decision;
+    } finally {
+        flock($lock, LOCK_UN);
+        fclose($lock);
+    }
 }

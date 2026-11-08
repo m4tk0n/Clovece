@@ -1,6 +1,7 @@
 /**
  * Průběžné učení místní AI.
- * Model se ukládá jako JSON do úložiště prohlížeče daného zařízení.
+ * Autoritativní model se načítá a ukládá do centrálního JSON souboru na serveru.
+ * localStorage slouží pouze jako nouzová lokální kopie.
  * Legální tahy a simulace zůstávají výhradně v herním enginu.
  */
 import {
@@ -14,10 +15,16 @@ import { chooseMonteCarloDecision } from './ai-mcts.js';
 
 const STORAGE_KEY = 'clovece.ai.search.learning.v1';
 const STORAGE_PARAMETER_LIMIT = 5000;
-let model = loadModel();
+const CENTRAL_API = 'ai-learning-api.php';
+let model = loadCachedModel();
+let centralRevision = 0;
+let centralBaseModel = null;
+let centralCsrfToken = '';
+let centralStorageAvailable = false;
+let centralSaveQueue = Promise.resolve();
 let currentGameStats = null;
 
-function loadModel() {
+function loadCachedModel() {
     try {
         const raw = globalThis.localStorage?.getItem(STORAGE_KEY);
         return createSearchModel(raw ? JSON.parse(raw) : DEFAULT_SEARCH_MODEL);
@@ -26,28 +33,74 @@ function loadModel() {
     }
 }
 
+async function initializeCentralModel() {
+    if (new URLSearchParams(globalThis.location?.search || '').get('test') === '1') return;
+    if (typeof globalThis.fetch !== 'function' || !globalThis.location?.href) return;
+    try {
+        const url = new URL(CENTRAL_API, globalThis.location.href);
+        const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const payload = await response.json();
+        if (!payload.success || !payload.model || typeof payload.csrf_token !== 'string') {
+            throw new Error(payload.error || 'Neplatná odpověď centrálního úložiště.');
+        }
+        model = createSearchModel(payload.model);
+        centralRevision = Number(payload.revision) || 0;
+        centralBaseModel = createSearchModel(payload.base_model || payload.model);
+        centralCsrfToken = payload.csrf_token;
+        centralStorageAvailable = true;
+        try {
+            globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(model));
+        } catch {
+            // Centrální úložiště je autoritativní; cache není povinná.
+        }
+    } catch (error) {
+        console.warn('Centrální model AI není dostupný; používám lokální záložní kopii:', error);
+    }
+}
+
+// Načtení proběhne před prvním rozhodnutím AI, aby nová hra použila společný model.
+await initializeCentralModel();
+
+function queueCentralSave(snapshot) {
+    if (!centralStorageAvailable || !centralCsrfToken || typeof fetch !== 'function') return;
+    centralSaveQueue = centralSaveQueue.then(async () => {
+        const response = await fetch(new URL(CENTRAL_API, globalThis.location.href), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                csrf_token: centralCsrfToken,
+                revision: centralRevision,
+                base_model: centralBaseModel || snapshot,
+                model: snapshot
+            })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.error || ('HTTP ' + response.status));
+        centralRevision = Number(payload.revision) || centralRevision;
+        if (payload.model) {
+            centralBaseModel = createSearchModel(payload.model);
+            model = centralBaseModel;
+        } else {
+            centralBaseModel = createSearchModel(snapshot);
+        }
+    }).catch(error => {
+        centralStorageAvailable = false;
+        console.warn('Uložení centrálního modelu AI selhalo:', error);
+    });
+}
+
 function saveModel() {
-    if (!globalThis.localStorage) return false;
+    let saved = false;
     try {
         globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(model));
-        return true;
+        saved = true;
     } catch {
-        // localStorage má omezenou kapacitu. Zachováme nejpoužívanější
-        // vzorce a stabilní ID, místo abychom poškodili nebo smazali celý model.
-        if (model.dynamicParameters.length > STORAGE_PARAMETER_LIMIT) {
-            model.dynamicParameters = [...model.dynamicParameters]
-                .sort((a, b) => (b.visits + Math.abs(b.weight) * 4) - (a.visits + Math.abs(a.weight) * 4))
-                .slice(0, STORAGE_PARAMETER_LIMIT)
-                .sort((a, b) => a.id - b.id);
-            try {
-                globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(model));
-                return true;
-            } catch {
-                return false;
-            }
-        }
-        return false;
+        // Lokální cache není autoritativní ani povinná.
     }
+    queueCentralSave(JSON.parse(JSON.stringify(model)));
+    return saved || centralStorageAvailable;
 }
 
 export function beginLocalAiLearningGame() {
