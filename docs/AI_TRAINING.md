@@ -517,3 +517,6 @@ Po úspěšném trénování workflow spustí 200 her na desce 40 se čtyřmi hr
 ## 20. Rozmanitost self-play dat
 
 Automatický sběr používá jedinečný seed běhu, aby opakované spuštění nevytvářelo totožné partie. Týdenní plán střídá desku 40 se 4 hráči, desku 48 se 6 hráči a desku 80 s 8 hráči. Ruční běh umožňuje zvolit jinou povolenou kombinaci a případně zadat vlastní seed. To rozšiřuje trénovací data napříč podporovanými velikostmi; výsledek turnaje na desce 40/4 však stále není důkazem výkonu na ostatních variantách.
+
+
+Identifikátor partie v JSONL je složený ze seedu sběru a pořadí partie (`seed-gameIndex`). Díky tomu trenér odděluje validační a trénovací množinu podle skutečné partie, nikoli pouze podle pořadového čísla, které se opakuje v různých sběrech.
