@@ -6,7 +6,7 @@
  * téměř celou plochu. Vzhled lze přepínat tlačítky v horní liště desky.
  */
 import { buildBoardSceneData as createBoardSceneData } from './game-board-scene.js?v=20261107-2';
-import { render2DBoard } from './game-board-2d.js?v=20261107-2';
+import { render2DBoard } from './game-board-2d.js?v=20261108-4';
 import { notifyGameExtensions } from './game-extensions.js';
 
 const STYLE_KEY = 'clovece_board_style';
