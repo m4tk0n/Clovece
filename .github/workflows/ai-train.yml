@@ -45,7 +45,33 @@ jobs:
         run: node --test tests/ai-train.test.mjs
       - name: Ověřit vstupní formát a neuronovou vrstvu
         run: node --test tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
+      - name: Zjistit, zda archiv obsahuje dostatek dat schema v2
+        id: dataset
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import zlib from 'node:zlib';
+          import { AI_FEATURE_COUNT } from './js/ai-neural-network.js';
+          const dir = 'training-data/self-play';
+          let pairs = 0;
+          for (const name of fs.readdirSync(dir).filter(file => /\\.jsonl\\.gz$/i.test(file))) {
+            const text = zlib.gunzipSync(fs.readFileSync(path.join(dir, name))).toString('utf8');
+            for (const line of text.split(/\\r?\\n/).filter(Boolean)) {
+              const record = JSON.parse(line);
+              if (record.completed !== true || !Array.isArray(record.candidates)) continue;
+              const candidates = record.candidates.filter(item =>
+                Array.isArray(item.features) && item.features.length === AI_FEATURE_COUNT &&
+                item.features.every(Number.isFinite) && Number.isFinite(item.teacherScore));
+              if (candidates.length >= 2) pairs += candidates.length * (candidates.length - 1) / 2;
+            }
+          }
+          const ready = pairs >= 100;
+          console.log('Kompatibilní párové příklady schema v' + AI_FEATURE_COUNT + ': ' + pairs);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'ready=' + ready + '\\n');
+          NODE
       - name: Natrénovat kandidátní model
+        if: steps.dataset.outputs.ready == 'true'
         run: |
           node scripts/ai-train.mjs \
             --input-dir=training-data/self-play \
@@ -54,8 +80,12 @@ jobs:
             --output=artifacts/ludo-ai-candidate.js \
             --metrics=artifacts/ai-training-metrics.json
       - name: Uložit kandidáta a výsledky (bez nasazení)
+        if: steps.dataset.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ai-neural-candidate-${{ github.run_number }}
           path: artifacts/
           retention-days: 90
+      - name: Vysvětlit přeskočení tréninku
+        if: steps.dataset.outputs.ready != 'true'
+        run: echo "Trénink přeskočen – archiv zatím neobsahuje 100 kompatibilních párů schema v2. Nejdříve je potřeba dokončit nový self-play sběr."
