@@ -674,15 +674,15 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         // následně ověřuje; produkční skóre níže si zachovává všechny další
         // taktické a 1000-slot složky.
         const trainingScore = winning ? 1000000 :
-            ownPipsGain * Number(weights.ownProgress) +
-            opponentPipsGain * Number(weights.opponentSetback) +
-            threatReduction * Number(weights.threatReduction) +
+            Number(ownPipsGain.toFixed(3)) * Number(weights.ownProgress) +
+            Number(opponentPipsGain.toFixed(3)) * Number(weights.opponentSetback) +
+            Number(threatReduction.toFixed(4)) * Number(weights.threatReduction) +
             (enemyCapture ? Number(weights.captureOpponent) : 0) -
             (selfCapture ? Number(weights.captureOwn) : 0) +
             (candidate.move?.finishedNow ? Number(weights.finishPiece) : 0) +
             (deployedPiece ? Number(weights.deployPiece) : 0) +
             (enteredHome ? Number(weights.enterHome) : 0) +
-            homeProgress * Number(weights.homeProgress);
+            Number(homeProgress.toFixed(3)) * Number(weights.homeProgress);
 
         const score = winning ? 1000000 :
             progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
