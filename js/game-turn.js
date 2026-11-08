@@ -4,6 +4,7 @@
  */
 import { getGameExtensionValue } from './game-extensions.js';
 import { refreshAITrainingKnowledge } from './ai-training-knowledge.js';
+import { isValidAINeuralModel } from './ai-neural-network.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
@@ -111,8 +112,16 @@ export function createTurnController(deps) {
             // První povinné nasazení není taktické rozhodnutí, proto se nevytváří rozbor.
             return legalMoves[0] ?? null;
         }
+        // Váhy neuronové sítě se načtou až při skutečném tahu AI, nikoli při startu webu.
+        let neuralModel = null;
+        try {
+            const modelModule = await import('../models/ludo-ai.js');
+            if (isValidAINeuralModel(modelModule.default)) neuralModel = modelModule.default;
+        } catch (error) {
+            if (debugAI || trainingAI) addGameLogEntry('AI model', 'Neuronový model není dostupný: ' + error.message);
+        }
         const decision = chooseAIMoveDecision
-            ? chooseAIMoveDecision(game, undefined, knowledge.memory)
+            ? chooseAIMoveDecision(game, undefined, knowledge.memory, neuralModel)
             : { pieceId: chooseAIMove(game), reason: '' };
         if ((debugAI || trainingAI) && decision?.reason) {
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
