@@ -16,7 +16,8 @@ let boardStyle = loadStyle();
 
 // SVG je vždy pevný pohled shora. 3D kamera patří výhradně Three.js rendereru.
 const VIEW_KEY = 'clovece_board_view';
-let view3d = loadView();
+const trainingMode = new URLSearchParams(window.location.search).get('debug') === 'training';
+let view3d = trainingMode ? false : loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
 const modeStylesPromises = new Map();
@@ -89,6 +90,11 @@ export function ensureModeStyles(mode) {
 /** Ověří reálnou možnost vytvořit Three.js renderer a přednačte styly režimů. */
 export async function prepareBoardRendering() {
     view3d = false;
+    if (trainingMode) {
+        view3dUnavailable = false;
+        await ensureModeStyles('2d');
+        return '2d';
+    }
     view3dUnavailable = false;
     let canUse3D = false;
     const probeCanvas = document.createElement('canvas');
@@ -248,6 +254,7 @@ function bindStyleSwitch(container) {
         const viewButton = path.find(node => node instanceof Element && node.matches('[data-board-view]')) ||
             event.target.closest?.('[data-board-view]');
         if (viewButton && container.contains(viewButton)) {
+            if (trainingMode) return;
             event.preventDefault();
             if (view3dUnavailable) return;
             view3d = !view3d;
