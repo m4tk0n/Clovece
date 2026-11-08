@@ -129,37 +129,21 @@ export function renderGameChat(messages, participants, moves = []) {
             displayEntries.push({ kind: 'event', sender, text });
         }
 
-        if (debugAI && item.action_type === 'move' && action.aiLearning) {
-            const learning = action.aiLearning;
-            let learningText = 'Rozhodnutí ' + (learning.decisionsTrained || '?') +
-                ': nové parametry +' + (learning.newParameterCount || 0) +
-                ', upraveno vah ' + (learning.changedParameters || 0) +
-                ', celkem parametrů ' + (learning.totalParameters || 1000) +
-                ', loss ' + Number(learning.averageCrossEntropy || 0).toFixed(4) +
-                ', MCTS simulací ' + (learning.teacherSimulations || 0) + '.';
-            if (learning.policyInfluencedChoice) learningText += ' Naučená politika ovlivnila výběr tahu.';
-            const examples = (learning.newParameters || []).slice(0, 3).map(parameter =>
-                '#' + parameter.id + ' ' + (parameter.featureNames || []).join(' × ')
-            );
-            if (examples.length) learningText += ' Nové vzorce: ' + examples.join('; ') + '.';
-            displayEntries.push({ kind: 'event', sender: 'AI UČENÍ', text: learningText });
-        }
-
-        if (debugAI && action.aiLearningSummary) {
-            const summary = action.aiLearningSummary;
-            let summaryText = 'Souhrn partie: parametry na začátku ' + (summary.parametersAtStart || 1000) +
-                ', nově vytvořeno +' + (summary.newParameters || 0) +
-                ', na konci ' + (summary.parametersAtEnd || 1000) +
-                ', rozhodnutí ' + (summary.decisions || 0) +
-                ', upravené váhy ' + (summary.changedParameters || 0) +
-                ', průměrná loss ' + Number(summary.averageCrossEntropy || 0).toFixed(4) +
-                ', dokončených partií modelu ' + (summary.gamesTrained || '?') + '.';
-            const supported = (summary.topPatterns || []).slice(0, 3).map(item =>
-                '#' + item.id + ' ' + (item.featureNames || []).join(' × ') +
-                ' (podpora ' + item.teacherSupport + ', odmítnutí ' + item.teacherRejects + ')'
-            );
-            if (supported.length) summaryText += ' MCTS nejčastěji podporovalo: ' + supported.join('; ') + '.';
-            displayEntries.push({ kind: 'event', sender: 'AI UČENÍ', text: summaryText });
+        if (debugAI && item.action_type === 'move' && action.aiDecision?.reason) {
+            displayEntries.push({
+                kind: 'event',
+                sender: 'AI rozhodování',
+                text: action.aiDecision.reason
+            });
+            const candidates = Array.isArray(action.aiDecision.candidates) ? action.aiDecision.candidates : [];
+            if (candidates.length) {
+                const detail = candidates.map(candidate =>
+                    'figurka ' + (Number(candidate.pieceId) + 1) + ': ' +
+                    Number(candidate.score || 0).toFixed(2) + ' bodů [' +
+                    (candidate.reasons || []).join(', ') + ']'
+                ).join('; ');
+                displayEntries.push({ kind: 'event', sender: 'AI možnosti', text: detail });
+            }
         }
     });
 
