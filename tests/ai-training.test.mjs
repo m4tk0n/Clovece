@@ -228,3 +228,25 @@ test('trainer dice controls are injected only in trainer mode and delegated dyna
     assert.match(controls, /#trainer-ai-dice-mode/);
     assert.match(view, /diceRow\.classList\.toggle\('hidden', !\['start-roll', 'roll'\]\.includes\(game\.phase\)\)/);
 });
+
+
+test('debug weight formatting preserves integer scale and useful decimal precision', async () => {
+    const { formatDebugWeight } = await import('../js/debug-overlay.js');
+    assert.equal(formatDebugWeight(100000), '100000');
+    assert.equal(formatDebugWeight(0.08), '0.08');
+    assert.equal(formatDebugWeight(0.035), '0.035');
+    assert.equal(formatDebugWeight(0.00000001), '1e-8');
+    assert.equal(formatDebugWeight(Number.NaN), '—');
+    assert.equal(formatDebugWeight(undefined), '—');
+});
+
+test('debug diagnostics report neural model provenance and refresh training state', async () => {
+    const debug = await read('../js/debug-overlay.js');
+    const model = await read('../js/models/ludo-ai.js');
+    assert.match(debug, /isValidAINeuralModel\(model\)/);
+    assert.match(debug, /HEURISTICKY INICIALIZOVANÝ – offline trénink neproběhl/);
+    assert.match(debug, /window\.setInterval\(loadAIWeightState, 30000\)/);
+    assert.match(debug, /addEventListener\('visibilitychange'/);
+    assert.match(model, /"initialization": "heuristic-seed-v1"/);
+    assert.match(model, /"enabled": true/);
+});
