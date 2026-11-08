@@ -456,7 +456,7 @@ function estimateFastTrackThreat(game, playerId) {
     return total;
 }
 
-export function evaluateTacticalCandidates(game, candidates) {
+export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTICAL_WEIGHTS) {
     const playerId = game.currentPlayer;
     const beforeOwnPips = calculatePlayerPips(game, playerId);
     const beforeThreat = estimateFastTrackThreat(game, playerId);
@@ -474,13 +474,13 @@ export function evaluateTacticalCandidates(game, candidates) {
         const selfCapture = Boolean(captured?.ownPiece);
         const enemyCapture = Boolean(captured && !captured.ownPiece);
         const threatReduction = beforeThreat - afterThreat;
-        const score = winning ? AI_TACTICAL_WEIGHTS.immediateWin :
-            ownPipsGain * AI_TACTICAL_WEIGHTS.ownProgress +
-            opponentPipsGain * AI_TACTICAL_WEIGHTS.opponentSetback +
-            threatReduction * AI_TACTICAL_WEIGHTS.threatReduction +
-            (enemyCapture ? AI_TACTICAL_WEIGHTS.captureOpponent : 0) -
-            (selfCapture ? AI_TACTICAL_WEIGHTS.captureOwn : 0) +
-            (candidate.move?.finishedNow ? AI_TACTICAL_WEIGHTS.finishPiece : 0);
+        const score = winning ? weights.immediateWin :
+            ownPipsGain * weights.ownProgress +
+            opponentPipsGain * weights.opponentSetback +
+            threatReduction * weights.threatReduction +
+            (enemyCapture ? weights.captureOpponent : 0) -
+            (selfCapture ? weights.captureOwn : 0) +
+            (candidate.move?.finishedNow ? weights.finishPiece : 0);
         return {
             pieceId: candidate.pieceId,
             score: Number(score.toFixed(6)),
@@ -497,7 +497,7 @@ export function evaluateTacticalCandidates(game, candidates) {
     }).sort((a, b) => b.score - a.score || a.pieceId - b.pieceId);
 }
 
-export function chooseTacticalTeacherDecision(game, dependencies) {
+export function chooseTacticalTeacherDecision(game, dependencies, weights = AI_TACTICAL_WEIGHTS) {
     const legalMoves = dependencies.getValidMoves(game);
     if (!legalMoves.length) return null;
     const candidates = legalMoves.map(pieceId => {
@@ -505,7 +505,7 @@ export function chooseTacticalTeacherDecision(game, dependencies) {
         const move = dependencies.movePiece(state, pieceId);
         return { pieceId, move, state, winningMove: state.winner === game.currentPlayer };
     });
-    const ranked = evaluateTacticalCandidates(game, candidates);
+    const ranked = evaluateTacticalCandidates(game, candidates, weights);
     return {
         pieceId: ranked[0].pieceId,
         score: ranked[0].score,
