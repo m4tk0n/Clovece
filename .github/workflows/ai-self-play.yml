@@ -33,6 +33,7 @@ on:
       - 'js/ai-neural-network.js'
       - 'tests/ai-neural-network.test.mjs'
       - 'tests/ai-strategy.test.mjs'
+      - 'tests/ai-self-play.test.mjs'
       - '.github/workflows/ai-self-play.yml'
   schedule:
     - cron: "17 3 * * 1"
@@ -76,7 +77,7 @@ jobs:
           echo "board=$BOARD" >> "$GITHUB_OUTPUT"
           echo "seed=$SEED" >> "$GITHUB_OUTPUT"
       - name: Cílené testy enginu a rozhodování AI
-        run: node --test tests/game-engine.test.mjs tests/local-game-rules.test.mjs tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs
+        run: node --test tests/game-engine.test.mjs tests/local-game-rules.test.mjs tests/ai-neural-network.test.mjs tests/ai-strategy.test.mjs tests/ai-self-play.test.mjs
       - name: Self-play partie
         run: |
           mkdir -p artifacts
