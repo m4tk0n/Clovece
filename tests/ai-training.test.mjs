@@ -50,6 +50,14 @@ test('each human correction is stored as a new private immutable JSON file', asy
     assert.match(endpoint, /feedbackType === 'positive'/);
     assert.match(endpoint, /'note' => \$feedbackType === 'positive'/);
     assert.match(endpoint, /fopen\(\$filePath, 'x'\)/);
+    assert.match(endpoint, /\\d\\{8\\}-\\d\\{6\\}/);
+    assert.match(endpoint, /sprintf\\('%04d', \\$nextSequence\\)/);
+    assert.match(endpoint, /\\$feedbackType === 'positive' \\? 'ok' : 'err'/);
+    assert.match(endpoint, /\\.sequence\\.lock/);
+    assert.doesNotMatch(endpoint, /\\$record\\['id'\\] \\. '\\.json'/);
+    const knowledge = await read('../ai-training-knowledge.php');
+    assert.match(knowledge, /\\d\\{8\\}-\\d\\{6\\}-\\(\\d\\{4,\\}\\)-\\(ok\\|err\\)/);
+    assert.match(knowledge, /hash_equals\\(\\$expectedSuffix, \\$matches\\[2\\]\\)/);
     assert.match(endpoint, /LOCK_EX/);
     assert.ok(endpoint.includes('$denyRule = "Require all denied\\n";'));
     assert.ok(endpoint.includes("trim($denyContents) === 'Require all denied\\\\n'"));
