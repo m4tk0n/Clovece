@@ -41,7 +41,7 @@ const screenStyles = {
     'player-selection': ['css/components-player-selection.css'],
     settings: ['css/components-settings.css'],
     rules: ['css/components-rules.css'],
-    game: ['css/components-game.css', 'css/components-chat.css', 'css/animations.css'],
+    game: ['css/components-game.css', 'css/components-chat.css', 'css/game-premium.css', 'css/animations.css'],
     'local-games': ['css/components-local-games.css'],
     profile: ['css/components-auth.css', 'css/components-profile.css']
 };
