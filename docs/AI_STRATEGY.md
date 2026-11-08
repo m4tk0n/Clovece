@@ -75,3 +75,10 @@ Podrobný popis UI, JSON struktury, zabezpečení, současného stavu a úkolů 
 Je nutné rozšířit rozpoznávání na podobné situace a další jasně formulované taktické záměry, doplnit trvalý audit každého použití instrukce a zapojit znalostní vrstvu také do serverové AI online her. U místní AI lze již nyní v debug režimu ověřit konkrétní ID instrukce, která skutečně ovlivnila tah.
 
 Pravidla zůstávají oddělená od strategie. Lidská výuka může ovlivnit pouze pořadí legálních možností, nikdy pravidla nebo seznam legálních tahů.
+
+
+## 7. Aktivní taktický model vah v2
+
+Výběr legálního tahu používá společné váhy z `config/ai-tactical-weights.json`. Model obsahuje devět trénovatelných parametrů: vlastní postup, zdržení soupeře, snížení ohrožení, vyhození soupeře, penalizaci vlastního vyhození, dokončení figurky, nasazení figurky, vstup do domečku a postup v domečku. Okamžitá výhra je samostatná pevná priorita 100000.
+
+Každý faktor je vypočítán pro simulovaný legální tah a jeho příspěvek vstupuje do skóre. Self-play zaznamená faktory, vybrané rozhodnutí, pravděpodobnost výběru a výsledek celé partie. Trenér optimalizuje všech devět proměnných z výsledků partií; turnaj porovnává kompletní sadu parametrů proti aktivní baseline. PHP online strategie i místní JavaScriptová strategie načítají stejný JSON.
