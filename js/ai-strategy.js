@@ -346,7 +346,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
         : null;
 
     const tacticalRanking = !winning && !learned
-        ? evaluateTacticalCandidates(game, candidates, getRuntimeTacticalWeights(difficulty))
+        ? evaluateTacticalCandidates(game, candidates, getRuntimeTacticalWeights(difficulty), dependencies)
         : [];
     const tacticalByPiece = new Map(tacticalRanking.map(item => [item.pieceId, item]));
     const rankedCandidates = tacticalRanking
@@ -530,7 +530,7 @@ function estimateDeploymentBonusAttackChance(deployedState, playerId, dependenci
     return attackDiceCount / 6;
 }
 
-export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTICAL_WEIGHTS) {
+export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTICAL_WEIGHTS, dependencies = {}) {
     const playerId = game.currentPlayer;
     const beforeOwnPips = calculatePlayerPips(game, playerId);
     const beforeThreat = estimateFastTrackThreat(game, playerId);
@@ -579,13 +579,13 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         // a současně spočítáme skutečné riziko právě nasazené figurky.
         const deploymentAttackChance = deployedPiece
             ? estimateDeploymentBonusAttackChance(state, playerId, {
-                getValidMoves: gameDependencies.getValidMoves,
-                movePiece: gameDependencies.movePiece,
-                rollDice: gameDependencies.rollDice
+                getValidMoves: dependencies.getValidMoves,
+                movePiece: dependencies.movePiece,
+                rollDice: dependencies.rollDice
             })
             : 0;
         const deployedPieceThreat = deployedPiece
-            ? estimatePieceThreat(state, playerId, candidate.pieceId, gameDependencies)
+            ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
             : 0;
         const deploymentTacticalScore = deployedPiece
             ? deploymentAttackChance * (Number(weights.captureOpponent) || AI_TACTICAL_WEIGHTS.captureOpponent) * 2 -
@@ -676,7 +676,7 @@ export function chooseTacticalTeacherDecision(game, dependencies, weights = AI_T
         const move = dependencies.movePiece(state, pieceId);
         return { pieceId, move, state, winningMove: state.winner === game.currentPlayer };
     });
-    const ranked = evaluateTacticalCandidates(game, candidates, weights);
+    const ranked = evaluateTacticalCandidates(game, candidates, weights, dependencies);
     return {
         pieceId: ranked[0].pieceId,
         score: ranked[0].score,
