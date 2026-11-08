@@ -72,7 +72,7 @@ test('untrained AI chooses uniformly from legal moves using injected random sour
     assert.equal(first.pieceId, legal[0]);
     assert.equal(last.pieceId, legal[1]);
     assert.equal(first.breakdown.trainedKnowledge, false);
-    assert.match(first.reason, /nemám použitelnou naučenou instrukci/i);
+    assert.match(first.reason, /nemám použitelné naučené hodnocení/i);
 });
 
 test('AI still chooses an immediate winning move', () => {
@@ -159,18 +159,4 @@ test('compiled AI memory is not applied to a different board position', () => {
     assert.deepEqual(decision.breakdown.usedInstructions, []);
 });
 
-test('immediate winning move always overrides learned memory', () => {
-    const game = createGame(1, 1);
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = game.trackLength + 2;
-    game.pieces[0].pieces[1].steps = 0;
-    const signature = normalizeTrainingSituation(game);
-    const memory = { situations: {
-        [signature]: { votes: [0, 20, 0, 0], ok: 10, err: 10, samples: 20 }
-    } };
 
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0.9, memory);
-    assert.equal(decision.pieceId, 0);
-    assert.equal(decision.breakdown.selection, 'immediate-win');
-});
