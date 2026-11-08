@@ -1,0 +1,64 @@
+name: AI self-play sběr dat
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: Počet partií
+        required: false
+        default: "250"
+        type: string
+      players:
+        description: Počet AI hráčů
+        required: false
+        default: "4"
+        type: choice
+        options: ["2", "3", "4", "5", "6", "7", "8"]
+      board:
+        description: Velikost desky
+        required: false
+        default: "40"
+        type: choice
+        options: ["40", "48", "80"]
+      seed:
+        description: Seed pro opakovatelnost
+        required: false
+        default: "20261108"
+        type: string
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  self-play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Kontrola kompatibility kombinace
+        run: |
+          PLAYERS="${{ inputs.players || '4' }}"
+          BOARD="${{ inputs.board || '40' }}"
+          if [ "$BOARD" = "40" ] && [ "$PLAYERS" -gt 4 ]; then exit 1; fi
+          if [ "$BOARD" = "48" ] && [ "$PLAYERS" -gt 6 ]; then exit 1; fi
+      - name: Self-play partie
+        run: |
+          mkdir -p artifacts
+          node scripts/ai-self-play.mjs \
+            --games="${{ inputs.games || '250' }}" \
+            --players="${{ inputs.players || '4' }}" \
+            --board="${{ inputs.board || '40' }}" \
+            --seed="${{ inputs.seed || '20261108' }}" \
+            --output=artifacts/ai-self-play.jsonl \
+            --metrics=artifacts/ai-self-play-metrics.json
+      - name: Uložit trénovací data a výsledky
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-self-play-${{ github.run_number }}
+          path: artifacts/
+          retention-days: 90
