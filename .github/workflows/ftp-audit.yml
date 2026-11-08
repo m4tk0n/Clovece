@@ -32,7 +32,6 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_PORT: ${{ secrets.FTP_PORT }}
-          FTP_TLS: ${{ secrets.FTP_TLS }}
         run: |
           python3 scripts/ftp-audit.py \
             --repo-root . \
