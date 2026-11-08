@@ -82,6 +82,19 @@ if (!in_array($action, ['memory', 'train'], true)) aiMemoryFail('Neznámá opera
 
 $root = __DIR__ . '/storage/ai-training';
 $directory = $root . '/instructions';
+if (is_link($root) || is_link($directory)) aiMemoryFail('Úložiště AI není bezpečné.', 500);
+if (!is_dir($root) && !@mkdir($root, 0700, true) && !is_dir($root)) aiMemoryFail('Nelze vytvořit úložiště AI.', 500);
+if (!is_dir($directory) && !@mkdir($directory, 0700, true) && !is_dir($directory)) aiMemoryFail('Nelze vytvořit adresář instrukcí AI.', 500);
+$instructionsDenyPath = $directory . '/.htaccess';
+if (!is_file($instructionsDenyPath)) {
+    $denyHandle = @fopen($instructionsDenyPath, 'x');
+    if ($denyHandle !== false) {
+        $denyRule = "Require all denied\n";
+        $denyOk = fwrite($denyHandle, $denyRule) === strlen($denyRule) && fflush($denyHandle);
+        fclose($denyHandle);
+        if (!$denyOk) aiMemoryFail('Nelze zabezpečit adresář instrukcí AI.', 500);
+    }
+}
 $storageRoot = realpath(__DIR__ . '/storage');
 $realRoot = realpath($root);
 $realDirectory = realpath($directory);
