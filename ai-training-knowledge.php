@@ -95,7 +95,9 @@ $minimumMtime = max(0, (int) floor((float) $since) - 2);
 $files = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
 foreach ($files as $filePath) {
     $fileName = basename($filePath);
-    if (!preg_match('/^\\d{8}-\\d{6}-(\\d{4,})-(ok|err)\\.json$/', $fileName, $matches)) continue;
+    $isLegacyName = preg_match('/^([a-f0-9]{32})\\.json$/i', $fileName, $legacyMatches) === 1;
+    $isSequentialName = preg_match('/^\\d{8}-\\d{6}-(\\d{4,})-(ok|err)\\.json$/', $fileName, $matches) === 1;
+    if (!$isLegacyName && !$isSequentialName) continue;
     if (is_link($filePath) || !is_file($filePath)) continue;
     $modifiedAt = @filemtime($filePath);
     if ($modifiedAt === false || $modifiedAt < $minimumMtime) continue;
@@ -111,7 +113,8 @@ foreach ($files as $filePath) {
     $expectedSuffix = ($record['feedbackType'] ?? '') === 'positive' ? 'ok' : 'err';
     if (!preg_match('/^[a-f0-9]{32}$/', $recordId)
         || !in_array($record['feedbackType'] ?? '', ['correction', 'positive'], true)
-        || !hash_equals($expectedSuffix, $matches[2])
+        || ($isLegacyName && !hash_equals(strtolower($legacyMatches[1]), $recordId))
+        || ($isSequentialName && !hash_equals($expectedSuffix, $matches[2]))
         || !is_array($record['context'] ?? null)
         || !is_array($record['context']['game'] ?? null)
         || !is_array($record['context']['decision'] ?? null)
