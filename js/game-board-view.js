@@ -221,7 +221,7 @@ export function getBoardStyle() {
 function styleSwitchMarkup() {
     const label = { classic: 'KLASIK', polygon: 'MNOHOÚHELNÍK' };
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
-        (trainingMode ? '<button type="button" class="board-style-btn board-dice-display-btn" data-dice-display="toggle" aria-pressed="true" title="Skrýt výběr kostek">KOSTKY</button>' : '') +
+        (trainingMode ? '<div class="board-dice-trainer-group"><button type="button" class="board-style-btn board-dice-display-btn" data-dice-display="toggle" aria-pressed="true" title="Skrýt výběr kostek">KOSTKY</button><div class="board-dice-trainer-slot"></div></div>' : '') +
         (trainingMode ? '<button type="button" class="board-style-btn board-game-info-btn" data-game-info="toggle" aria-label="Zobrazit nastavení vytvořené hry" aria-expanded="false" title="Nastavení vytvořené hry">i</button>' : '') +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
@@ -231,7 +231,7 @@ function styleSwitchMarkup() {
 }
 
 const SWITCH_CSS = '<style>' +
-    '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}' +
+    '.board-style-switch{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;gap:4px}' +'.board-dice-trainer-group{display:flex;flex-direction:column;align-items:center;gap:5px}' +'.board-dice-trainer-slot{width:100%}' +
     '.premium-board-shell{position:relative}' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
