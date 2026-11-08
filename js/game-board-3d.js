@@ -4,7 +4,7 @@
  * Souřadnice herního modelu (720 × 720) převádíme do prostorové scény.
  */
 import { notifyGameExtensions } from './game-extensions.js';
-import { BOARD_CAMERA_CONFIG, configureBoardCamera } from './game-camera-config.js?v=20261106-1';
+import { BOARD_CAMERA_CONFIG, configureBoardCamera } from './game-camera-config.js';
 
 const UNIT = 1 / 42;
 
