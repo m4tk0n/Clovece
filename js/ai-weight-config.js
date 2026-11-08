@@ -1,8 +1,7 @@
 /**
  * Konfigurace taktických vah AI pro hru Člověče, nezlob se!
- * Obsahuje výchozí váhy, jejich načítání a podporu pro URL přepínač ?weights=candidate.
+ * Bezpečné načítání vah s podporou pro URL přepínač ?weights=candidate.
  */
-import fallbackConfig from '../config/ai-tactical-weights.json' assert { type: 'json' };
 
 export const AI_TACTICAL_WEIGHTS_FALLBACK = Object.freeze({
     immediateWin: 100000,
@@ -17,56 +16,55 @@ export const AI_TACTICAL_WEIGHTS_FALLBACK = Object.freeze({
     homeProgress: 0.4
 });
 
-/**
- * Zjistí a načte aktivní sadu vah podle prostředí a URL parametrů.
- */
-function resolveActiveWeights() {
-    let weightsData = fallbackConfig?.weights || fallbackConfig || AI_TACTICAL_WEIGHTS_FALLBACK;
+// Kompletní výchozí pole 1000 hodnot vah (nebo fallback)
+import fallbackWeights from '../config/ai-tactical-weights.json' assert { type: 'json' };
 
+const rawWeights = fallbackWeights?.weights || fallbackWeights || AI_TACTICAL_WEIGHTS_FALLBACK;
+
+/**
+ * Zjištění aktivních vah podle URL (např. ?weights=candidate)
+ */
+function resolveWeights() {
+    let active = rawWeights;
     try {
         if (typeof window !== 'undefined' && window.location) {
             const params = new URLSearchParams(window.location.search);
-            const weightsParam = params.get('weights');
-
-            if (weightsParam === 'candidate') {
+            if (params.get('weights') === 'candidate') {
                 console.log('[AI Config] Aktivován režim testování kandidátních vah z URL (?weights=candidate).');
-                // V případě testování kandidátních vah se prioritně použijí kandidátní váhy, pokud jsou dostupné
                 if (window.__AI_CANDIDATE_WEIGHTS__) {
-                    weightsData = window.__AI_CANDIDATE_WEIGHTS__;
+                    active = window.__AI_CANDIDATE_WEIGHTS__;
                 }
             }
         }
     } catch (e) {
-        // Ignorujeme chyby mimo prohlížeč (např. Node.js testovací prostředí)
+        // Mimo prohlížeč ignorujeme
     }
-
-    return weightsData;
+    return active;
 }
 
-const activeWeights = resolveActiveWeights();
+const currentWeightsData = resolveWeights();
 
 /**
- * Pole 9 základních vah v přesně definovaném pořadí pro AI příznaky:
- * [0] ownProgress
- * [1] opponentSetback
- * [2] threatReduction
- * [3] captureOpponent
- * [4] captureOwn
- * [5] finishPiece
- * [6] deployPiece
- * [7] enterHome
- * [8] homeProgress
+ * Pole hodnot vah. Pokud je k dispozici pole nebo objekt, bezpečně ho mapujeme.
  */
-export const AI_WEIGHT_VALUES = Object.freeze([
-    Number(activeWeights.ownProgress ?? AI_TACTICAL_WEIGHTS_FALLBACK.ownProgress),
-    Number(activeWeights.opponentSetback ?? AI_TACTICAL_WEIGHTS_FALLBACK.opponentSetback),
-    Number(activeWeights.threatReduction ?? AI_TACTICAL_WEIGHTS_FALLBACK.threatReduction),
-    Number(activeWeights.captureOpponent ?? AI_TACTICAL_WEIGHTS_FALLBACK.captureOpponent),
-    Number(activeWeights.captureOwn ?? AI_TACTICAL_WEIGHTS_FALLBACK.captureOwn),
-    Number(activeWeights.finishPiece ?? AI_TACTICAL_WEIGHTS_FALLBACK.finishPiece),
-    Number(activeWeights.deployPiece ?? AI_TACTICAL_WEIGHTS_FALLBACK.deployPiece),
-    Number(activeWeights.enterHome ?? AI_TACTICAL_WEIGHTS_FALLBACK.enterHome),
-    Number(activeWeights.homeProgress ?? AI_TACTICAL_WEIGHTS_FALLBACK.homeProgress)
-]);
+export const AI_WEIGHT_VALUES = Object.freeze(
+    Array.isArray(currentWeightsData) 
+        ? currentWeightsData.map(v => Number(v) || 0)
+        : [
+            Number(currentWeightsData.ownProgress ?? AI_TACTICAL_WEIGHTS_FALLBACK.ownProgress),
+            Number(currentWeightsData.opponentSetback ?? AI_TACTICAL_WEIGHTS_FALLBACK.opponentSetback),
+            Number(currentWeightsData.threatReduction ?? AI_TACTICAL_WEIGHTS_FALLBACK.threatReduction),
+            Number(currentWeightsData.captureOpponent ?? AI_TACTICAL_WEIGHTS_FALLBACK.captureOpponent),
+            Number(currentWeightsData.captureOwn ?? AI_TACTICAL_WEIGHTS_FALLBACK.captureOwn),
+            Number(currentWeightsData.finishPiece ?? AI_TACTICAL_WEIGHTS_FALLBACK.finishPiece),
+            Number(currentWeightsData.deployPiece ?? AI_TACTICAL_WEIGHTS_FALLBACK.deployPiece),
+            Number(currentWeightsData.enterHome ?? AI_TACTICAL_WEIGHTS_FALLBACK.enterHome),
+            Number(currentWeightsData.homeProgress ?? AI_TACTICAL_WEIGHTS_FALLBACK.homeProgress)
+        ]
+);
 
 export const AI_WEIGHT_COUNT = AI_WEIGHT_VALUES.length;
+
+export function getAIWeight(id) {
+    return AI_WEIGHT_VALUES[Number(id) - 1] ?? 0;
+}
