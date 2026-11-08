@@ -8,7 +8,7 @@ import path from 'node:path';
 import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
-import { chooseTacticalTeacherDecision } from '../js/ai-strategy.js';
+import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
 import { extractAIMoveFeatures } from '../js/ai-neural-network.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
@@ -51,7 +51,7 @@ function rankPlayers(game) {
     ).map((entry, index) => ({ ...entry, rank: index + 1 }));
 }
 
-const dependencies = { getValidMoves, movePiece };
+const dependencies = { getValidMoves, movePiece, rollDice };
 const allSamples = [];
 const summary = {
     format: 'clovece-ai-self-play-report',
@@ -123,12 +123,18 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             legalMoveCount: legalMoves.length,
             candidates: candidates.map(candidate => ({
                 pieceId: candidate.pieceId,
-                features: extractAIMoveFeatures(game, candidate, legalMoves.length),
+                features: extractAIMoveFeatures(game, {
+                    ...candidate,
+                    probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies)
+                }, legalMoves.length),
                 teacherScore: decision.ranking.find(item => item.pieceId === candidate.pieceId)?.score ?? null,
                 teacherFactors: decision.ranking.find(item => item.pieceId === candidate.pieceId)?.factors ?? null
             })),
             selectedPieceId: decision.pieceId,
-            selectedFeatures: extractAIMoveFeatures(game, selected, legalMoves.length),
+            selectedFeatures: extractAIMoveFeatures(game, {
+                ...selected,
+                probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies)
+            }, legalMoves.length),
             selection: decision.reason,
             teacherRanking: decision.ranking
         });
