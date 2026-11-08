@@ -121,6 +121,7 @@ if (!is_array($context)
     aiTrainingFail('Chybí úplný záznam rozhodnutí AI.', 400);
 }
 
+$createdAtUnix = time();
 $record = [
     'format' => $feedbackType === 'positive'
         ? 'clovece-ai-positive-example'
@@ -128,7 +129,7 @@ $record = [
     'formatVersion' => 1,
     'feedbackType' => $feedbackType,
     'id' => bin2hex(random_bytes(16)),
-    'createdAt' => gmdate('c'),
+    'createdAt' => gmdate('c', $createdAtUnix),
     'instruction' => $feedbackType === 'positive' ? null : $instruction,
     'note' => $feedbackType === 'positive' ? ($note !== '' ? $note : null) : null,
     'context' => $context,
@@ -202,9 +203,42 @@ if ($realDirectory === false || $storageRoot === false
     aiTrainingFail('Úložiště výuky AI není bezpečně dostupné.', 500);
 }
 
-$filePath = $realDirectory . DIRECTORY_SEPARATOR . $record['id'] . '.json';
+// Přidělení pořadového čísla musí být serializované: souběžné požadavky
+// nesmějí dostat stejné číslo. Zámek je samostatný skrytý soubor v privátním
+// adresáři; pořadí se zjišťuje z již existujících JSON názvů, bez další DB.
+$sequenceLockPath = $realDirectory . DIRECTORY_SEPARATOR . '.sequence.lock';
+if (is_link($sequenceLockPath)) {
+    aiTrainingFail('Zámek pořadí výukových záznamů není bezpečný.', 500);
+}
+$sequenceLock = @fopen($sequenceLockPath, 'c');
+if ($sequenceLock === false || !flock($sequenceLock, LOCK_EX)) {
+    if (is_resource($sequenceLock)) fclose($sequenceLock);
+    aiTrainingFail('Nelze bezpečně přidělit pořadové číslo výukového záznamu.', 500);
+}
+
+$maxSequence = 0;
+$existingFiles = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
+foreach ($existingFiles as $existingFile) {
+    if (preg_match('/^\\d{8}-\\d{6}-(\\d{4,})-(?:ok|err)\\.json$/', basename($existingFile), $sequenceMatch)) {
+        $existingSequence = (int) $sequenceMatch[1];
+        if ($existingSequence > $maxSequence) $maxSequence = $existingSequence;
+    }
+}
+if ($maxSequence >= PHP_INT_MAX - 1) {
+    flock($sequenceLock, LOCK_UN);
+    fclose($sequenceLock);
+    aiTrainingFail('Došlo pořadové číslování výukových záznamů.', 500);
+}
+$nextSequence = $maxSequence + 1;
+$resultCode = $feedbackType === 'positive' ? 'ok' : 'err';
+$fileName = gmdate('Ymd-His', $createdAtUnix)
+    . '-' . sprintf('%04d', $nextSequence)
+    . '-' . $resultCode . '.json';
+$filePath = $realDirectory . DIRECTORY_SEPARATOR . $fileName;
 $handle = @fopen($filePath, 'x');
 if ($handle === false) {
+    flock($sequenceLock, LOCK_UN);
+    fclose($sequenceLock);
     aiTrainingFail('Nový soubor instrukce se nepodařilo vytvořit.', 500);
 }
 
@@ -224,6 +258,8 @@ if ($writeOk) {
 }
 flock($handle, LOCK_UN);
 fclose($handle);
+flock($sequenceLock, LOCK_UN);
+fclose($sequenceLock);
 
 if (!$writeOk || $written !== $totalBytes) {
     aiTrainingFail('Soubor instrukce se nepodařilo celý uložit. Původní záznam nebyl přepsán.', 500);
