@@ -260,6 +260,12 @@ export function initDebugOverlay() {
         }
     }
     loadAIWeightState();
+    // Stav tréninku se publikuje do JSON; otevřený debug panel jej průběžně obnovuje.
+    window.setInterval(loadAIWeightState, 30000);
+    window.addEventListener('focus', loadAIWeightState);
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) loadAIWeightState();
+    });
 
     window.addEventListener('clovece:debug-camera', event => {
         const camera = event.detail || {};
