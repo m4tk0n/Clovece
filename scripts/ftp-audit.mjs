@@ -158,11 +158,13 @@ async function main() {
   client.ftp.verbose = false;
   try {
     // These are the same connection settings and library as FTP-Deploy-Action v4.3.5:
-    // @samkirkland/ftp-deploy 1.2.4 -> basic-ftp ^5.0.5; protocol defaults to plain FTP.
+    // @samkirkland/ftp-deploy 1.2.4 -> basic-ftp 5.x; protocol defaults to plain FTP.
     await client.access({
-      host: process.env.FTP_SERVER,
-      user: process.env.FTP_USERNAME,
-      password: process.env.FTP_PASSWORD,
+      // actions/core getInput() trims whitespace by default. Match the
+      // deployment action exactly, including this normalization.
+      host: process.env.FTP_SERVER.trim(),
+      user: process.env.FTP_USERNAME.trim(),
+      password: process.env.FTP_PASSWORD.trim(),
       port: 21,
       secure: false
     });
