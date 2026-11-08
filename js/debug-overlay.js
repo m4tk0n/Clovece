@@ -168,7 +168,7 @@ export function initDebugOverlay() {
             const nextWeights = state.candidateWeights || state.finalWeights || {};
             const activeWeights = state.finalWeights || state.activeWeights || {};
             const delta = state.delta || {};
-            const fmt = value => Number.isFinite(value) ? Number(value).toFixed(5).replace(/\\.?0+$/, '') : '—';
+            const fmt = value => Number.isFinite(value) ? String(Number(Number(value).toFixed(8))) : '—';
             aiWeights.replaceChildren();
             const heading = document.createElement('div');
             heading.className = 'debug-ai-heading';
