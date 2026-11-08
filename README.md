@@ -39,11 +39,12 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 
 ## Počítačová AI
 
-- Architektura průběžného učení, dynamických parametrů a návaznosti místní/online/GitHub AI: [AI_LEARNING_ARCHITECTURE.md](docs/AI_LEARNING_ARCHITECTURE.md).
+- Pevná, kontextově vyhodnocovaná strategie AI a postup jejího vylepšování: [AI_STRATEGY.md](docs/AI_STRATEGY.md) a [AI_STRATEGY_FEEDBACK.md](docs/AI_STRATEGY_FEEDBACK.md).
 
 - Obtížnost místní AI se nastavuje při vytváření hry: lehká, střední nebo těžká.
 - Všechny úrovně vybírají pouze legální tahy herního enginu.
-- AI vyhodnocuje postup, dokončení figurek, vyhazování, riziko zásahu soupeřem a podle obtížnosti také očekávané pokračování po šestce.
+- AI vyhodnocuje postup, dokončení figurek, vyhazování, riziko zásahu soupeřem a rozmístění všech figurek. Nepoužívá průběžné trénování ani naučený model.
+- V debug režimu vysvětluje výběr tahu a bodové hodnocení alternativ; plánovaný export JSON posledního tahu umožní poslat přesnou situaci k úpravě strategie.
 - Kompletní popis algoritmu, pravděpodobností, omezení a testů je v [AI_STRATEGY.md](docs/AI_STRATEGY.md).
 
 ## Historie verzí

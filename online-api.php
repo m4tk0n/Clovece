@@ -21,7 +21,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lib/game-engine.php';
-require_once __DIR__ . '/lib/ai-learning.php';
 require_once __DIR__ . '/lib/account-auth.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -204,7 +203,6 @@ function onlineStartingRollLogData(array $state): array
 
 function onlineProcessAiTurns(PDO $db, int $gameId): void
 {
-    onlineAiLearningEnsureSchema($db);
     for ($step = 0; $step < 12; $step++) {
         $db->beginTransaction();
         try {
@@ -232,12 +230,12 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
                 $actionResult = onlineEngineRollDice($state);
             } elseif ($state['phase'] === 'move') {
                 $actionType = 'move';
-                $decision = onlineAiLearningChooseMove($db, $state);
+                $decision = onlineEngineChooseAIMoveDecision($state);
                 $pieceId = $decision['pieceId'];
                 if ($pieceId === null) throw new RuntimeException('AI nemá dostupný platný tah.');
                 $actionResult = onlineEngineMovePiece($state, $pieceId);
                 $actionResult['pieceId'] = $pieceId;
-                $actionResult['aiLearning'] = $decision['learning'];
+                $actionResult['aiDecision'] = $decision;
             } elseif ($state['phase'] === 'no-move') {
                 $actionType = 'pass_turn';
                 onlineEngineAdvanceTurn($state);
@@ -249,8 +247,6 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
             $newVersion = (int) $game['state_version'] + 1;
             $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
             if ($newStatus === 'finished') {
-                $learningSummary = onlineAiLearningCompleteGame($db, $gameId, $actionResult);
-                if ($learningSummary !== null) $actionResult['aiLearningSummary'] = $learningSummary;
             }
             $db->prepare('UPDATE ' . onlineTable('online_games') . ' SET state_json = ?, state_version = ?, current_turn = ?, status = ?, last_activity_at = NOW(), finished_at = IF(? = \'finished\', NOW(), finished_at) WHERE id = ?')
                 ->execute([json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), $newVersion, (int) $state['currentPlayer'], $newStatus, $newStatus, $gameId]);
@@ -1092,8 +1088,6 @@ try {
                 $newVersion = $currentVersion + 1;
                 $newStatus = ($state['phase'] ?? '') === 'finished' ? 'finished' : 'active';
                 if ($newStatus === 'finished') {
-                    $learningSummary = onlineAiLearningCompleteGame($db, $gameId, $actionResult);
-                    if ($learningSummary !== null) $actionResult['aiLearningSummary'] = $learningSummary;
                 }
                 $stateJson = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 $actionJson = json_encode($actionResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);

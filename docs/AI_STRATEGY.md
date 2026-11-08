@@ -227,20 +227,37 @@ Testy musí ověřovat zejména:
 - Pro další posílení je vhodné spustit automatické turnaje AI proti AI na deskách 40/48/80 a při 2–8 hráčích. Z výsledků kalibrovat parametry self-play, měřit Elo a porovnávat míru vítězství.
 - Monte Carlo rollouty a plná simulace celých kol se mají přidávat až po změření rychlosti na mobilních zařízeních. Nesmí způsobit prodlevy v běžném tahu.
 
-## 12. Průběžné učení při každém tahu AI
+## 12. Pevná strategie bez průběžného trénování
 
-Místní hra používá `js/ai-live-learning.js`:
-- Základ modelu má 1000 vstupních vah (44 základních signálů, 946 párových interakcí a 10 trojitých interakcí).
-- Při každém rozhodnutí AI MCTS prohledá legální tahy, vytvoří cílové rozdělení a učící model zpracuje právě toto jedno rozhodnutí.
-- Neznámé kvantované kombinace základních signálů vytvářejí dynamické parametry s ID od 1001. Nové parametry jsou přidány před dalším tahem AI a jejich váhy se aktualizují okamžitě.
-- Model místní hry se ukládá jako JSON do `localStorage` zařízení pod klíčem `clovece.ai.search.learning.v1`. Kvůli limitu úložiště zařízení se při nedostatku místa zachovává až 5000 nejpoužívanějších dynamických parametrů.
-- Naučené skóre může upravit pořadí strategických tahů, ale jeho vliv je omezený na 12 % kombinovaného skóre; legální tahy stále určuje herní engine.
-- Pokud se učící vrstva pokazí nebo není dostupná, hra pokračuje původní strategickou AI.
+AI nepoužívá naučený model, dynamické váhy, MCTS učitele ani automatické aktualizace podle odehraných partií. Při každém tahu znovu vyhodnotí aktuální stav desky pomocí pevně definovaných výpočtů. Stejný stav, pravidla a hod kostkou vedou ke stejnému rozhodnutí.
 
-Online hra používá `lib/ai-learning.php`:
-- Model je globální a sdílený mezi online AI partiemi v jediné tabulce `ai_learning_model`; neukládá samostatné řádky pro anonymní hráče.
-- Řádek modelu se zamyká `SELECT ... FOR UPDATE` během transakce tahu, aby se souběžné online partie nepřepisovaly.
-- Online větev vytváří stejný počet 1000 základních vlastností a dynamické parametry od ID 1001. Učitelem je MCTS nad serverovým herním enginem (8 simulací a nejvýše 40 tahů rolloutů); cílové pravděpodobnosti vycházejí z návštěvnosti legálních tahů.
-- Online model je tedy zatím samostatný od modelu uloženého v prohlížeči a od kandidáta trénovacího repozitáře. Sloučení těchto modelů do jednoho synchronizovaného modelu je další krok; nyní se jejich zkušenosti mezi režimy automaticky nepřenášejí.
+- Herní engine je jediným zdrojem legálních tahů a pravidel.
+- Strategie pouze simuluje legální možnosti, vyhodnotí jejich následky a seřadí je.
+- Rozhodování zohledňuje postup k cíli, dokončení figurky, vyhození soupeře, riziko ztráty vlastní figurky, počet aktivních figurek, figurky v základně a domečku, velikost desky a počet hráčů.
+- Nasazení není automaticky nejlepší ani nejhorší. Jeho přínos se mění podle počtu a rozmístění již aktivních figurek a podle taktických možností.
+- Lokální JavaScript načte strategický modul při načtení herního enginu. Serverová PHP strategie je načtena běžným `require_once`; žádný model ani pravidla se nestahují při každém hodu.
+- Místní a online implementace používají stejný soubor strategických zásad a obdobné bodové složky. Rozhodnutí serverové AI obsahuje rozklad skóre, aby bylo možné ověřit soulad obou režimů.
 
-V režimu `?debug=1` se po každém rozhodnutí AI zobrazuje v chatu zpráva **AI UČENÍ**: počet nových parametrů, upravené váhy, celkový počet parametrů, cross-entropy a několik nově objevených kombinací. Čísla jsou skutečné hodnoty z modelu, nikoli ilustrační text.
+### Vysvětlení tahu v debug chatu
+
+Při zapnutém `?debug=1` se zobrazí hod kostkou, zvolené číslo figurky, důvod výběru a bodové vyhodnocení dostupných legálních tahů. Záznam musí popisovat pouze faktory, které skutečně vstoupily do výpočtu.
+
+### Zpětná vazba a opravy strategie
+
+Pokud hráč považuje tah za chybný, použije tlačítko **Zkopírovat JSON** u debug chatu. Export posledního tahu musí obsahovat:
+
+- verzi formátu exportu a verzi strategie;
+- základní i všechna rozšířená pravidla hry;
+- velikost desky, počet hráčů, jejich typy, identifikátory a startovní pole;
+- fázi hry, aktuálního hráče, hod kostkou a případné předchozí hody v rámci tahu;
+- rozmístění všech figurek před tahem;
+- seznam legálních tahů;
+- bodové složky a slovní důvody všech vyhodnocených možností;
+- vybranou figurku a výsledek provedeného tahu;
+- rozmístění figurek po tahu.
+
+Hráč vloží JSON do konverzace a doplní, jaký tah považoval za správný a proč. Oprava se provede změnou pevné strategie a přidáním reprodukovatelného regresního testu. Export neobsahuje přihlašovací údaje, tokeny, osobní identifikátory účtů ani tajné hodnoty.
+
+### Co se již nepoužívá
+
+Z produkční hry byly odstraněny průběžné učení, lokální model v `localStorage`, centrální model, API pro synchronizaci modelu, MCTS učitel a GitHub trénovací příkazy. Staré soubory modelu na serveru nejsou součástí běžného rozhodování a lze je odstranit samostatným úklidem po ověření nasazení. Databázová tabulka případně zůstane nedotčená, dokud nebude ověřeno, že ji žádná jiná část instalace nepoužívá.

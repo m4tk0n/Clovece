@@ -1,4 +1,4 @@
-name: PHP AI learning tests
+name: PHP AI strategy tests
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  php-ai-learning:
+  php-ai-strategy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,5 +21,5 @@ jobs:
           php-version: '8.3'
       - name: Lint PHP sources
         run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
-      - name: Test online AI dynamic learning
-        run: php tests/ai-learning.php
+      - name: Test fixed online AI strategy
+        run: php tests/ai-strategy.php

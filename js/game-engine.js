@@ -3,8 +3,6 @@
  * Nezávislé na DOM a serveru, připravené pro pozdější autoritativní online API.
  */
 import { chooseStrategicMove, chooseStrategicDecision, calculatePlayerPips } from './ai-strategy.js';
-import { chooseMonteCarloDecision, chooseMonteCarloMove } from './ai-mcts.js';
-import { learnFromAIMove } from './ai-live-learning.js';
 
 export const PLAYER_COLORS = [
     '#E53935', '#1E88E5', '#43A047', '#F9A825',
@@ -398,21 +396,6 @@ export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'me
     return chooseStrategicDecision(game, aiDependencies, difficulty);
 }
 
-/** Rozhodnutí AI s průběžným učením při každém jejím tahu v místní hře. */
-export function chooseAIMoveLearningDecision(game, difficulty = game.aiDifficulty || 'medium') {
-    const strategic = chooseStrategicDecision(game, aiDependencies, difficulty);
-    return learnFromAIMove(game, aiDependencies, strategic);
-}
-
 export function chooseAIMove(game, difficulty = game.aiDifficulty || 'medium') {
     return chooseStrategicMove(game, aiDependencies, difficulty);
-}
-
-/** Monte Carlo search API for the AI laboratory and optional game modes. */
-export function chooseAIMoveMonteCarlo(game, options = {}) {
-    return chooseMonteCarloMove(game, aiDependencies, options);
-}
-
-export function chooseAIMoveMonteCarloDecision(game, options = {}) {
-    return chooseMonteCarloDecision(game, aiDependencies, options);
 }

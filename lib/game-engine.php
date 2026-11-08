@@ -449,36 +449,149 @@ function onlineEngineMovePiece(array &$game, int $pieceId): array
     return $move;
 }
 
-function onlineEngineChooseAIMove(array $game): ?int
+/**
+ * Pevná serverová strategie AI. Legální tahy vždy dodává herní engine;
+ * tato funkce pouze simuluje a boduje jejich následky.
+ */
+function onlineEngineAiPips(array $game, int $playerId): float
 {
-    $valid = onlineEngineValidMoves($game);
-    if ($valid === []) return null;
-    $playerId = (int) $game['currentPlayer'];
-    $player = $game['players'][$playerId];
-    $trackLength = (int) $game['trackLength'];
-    $bestPiece = null;
-    $bestScore = PHP_INT_MIN;
-    foreach ($valid as $pieceId) {
-        $piece = $game['pieces'][$playerId]['pieces'][$pieceId];
-        $nextSteps = (int) $piece['steps'] < 0 ? 0 : (int) $piece['steps'] + (int) $game['diceValue'];
-        $destination = $nextSteps < $trackLength ? (((int) $player['start']) + $nextSteps) % $trackLength : null;
-        $score = $nextSteps;
-        if ((int) $piece['steps'] < 0) $score += 18;
-        if ($nextSteps === $trackLength + 3) $score += 1000;
-        if ($destination !== null) {
-            foreach ($game['pieces'] as $enemyId => $group) {
-                if ((int) $enemyId === $playerId) continue;
-                foreach ($group['pieces'] as $enemyPiece) {
-                    $enemySteps = (int) $enemyPiece['steps'];
-                    if ($enemySteps >= 0 && $enemySteps < $trackLength
-                        && onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece) === $destination) $score += 90;
-                }
-            }
-        }
-        if ($score > $bestScore) {
-            $bestScore = $score;
-            $bestPiece = (int) $pieceId;
+    $track = (int) $game['trackLength'];
+    $maxSteps = $track + 3;
+    $active = 0;
+    foreach ($game['pieces'][$playerId]['pieces'] as $piece) {
+        $steps = (int) $piece['steps'];
+        if ($steps >= 0 && $steps < $track) $active++;
+    }
+
+    $pips = 0.0;
+    foreach ($game['pieces'][$playerId]['pieces'] as $piece) {
+        $steps = (int) $piece['steps'];
+        if ($steps < 0) {
+            $pips += $maxSteps + 3;
+        } elseif ($steps < $track) {
+            $pips += $maxSteps - $steps;
+        } else {
+            $pips += max(0, $maxSteps - $steps);
         }
     }
-    return $bestPiece;
+    return $pips;
+}
+
+function onlineEngineAiThreatLoss(array $game, int $playerId): float
+{
+    $track = (int) $game['trackLength'];
+    $loss = 0.0;
+    foreach ($game['pieces'][$playerId]['pieces'] as $piece) {
+        $steps = (int) $piece['steps'];
+        if ($steps < 0 || $steps >= $track) continue;
+        $target = onlineEnginePiecePosition($game, $playerId, $piece);
+        if ($target === null) continue;
+        $survival = 1.0;
+        foreach ($game['pieces'] as $enemyId => $group) {
+            if ((int) $enemyId === $playerId) continue;
+            foreach ($group['pieces'] as $enemyPiece) {
+                $enemySteps = (int) $enemyPiece['steps'];
+                if ($enemySteps < 0 || $enemySteps >= $track) continue;
+                $enemyPosition = onlineEnginePiecePosition($game, (int) $enemyId, $enemyPiece);
+                if ($enemyPosition === null) continue;
+                $distance = ($target - $enemyPosition + $track) % $track;
+                if ($distance >= 1 && $distance <= 6) $survival *= (5.0 / 6.0);
+            }
+        }
+        $hitProbability = 1.0 - $survival;
+        $pieceValue = max(1, $track + 3 - $steps);
+        $loss += $hitProbability * $pieceValue;
+    }
+    return $loss;
+}
+
+/**
+ * Vrací výběr i rozbor pro debug chat. Skóre je deterministické pro stejný stav.
+ */
+function onlineEngineChooseAIMoveDecision(array $game): array
+{
+    $valid = onlineEngineValidMoves($game);
+    if ($valid === []) return ['pieceId' => null, 'reason' => 'AI nemá žádný legální tah.', 'candidates' => []];
+
+    $playerId = (int) $game['currentPlayer'];
+    $playerPieces = $game['pieces'][$playerId]['pieces'];
+    $track = (int) $game['trackLength'];
+    $activeBefore = 0;
+    foreach ($playerPieces as $piece) {
+        $steps = (int) $piece['steps'];
+        if ($steps >= 0 && $steps < $track) $activeBefore++;
+    }
+
+    $beforeOwnPips = onlineEngineAiPips($game, $playerId);
+    $beforeThreat = onlineEngineAiThreatLoss($game, $playerId);
+    $beforeOpponentPips = [];
+    foreach ($game['players'] as $opponentId => $_player) {
+        if ((int) $opponentId === $playerId) continue;
+        $beforeOpponentPips[(int) $opponentId] = onlineEngineAiPips($game, (int) $opponentId);
+    }
+
+    $ranked = [];
+    foreach ($valid as $pieceId) {
+        $simulation = json_decode(json_encode($game, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
+        $move = onlineEngineMovePiece($simulation, (int) $pieceId);
+        $afterOwnPips = onlineEngineAiPips($simulation, $playerId);
+        $afterThreat = onlineEngineAiThreatLoss($simulation, $playerId);
+        $progress = $beforeOwnPips - $afterOwnPips;
+        $opponentImpact = 0.0;
+        foreach ($beforeOpponentPips as $opponentId => $beforePips) {
+            $opponentImpact += onlineEngineAiPips($simulation, $opponentId) - $beforePips;
+        }
+        $riskReduction = $beforeThreat - $afterThreat;
+        $pieceBefore = $playerPieces[$pieceId];
+        $deployed = (int) $pieceBefore['steps'] < 0;
+        $deploymentBalance = $deployed
+            ? [0 => 2.0, 1 => 0.5, 2 => -1.0, 3 => -2.5][$activeBefore] ?? -2.5
+            : 0.0;
+        $captureBonus = !empty($move['captured']) && empty($move['captured']['ownPiece']) ? 2.0 : 0.0;
+        $homeBonus = !empty($move['finishedNow']) ? 2.5 : 0.0;
+        $winning = (int) ($simulation['winner'] ?? -1) === $playerId;
+        $score = $progress + ($opponentImpact * 0.6) + ($riskReduction * 0.55)
+            + $deploymentBalance + $captureBonus + $homeBonus;
+        if ($winning) $score = 1000000.0;
+
+        $reasons = [];
+        if ($winning) $reasons[] = 'okamžité vítězství';
+        if ($deployed) $reasons[] = 'nasazení při ' . $activeBefore . ' aktivních figurkách';
+        else $reasons[] = 'postup figurky o ' . (int) $game['diceValue'] . ' polí';
+        if (!empty($move['captured']['ownPiece'])) $reasons[] = 'výměna vlastní figurky na startu';
+        elseif (!empty($move['captured'])) $reasons[] = 'vyhození soupeře';
+        if (!empty($move['finishedNow'])) $reasons[] = 'dokončení figurky';
+        if (abs($riskReduction) > 0.01) $reasons[] = ($riskReduction > 0 ? 'snížení' : 'zvýšení') . ' rizika ohrožení';
+        $ranked[] = [
+            'pieceId' => (int) $pieceId,
+            'score' => round($score, 4),
+            'progress' => round($progress, 4),
+            'opponentImpact' => round($opponentImpact, 4),
+            'riskReduction' => round($riskReduction, 4),
+            'deploymentBalance' => $deploymentBalance,
+            'captureBonus' => $captureBonus,
+            'homeBonus' => $homeBonus,
+            'reasons' => $reasons,
+            'destinationSteps' => (int) $simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'],
+        ];
+    }
+
+    usort($ranked, static fn(array $a, array $b): int =>
+        ($b['score'] <=> $a['score']) ?: ($a['pieceId'] <=> $b['pieceId'])
+    );
+    $selected = $ranked[0];
+    $reason = 'Vybrala figurku ' . ((int) $selected['pieceId'] + 1) . ' (skóre ' .
+        number_format((float) $selected['score'], 2, ',', ' ') . '): ' .
+        implode(', ', $selected['reasons']) . '.';
+    return [
+        'pieceId' => (int) $selected['pieceId'],
+        'reason' => $reason,
+        'selectedScore' => (float) $selected['score'],
+        'candidates' => $ranked,
+    ];
+}
+
+function onlineEngineChooseAIMove(array $game): ?int
+{
+    return onlineEngineChooseAIMoveDecision($game)['pieceId'];
 }
