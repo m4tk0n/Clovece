@@ -144,11 +144,42 @@ export function renderGameChat(messages, participants, moves = []) {
                 ).join('; ');
                 displayEntries.push({ kind: 'event', sender: 'AI možnosti', text: detail });
             }
+            if (action.aiDebug) {
+                displayEntries.push({ kind: 'copy-json', data: action.aiDebug });
+            }
         }
     });
 
     displayEntries.forEach(item => {
         const line = document.createElement('div');
+        if (item.kind === 'copy-json') {
+            line.className = 'game-chat-event';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'game-btn small ai-debug-copy';
+            button.textContent = 'Zkopírovat JSON posledního tahu AI';
+            button.addEventListener('click', async () => {
+                const json = JSON.stringify(item.data, null, 2);
+                try {
+                    if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(json);
+                    } else {
+                        const field = document.createElement('textarea');
+                        field.value = json;
+                        document.body.appendChild(field);
+                        field.select();
+                        document.execCommand('copy');
+                        field.remove();
+                    }
+                    button.textContent = 'JSON zkopírován';
+                } catch {
+                    button.textContent = 'Kopírování se nezdařilo';
+                }
+            });
+            line.appendChild(button);
+            container.appendChild(line);
+            return;
+        }
         line.className = item.kind === 'chat' ? 'game-chat-message' : 'game-chat-event';
         const sender = document.createElement('strong');
         sender.textContent = item.sender + ': ';
