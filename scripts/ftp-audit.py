@@ -111,7 +111,6 @@ def inventory(ftp, root):
                         raise RuntimeError("FTP nelze vrátit do nadřazeného adresáře.")
             elif kind == "file":
                 if sensitive_file(name):
-                    skipped.append(path)
                     continue
                 try:
                     size = int(size_raw) if size_raw not in (None, "") else None
