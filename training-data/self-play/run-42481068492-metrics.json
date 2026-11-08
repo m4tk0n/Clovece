@@ -1,0 +1,26 @@
+{
+  "format": "clovece-ai-self-play-report",
+  "formatVersion": 1,
+  "createdAt": "2026-11-08T12:36:46.524Z",
+  "seed": 20261108,
+  "gamesRequested": 250,
+  "gamesCompleted": 250,
+  "gamesTruncated": 0,
+  "playerCount": 4,
+  "boardSize": 40,
+  "decisions": 92817,
+  "winsByPlayer": [
+    55,
+    69,
+    68,
+    58
+  ],
+  "averageActions": 371.27,
+  "averageGameTurns": 355.42,
+  "placements": [
+    250,
+    250,
+    250,
+    250
+  ]
+}
