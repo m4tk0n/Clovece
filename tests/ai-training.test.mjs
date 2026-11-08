@@ -25,7 +25,7 @@ test('training mode forces 2D and renders numbered track and home fields', async
     assert.match(board, /renderBoardLabels2D/);
     assert.match(board, /boardPieces \+ boardLabelsMarkup/);
     assert.match(debug, /index \+ 1/);
-    assert.match(debug, /'D' \+[\s\S]*?\(slot \+ 1\)[\s\S]*?\(lane \+ 1\)/);
+    assert.match(debug, />D' \+[\s\S]*?\(slot \+ 1\)[\s\S]*?\(lane \+ 1\)/);
 });
 
 test('training decision appears as a green evaluation in the normal chat', async () => {
