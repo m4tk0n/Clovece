@@ -13,7 +13,7 @@ Po dokončení tahu AI okno zobrazí její rozhodnutí a vysvětlení. Člověk 
 - zvolit **SPRÁVNĚ** – vznikne samostatný JSON pozitivního příkladu se stejným kontextem rozhodnutí, ale bez opravné instrukce;
 - zvolit **PŘESKOČIT** – rozhodnutí se zahodí bez uložení a bez vytvoření prázdného či zavádějícího záznamu.
 
-Pozitivní potvrzení se ukládá jako feedbackType=positive a formát clovece-ai-positive-example. Nejde o další textové hodnocení ani o automaticky přičtené body v herním skóre. Je to samostatný kladný tréninkový signál, který bude možné využít při budoucím vyhledávání příkladů a vyhodnocování strategie. Po potvrzení se aktuální rozhodnutí uzavře a výuka pokračuje až u dalšího tahu AI.
+Pozitivní potvrzení se ukládá jako feedbackType=positive a formát clovece-ai-positive-example. Text napsaný do pole se uloží do pole note jako vysvětlení, proč bylo rozhodnutí správné; není zahazován ani ukládán jako opravná instrukce. Nejde o automaticky přičtené body v herním skóre. Je to samostatný kladný tréninkový signál, který bude možné využít při budoucím vyhledávání příkladů a vyhodnocování strategie. Po potvrzení se aktuální rozhodnutí uzavře a výuka pokračuje až u dalšího tahu AI.
 
 ## Co se zaznamenává
 
