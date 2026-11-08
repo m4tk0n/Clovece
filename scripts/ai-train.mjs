@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Offline pairwise trainer for the 18-feature legal-move ranker.
+ * Offline pairwise trainer for the 23-feature legal-move ranker (schema v2).
  * Reads immutable teacher self-play JSONL(.gz), holds out whole games,
  * and exports a candidate model. It never modifies the runtime model.
  */
