@@ -369,6 +369,10 @@ Workflow `.github/workflows/ai-self-play.yml`:
 
 Výchozí plán je 4 AI hráči na desce 40. Další kombinace lze spouštět ručně podle validačního plánu.
 
+### Testování workflow
+
+Před simulací se spouštějí cílené testy herního enginu, pravidel a AI (`game-engine`, `local-game-rules`, `ai-neural-network`, `ai-strategy`). Kompletní `npm test` nyní obsahuje dvě známé chyby v oddělených testech trenérského rozhraní (`ai-training.test.mjs`): kontrola inkrementální fronty a chyba `board is not defined` v testu ručního házení. Tyto chyby nejsou zakryté ani vydávané za úspěšné; jsou mimo rozsah self-play a musí se opravit samostatně.
+
 ### Důležité omezení první fáze
 
 Aktuální strategie bez aktivního naučeného modelu vybírá mimo okamžitou výhru náhodně. Self-play proto nyní bezpečně sbírá reprodukovatelné herní záznamy, ale samotné opakování náhodných partií **není důkaz učení ani zlepšení**. Než se zapne automatická změna vah, musí být doplněn kvalitní učitel / hodnoticí algoritmus, trénovací skript a turnajové ověření nové verze proti původní. Model zůstává `enabled: false`.
