@@ -460,6 +460,12 @@ Volby:
 
 Workflow načte archiv z větve `ai-training-data`, spustí cílené testy a vyrobí kandidáta. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
 
+### První neuronový trénovací běh (2026-11-08)
+
+GitHub Actions run [#1](https://github.com/m4tk0n/Clovece/actions/runs/42480133631) úspěšně dokončil trénování. Zpracoval 272 878 záznamů ze 3 souborů; 174 006 záznamů nemělo alespoň dvě porovnatelné kandidátní volby a 120 566 dvojic mělo shodné učitelské skóre. Vzniklo 60 968 dvojic (48 192 trénovacích, 12 776 validačních). Nejlepší epocha byla 22, validační přesnost 71,462 % a log-loss 0,51109. Jde o napodobení učitele, nikoli důkaz vyšší úspěšnosti ve hře.
+
+**Oprava formátu:** runtime validátor vyžaduje u každé vrstvy `outputSize`. Trénovací export nyní tuto hodnotu zapisuje; bez ní by vytvořený model nebyl runtime platný.
+
 ### Co znamenají metriky
 
 - `train.accuracy`: podíl dvojic, u kterých síť správně napodobila pořadí učitele na trénovací množině.
