@@ -15,7 +15,7 @@ $assetVersion = static function (string $path): int {
     return is_file($file) ? (int) filemtime($file) : 1;
 };
 $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
-$trainingMode = isset($_GET['debug']) && (string) $_GET['debug'] === 'training';
+$trainingMode = isset($_GET['debug']) && in_array((string) $_GET['debug'], ['trainer', 'training'], true);
 $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
 ?>
 
