@@ -3,7 +3,7 @@
 from __future__ import annotations
 import argparse, json, os, re, subprocess, sys
 from datetime import datetime, timezone
-from ftplib import FTP, FTP_TLS, all_errors
+from ftplib import FTP, all_errors
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -52,20 +52,34 @@ def parse_list(line):
     return None
 
 def connect():
+    # Keep this connection identical to the repository's FTP deployment:
+    # plain FTP, passive mode, port 21 unless explicitly overridden.
     raw = os.environ["FTP_SERVER"].strip()
-    port = int(os.environ.get("FTP_PORT") or "21")
+    port = int((os.environ.get("FTP_PORT") or "21").strip() or "21")
     parsed = urlsplit(raw if "://" in raw else "//" + raw)
     if not parsed.hostname:
         raise RuntimeError("FTP_SERVER neobsahuje platný název serveru.")
     if parsed.port:
         port = parsed.port
-    tls = os.environ.get("FTP_TLS", "0").lower() in {"1", "true", "yes", "on"}
-    ftp = FTP_TLS(timeout=25) if tls else FTP(timeout=25)
-    ftp.connect(parsed.hostname, port)
-    ftp.login(os.environ["FTP_USERNAME"], os.environ["FTP_PASSWORD"])
-    if tls:
-        ftp.prot_p()
-    ftp.set_pasv(True)
+
+    username = os.environ["FTP_USERNAME"].strip()
+    # GitHub Secrets are sometimes pasted with a trailing newline.
+    # Remove line endings/outer whitespace without ever logging credentials.
+    password = os.environ["FTP_PASSWORD"].strip()
+    if not username or not password:
+        raise RuntimeError("FTP_USERNAME nebo FTP_PASSWORD je po očištění prázdný.")
+
+    ftp = FTP(timeout=30, encoding="utf-8")
+    try:
+        ftp.connect(parsed.hostname, port)
+        ftp.set_pasv(True)
+        ftp.login(username, password)
+    except Exception:
+        try:
+            ftp.close()
+        except Exception:
+            pass
+        raise
     return ftp
 
 def inventory(ftp, root):
