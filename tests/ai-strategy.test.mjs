@@ -12,7 +12,8 @@ import {
     estimateCaptureProbability,
     estimatePieceThreat,
     calculatePlayerPips,
-    chooseStrategicDecision
+    chooseStrategicDecision,
+    normalizeTrainingSituation
 } from '../js/ai-strategy.js';
 
 const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
@@ -122,75 +123,54 @@ test('difficulty no longer changes untrained tactical decisions', () => {
 });
 
 
-function trainingRecordFor(game, feedbackType, instruction, selectedPieceId, id = 'a'.repeat(32)) {
-    return {
-        id,
-        feedbackType,
-        createdAt: '2026-11-08T07:00:00+00:00',
-        instruction,
-        note: null,
-        context: {
-            game: {
-                boardSize: game.boardSize,
-                trackLength: game.trackLength,
-                playerCount: game.players.length,
-                players: game.players.map(player => ({
-                    id: player.id, slot: player.slot, start: player.start
-                })),
-                rules: { ...game.rules },
-                currentPlayer: game.currentPlayer,
-                diceValue: game.diceValue,
-                piecesBefore: game.pieces.map(group => ({
-                    playerId: group.playerId,
-                    pieces: group.pieces.map(piece => ({ steps: piece.steps }))
-                }))
-            },
-            decision: { selectedPieceId }
-        }
-    };
-}
-
-test('a matching human correction selects the taught legal piece and reports its ID', () => {
+test('compiled AI memory selects the most frequently taught legal move', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = 0;
     game.pieces[0].pieces[1].steps = 5;
-    const record = trainingRecordFor(game, 'correction', 'Měla pohnout figurkou 2, protože tím získá lepší pozici.', null);
+    const signature = normalizeTrainingSituation(game);
+    const memory = { situations: {
+        [signature]: { votes: [0, 4, 1, 0], ok: 2, err: 3, samples: 5 }
+    } };
 
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, [record]);
+    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, memory);
     assert.equal(decision.pieceId, 1);
     assert.equal(decision.breakdown.trainedKnowledge, true);
-    assert.equal(decision.breakdown.selection, 'learned-instruction');
-    assert.equal(decision.breakdown.usedInstructions[0].id, record.id);
+    assert.equal(decision.breakdown.selection, 'compiled-memory');
+    assert.equal(decision.breakdown.usedInstructions[0].votes, 4);
     assert.match(decision.reason, /NAUČENO/);
 });
 
-test('a stored instruction is not applied to a different board position', () => {
+test('compiled AI memory is not applied to a different board position', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = 0;
     game.pieces[0].pieces[1].steps = 5;
-    const record = trainingRecordFor(game, 'correction', 'Měla pohnout figurkou 2.', null);
+    const signature = normalizeTrainingSituation(game);
+    const memory = { situations: {
+        [signature]: { votes: [0, 3, 0, 0], ok: 1, err: 2, samples: 3 }
+    } };
     game.pieces[0].pieces[0].steps = 1;
 
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, [record]);
-    assert.equal(decision.pieceId, 0);
+    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, memory);
     assert.equal(decision.breakdown.trainedKnowledge, false);
     assert.deepEqual(decision.breakdown.usedInstructions, []);
 });
 
-test('a positive example reinforces the previously approved legal move', () => {
+test('immediate winning move always overrides learned memory', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 0;
-    game.pieces[0].pieces[1].steps = 5;
-    const record = trainingRecordFor(game, 'positive', null, 1, 'b'.repeat(32));
+    game.pieces[0].pieces[0].steps = game.trackLength + 2;
+    game.pieces[0].pieces[1].steps = 0;
+    const signature = normalizeTrainingSituation(game);
+    const memory = { situations: {
+        [signature]: { votes: [0, 20, 0, 0], ok: 10, err: 10, samples: 20 }
+    } };
 
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, [record]);
-    assert.equal(decision.pieceId, 1);
-    assert.equal(decision.breakdown.trainedKnowledge, true);
-    assert.equal(decision.breakdown.usedInstructions[0].id, record.id);
+    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0.9, memory);
+    assert.equal(decision.pieceId, 0);
+    assert.equal(decision.breakdown.selection, 'immediate-win');
 });
