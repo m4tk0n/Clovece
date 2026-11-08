@@ -327,3 +327,56 @@ Neuronová síť je samostatná hodnoticí vrstva nad existujícím herním engi
 - Testy: `tests/ai-neural-network.test.mjs`.
 
 **Co zatím není hotové:** sběr a příprava trénovací množiny pro neuronovou síť, offline trénovací skript, validace výsledného modelu a export skutečných vah. Online PHP AI zatím neuronový model nepoužívá. Detailní technický popis je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
+
+
+---
+
+## 15. Automatický self-play – první implementovaná fáze
+
+**Stav:** sběr zkušeností a automatické spouštění jsou implementovány; neuronové trénování a nasazení nových vah zůstávají oddělenou další fází.
+
+### Spuštění lokálně
+
+```bash
+npm run ai:self-play -- --games=250 --players=4 --board=40 --seed=20261108
+```
+
+Volby:
+- `--games`: počet partií (1–10 000, výchozí 100).
+- `--players`: počet automatických hráčů (2–8, výchozí 4).
+- `--board`: deska 40, 48 nebo 80; kompatibilita odpovídá pravidlům.
+- `--seed`: opakovatelný generátor hodů a rozhodovací náhody.
+- `--max-actions`: limit tahů jedné partie (výchozí 20 000).
+- `--output` a `--metrics`: cílové soubory JSONL a JSON.
+
+Simulátor vytváří hru přes `createGame`, všechny hráče přepne na AI a tahy, hody, vyhazování i vítězství zpracovává přes produkční funkce `rollDice`, `getValidMoves`, `movePiece` a `advanceTurn`. Nepíše vlastní pravidla.
+
+### Výstupy
+
+- `artifacts/ai-self-play.jsonl`: jeden řádek na každé rozhodnutí; obsahuje legální kandidáty, 18prvkové vstupní vektory, vybraný tah, hráče, hod a konečný výsledek partie.
+- `artifacts/ai-self-play-metrics.json`: souhrn počtu dokončených/nedokončených partií, vítězů, rozhodnutí a průměrné délky.
+
+Nedokončené partie mají `reward: null` a nesmějí být použity jako dokončené výsledkové příklady.
+
+### Automatické spuštění na GitHubu
+
+Workflow `.github/workflows/ai-self-play.yml`:
+- lze spustit ručně přes GitHub Actions s volbou počtu partií, hráčů a desky;
+- automaticky se spouští každé pondělí v 03:17 UTC;
+- výsledky ukládá jako GitHub Actions artifact s retencí 90 dní;
+- běží na GitHub runneru, nikoli na Webzdarma hostingu;
+- má pouze oprávnění číst obsah repozitáře a nic automaticky necommitne do `main`.
+
+Výchozí plán je 4 AI hráči na desce 40. Další kombinace lze spouštět ručně podle validačního plánu.
+
+### Důležité omezení první fáze
+
+Aktuální strategie bez aktivního naučeného modelu vybírá mimo okamžitou výhru náhodně. Self-play proto nyní bezpečně sbírá reprodukovatelné herní záznamy, ale samotné opakování náhodných partií **není důkaz učení ani zlepšení**. Než se zapne automatická změna vah, musí být doplněn kvalitní učitel / hodnoticí algoritmus, trénovací skript a turnajové ověření nové verze proti původní. Model zůstává `enabled: false`.
+
+### Vyhodnocovací zásady
+
+- Porovnávat verze na stejné sadě seedů, stejném počtu hráčů, stejné desce a stejných pravidlech.
+- Uvádět počet dokončených partií; nedokončené partie nezapočítávat jako výhru ani prohru.
+- Výsledky oddělovat podle počtu hráčů a velikosti desky.
+- Uchovávat původní data jako neměnné workflow artifacts; lidské instrukce v `storage/ai-training/instructions/` jsou zcela oddělené.
+- Nový model nasadit pouze po statisticky smysluplném zlepšení a regresních testech.
