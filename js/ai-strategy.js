@@ -669,6 +669,21 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         // rozsahu, ale změna kterékoliv aktivní hodnoty může změnit pořadí tahů.
         allWeightsScore = (allWeightsScore / Math.sqrt(Math.max(1, scoredWeightCount))) * 8;
 
+        // Oddělené skóre přesně odpovídající parametrům reward trenéru.
+        // Self-play musí vzorkovat ze stejné behavior policy, kterou trenér
+        // následně ověřuje; produkční skóre níže si zachovává všechny další
+        // taktické a 1000-slot složky.
+        const trainingScore = winning ? 1000000 :
+            ownPipsGain * Number(weights.ownProgress) +
+            opponentPipsGain * Number(weights.opponentSetback) +
+            threatReduction * Number(weights.threatReduction) +
+            (enemyCapture ? Number(weights.captureOpponent) : 0) -
+            (selfCapture ? Number(weights.captureOwn) : 0) +
+            (candidate.move?.finishedNow ? Number(weights.finishPiece) : 0) +
+            (deployedPiece ? Number(weights.deployPiece) : 0) +
+            (enteredHome ? Number(weights.enterHome) : 0) +
+            homeProgress * Number(weights.homeProgress);
+
         const score = winning ? 1000000 :
             progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
             allWeightsScore + deploymentTacticalScore - startSquareDangerScore +
@@ -680,6 +695,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         return {
             pieceId: candidate.pieceId,
             score: Number(score.toFixed(6)),
+            trainingScore: Number(trainingScore.toFixed(6)),
             factors: {
                 ownProgress: Number(ownPipsGain.toFixed(3)),
                 opponentSetback: Number(opponentPipsGain.toFixed(3)),
