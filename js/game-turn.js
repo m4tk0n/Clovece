@@ -57,6 +57,12 @@ export function createTurnController(deps) {
     function chooseAndLogAIMove() {
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         const legalMoves = getValidMoves(game);
+        const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
+        const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
+        if (trainingAI && Number(game.diceValue) === 6 && allPiecesInBase) {
+            // První povinné nasazení není taktické rozhodnutí, proto se nevytváří rozbor.
+            return legalMoves[0] ?? null;
+        }
         const decision = chooseAIMoveDecision
             ? chooseAIMoveDecision(game)
             : { pieceId: chooseAIMove(game), reason: '' };
