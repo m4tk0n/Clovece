@@ -34,6 +34,52 @@ export function initAITrainingOverlay() {
         </form>`;
     document.body.appendChild(panel);
 
+    // Stejně jako debug=1 lze malé okno uchopit za hlavičku a přesunout.
+    const header = panel.querySelector('.ai-training-header');
+    header.style.cursor = 'grab';
+    header.style.touchAction = 'none';
+    let dragging = false;
+    let pointerId = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    header.addEventListener('pointerdown', event => {
+        if (event.target.closest('button')) return;
+        if (event.button !== 0 && event.pointerType !== 'touch') return;
+        const rect = panel.getBoundingClientRect();
+        dragging = true;
+        pointerId = event.pointerId;
+        offsetX = event.clientX - rect.left;
+        offsetY = event.clientY - rect.top;
+        panel.style.left = Math.round(rect.left) + 'px';
+        panel.style.top = Math.round(rect.top) + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        header.style.cursor = 'grabbing';
+        header.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+    });
+    header.addEventListener('pointermove', event => {
+        if (!dragging || event.pointerId !== pointerId) return;
+        const viewport = window.visualViewport;
+        const minX = viewport ? viewport.offsetLeft : 0;
+        const minY = viewport ? viewport.offsetTop : 0;
+        const width = viewport ? viewport.width : window.innerWidth;
+        const height = viewport ? viewport.height : window.innerHeight;
+        const left = Math.min(Math.max(minX, event.clientX - offsetX), Math.max(minX, minX + width - panel.offsetWidth));
+        const top = Math.min(Math.max(minY, event.clientY - offsetY), Math.max(minY, minY + height - panel.offsetHeight));
+        panel.style.left = Math.round(left) + 'px';
+        panel.style.top = Math.round(top) + 'px';
+    });
+    const stopDragging = event => {
+        if (!dragging || (event && event.pointerId !== pointerId)) return;
+        dragging = false;
+        pointerId = null;
+        header.style.cursor = 'grab';
+    };
+    header.addEventListener('pointerup', stopDragging);
+    header.addEventListener('pointercancel', stopDragging);
+    header.addEventListener('lostpointercapture', stopDragging);
+
     const analysis = panel.querySelector('#ai-training-analysis');
     const status = panel.querySelector('#ai-training-status');
     const saveStatus = panel.querySelector('#ai-training-save-status');
