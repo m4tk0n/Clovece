@@ -155,7 +155,27 @@ for (const file of files) {
         const vectors = record.candidates.map(features);
         if (vectors.some(vector => !vector)) { stats.malformedSkipped++; continue; }
         const behaviorScores = record.candidates.map(candidate => Number(candidate.teacherScore));
-        if (behaviorScores.some(score => !Number.isFinite(score))) { stats.malformedSkipped++; continue; }
+        const behaviorWeights = record.behaviorWeights;
+        const behaviorKeys = Object.keys(INITIAL);
+        if (behaviorScores.some(score => !Number.isFinite(score)) ||
+            !behaviorWeights || behaviorKeys.some(key => !Number.isFinite(Number(behaviorWeights[key])))) {
+            stats.malformedSkipped++;
+            continue;
+        }
+        const scoreMismatch = record.candidates.some((candidate, index) => {
+            const f = candidate.teacherFactors || {};
+            const expectedScore = Number(f.ownProgress) * Number(behaviorWeights.ownProgress) +
+                Number(f.opponentSetback) * Number(behaviorWeights.opponentSetback) +
+                Number(f.threatReduction) * Number(behaviorWeights.threatReduction) +
+                (f.capturedOpponent ? Number(behaviorWeights.captureOpponent) : 0) -
+                (f.capturedOwnPiece ? Number(behaviorWeights.captureOwn) : 0) +
+                (f.finishedPiece ? Number(behaviorWeights.finishPiece) : 0);
+            return !Number.isFinite(expectedScore) || Math.abs(expectedScore - behaviorScores[index]) > 0.00001;
+        });
+        if (scoreMismatch) {
+            stats.behaviorPolicyMismatchSkipped++;
+            continue;
+        }
         const behaviorProbabilities = softmax(behaviorScores.map(score => score / record.policyTemperature));
         const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
         if (Math.abs(behaviorProbabilities[selectedIndex] - record.selectedProbability) > 0.0001) {
