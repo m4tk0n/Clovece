@@ -161,3 +161,14 @@ Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D po
 ## 7. Hlavní dokumentace ruční výuky AI
 
 Kompletní popis režimu `/?debug=training`, výukového panelu, tlačítek ODESLAT / SPRÁVNĚ / PŘESKOČIT, struktury JSON, serverového úložiště, zabezpečení a dalšího vývoje je v [AI_TRAINING.md](AI_TRAINING.md). Tento dokument je hlavním zdrojem informací o výuce AI.
+
+## Umístění stylů diagnostického panelu
+
+- Plovoucí technický panel zobrazovaný pouze při `?debug=1` vytváří `js/debug-overlay.js`.
+- Veškerý vzhled panelu je definován v `css/debug.css`: pozice, rozměry, barvy, rámečky, typografie, tlačítko rozbalení, informační část, údaje o kameře a rozbalený protokol.
+- JavaScript smí nastavovat pouze dynamické hodnoty nutné pro funkčnost a umístění při přetažení nebo změně viditelného viewportu. Nesmí obsahovat pevné definice vzhledu přes `style.cssText` ani nastavování vizuálních vlastností přes `element.style`.
+- CSS třídy ovládané JavaScriptem (například zobrazení/skrytí údajů, rozbalení panelu a stav tažení) slouží pouze ke změně stavu; jejich vizuální podobu určuje `css/debug.css`.
+- `css/debug.css` se načítá dynamicky pouze při aktivním debug režimu. Nesmí se načítat v běžné hře.
+- Stejné oddělení platí pro všechny prvky určené výhradně pro debug a výuku AI: jejich vzhled patří do `css/debug.css`, nikoli do běžných herních stylesheetů.
+- Při přidání nového debug prvku se jeho styly zapisují rovnou do `css/debug.css`; do běžných CSS souborů se nepřidávají.
+
