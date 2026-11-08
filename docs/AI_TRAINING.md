@@ -545,3 +545,8 @@ Jde o číselné faktory stejného taktického vyhodnocení, které vytváří c
 Po každém úspěšném tréninku se kandidát porovná s taktickým učitelem ve třech oddělených turnajích: 500 her na desce 40 se 4 hráči, 500 her na desce 48 se 6 hráči a 500 her na desce 80 s 8 hráči. Seed je odvozený od ID workflow běhu (nebo lze ručně zadat vlastní), jednotlivé varianty mají oddělené seedy. Každý report obsahuje 95% Wilsonův interval, průměrné pořadí, rozložení umístění a počet neplatných/neúplných her. Výsledky se ukládají samostatně jako `ai-tournament-40-4.json`, `ai-tournament-48-6.json` a `ai-tournament-80-8.json`. Hranice v reportu porovnává dolní mez intervalu s rovnoměrnou šancí 1/N; její splnění je jen základní statistický filtr, nikoli automatické schválení nasazení.
 
 První kandidát schema v3 měl z 200 her na desce 40/4 64 výher (32 %), průměrné pořadí 2,39 a 95% interval 25,93–38,75 %. Základní hranici 25 % tedy překonal, ale tento výsledek sám o sobě nestačí: je nutné ověřit stabilitu na větším vzorku a generalizaci na deskách 48 a 80.
+
+
+## 24. Automatický sběr při změně AI kódu
+
+Při změně souborů AI na větvi `main` spustí self-play workflow tři samostatné sběry po 250 partiích: 40/4, 48/6 a 80/8. Každý běh používá odlišný seed a vytváří vlastní JSONL i metriky. Při ručním spuštění lze nadále vybrat jednu povolenou kombinaci a počet partií; plánované pondělní/středeční/páteční běhy sbírají vždy jednu odpovídající variantu. Archiv ukládá každý soubor zvlášť, aby trenér mohl data spojit a současně zachovat oddělené identifikátory her.
