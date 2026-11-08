@@ -167,6 +167,10 @@ export function initAITrainingOverlay() {
             addText(analysis, 'div', 'ai-training-learned',
                 'NAUČENO · použita instrukce ' + (ids.join(', ') || 'bez ID'));
         }
+        if (decision.knowledgeError) {
+            addText(analysis, 'div', 'ai-training-knowledge-error',
+                'Načtení výuky se nezdařilo: ' + decision.knowledgeError);
+        }
 
         addText(analysis, 'div', 'ai-training-section-title', 'CO AI UDĚLALA');
         addText(analysis, 'p', 'ai-training-explanation',
