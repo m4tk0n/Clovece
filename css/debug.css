@@ -35,3 +35,80 @@
     #game-screen .trainer-die { width:clamp(30px,8.2vw,36px); height:clamp(30px,8.2vw,36px); padding:4px; border-radius:7px; }
     #game-screen .trainer-ai-dice-mode { min-height:29px; padding:4px 5px; font-size:7px; }
 }
+
+
+/* Plovoucí diagnostické okno pro ?debug=1. */
+.clovece-debug-overlay {
+    position:fixed;
+    left:2px;
+    bottom:2px;
+    z-index:2147483647;
+    box-sizing:border-box;
+    display:flex;
+    align-items:stretch;
+    gap:6px;
+    width:max-content;
+    max-width:calc(100vw - 8px);
+    padding:4px 6px;
+    border:1px solid rgba(255,0,0,.7);
+    border-radius:4px;
+    background:rgba(0,0,0,.9);
+    color:#ff4545;
+    font:10px/1.4 monospace;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    pointer-events:auto;
+    user-select:none;
+    -webkit-user-select:none;
+}
+.clovece-debug-overlay .debug-overlay-toggle {
+    align-self:stretch;
+    min-width:20px;
+    padding:0 4px;
+    border:1px solid #a33;
+    border-radius:3px;
+    background:#260000;
+    color:#ff5555;
+    font:bold 14px/1 monospace;
+    cursor:pointer;
+    touch-action:manipulation;
+}
+.clovece-debug-overlay .debug-overlay-content {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:0;
+    gap:2px;
+}
+.clovece-debug-overlay .debug-overlay-content.is-draggable {
+    cursor:grab;
+    touch-action:none;
+}
+.clovece-debug-overlay .debug-overlay-content.is-dragging {
+    cursor:grabbing;
+}
+.clovece-debug-overlay .debug-overlay-camera,
+.clovece-debug-overlay .debug-overlay-meta,
+.clovece-debug-overlay .debug-overlay-details {
+    display:none;
+}
+.clovece-debug-overlay .debug-overlay-camera.is-visible {
+    display:block;
+    color:#ffb45e;
+}
+.clovece-debug-overlay .debug-overlay-meta.is-visible {
+    display:block;
+    color:#ff8888;
+}
+.clovece-debug-overlay .debug-overlay-details.is-visible {
+    display:block;
+}
+.clovece-debug-overlay .debug-overlay-details {
+    margin-top:5px;
+    padding-top:5px;
+    border-top:1px solid #a33;
+    max-height:55vh;
+    overflow:auto;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
