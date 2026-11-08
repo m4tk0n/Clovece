@@ -508,6 +508,28 @@ export function getAIWeightConfiguration() {
     };
 }
 
+function estimateDeploymentBonusAttackChance(deployedState, playerId, dependencies) {
+    const { getValidMoves, movePiece, rollDice } = dependencies;
+    if (deployedState.phase !== 'roll' || deployedState.currentPlayer !== playerId ||
+        typeof rollDice !== 'function' || typeof movePiece !== 'function' ||
+        typeof getValidMoves !== 'function') return 0;
+
+    let attackDiceCount = 0;
+    for (let dice = 1; dice <= 6; dice++) {
+        const rolled = cloneGame(deployedState);
+        const result = rollDice(rolled, dice);
+        if (rolled.phase !== 'move') continue;
+        const legalMoves = result.validMoves || getValidMoves(rolled, playerId);
+        const canCapture = legalMoves.some(pieceId => {
+            const next = cloneGame(rolled);
+            const move = movePiece(next, pieceId);
+            return Boolean(move.captured && !move.captured.ownPiece);
+        });
+        if (canCapture) attackDiceCount++;
+    }
+    return attackDiceCount / 6;
+}
+
 export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTICAL_WEIGHTS) {
     const playerId = game.currentPlayer;
     const beforeOwnPips = calculatePlayerPips(game, playerId);
@@ -551,6 +573,24 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         const dynamicScore = (opponentPipsGain * (getAIWeight(1) / 100) * aggressionScale) +
             (ownPipsGain * (getAIWeight(30) / 100)) +
             (threatReduction * (getAIWeight(60) / 10));
+
+        // Po nasazení šestkou má hráč další hod. Zjistíme, zda může při
+        // tomto bonusovém hodu některou svou figurkou vyhodit soupeře,
+        // a současně spočítáme skutečné riziko právě nasazené figurky.
+        const deploymentAttackChance = deployedPiece
+            ? estimateDeploymentBonusAttackChance(state, playerId, {
+                getValidMoves: gameDependencies.getValidMoves,
+                movePiece: gameDependencies.movePiece,
+                rollDice: gameDependencies.rollDice
+            })
+            : 0;
+        const deployedPieceThreat = deployedPiece
+            ? estimatePieceThreat(state, playerId, candidate.pieceId, gameDependencies)
+            : 0;
+        const deploymentTacticalScore = deployedPiece
+            ? deploymentAttackChance * (Number(weights.captureOpponent) || AI_TACTICAL_WEIGHTS.captureOpponent) * 2 -
+                deployedPieceThreat * (Number(weights.captureOwn) || AI_TACTICAL_WEIGHTS.captureOwn) * 2
+            : 0;
 
         // Kompletní 1000-slot ensemble: každá položka konfigurace se projde
         // při hodnocení každého legálního tahu. Deset kanálů představuje
@@ -611,6 +651,9 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 capturedOwnPiece: selfCapture,
                 finishedPiece: Boolean(candidate.move?.finishedNow),
                 deployedPiece,
+                deploymentAttackChance: Number(deploymentAttackChance.toFixed(4)),
+                deployedPieceThreat: Number(deployedPieceThreat.toFixed(4)),
+                deploymentTacticalScore: Number(deploymentTacticalScore.toFixed(4)),
                 enteredHome,
                 homeProgress: Number(homeProgress.toFixed(3)),
                 aggressionScale: Number(aggressionScale.toFixed(3)),
