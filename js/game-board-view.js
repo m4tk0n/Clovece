@@ -221,8 +221,8 @@ function styleSwitchMarkup() {
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
-        '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
-            '" data-board-view="toggle" aria-pressed="' + view3d + '"' + (view3dUnavailable ? ' disabled title="3D není na tomto zařízení dostupné"' : '') + '>' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>' +
+        (trainingMode ? '' : '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
+            '" data-board-view="toggle" aria-pressed="' + view3d + '"' + (view3dUnavailable ? ' disabled title="3D není na tomto zařízení dostupné"' : '') + '>' + (view3dUnavailable ? 'BEZ 3D' : (view3d ? '3D' : '2D')) + '</button>') +
         '</div>';
 }
 
