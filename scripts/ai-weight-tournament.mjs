@@ -26,7 +26,7 @@ const boards = [
     { boardSize: 48, playerCount: 6 },
     { boardSize: 80, playerCount: 8 }
 ];
-const weightKeys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece'];
+const weightKeys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece', 'deployPiece', 'enterHome', 'homeProgress'];
 
 function readJson(file) {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
