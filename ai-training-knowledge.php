@@ -95,7 +95,7 @@ $minimumMtime = max(0, (int) floor((float) $since) - 2);
 $files = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
 foreach ($files as $filePath) {
     $fileName = basename($filePath);
-    if (!preg_match('/^([a-f0-9]{32})\\.json$/i', $fileName, $matches)) continue;
+    if (!preg_match('/^\\d{8}-\\d{6}-(\\d{4,})-(ok|err)\\.json$/', $fileName, $matches)) continue;
     if (is_link($filePath) || !is_file($filePath)) continue;
     $modifiedAt = @filemtime($filePath);
     if ($modifiedAt === false || $modifiedAt < $minimumMtime) continue;
@@ -106,9 +106,12 @@ foreach ($files as $filePath) {
     } catch (JsonException $error) {
         continue;
     }
+    $recordId = strtolower((string) ($record['id'] ?? ''));
+    $expectedSuffix = ($record['feedbackType'] ?? '') === 'positive' ? 'ok' : 'err';
     if (!is_array($record)
-        || !hash_equals(strtolower($matches[1]), strtolower((string) ($record['id'] ?? '')))
+        || !preg_match('/^[a-f0-9]{32}$/', $recordId)
         || !in_array($record['feedbackType'] ?? '', ['correction', 'positive'], true)
+        || !hash_equals($expectedSuffix, $matches[2])
         || !is_array($record['context'] ?? null)
         || !is_array($record['context']['game'] ?? null)
         || !is_array($record['context']['decision'] ?? null)
@@ -139,7 +142,7 @@ foreach ($files as $filePath) {
     $instruction = trim((string) ($record['instruction'] ?? ''));
     if (($record['feedbackType'] ?? '') === 'correction' && $instruction === '') continue;
     $instructions[] = [
-        'id' => strtolower($matches[1]),
+        'id' => $recordId,
         'feedbackType' => $record['feedbackType'],
         'createdAt' => (string) ($record['createdAt'] ?? ''),
         'instruction' => $record['feedbackType'] === 'correction' ? $instruction : null,
