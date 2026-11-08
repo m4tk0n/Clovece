@@ -112,3 +112,7 @@
     white-space:pre-wrap;
     overflow-wrap:anywhere;
 }
+
+/* Přepínač výběru kostek v liště herní desky (výukový režim). */
+.board-dice-display-btn{font:700 7px/1.2 "Press Start 2P",monospace!important}
+.trainer-dice-controls.dice-display-hidden{display:none!important}
