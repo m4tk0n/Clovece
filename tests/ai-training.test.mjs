@@ -82,7 +82,7 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(styles, /\.ai-training-buttons button\{[^}]*flex:1 1 0/);
     assert.match(styles, /\.ai-training-buttons\{display:flex;width:100%/);
     assert.match(panel, /context: decisionToSave/);
-    assert.match(panel, /instruction:\\s*instruction\\s*\\|\\|\\s*null/);
+    assert.ok(panel.includes('instruction: instruction || null'));
     assert.match(panel, /ai-training\.php/);
 });
 
