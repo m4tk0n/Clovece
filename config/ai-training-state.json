@@ -1,8 +1,10 @@
 {
   "format": "clovece-ai-training-state",
   "version": 1,
-  "updatedAt": "2026-11-08T18:07:12.737Z",
+  "updatedAt": "2026-11-08T22:34:01.340Z",
   "status": "validation-rejected",
+  "stablePromotionCount": 0,
+  "learningRateNextRun": 0.05,
   "statusLabel": "VALIDACE ZAMÍTLA KANDIDÁTA",
   "previousWeights": {
     "immediateWin": 100000,
@@ -19,14 +21,14 @@
   "candidateWeights": {
     "immediateWin": 100000,
     "ownProgress": 0.08,
-    "opponentSetback": 0.0349907313282761,
-    "threatReduction": 12.000000211216777,
-    "captureOpponent": 4.999898752197431,
+    "opponentSetback": 0.03496380863941877,
+    "threatReduction": 11.999988851229412,
+    "captureOpponent": 4.999684486229252,
     "captureOwn": 7,
-    "finishPiece": 8.000061334660966,
+    "finishPiece": 8.000134227837004,
     "deployPiece": 1.5,
     "enterHome": 2.5,
-    "homeProgress": 0.40008538410683514
+    "homeProgress": 0.400135577464987
   },
   "finalWeights": {
     "immediateWin": 100000,
@@ -43,37 +45,37 @@
   "delta": {
     "immediateWin": 0,
     "ownProgress": 0,
-    "opponentSetback": -0.00000927,
-    "threatReduction": 2.1e-7,
-    "captureOpponent": -0.00010125,
+    "opponentSetback": -0.00003619,
+    "threatReduction": -0.00001115,
+    "captureOpponent": -0.00031551,
     "captureOwn": 0,
-    "finishPiece": 0.00006133,
+    "finishPiece": 0.00013423,
     "deployPiece": 0,
     "enterHome": 0,
-    "homeProgress": 0.00008538
+    "homeProgress": 0.00013558
   },
   "training": {
     "accepted": false,
     "source": {
-      "files": 10,
-      "records": 749479,
+      "files": 11,
+      "records": 758154,
       "incompleteSkipped": 0,
       "malformedSkipped": 0,
-      "winningMoveRecordsSkipped": 343588,
+      "winningMoveRecordsSkipped": 347423,
       "nonExploratorySkipped": 346807,
       "behaviorPolicyMismatchSkipped": 33410,
-      "completedGames": 261,
-      "trainingGames": 212,
-      "validationGames": 49
+      "completedGames": 281,
+      "trainingGames": 227,
+      "validationGames": 54
     },
     "decisions": {
-      "training": 20998,
-      "validation": 4676
+      "training": 25005,
+      "validation": 5509
     },
     "validation": {
-      "baselineRewardWeightedLogLikelihood": 0.00640816,
-      "candidateRewardWeightedLogLikelihood": 0.00640788,
-      "improvement": -2.8e-7
+      "baselineRewardWeightedLogLikelihood": 0.02644736,
+      "candidateRewardWeightedLogLikelihood": 0.02644669,
+      "improvement": -6.7e-7
     },
     "method": "Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction"
   },
