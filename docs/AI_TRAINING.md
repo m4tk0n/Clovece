@@ -153,40 +153,30 @@ Kontext rozhodnutí obsahuje podle předaného herního stavu a rozhodnutí nap�
 | Oprava | `correction` | `clovece-ai-human-instruction` | `instruction` obsahuje lidskou opravu. |
 | Potvrzení | `positive` | `clovece-ai-positive-example` | `instruction=null`, volitelně `note`. |
 
-## 6. Názvy souborů – současný a plánovaný stav
+## 6. Názvy souborů
 
-**HOTOVO – současný stav:** PHP vytváří soubor s náhodným 128bitovým ID:
-
-```
-{id}.json
-```
-
-Například:
+Každý záznam má vlastní JSON soubor s názvem v tomto formátu:
 
 ```
-a81f32... (32 hex znaků).json
-```
-
-**DODĚLAT – plánované pojmenování:** čas vytvoření + výsledek + náhodný identifikátor:
-
-```
-YYYYMMDD-HHmmss-fff-[ok|err]-<id>.json
+YYYYMMDD-HHmmss-XXXX-[ok|err].json
 ```
 
 Příklady:
 
 ```
-20261108-063015-123-ok-a81f32.json
-20261108-063118-456-err-b72c19.json
+20261108-063015-0001-ok.json
+20261108-063118-0002-err.json
+20261108-064205-0003-ok.json
 ```
 
-Význam:
-- `ok` = člověk označil rozhodnutí AI jako správné (`positive`);
-- `err` = člověk poslal opravnou instrukci (`correction`);
-- čas umožňuje řazení souborů;
-- náhodné ID brání kolizím při souběžném ukládání.
+Význam jednotlivých částí:
 
-Čas v názvu má být vytvořen na serveru v UTC. ID musí zůstat jedinečné a ukládání musí dál používat výhradní vytvoření souboru. Změna názvů nesmí změnit strukturu JSON ani přepsat existující záznamy.
+- `YYYYMMDD-HHmmss` – datum a čas vytvoření záznamu na serveru.
+- `XXXX` – společné pořadové číslo se čtyřmi číslicemi, první záznam má `0001`, další `0002`, `0003` atd. Číslování se nezávisle neresetuje pro `ok` a `err`.
+- `ok` – člověk označil rozhodnutí AI jako správné (`feedbackType: positive`).
+- `err` – člověk odeslal opravu rozhodnutí AI (`feedbackType: correction`).
+
+Pořadové číslo se přiděluje podle dosavadních záznamů v adresáři a musí být jedinečné i při souběžném ukládání. Nový soubor se vytváří výhradně; existující záznam se nikdy nepřepisuje. Čas v názvu ani pořadové číslo nemění obsah a strukturu JSON. Starší záznamy se kvůli změně pojmenování nepřejmenovávají.
 
 ## 7. Serverové úložiště a ochrana dat
 
