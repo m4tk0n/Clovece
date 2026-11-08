@@ -83,7 +83,7 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(panel, /Bez instrukce – nic nebylo uloženo/);
     assert.match(panel, /is-hidden/);
     const styles = await read('../css/ai-training.css');
-    assert.match(styles, /--training-panel-width:250px/);
+    assert.match(styles, /--training-panel-width:370px/);
     assert.match(styles, /left:2px;bottom:2px/);
     assert.match(panel, /pointerdown/);
     assert.match(panel, /pointermove/);
