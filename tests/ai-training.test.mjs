@@ -180,3 +180,26 @@ test('trainer info button displays the settings of the created game before the c
     assert.match(board, /game\.rules\?\.\[key\]/);
     assert.match(board, /game\.players\.forEach/);
 });
+
+
+test('trainer dice picker supports manual human rolls and selectable automatic/manual AI rolling', async () => {
+    const turn = await read('../js/game-turn.js');
+    const view = await read('../js/game-view.js');
+    const screen = await read('../js/game-screen.js');
+    const markup = await read('../screens/game.php');
+    const styles = await read('../css/game-premium.css');
+    assert.match(turn, /trainerDiceModeKey/);
+    assert.match(turn, /needsManualAIDice\(\)/);
+    assert.match(turn, /function selectDice\(value\)/);
+    assert.match(turn, /rollDice\(game, selectedValue === null \? undefined : selectedValue\)/);
+    assert.match(turn, /doStartingRoll\(isAI, selectedValue\)/);
+    assert.match(view, /trainer-dice-controls/);
+    assert.match(view, /AI KOSTKA: AUTOMATICKY/);
+    assert.match(screen, /turnController\.selectDice/);
+    assert.match(screen, /turnController\.toggleAIDiceMode/);
+    assert.equal((markup.match(/data-dice-value="[1-6]"/g) || []).length, 6);
+    assert.match(markup, /aria-label="Hodit 6"/);
+    assert.match(styles, /\.trainer-die \.pip\.p5/);
+    assert.match(styles, /\.trainer-die\.is-selected/);
+    assert.doesNotMatch(markup, /trainer-dice-player-name/);
+});
