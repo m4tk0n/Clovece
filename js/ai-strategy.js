@@ -343,10 +343,16 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
         : null;
 
     const neuralCandidatesWithProbabilities = !winning && !learned && isValidAINeuralModel(neuralModel)
-        ? candidates.map(candidate => ({
-            ...candidate,
-            probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies)
-        }))
+        ? (() => {
+            const tacticalByPiece = new Map(
+                evaluateTacticalCandidates(game, candidates).map(item => [item.pieceId, item.factors])
+            );
+            return candidates.map(candidate => ({
+                ...candidate,
+                probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies),
+                tacticalFeatures: tacticalByPiece.get(candidate.pieceId)
+            }));
+        })()
         : candidates;
     const neuralScores = !winning && !learned
         ? scoreAIMoveCandidates(game, neuralCandidatesWithProbabilities, validMoves.length, neuralModel)
