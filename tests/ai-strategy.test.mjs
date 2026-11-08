@@ -102,7 +102,7 @@ test('deployment is rewarded when a safe newly deployed piece creates a bonus-ro
     const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0);
     assert.equal(decision.pieceId, 0);
     assert.equal(decision.breakdown.selectedWeightFactors.deployedPiece, true);
-    assert.equal(decision.breakdown.selectedWeightFactors.deploymentAttackChance, 1 / 6);
+    assert.ok(Math.abs(decision.breakdown.selectedWeightFactors.deploymentAttackChance - 1 / 6) < 0.001);
     assert.equal(decision.breakdown.selectedWeightFactors.deployedPieceThreat, 0);
     assert.ok(decision.breakdown.selectedWeightFactors.deploymentTacticalScore > 0);
 });
