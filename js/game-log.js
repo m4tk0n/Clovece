@@ -6,6 +6,7 @@ export function createGameLog(getGame) {
     const $ = id => document.getElementById(id);
     const chatHistory = [];
     let startLogEntry = null;
+    let lastAIDebugExport = null;
     
     function updateStartLog() {
         const game = getGame();
@@ -37,6 +38,31 @@ export function createGameLog(getGame) {
             line.append(sender, body);
             messages.appendChild(line);
         });
+        if (lastAIDebugExport) {
+            const copyButton = document.createElement('button');
+            copyButton.type = 'button';
+            copyButton.className = 'game-btn small ai-debug-copy';
+            copyButton.textContent = 'Zkopírovat JSON posledního tahu AI';
+            copyButton.addEventListener('click', async () => {
+                const json = JSON.stringify(lastAIDebugExport, null, 2);
+                try {
+                    if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(json);
+                    } else {
+                        const field = document.createElement('textarea');
+                        field.value = json;
+                        document.body.appendChild(field);
+                        field.select();
+                        document.execCommand('copy');
+                        field.remove();
+                    }
+                    copyButton.textContent = 'JSON zkopírován';
+                } catch {
+                    copyButton.textContent = 'Kopírování se nezdařilo';
+                }
+            });
+            messages.appendChild(copyButton);
+        }
         messages.scrollTop = messages.scrollHeight;
     }
     
@@ -64,6 +90,11 @@ export function createGameLog(getGame) {
         renderChat();
     }
     
+    function setAIDebugExport(value) {
+        lastAIDebugExport = value && typeof value === 'object' ? value : null;
+        renderChat();
+    }
+
     function sendChatMessage(text) {
         const game = getGame();
         if (!game) return;
@@ -73,6 +104,7 @@ export function createGameLog(getGame) {
     
     function resetGameLog() {
         chatHistory.length = 0;
+        lastAIDebugExport = null;
         renderChat();
         startLogEntry = { sender: 'Rozstřel', text: 'Čeká se na první hod.', type: 'game' };
         chatHistory.push(startLogEntry);
@@ -85,6 +117,7 @@ export function createGameLog(getGame) {
         renderChat,
         addChatEntry,
         addGameLogEntry,
+        setAIDebugExport,
         sendChatMessage
     };
 }
