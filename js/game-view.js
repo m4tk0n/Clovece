@@ -14,7 +14,7 @@ export function createGameView({ getGame, renderBoard }) {
         if (!game) return;
         const boardContainer = $('game-container');
         if (boardContainer && !boardContainer._playerPanelRefreshBound) {
-            boardContainer.addEventListener('clovece:board-rendered', renderPlayers);
+            boardContainer.addEventListener('clovece:board-rendered', () => { renderPlayers(); updateTurnControls(); });
             boardContainer._playerPanelRefreshBound = true;
         }
         renderBoard(boardContainer, game);
@@ -46,7 +46,7 @@ export function createGameView({ getGame, renderBoard }) {
             controls?.remove();
             return null;
         }
-        if (controls) return controls;
+        if (controls) { mountTrainerDiceControls(controls); return controls; }
         const markup = [
             '<div id="trainer-dice-controls" class="trainer-dice-controls" aria-label="Výběr hodnoty kostky">',
             '<div id="trainer-dice-options" class="trainer-dice-options">',
@@ -63,7 +63,15 @@ export function createGameView({ getGame, renderBoard }) {
         const header = gameScreen.querySelector('.game-header');
         if (!header) return null;
         header.insertAdjacentHTML('afterend', markup);
-        return $('trainer-dice-controls');
+        controls = $('trainer-dice-controls');
+        mountTrainerDiceControls(controls);
+        return controls;
+    }
+
+    function mountTrainerDiceControls(controls) {
+        if (!controls) return;
+        const slot = $('game-container')?.querySelector('.board-dice-trainer-slot');
+        if (slot && controls.parentElement !== slot) slot.appendChild(controls);
     }
     function updateTurnControls() {
             const game = getGame();
