@@ -18,7 +18,7 @@ Rozhodnutí a herní události zůstávají samostatnými řádky chatu. Více n
 
 ## Kopírování posledního tahu
 
-V debug chatu bude tlačítko **Zkopírovat JSON**. Kliknutí uloží do systémové schránky úplný export posledního rozhodnutí AI. Export musí být samostatný, čitelný JSON a musí umožnit znovu sestavit přesně stejný stav hry.
+V debug chatu je tlačítko **Zkopírovat JSON posledního tahu AI**. Kliknutí uloží do systémové schránky úplný export posledního rozhodnutí AI. Tlačítko je dostupné v místní i online hře. Export musí být samostatný, čitelný JSON a musí umožnit znovu sestavit přesně stejný stav hry.
 
 Doporučená struktura:
 
