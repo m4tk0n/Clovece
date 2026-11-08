@@ -203,3 +203,12 @@ test('trainer dice picker supports manual human rolls and selectable automatic/m
     assert.match(styles, /\.trainer-die\.is-selected/);
     assert.doesNotMatch(markup, /trainer-dice-player-name/);
 });
+
+test('trainer dice controls are not hidden in the initial game markup', async () => {
+    const screen = await read('../screens/game.php');
+    const view = await read('../js/game-view.js');
+    assert.match(screen, /id="trainer-dice-controls" class="trainer-dice-controls"/);
+    assert.doesNotMatch(screen, /id="trainer-dice-controls" class="trainer-dice-controls hidden"/);
+    assert.match(view, /diceControls\.classList\.toggle\('hidden', !trainerMode\)/);
+    assert.match(view, /diceRow\.classList\.toggle\('hidden', !\['start-roll', 'roll'\]\.includes\(game\.phase\)\)/);
+});
