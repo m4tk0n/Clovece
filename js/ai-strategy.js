@@ -184,10 +184,10 @@ function normalizeTrainingSituation(game, piecesSource = game.pieces) {
 function getTaughtPieceId(record) {
     if (record.feedbackType === 'positive') {
         const selected = record.context?.decision?.selectedPieceId;
-        return Number.isInteger(Number(selected)) ? Number(selected) : null;
+        return selected !== null && selected !== undefined && Number.isInteger(Number(selected)) ? Number(selected) : null;
     }
     const instruction = String(record.instruction || '').toLocaleLowerCase('cs');
-    const match = instruction.match(/(?:figurk(?:u|a|y)?|fig\\.?|\\bf)\\s*(?:č(?:íslo)?\\.?\\s*)?([1-4])\\b/i);
+    const match = instruction.match(/(?:figurk(?:u|a|y)?|fig\.?|\bf)\s*(?:č(?:íslo)?\.?\s*)?([1-4])\b/i);
     if (!match) return null;
     return Number(match[1]) - 1;
 }
