@@ -426,7 +426,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             neuralNetwork: neuralSelected,
             tacticalTeacher: tacticalSelected,
             neuralModelVersion: neuralSelected ? neuralModel.version : null,
-            weightConfig: { count: AI_WEIGHT_COUNT, difficulty: difficultyProfile.label, aggression: difficultyProfile.aggression, riskMultiplier: difficultyProfile.riskMultiplier, blunderRate: difficultyProfile.blunderRate, randomness: difficultyProfile.randomness, scoredWeightCount: 876, neutralConfigWeightCount: 124, activeWeightIds: Array.from({ length: AI_WEIGHT_COUNT }, (_, index) => index + 1).filter(id => !((id >= 417 && id <= 430) || (id >= 441 && id <= 500) || (id >= 941 && id <= 960) || (id >= 971 && id <= 1000))).map(id => ({ id, value: getAIWeight(id) })) },
+            weightConfig: { count: AI_WEIGHT_COUNT, difficulty: difficultyProfile.label, aggression: difficultyProfile.aggression, riskMultiplier: difficultyProfile.riskMultiplier, blunderRate: difficultyProfile.blunderRate, randomness: difficultyProfile.randomness, scoredWeightCount: 876, neutralConfigWeightCount: 124 },
             intentionalBlunder,
             usedInstructions,
             legalMoveCount: validMoves.length,
