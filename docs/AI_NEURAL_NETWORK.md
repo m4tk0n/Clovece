@@ -2,7 +2,7 @@
 
 ## Stav
 
-Připravena je pouze inferenční vrstva a rozhraní modelu. **Model zatím není natrénovaný a běžná hra proto dál používá dosavadní rozhodování.** V repozitáři nejsou žádné vymyšlené váhy ani převzatý model cizí hry.
+Inferenční vrstva, offline trenér a turnajové ověření jsou připravené. Kandidát schema v2 byl natrénován, ale v prvním turnaji nedosáhl výkonu taktického učitele. **Produkční model proto zůstává vypnutý; nyní se sbírají nová data pro schema v3.** V repozitáři nejsou žádné vymyšlené váhy ani převzatý model cizí hry.
 
 ## Architektura
 
@@ -40,10 +40,10 @@ Tři taktické vstupy v3 odpovídají měřitelným složkám taktického učite
 
 ## Co následuje před zapnutím
 
-- Připravit offline trénovací pipeline a převod lidských rozhodnutí / partií na příklady.
-- Trénovat na přesných pravidlech našeho enginu, nikoliv na cizím Ludo prostředí.
-- Rozdělit data na trénovací a validační množinu a porovnat síť proti současné náhodné a lidsky učené AI.
-- Exportovat skutečné váhy do `js/models/ludo-ai.js`.
-- Teprve po regresních testech zapnout `enabled: true`.
+- Dokončit nový self-play sběr s 26 příznaky schema v3 na deskách 40/48/80.
+- Natrénovat kandidáta s oddělením validačních partií a zaznamenat validační přesnost.
+- Odehrát nejméně 200 turnajových her proti taktickému učiteli; kandidát musí překonat základní hranici i intervalem spolehlivosti.
+- Ověřit vítěznost na více počtech hráčů a velikostech desky, ne pouze na 40/4.
+- Teprve po prokazatelném zlepšení a regresních testech uvažovat o zapnutí `enabled: true`.
 
 Online PHP AI zatím zůstává beze změny. Před jejím napojením je potřeba rozhodnout o společném formátu inference pro PHP; pravidla v `lib/game-engine.php` se kvůli tomu nesmí měnit.
