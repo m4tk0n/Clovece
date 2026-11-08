@@ -2,13 +2,19 @@
 
 ## Spuštění
 
-Otevři `/?debug=training`. Režim automaticky otevře výběr místní hry, vynutí 2D vykreslení a zobrazí výukový panel. Vyber lidského hráče a alespoň jednu AI.
+Otevři `/?debug=training`. Režim automaticky otevře výběr místní hry, vynutí 2D vykreslení a zobrazí malé plovoucí výukové okno až po zobrazení hrací desky. Pomocí tlačítek `+` a `−` lze okno zvětšit nebo zmenšit. Vyber lidského hráče a alespoň jednu AI.
 
 Pravidla hry ani legální tahy se v tomto režimu nemění. Číslování polí v SVG desce slouží pouze k přesnému popisu pozic.
 
+## Ovládání výuky
+
+Po dokončení tahu AI okno zobrazí její rozhodnutí a vysvětlení. Člověk může:
+- napsat opravu a zvolit **ODESLAT** – vznikne nový samostatný JSON záznam;
+- zvolit **PŘESKOČIT** – rozhodnutí se zahodí bez uložení a bez vytvoření prázdného či zavádějícího záznamu.
+
 ## Co se zaznamenává
 
-Po dokončení tahu AI se vytvoří výukový kontext obsahující:
+Každá odeslaná oprava obsahuje:
 - verzi formátu a strategie;
 - velikost desky, délku okruhu, počet hráčů a jejich jména, barvy, typy a startovní pozice;
 - kompletní aktivní nastavení pravidel;
@@ -17,8 +23,6 @@ Po dokončení tahu AI se vytvoří výukový kontext obsahující:
 - seznam legálních tahů a rozbor možností;
 - vybranou figurku a textové vysvětlení AI;
 - skutečně provedený tah a stav figurek po tahu.
-
-Člověk přidá volný text: co měla AI udělat a proč. Odeslaný text se připojí ke kontextu a uloží jako samostatný JSON.
 
 ## Serverové úložiště
 
