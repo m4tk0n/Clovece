@@ -71,6 +71,8 @@ jobs:
             echo "Turnaj nebyl spuštěn; aktivní váhy zůstávají beze změny."
             exit 0
           fi
+          git fetch origin main
+          git merge --ff-only origin/main
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const report = JSON.parse(fs.readFileSync('artifacts/ai-weight-tournament-report.json', 'utf8'));
@@ -120,13 +122,20 @@ jobs:
         if: always() && steps.tournament.outcome == 'success' && steps.train-weights.outcome == 'success'
         run: |
           node --input-type=module <<'NODE'
+          git fetch origin main
+          git merge --ff-only origin/main
           import fs from 'node:fs';
           const training = JSON.parse(fs.readFileSync('artifacts/ai-weight-training-report.json', 'utf8'));
           const tournament = fs.existsSync('artifacts/ai-weight-tournament-report.json')
             ? JSON.parse(fs.readFileSync('artifacts/ai-weight-tournament-report.json', 'utf8')) : null;
+          const activeConfig = JSON.parse(fs.readFileSync('config/ai-tactical-weights.json', 'utf8'));
           const previous = training.previousWeights;
           const candidate = training.candidateWeights;
-          const finalWeights = tournament?.accepted === true ? candidate : previous;
+          const active = activeConfig.weights;
+          const same = (a, b) => Object.keys(previous).every(key => Number(a?.[key]) === Number(b?.[key]));
+          const alreadyPromoted = tournament?.accepted === true && same(active, candidate);
+          const stale = !alreadyPromoted && !same(active, previous);
+          const finalWeights = active;
           const keys = Object.keys(previous);
           const delta = Object.fromEntries(keys.map(key => [key,
             Number((Number(candidate[key]) - Number(previous[key])).toFixed(8))]));
@@ -134,12 +143,14 @@ jobs:
             format: 'clovece-ai-training-state',
             version: 1,
             updatedAt: new Date().toISOString(),
-            status: tournament?.accepted === true ? 'promoted' :
+            status: alreadyPromoted ? 'promoted' :
+              stale ? 'stale-candidate' :
               tournament ? 'tournament-rejected' :
-              training.accepted ? 'awaiting-tournament' : 'validation-rejected',
-            statusLabel: tournament?.accepted === true ? 'NOVÉ VÁHY NASAZENY' :
+              training.accepted ? 'promotion-not-confirmed' : 'validation-rejected',
+            statusLabel: alreadyPromoted ? 'NOVÉ VÁHY NASAZENY' :
+              stale ? 'KANDIDÁT ZASTARAL · AKTIVNÍ VÁHY SE MEZITÍM ZMĚNILY' :
               tournament ? 'KANDIDÁT ZAMÍTNUT' :
-              training.accepted ? 'ČEKÁ NA TURNAJ' : 'VALIDACE ZAMÍTLA KANDIDÁTA',
+              training.accepted ? 'NASAZENÍ NEPOTVRZENO' : 'VALIDACE ZAMÍTLA KANDIDÁTA',
             previousWeights: previous,
             candidateWeights: candidate,
             finalWeights,
