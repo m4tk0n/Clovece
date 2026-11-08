@@ -10,7 +10,8 @@ import { render2DBoard } from './game-board-2d.js?v=20261107-2';
 import { notifyGameExtensions } from './game-extensions.js';
 
 const STYLE_KEY = 'clovece_board_style';
-const STYLES = ['classic', 'polygon'];
+// Mnohoúhelníková varianta je dočasně skrytá; aktivní je pouze klasická deska.
+const STYLES = ['classic'];
 
 let boardStyle = loadStyle();
 
