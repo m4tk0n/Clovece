@@ -220,6 +220,7 @@ export function getBoardStyle() {
 function styleSwitchMarkup() {
     const label = { classic: 'KLASIK', polygon: 'MNOHOÚHELNÍK' };
     return '<div class="board-style-switch" role="group" aria-label="Vzhled a vykreslení hrací desky">' +
+        (trainingMode ? '<button type="button" class="board-style-btn board-game-info-btn" data-game-info="toggle" aria-label="Zobrazit nastavení vytvořené hry" aria-expanded="false" title="Nastavení vytvořené hry">i</button>' : '') +
         STYLES.map(style => '<button type="button" class="board-style-btn' + (style === boardStyle ? ' is-active' : '') +
             '" data-board-style="' + style + '" aria-pressed="' + (style === boardStyle) + '">' + label[style] + '</button>').join('') +
         (trainingMode ? '' : '<button type="button" class="board-style-btn' + (view3d ? ' is-active' : '') +
@@ -233,6 +234,15 @@ const SWITCH_CSS = '<style>' +
     '.board-style-btn{padding:4px 7px;border:1px solid rgba(198,169,107,.35);border-radius:6px;background:rgba(255,255,255,.04);' +
     'color:#aeb9ac;font:700 7px/1.2 "Press Start 2P",monospace;letter-spacing:.06em;cursor:pointer;pointer-events:auto}' +
     '.board-style-btn.is-active{background:rgba(198,169,107,.22);border-color:#c6a96b;color:#f3eddf}' +
+    '.board-game-info-btn{min-width:20px;padding:3px 5px;border-radius:50%;font:800 10px/1 system-ui,sans-serif;text-transform:none}' +
+    '.board-game-info-panel{position:absolute;top:34px;right:6px;z-index:30;box-sizing:border-box;width:min(290px,calc(100% - 12px));max-height:min(65dvh,420px);overflow:auto;padding:10px;border:1px solid rgba(198,169,107,.75);border-radius:9px;background:rgba(9,17,15,.98);color:#f3eddf;box-shadow:0 8px 26px rgba(0,0,0,.5);font:11px/1.4 system-ui,sans-serif;letter-spacing:normal}' +
+    '.board-game-info-panel h3{margin:0 0 7px;color:#e6c98a;font-size:12px}' +
+    '.board-game-info-panel h4{margin:8px 0 3px;color:#c6a96b;font-size:10px}' +
+    '.board-game-info-panel ul{margin:0;padding-left:16px}' +
+    '.board-game-info-panel li{margin:2px 0}' +
+    '.board-game-info-player{display:flex;align-items:center;gap:6px}' +
+    '.board-game-info-dot{display:inline-block;width:9px;height:9px;flex:0 0 9px;border-radius:50%}' +
+    '.board-game-info-close{float:right;margin:-2px -2px 4px 8px;padding:2px 7px;border:1px solid #718075;border-radius:4px;background:#23352b;color:#fff;font-size:12px}' +
     '</style>';
 
 // Překreslí desku se zachováním panelu stavu figurek.
@@ -249,6 +259,87 @@ function bindStyleSwitch(container) {
     container._boardStyleBound = true;
 
     container.addEventListener('click', event => {
+        const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+        const infoButton = path.find(node => node instanceof Element && node.matches('[data-game-info]')) ||
+            event.target.closest?.('[data-game-info]');
+        if (infoButton && container.contains(infoButton)) {
+            event.preventDefault();
+            const shell = container.querySelector('.premium-board-shell');
+            const existing = shell?.querySelector('.board-game-info-panel');
+            if (existing) {
+                existing.remove();
+                infoButton.setAttribute('aria-expanded', 'false');
+                return;
+            }
+            if (!shell || !container._lastGame) return;
+            const game = container._lastGame;
+            const info = document.createElement('section');
+            info.className = 'board-game-info-panel';
+            info.setAttribute('role', 'dialog');
+            info.setAttribute('aria-label', 'Nastavení vytvořené hry');
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'board-game-info-close';
+            close.textContent = '×';
+            close.setAttribute('aria-label', 'Zavřít nastavení hry');
+            close.addEventListener('click', () => {
+                info.remove();
+                infoButton.setAttribute('aria-expanded', 'false');
+            });
+            info.appendChild(close);
+            const heading = document.createElement('h3');
+            heading.textContent = 'NASTAVENÍ VYTVOŘENÉ HRY';
+            info.appendChild(heading);
+            const summary = document.createElement('ul');
+            const addSetting = (label, value) => {
+                const item = document.createElement('li');
+                item.textContent = label + ': ' + value;
+                summary.appendChild(item);
+            };
+            addSetting('Deska', game.trackLength + ' polí');
+            addSetting('Počet hráčů', game.players.length + ' (' +
+                game.players.filter(player => !player.isAI).length + ' lidští, ' +
+                game.players.filter(player => player.isAI).length + ' AI)');
+            addSetting('Obtížnost AI', ({ easy: 'Lehká', medium: 'Střední', hard: 'Těžká' })[game.aiDifficulty] || 'Střední');
+            info.appendChild(summary);
+            const playersTitle = document.createElement('h4');
+            playersTitle.textContent = 'HRÁČI';
+            info.appendChild(playersTitle);
+            const players = document.createElement('ul');
+            game.players.forEach(player => {
+                const item = document.createElement('li');
+                item.className = 'board-game-info-player';
+                const dot = document.createElement('span');
+                dot.className = 'board-game-info-dot';
+                dot.style.backgroundColor = player.color;
+                dot.setAttribute('aria-hidden', 'true');
+                const name = document.createElement('span');
+                name.textContent = player.name + (player.isAI ? ' · AI' : ' · člověk');
+                item.append(dot, name);
+                players.appendChild(item);
+            });
+            info.appendChild(players);
+            const rulesTitle = document.createElement('h4');
+            rulesTitle.textContent = 'VOLBY PRAVIDEL';
+            info.appendChild(rulesTitle);
+            const rules = document.createElement('ul');
+            const ruleLabels = [
+                ['threeRolls', 'Až tři pokusy o šestku'],
+                ['mustDeploy', 'Povinné nasazení'],
+                ['skipHomePieces', 'Přeskakování figurek v domečku'],
+                ['mustEnterHome', 'Povinný vstup do domečku'],
+                ['threeSixesPenalty', 'Trest za třetí šestku']
+            ];
+            ruleLabels.forEach(([key, label]) => {
+                const item = document.createElement('li');
+                item.textContent = label + ': ' + (game.rules?.[key] ? 'ANO' : 'NE');
+                rules.appendChild(item);
+            });
+            info.appendChild(rules);
+            shell.appendChild(info);
+            infoButton.setAttribute('aria-expanded', 'true');
+            return;
+        }
         // Najdřív hledáme přepínač režimu. Použijeme i composedPath(),
         // aby delegace fungovala také při události z vnořeného/canvas prvku.
         const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
