@@ -577,10 +577,10 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
     if ($winningMoves !== []) {
         $selected = $winningMoves[0];
     } else {
-        $randomIndex ??= static fn(int $count): int => random_int(0, $count - 1);
-        $index = (int) $randomIndex(count($candidates));
-        $index = max(0, min(count($candidates) - 1, $index));
-        $selected = $candidates[$index];
+        usort($candidates, static fn(array $a, array $b): int =>
+            ($b['score'] <=> $a['score']) ?: ($a['pieceId'] <=> $b['pieceId'])
+        );
+        $selected = $candidates[0];
     }
 
     $alternatives = array_map(
