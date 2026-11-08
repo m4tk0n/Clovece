@@ -126,6 +126,13 @@ export function createTurnController(deps) {
             ? chooseAIMoveDecision(game, undefined, knowledge.memory, neuralModel)
             : { pieceId: chooseAIMove(game), reason: '' };
         if ((debugAI || trainingAI) && decision?.reason) {
+            if (debugAI && decision.breakdown?.weightConfig) {
+                const config = decision.breakdown.weightConfig;
+                addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' + config.difficulty +
+                    ' · agrese ' + config.aggression + ' · riziko ×' + config.riskMultiplier +
+                    ' · chyba ' + config.blunderRate + ' · náhodnost ' + config.randomness);
+                addGameLogEntry('AI aktivní váhy', config.activeWeightIds.map(item => '#' + item.id + '=' + item.value).join(' | '));
+            }
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
             if (debugAI && decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
                 const usedIds = decision.breakdown.usedInstructions.map(item => item.id).join(', ');
@@ -145,7 +152,7 @@ export function createTurnController(deps) {
                 decisionId: trainingAI ? 'ai-decision-' + (++trainingDecisionSequence) : null,
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
-                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : (decision.breakdown?.neuralNetwork ? 'neural-network-v1' : 'untrained-v1'),
+                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : (decision.breakdown?.weightConfig ? 'weighted-ai-1000-v1' : (decision.breakdown?.neuralNetwork ? 'neural-network-v1' : 'untrained-v1')),
                 game: {
                     boardSize: game.boardSize || game.trackLength,
                     trackLength: game.trackLength,
@@ -169,6 +176,8 @@ export function createTurnController(deps) {
                     trainedKnowledge: Boolean(decision.breakdown?.trainedKnowledge),
                     neuralNetwork: Boolean(decision.breakdown?.neuralNetwork),
                     neuralModelVersion: decision.breakdown?.neuralModelVersion ?? null,
+                    weightConfig: decision.breakdown?.weightConfig ?? null,
+                    intentionalBlunder: Boolean(decision.breakdown?.intentionalBlunder),
                     usedInstructions: decision.breakdown?.usedInstructions || [],
                     knowledgeError: knowledge.error || null
                 },
