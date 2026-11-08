@@ -298,6 +298,91 @@ export function chooseStrategicDecision(game, dependencies, _difficulty = 'mediu
     };
 }
 
+
+/**
+ * Rychlý taktický učitel pro offline self-play.
+ * Skóruje pouze kandidáty vytvořené z legálních tahů herního enginu.
+ * Neprovádí vlastní změny herního stavu ani neurčuje pravidla.
+ */
+function estimateFastTrackThreat(game, playerId) {
+    const ownPieces = game.pieces[playerId]?.pieces || [];
+    let total = 0;
+    for (const ownPiece of ownPieces) {
+        if (!isMainTrackPiece(ownPiece, game.trackLength)) continue;
+        const target = (game.players[playerId].start + ownPiece.steps) % game.trackLength;
+        let threat = 0;
+        for (const opponent of game.players) {
+            if (opponent.id === playerId || opponent.finished) continue;
+            for (const piece of game.pieces[opponent.id]?.pieces || []) {
+                if (!isMainTrackPiece(piece, game.trackLength)) continue;
+                const attacker = (game.players[opponent.id].start + piece.steps) % game.trackLength;
+                const distance = (target - attacker + game.trackLength) % game.trackLength;
+                if (distance >= 1 && distance <= 6) threat += estimateCaptureProbability(distance);
+            }
+        }
+        total += Math.min(1, threat);
+    }
+    return total;
+}
+
+export function evaluateTacticalCandidates(game, candidates) {
+    const playerId = game.currentPlayer;
+    const beforeOwnPips = calculatePlayerPips(game, playerId);
+    const beforeThreat = estimateFastTrackThreat(game, playerId);
+    const beforeOpponentPips = game.players.reduce((sum, player) =>
+        player.id === playerId ? sum : sum + calculatePlayerPips(game, player.id), 0);
+    return candidates.map(candidate => {
+        const state = candidate.state;
+        const ownPipsGain = beforeOwnPips - calculatePlayerPips(state, playerId);
+        const afterThreat = estimateFastTrackThreat(state, playerId);
+        const afterOpponentPips = state.players.reduce((sum, player) =>
+            player.id === playerId ? sum : sum + calculatePlayerPips(state, player.id), 0);
+        const opponentPipsGain = afterOpponentPips - beforeOpponentPips;
+        const captured = candidate.move?.captured || null;
+        const winning = candidate.winningMove || state.winner === playerId;
+        const selfCapture = Boolean(captured?.ownPiece);
+        const enemyCapture = Boolean(captured && !captured.ownPiece);
+        const threatReduction = beforeThreat - afterThreat;
+        const score = winning ? 100000 :
+            ownPipsGain * 0.08 +
+            opponentPipsGain * 0.035 +
+            threatReduction * 12 +
+            (enemyCapture ? 5 : 0) -
+            (selfCapture ? 7 : 0) +
+            (candidate.move?.finishedNow ? 8 : 0);
+        return {
+            pieceId: candidate.pieceId,
+            score: Number(score.toFixed(6)),
+            factors: {
+                ownProgress: Number(ownPipsGain.toFixed(3)),
+                opponentSetback: Number(opponentPipsGain.toFixed(3)),
+                threatReduction: Number(threatReduction.toFixed(4)),
+                capturedOpponent: enemyCapture,
+                capturedOwnPiece: selfCapture,
+                finishedPiece: Boolean(candidate.move?.finishedNow),
+                winning
+            }
+        };
+    }).sort((a, b) => b.score - a.score || a.pieceId - b.pieceId);
+}
+
+export function chooseTacticalTeacherDecision(game, dependencies) {
+    const legalMoves = dependencies.getValidMoves(game);
+    if (!legalMoves.length) return null;
+    const candidates = legalMoves.map(pieceId => {
+        const state = cloneGame(game);
+        const move = dependencies.movePiece(state, pieceId);
+        return { pieceId, move, state, winningMove: state.winner === game.currentPlayer };
+    });
+    const ranked = evaluateTacticalCandidates(game, candidates);
+    return {
+        pieceId: ranked[0].pieceId,
+        score: ranked[0].score,
+        ranking: ranked,
+        reason: ranked[0].factors.winning ? 'immediate-win' : 'tactical-teacher'
+    };
+}
+
 export function chooseStrategicMove(game, dependencies, difficulty = 'medium') {
     return chooseStrategicDecision(game, dependencies, difficulty)?.pieceId ?? null;
 }
