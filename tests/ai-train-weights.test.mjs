@@ -25,7 +25,7 @@ test('reward trainer uses completed game results and keeps immediate win fixed',
                         reward: winner ? 1 : -1,
                         selection: 'reinforce-softmax',
                         policyTemperature: 4,
-                        behaviorWeights: { immediateWin: 100000, ownProgress: 0.08, opponentSetback: 0.035, threatReduction: 12, captureOpponent: 5, captureOwn: 7, finishPiece: 8 },
+                        behaviorWeights: { immediateWin: 100000, ownProgress: 0.08, opponentSetback: 0.035, threatReduction: 12, captureOpponent: 5, captureOwn: 7, finishPiece: 8, deployPiece: 1.5, enterHome: 2.5, homeProgress: 0.4 },
                         selectedProbability: winner ? 0.549834 : 0.450166,
                         selectedPieceId: winner ? 0 : 1,
                         candidates: [
