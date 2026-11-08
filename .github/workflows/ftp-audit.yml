@@ -1,0 +1,49 @@
+name: Read-only FTP audit
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/ftp-audit.yml"
+      - "scripts/ftp-audit.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ftp-read-only-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout GitHub main
+        uses: actions/checkout@v4
+
+      - name: Check FTP audit script
+        run: python3 scripts/ftp-audit.py --self-test
+
+      - name: Compare FTP inventory with GitHub main
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_TLS: ${{ secrets.FTP_TLS }}
+        run: |
+          python3 scripts/ftp-audit.py \
+            --repo-root . \
+            --remote-root /clovece/ \
+            --output-dir audit-output
+
+      - name: Publish sanitized audit report
+        if: always() && github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: clovece-ftp-audit
+          path: audit-output/
+          if-no-files-found: warn
+          retention-days: 14
