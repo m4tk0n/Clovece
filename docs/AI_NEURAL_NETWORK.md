@@ -2,14 +2,14 @@
 
 ## Stav
 
-**Herní AI je aktivní:** pokud není k dispozici okamžitá výhra, přesná lidská naučená preference ani platný neuronový model, vybírá tah podle taktického učitele (postup, ohrožení vlastních figurek, vyhození soupeře a dokončení figurky). Náhodný výběr už není běžnou záložní strategií. Produkční neuronový model zůstává vypnutý, protože export vah schema v3 zatím není ověřený; prázdné váhy se nesmějí vydávat za natrénovanou síť. Inferenční vrstva a offline trenér jsou připravené.
+**Neuronová AI je zapnutá:** po okamžité výhře a přesné lidské naučené preferenci skóruje legální tahy aktivní síť schema v3. Model obsahuje nenulové počáteční váhy `heuristic-seed-v1`, ručně sestavené z taktických faktorů (postup, vyhození soupeře, riziko, dokončení figurky a další hod). Nejde o váhy získané offline trénováním; jde o funkční heuristickou inicializaci, aby síť mohla ihned rozhodovat. Taktický učitel zůstává záložní strategií, pokud model chybí nebo je neplatný. Náhodný výběr není běžnou zálohou.
 
 ## Architektura
 
 1. `js/game-engine.js` vypočítá legální tahy a simuluje každý z nich. Pravidla ani generování tahů neuronová síť nepřebírá.
 2. `js/ai-neural-network.js` převede každý legální kandidátní tah na pevný vektor 26 čísel (schema v3) a provede dopředný průchod malou plně propojenou sítí.
-3. `js/models/ludo-ai.js` obsahuje export vah. Nyní je vypnutý prázdný model.
-4. `js/ai-strategy.js` zachová prioritu okamžité výhry a přesné lidské výukové paměti. Poté použije platný neuronový model; pokud zatím není dostupný, použije taktického učitele jako aktivní výchozí strategii.
+3. `js/models/ludo-ai.js` obsahuje aktivní nenulové počáteční váhy `heuristic-seed-v1` pro architekturu 26→32→16→1.
+4. `js/ai-strategy.js` zachová prioritu okamžité výhry a přesné lidské výukové paměti. Poté používá platný neuronový model; taktický učitel je záloha.
 5. `js/game-turn.js` načítá model dynamicky až při rozhodování AI. Člověk ani běžná úvodní obrazovka nestahují model.
 
 ## Vstupní příznaky modelu
@@ -37,6 +37,10 @@ Výpočet ohrožení zkouší všech šest výsledků kostky pro každého soupe
 Schema v1 (18 vstupů) a v2 (23 vstupů) jsou s v3 nekompatibilní. Staré self-play soubory se nesmějí automaticky doplňovat nulami; pro trénink v3 je nutné vytvořit nová data.
 
 Tři taktické vstupy v3 odpovídají měřitelným složkám taktického učitele. Runtime je počítá pouze při platném zapnutém neuronovém modelu; jejich výpočet tedy nezatěžuje běžnou hru s vypnutým modelem. Nejde o herní pravidla ani o změnu výběru legálních tahů.
+
+## Další učení a ověřování
+
+Aktuální aktivní model je pouze heuristicky inicializovaný. Nesmí se označovat za natrénovaný ani za prokazatelně silnější než taktický učitel. Další krok je vytvořit nové schema v3 zkušenosti, natrénovat kandidáta a porovnat jej v turnaji; kandidáta nasadit až po prokázaném zlepšení.
 
 ## Co následuje pro neuronovou síť
 
