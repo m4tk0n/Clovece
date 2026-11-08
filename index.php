@@ -76,18 +76,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
     <?= json_encode($importMap, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
     </script>
 </head>
-<body data-css-versions='<?= htmlspecialchars(json_encode($cssAssetVersions, JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>'> $assetVersion('css/components-auth.css'),
-            'css/components-profile.css' => $assetVersion('css/components-profile.css'),
-            'css/components-player-selection.css' => $assetVersion('css/components-player-selection.css'),
-            'css/components-online.css' => $assetVersion('css/components-online.css'),
-            'css/components-chat.css' => $assetVersion('css/components-chat.css'),
-            'css/components-settings.css' => $assetVersion('css/components-settings.css'),
-            'css/components-rules.css' => $assetVersion('css/components-rules.css'),
-            'css/components-local-games.css' => $assetVersion('css/components-local-games.css'),
-            'css/components-game.css' => $assetVersion('css/components-game.css'),
-            'css/game-premium.css' => $assetVersion('css/game-premium.css'),
-            'css/animations.css' => $assetVersion('css/animations.css')
-        ]), ENT_QUOTES, 'UTF-8') ?>'>
+<body data-css-versions='<?= htmlspecialchars(json_encode($cssAssetVersions, JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>'>
 <?php if ($testMode): ?>
 <aside id="live-test-panel" class="live-test-panel" aria-label="Automatické testování místní hry">
     <div class="live-test-heading" id="test-panel-drag-handle">
