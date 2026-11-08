@@ -167,3 +167,15 @@ test('structured correction is compiled only when the preferred piece was legal 
     assert.match(compiler, /legalMoves/);
     assert.match(compiler, /in_array\(\$id, array_map\('intval', \$legalMoves\), true\)/);
 });
+
+
+test('trainer info button displays the settings of the created game before the classic style button', async () => {
+    const board = await read('../js/game-board-view.js');
+    assert.match(board, /data-game-info="toggle"/);
+    assert.ok(board.indexOf('data-game-info="toggle"') < board.indexOf('data-board-style="\' + style'));
+    assert.match(board, /NASTAVENÍ VYTVOŘENÉ HRY/);
+    assert.match(board, /game\.trackLength/);
+    assert.match(board, /game\.aiDifficulty/);
+    assert.match(board, /game\.rules\?\.\[key\]/);
+    assert.match(board, /game\.players\.forEach/);
+});
