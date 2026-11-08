@@ -55,7 +55,17 @@ test('each human correction is stored as a new private immutable JSON file', asy
 test('training panel sends the complete AI context together with the teacher correction', async () => {
     const panel = await read('../js/ai-training-overlay.js');
     assert.match(panel, /Co měla AI udělat správně a proč/);
-    assert.match(panel, /ODESLAT INSTRUKCI/);
+    assert.match(panel, /PŘESKOČIT/);
+    assert.match(panel, /ai-training-smaller/);
+    assert.match(panel, /ai-training-larger/);
+    assert.match(panel, /childElementCount > 0/);
+    assert.match(panel, /currentDecision = null/);
+    assert.match(panel, /Bez instrukce – nic nebylo uloženo/);
+    assert.match(panel, /is-hidden/);
+    const styles = await read('../css/ai-training.css');
+    assert.match(styles, /--training-panel-width:290px/);
+    assert.match(styles, /data-size="1"/);
+    assert.match(styles, /data-size="2"/);
     assert.match(panel, /context: decisionToSave/);
     assert.match(panel, /instruction,/);
     assert.match(panel, /ai-training\.php/);
