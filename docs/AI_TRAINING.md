@@ -458,7 +458,7 @@ Volby:
 4. Ponech 40 epoch a výchozí seed, případně změň hodnoty.
 5. Po dokončení stáhni artifact `ai-neural-candidate-N`; obsahuje kandidátní model a report.
 
-Workflow lze spustit ručně a automaticky se spustí také po úspěšném dokončení self-play sběru. Načte archiv z větve `ai-training-data`, spustí cílené testy a ověří počet kompatibilních párů schema v3. Pokud jich ještě není alespoň 100, trénink se korektně přeskočí; po novém self-play sběru lze workflow spustit znovu. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
+Workflow má limit běhu 90 minut (`timeout-minutes: 90`), včetně trénování a navazujících tří turnajů. Pokud limit vyprší, GitHub běh ukončí. Workflow lze spustit ručně a automaticky se spustí také po úspěšném dokončení self-play sběru. Načte archiv z větve `ai-training-data`, spustí cílené testy a ověří počet kompatibilních párů schema v3. Pokud jich ještě není alespoň 100, trénink se korektně přeskočí; po novém self-play sběru lze workflow spustit znovu. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
 
 ### První neuronový trénovací běh (2026-11-08)
 
