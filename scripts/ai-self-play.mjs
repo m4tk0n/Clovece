@@ -140,7 +140,14 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         if (!decision || !legalMoves.includes(decision.pieceId)) {
             throw new Error('AI vrátila tah mimo seznam legálních tahů.');
         }
-        const sampledDecision = samplePolicyDecision(decision.ranking, random, explorationTemperature);
+        // Self-play sbírá zkušenosti podle stejné devítiparametrové
+        // behavior policy, kterou ověřuje reward trenér. Produkční AI nadále
+        // rozhoduje podle úplného taktického skóre včetně 1000-slot vrstvy.
+        const trainingRanking = decision.ranking.map(item => ({
+            ...item,
+            score: item.trainingScore
+        }));
+        const sampledDecision = samplePolicyDecision(trainingRanking, random, explorationTemperature);
         const selectedPieceId = sampledDecision.pieceId;
         const selected = candidates.find(candidate => candidate.pieceId === selectedPieceId);
         if (!selected) throw new Error('Self-play vybralo tah mimo seznam kandidátů.');
@@ -162,7 +169,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
                         probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies),
                         tacticalFeatures: teacher?.factors
                     }, legalMoves.length),
-                    teacherScore: teacher?.score ?? null,
+                    teacherScore: teacher?.trainingScore ?? null,
                     teacherFactors: teacher?.factors ?? null
                 };
             }),
@@ -177,7 +184,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
                 tacticalFeatures: decision.ranking.find(item => item.pieceId === selected.pieceId)?.factors
             }, legalMoves.length),
             selection: sampledDecision.forced ? 'forced-immediate-win' : 'reinforce-softmax',
-            teacherRanking: decision.ranking
+            teacherRanking: trainingRanking
         });
         movePiece(game, selectedPieceId);
         actions++;
