@@ -32,7 +32,7 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 - Pozitivní příklad znovu upřednostní dříve potvrzenou legální figurku ve stejné situaci.
 - AI do rozhodnutí přidá `trainedKnowledge` a ID skutečně použité instrukce; debug log a výukový panel zobrazí `NAUČENO`.
 - Naučená preference nikdy nepřekročí seznam legálních tahů a okamžitá výhra má stále přednost.
-- Připravena inferenční vrstva neuronové sítě v `js/ai-neural-network.js` s verzovaným 23prvkovým vstupem (schema v2).
+- Připravena inferenční vrstva neuronové sítě v `js/ai-neural-network.js` s verzovaným 26prvkovým vstupem (schema v3).
 - Místní AI umí neuronovým modelem ohodnotit pouze kandidáty vrácené herním enginem; výsledek se označuje `neuralNetwork` a `neural-network-v1`.
 - Model se načítá dynamicky až při tahu AI ze souboru `js/models/ludo-ai.js`.
 - Okamžitá výhra a přesná lidská naučená preference mají před neuronovým skóre přednost.
@@ -237,7 +237,7 @@ Aktuální místní strategie je v `js/ai-strategy.js`.
 - Pokud není dostupná ani lidská preference, ani platný model, použije se náhradní výběr z legálních tahů.
 - Aktuální neuronový model je záměrně vypnutý (`enabled: false`), protože zatím nemá natrénované váhy. Běžné chování AI se proto nemění.
 - Odhady zbývajících kroků a ohrožení jsou zatím pouze popisné; offline trénování a zobecňování lidských příkladů ještě nejsou hotové.
-- Technický popis neuronové vrstvy, 23 vstupních příznaků, formátu modelu a podmínek zapnutí je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
+- Technický popis neuronové vrstvy, 26 vstupních příznaků, formátu modelu a podmínek zapnutí je v [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
 
 **Běžná hra bez debug režimu naučené informace používá.** Načítá pouze hotovou kompilovanou paměť `ai-memory.json`, nikoli jednotlivé výukové JSON soubory. Paměť zůstává v cache stránky, takže se před každým tahem znovu neprohledává server ani adresář.
 
@@ -353,7 +353,7 @@ Simulátor vytváří hru přes `createGame`, všechny hráče přepne na AI a t
 
 ### Výstupy
 
-- `artifacts/ai-self-play.jsonl`: jeden řádek na každé rozhodnutí; obsahuje legální kandidáty, 23prvkové vstupní vektory (schema v2), vybraný tah, hráče, hod a konečný výsledek partie.
+- `artifacts/ai-self-play.jsonl`: jeden řádek na každé rozhodnutí; obsahuje legální kandidáty, 26prvkové vstupní vektory (schema v3), vybraný tah, hráče, hod a konečný výsledek partie.
 - `artifacts/ai-self-play-metrics.json`: souhrn počtu dokončených/nedokončených partií, vítězů, rozhodnutí a průměrné délky. Počty umístění se počítají pouze z dokončených partií.
 
 Nedokončené partie mají `reward: null` a nesmějí být použity jako dokončené výsledkové příklady.
@@ -410,7 +410,7 @@ Odhad ohrožení je záměrně rychlý: porovnává pozice figurek na okruhu a p
 - skóre všech legálních kandidátů;
 - rozpad skóre na postup, zdržení soupeře, změnu ohrožení, vyhození a dokončení;
 - pořadí kandidátů učitele a vybraný tah;
-- 23 vstupních příznaků neuronové sítě (schema v2).
+- 26 vstupních příznaků neuronové sítě (schema v3).
 
 Tím vznikají supervised trénovací preference: kandidát s vyšším učitelským skóre je preferovanější než kandidát s nižším skóre. Výsledné pořadí partie se ukládá samostatně jako výsledek celé hry.
 
@@ -444,7 +444,7 @@ Volby:
 ### Co se trénuje
 
 - Vstup: 23 normalizovaných příznaků z `AI_FEATURE_SCHEMA_VERSION=2`.
-- Architektura: plně propojená síť 23 → 32 → 16 → 1, ReLU v skrytých vrstvách a lineární výstup.
+- Architektura: plně propojená síť 26 → 32 → 16 → 1, ReLU v skrytých vrstvách a lineární výstup.
 - Metoda: pairwise ranking. Pro každou situaci se porovnávají dvojice legálních kandidátů podle skóre taktického učitele. Síť se učí dát lepšímu kandidátu vyšší skóre.
 - Nedokončené partie a neplatné vzorky se vynechají; shodné učitelské skóre nevytváří umělou preferenci.
 - Validační rozdělení je oddělené po ID partie, nikoli náhodně po jednotlivých tazích.
@@ -458,7 +458,7 @@ Volby:
 4. Ponech 40 epoch a výchozí seed, případně změň hodnoty.
 5. Po dokončení stáhni artifact `ai-neural-candidate-N`; obsahuje kandidátní model a report.
 
-Workflow lze spustit ručně a automaticky se spustí také po úspěšném dokončení self-play sběru. Načte archiv z větve `ai-training-data`, spustí cílené testy a ověří počet kompatibilních párů schema v2. Pokud jich ještě není alespoň 100, trénink se korektně přeskočí; po novém self-play sběru lze workflow spustit znovu. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
+Workflow lze spustit ručně a automaticky se spustí také po úspěšném dokončení self-play sběru. Načte archiv z větve `ai-training-data`, spustí cílené testy a ověří počet kompatibilních párů schema v3. Pokud jich ještě není alespoň 100, trénink se korektně přeskočí; po novém self-play sběru lze workflow spustit znovu. Má pouze `contents: read`, nic necommituje do `main` ani nemění produkční model. Kandidát má `enabled: true` uvnitř odděleného artifactu, ale v aplikaci se nepoužívá, dokud jej člověk výslovně neověří a nenasadí.
 
 ### První neuronový trénovací běh (2026-11-08)
 
@@ -479,7 +479,7 @@ Tyto metriky měří napodobení taktického učitele. **Neprokazují vyšší �
 
 Runtime již obsahuje `estimateCaptureProbability(distance)` a přesnější `estimatePieceThreat(...)`, která enumeruje možné hody soupeře přes produkční engine včetně bonusových šestek a legálních tahů. Tato enumerace je přesnější než zjednodušený odhad učitele.
 
-Aktuální síť přijímá **23 vstupů ve schématu v2**. Posledních pět je počítáno enumerací kostky a legálních tahů enginu. Podrobné pořadí, význam a omezení příznaků jsou v kapitole 18 a v `docs/AI_NEURAL_NETWORK.md`. Historické 18prvkové vektory verze 1 se do trénování v2 nezařazují.
+Aktuální síť přijímá **26 vstupů ve schématu v3**. Posledních pět je počítáno enumerací kostky a legálních tahů enginu; tři navíc vyjadřují taktické faktory učitele. Podrobné pořadí a význam příznaků jsou v kapitole 22 a v `docs/AI_NEURAL_NETWORK.md`. Historická data v1/v2 se do trénování v3 nezařazují.
 
 ### Bezpečnost nasazení
 
