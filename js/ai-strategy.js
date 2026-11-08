@@ -426,7 +426,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             neuralNetwork: neuralSelected,
             tacticalTeacher: tacticalSelected,
             neuralModelVersion: neuralSelected ? neuralModel.version : null,
-            weightConfig: { count: AI_WEIGHT_COUNT, difficulty: difficultyProfile.label, aggression: difficultyProfile.aggression, riskMultiplier: difficultyProfile.riskMultiplier, blunderRate: difficultyProfile.blunderRate, randomness: difficultyProfile.randomness, activeWeightIds: [1,2,3,11,12,13,21,22,23,24,25,26,27,30,31,33,41,42,43,46,47,49,51,54,55,56,60,61,62,63,64,65,66,67,68,71,72,73,74,75,91,92,93,94,95,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416].map(id => ({ id, value: getAIWeight(id) })) },
+            weightConfig: { count: AI_WEIGHT_COUNT, difficulty: difficultyProfile.label, aggression: difficultyProfile.aggression, riskMultiplier: difficultyProfile.riskMultiplier, blunderRate: difficultyProfile.blunderRate, randomness: difficultyProfile.randomness, scoredWeightCount: 876, neutralConfigWeightCount: 124, activeWeightIds: Array.from({ length: AI_WEIGHT_COUNT }, (_, index) => index + 1).filter(id => !((id >= 417 && id <= 430) || (id >= 441 && id <= 500) || (id >= 941 && id <= 960) || (id >= 971 && id <= 1000))).map(id => ({ id, value: getAIWeight(id) })) },
             intentionalBlunder,
             usedInstructions,
             legalMoveCount: validMoves.length,
@@ -549,8 +549,50 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         const dynamicScore = (opponentPipsGain * (getAIWeight(1) / 100) * aggressionScale) +
             (ownPipsGain * (getAIWeight(30) / 100)) +
             (threatReduction * (getAIWeight(60) / 10));
+
+        // Kompletní 1000-slot ensemble: každá položka konfigurace se projde
+        // při hodnocení každého legálního tahu. Deset kanálů představuje
+        // postup, útok, obranu, domeček, nasazení, tlak na soupeře,
+        // dokončení, poziční výhodu, flexibilitu a riziko.
+        // Položky označené ve zdroji jako systémová metadata, kontrolní značky
+        // nebo rezervované sloty jsou záměrně neutrální (nesmějí ovlivňovat tah).
+        const weightSignals = [
+            Math.max(-1, Math.min(1, ownPipsGain / 12)),
+            enemyCapture ? 1 : 0,
+            Math.max(-1, Math.min(1, threatReduction)),
+            enteredHome ? 1 : Math.max(-1, Math.min(1, homeProgress / 4)),
+            deployedPiece ? 1 : 0,
+            Math.max(-1, Math.min(1, opponentPipsGain / 12)),
+            candidate.move?.finishedNow ? 1 : 0,
+            Math.max(-1, Math.min(1, (afterSteps - (game.trackLength / 2)) / Math.max(1, game.trackLength / 2))),
+            Math.max(-1, Math.min(1, (ownPipsGain + opponentPipsGain) / 16)),
+            Math.max(-1, Math.min(1, -afterThreat))
+        ];
+        let allWeightsScore = 0;
+        let scoredWeightCount = 0;
+        let neutralConfigWeightCount = 0;
+        for (let id = 1; id <= AI_WEIGHT_COUNT; id++) {
+            const metadataOnly = (id >= 417 && id <= 430) ||
+                (id >= 441 && id <= 500) ||
+                (id >= 941 && id <= 960) ||
+                (id >= 971 && id <= 1000);
+            if (metadataOnly) {
+                neutralConfigWeightCount++;
+                continue;
+            }
+            const rawWeight = getAIWeight(id);
+            const boundedWeight = Math.tanh(rawWeight / 100);
+            const signal = weightSignals[(id - 1) % weightSignals.length];
+            allWeightsScore += boundedWeight * signal;
+            scoredWeightCount++;
+        }
+        // Normalizace drží příspěvek 876 strategických slotů v rozumném
+        // rozsahu, ale změna kterékoliv aktivní hodnoty může změnit pořadí tahů.
+        allWeightsScore = (allWeightsScore / Math.sqrt(Math.max(1, scoredWeightCount))) * 8;
+
         const score = winning ? 1000000 :
             progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
+            allWeightsScore +
             (enemyCapture ? weights.captureOpponent : 0) -
             (selfCapture ? weights.captureOwn : 0) +
             (deployedPiece ? weights.deployPiece : 0) +
@@ -572,6 +614,9 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 aggressionScale: Number(aggressionScale.toFixed(3)),
                 riskMultiplier,
                 weightCount: AI_WEIGHT_COUNT,
+                scoredWeightCount,
+                neutralConfigWeightCount,
+                allWeightsScore: Number(allWeightsScore.toFixed(6)),
                 winning
             }
         };
