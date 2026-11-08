@@ -23,10 +23,13 @@ test('reward trainer uses completed game results and keeps immediate win fixed',
                         completed: true,
                         playerId: player,
                         reward: winner ? 1 : -1,
+                        selection: 'reinforce-softmax',
+                        policyTemperature: 4,
+                        selectedProbability: winner ? 0.549834 : 0.450166,
                         selectedPieceId: winner ? 0 : 1,
                         candidates: [
-                            { pieceId: 0, teacherFactors: { ownProgress: 10, opponentSetback: 0, threatReduction: 0, capturedOpponent: false, capturedOwnPiece: false, finishedPiece: false, winning: false } },
-                            { pieceId: 1, teacherFactors: { ownProgress: 0, opponentSetback: 0, threatReduction: 0, capturedOpponent: false, capturedOwnPiece: false, finishedPiece: false, winning: false } }
+                            { pieceId: 0, teacherScore: 0.8, teacherFactors: { ownProgress: 10, opponentSetback: 0, threatReduction: 0, capturedOpponent: false, capturedOwnPiece: false, finishedPiece: false, winning: false } },
+                            { pieceId: 1, teacherScore: 0, teacherFactors: { ownProgress: 0, opponentSetback: 0, threatReduction: 0, capturedOpponent: false, capturedOwnPiece: false, finishedPiece: false, winning: false } }
                         ]
                     }));
                 }
@@ -44,7 +47,7 @@ test('reward trainer uses completed game results and keeps immediate win fixed',
         ], { encoding: 'utf8', timeout: 120000 });
         assert.equal(result.status, 0, result.stderr || result.stdout);
         const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-        assert.equal(report.method, 'REINFORCE policy-gradient from centered final-placement rewards');
+        assert.equal(report.method, 'Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction');
         assert.ok(report.source.completedGames >= 10);
         assert.ok(report.decisions.training >= 100);
         assert.ok(report.decisions.validation >= 20);
