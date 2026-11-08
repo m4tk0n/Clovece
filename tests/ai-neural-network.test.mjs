@@ -9,6 +9,7 @@ import {
     scoreAIMoveCandidates
 } from '../js/ai-neural-network.js';
 import { chooseStrategicDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
+import activeModel from '../js/models/ludo-ai.js';
 
 const dependencies = { getValidMoves, movePiece, rollDice };
 
@@ -40,6 +41,22 @@ test('inference returns the expected linear score and rejects invalid feature ve
     assert.equal(inferAINeuralScore(features, model), 0.25);
     assert.equal(inferAINeuralScore([1, 2], model), null);
     assert.equal(inferAINeuralScore(features, { ...model, enabled: false }), null);
+});
+
+test('production model is enabled with non-zero heuristic seed weights and drives neural decisions', () => {
+    assert.equal(isValidAINeuralModel(activeModel), true);
+    assert.equal(activeModel.initialization, 'heuristic-seed-v1');
+    assert.ok(activeModel.layers.some(layer => layer.weights.some(row => row.some(value => value !== 0))));
+    const game = createGame(1, 1);
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = 0;
+    game.pieces[0].pieces[1].steps = 5;
+    const decision = chooseStrategicDecision(game, dependencies, 'medium', () => 0, {}, activeModel);
+    assert.ok(getValidMoves(game).includes(decision.pieceId));
+    assert.equal(decision.breakdown.neuralNetwork, true);
+    assert.equal(decision.breakdown.selection, 'neural-network');
+    assert.match(decision.reason, /NEURONOVÁ AI/);
 });
 
 test('feature vector has a fixed size and supports 40, 48 and 80 field boards', () => {
