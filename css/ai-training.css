@@ -26,4 +26,5 @@
 .ai-training-buttons{display:flex;flex:0 0 auto;gap:4px}
 .ai-training-buttons button{padding:5px 6px;font-size:8px;letter-spacing:.01em}
 #ai-training-submit{border-color:#c6a96b;background:#304637}
+#ai-training-correct{border-color:#83bd8b;background:#244b32;color:#d9f5dd}
 @media(max-width:520px){.ai-training-panel{left:2px;bottom:2px;width:min(var(--training-panel-width),calc(100vw - 6px));max-height:min(var(--training-panel-height),42dvh);padding:5px;border-radius:5px}.ai-training-panel[data-size="2"]{max-height:55dvh}.ai-training-analysis{padding:3px 1px}.ai-training-form textarea{min-height:34px}.ai-training-buttons button{padding:5px;font-size:8px}}
