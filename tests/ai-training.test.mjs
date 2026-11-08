@@ -73,3 +73,16 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(panel, /instruction,/);
     assert.match(panel, /ai-training\.php/);
 });
+
+
+test('training chat contains only a short evaluation marker and automatic first deployment is not evaluated', async () => {
+    const turn = await read('../js/game-turn.js');
+    const log = await read('../js/game-log.js');
+    const panel = await read('../js/ai-training-overlay.js');
+    assert.match(turn, /addAITrainingEvaluation\?\.\(playerName, 'vyhodnocení'\)/);
+    assert.match(turn, /automaticFirstDeployment[\s\S]*?allPiecesInBase[\s\S]*?diceValue/);
+    assert.match(log, /'\\[' \+ item\.sender \+ ': ' \+ item\.text \+ '\]'/);
+    assert.match(panel, /positionLabel\(beforePiece\.steps[\s\S]*?positionLabel\(afterPiece\.steps/);
+    assert.match(panel, /cleanExplanation/);
+    assert.match(panel, /protože jsem v závod/);
+});
