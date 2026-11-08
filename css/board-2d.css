@@ -35,7 +35,7 @@
 .board-piece.piece-selectable:hover{transform:translateY(-4px)}
 .piece-core{stroke:none}
 .track-space{pointer-events:none}
-#game-screen .premium-board{flex:1 1 auto;min-height:0;width:100%;height:0;object-fit:contain}
+#game-screen .premium-board{display:block;flex:0 0 auto;min-height:0;width:100%;height:auto;object-fit:initial}
 #game-screen .players-panel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
 @media(max-width:600px){#game-screen .players-panel{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}}
 @media(max-height:620px){#game-screen .game-container{width:min(100%,calc(100dvh - 112px))}}
