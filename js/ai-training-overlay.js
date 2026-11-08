@@ -28,6 +28,7 @@ export function initAITrainingOverlay() {
                 <span id="ai-training-save-status" role="status"></span>
                 <div class="ai-training-buttons">
                     <button id="ai-training-skip" type="button">PŘESKOČIT</button>
+                    <button id="ai-training-correct" type="button" disabled>SPRÁVNĚ</button>
                     <button id="ai-training-submit" type="submit" disabled>ODESLAT</button>
                 </div>
             </div>
@@ -87,6 +88,7 @@ export function initAITrainingOverlay() {
     const input = panel.querySelector('#ai-training-instruction');
     const submit = panel.querySelector('#ai-training-submit');
     const skip = panel.querySelector('#ai-training-skip');
+    const correct = panel.querySelector('#ai-training-correct');
     let currentDecision = null;
     let csrfToken = null;
     let saving = false;
@@ -95,6 +97,7 @@ export function initAITrainingOverlay() {
     const setSubmitState = () => {
         submit.disabled = saving || !currentDecision || !input.value.trim();
         skip.disabled = saving || !currentDecision;
+        correct.disabled = saving || !currentDecision;
     };
 
     const setWindowSize = value => {
@@ -242,10 +245,9 @@ export function initAITrainingOverlay() {
         status.textContent = 'Rozhodnutí přeskočeno.';
         setSubmitState();
     });
-    form.addEventListener('submit', async event => {
-        event.preventDefault();
-        const instruction = input.value.trim();
-        if (!instruction || !currentDecision || saving) return;
+    async function saveFeedback(feedbackType) {
+        const instruction = feedbackType === 'correction' ? input.value.trim() : '';
+        if (!currentDecision || saving || (feedbackType === 'correction' && !instruction)) return;
         const decisionToSave = currentDecision;
         saving = true;
         setSubmitState();
@@ -262,25 +264,34 @@ export function initAITrainingOverlay() {
                     'X-CSRF-Token': csrfToken
                 },
                 body: JSON.stringify({
-                    instruction,
+                    feedbackType,
+                    instruction: instruction || null,
                     context: decisionToSave
                 })
             });
             const payload = await response.json();
             if (!response.ok || !payload.success || !payload.id) {
-                throw new Error(payload.error || 'Instrukci se nepodařilo uložit.');
+                throw new Error(payload.error || 'Záznam se nepodařilo uložit.');
             }
             currentDecision = null;
-            saveStatus.textContent = 'Uloženo · ' + payload.id;
-            status.textContent = 'Instrukce byla uložena jako samostatný soubor.';
             input.value = '';
+            saveStatus.textContent = (feedbackType === 'positive' ? 'Potvrzeno jako správné · ' : 'Oprava uložena · ') + payload.id;
+            status.textContent = feedbackType === 'positive'
+                ? 'Správné rozhodnutí bylo uloženo jako pozitivní příklad.'
+                : 'Instrukce byla uložena jako samostatný soubor.';
         } catch (error) {
             saveStatus.textContent = error.message || 'Chyba při ukládání.';
         } finally {
             saving = false;
             setSubmitState();
         }
+    }
+
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        await saveFeedback('correction');
     });
+    correct.addEventListener('click', () => saveFeedback('positive'));
 
     window.addEventListener('clovece:ai-training-decision', event => {
         const detail = event.detail;
