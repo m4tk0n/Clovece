@@ -73,8 +73,8 @@ test('AI uses tactical evaluation instead of random selection when no trained mo
     assert.equal(last.pieceId, first.pieceId);
     assert.equal(first.breakdown.trainedKnowledge, false);
     assert.equal(first.breakdown.tacticalTeacher, true);
-    assert.equal(first.breakdown.selection, 'tactical-teacher');
-    assert.match(first.reason, /TAKTICKÁ AI/);
+    assert.equal(first.breakdown.selection, 'weighted-ai');
+    assert.match(first.reason, /VÁHOVÁ AI/);
 });
 
 test('AI still chooses an immediate winning move', () => {
@@ -113,7 +113,7 @@ test('threat calculation returns zero for pieces outside the main track', () => 
     assert.equal(estimatePieceThreat(game, 0, 0, aiDependencies), 0);
 });
 
-test('difficulty no longer changes untrained tactical decisions', () => {
+test('difficulty profiles are loaded from the supplied AI weights', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
@@ -121,7 +121,9 @@ test('difficulty no longer changes untrained tactical decisions', () => {
     game.pieces[0].pieces[1].steps = 5;
     const easy = chooseStrategicDecision(game, aiDependencies, 'easy', () => 0.4);
     const hard = chooseStrategicDecision(game, aiDependencies, 'hard', () => 0.4);
-    assert.equal(easy.pieceId, hard.pieceId);
+    assert.ok(easy.breakdown.weightConfig.count === 1000);
+    assert.equal(easy.breakdown.weightConfig.riskMultiplier, 0.2);
+    assert.equal(hard.breakdown.weightConfig.riskMultiplier, 1.8);
 });
 
 
