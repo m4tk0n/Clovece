@@ -1,0 +1,57 @@
+name: Vzdálené spuštění hry přes PHP
+
+on:
+  workflow_run:
+    workflows: ["Deploy na FTP"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  launch-and-observe:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vyžádat spuštění testu od PHP na serveru
+        id: launch
+        env:
+          BASE_URL: https://7x.wz.cz/clovece
+          REMOTE_TEST_TOKEN: ${{ secrets.REMOTE_TEST_TOKEN }}
+        run: |
+          test -n "$REMOTE_TEST_TOKEN" || (echo "::error::Chybí secret REMOTE_TEST_TOKEN" && exit 1)
+          RESPONSE="$(curl --fail-with-body --silent --show-error \
+            -X POST "$BASE_URL/trainer-control.php" \
+            -H "Authorization: Bearer $REMOTE_TEST_TOKEN" \
+            --data "action=launch")"
+          echo "$RESPONSE" | tee trainer-launch.json
+          GAME_URL="$(python -c 'import json,sys; d=json.load(sys.stdin); assert d.get("success") is True, d; print(d["game_url"])' <<< "$RESPONSE")"
+          echo "game_url=$GAME_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Nastavit Node.js a Playwright
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Nainstalovat Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Otevřít hru, vytvořit AI partii a přečíst obrazovku
+        env:
+          GAME_URL: ${{ steps.launch.outputs.game_url }}
+        run: node tests/trainer-browser.mjs
+
+      - name: Uložit výsledek
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trainer-browser-result-${{ github.run_number }}
+          path: trainer-launch.json
+          if-no-files-found: ignore
+          retention-days: 14
