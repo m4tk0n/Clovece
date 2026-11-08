@@ -11,6 +11,17 @@ const BASE_DEPLOY_COST = 6;
 const EXPECTED_PIPS_PER_ACTIVE_TURN = 4.2;
 const MAX_THREAT_BONUS_ROLLS = 3;
 
+// Společná sada taktických vah; stejné hodnoty používá online PHP AI.
+export const AI_TACTICAL_WEIGHTS = Object.freeze({
+    immediateWin: 100000,
+    ownProgress: 0.08,
+    opponentSetback: 0.035,
+    threatReduction: 12,
+    captureOpponent: 5,
+    captureOwn: 7,
+    finishPiece: 8
+});
+
 export function estimateCaptureProbability(distance) {
     if (!Number.isInteger(distance) || distance < 1) return 0;
     return 1 / (6 ** Math.ceil(distance / 6));
@@ -472,13 +483,13 @@ export function evaluateTacticalCandidates(game, candidates) {
         const selfCapture = Boolean(captured?.ownPiece);
         const enemyCapture = Boolean(captured && !captured.ownPiece);
         const threatReduction = beforeThreat - afterThreat;
-        const score = winning ? 100000 :
-            ownPipsGain * 0.08 +
-            opponentPipsGain * 0.035 +
-            threatReduction * 12 +
-            (enemyCapture ? 5 : 0) -
-            (selfCapture ? 7 : 0) +
-            (candidate.move?.finishedNow ? 8 : 0);
+        const score = winning ? AI_TACTICAL_WEIGHTS.immediateWin :
+            ownPipsGain * AI_TACTICAL_WEIGHTS.ownProgress +
+            opponentPipsGain * AI_TACTICAL_WEIGHTS.opponentSetback +
+            threatReduction * AI_TACTICAL_WEIGHTS.threatReduction +
+            (enemyCapture ? AI_TACTICAL_WEIGHTS.captureOpponent : 0) -
+            (selfCapture ? AI_TACTICAL_WEIGHTS.captureOwn : 0) +
+            (candidate.move?.finishedNow ? AI_TACTICAL_WEIGHTS.finishPiece : 0);
         return {
             pieceId: candidate.pieceId,
             score: Number(score.toFixed(6)),
