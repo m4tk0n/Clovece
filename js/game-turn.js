@@ -20,6 +20,16 @@ export function createTurnController(deps) {
     let modalOpen = false;
     let moveAnimating = false;
     let pendingAIDebugExport = null;
+    let trainingDecisionHistory = [];
+    let trainingDecisionTurnKey = '';
+    let trainingDecisionSequence = 0;
+
+    function publishTrainingDecisionHistory() {
+        if (!trainingAI) return;
+        window.dispatchEvent(new CustomEvent('clovece:ai-training-decisions', {
+            detail: { decisions: trainingDecisionHistory, currentId: pendingAIDebugExport?.decisionId || null }
+        }));
+    }
 
     function openKickModal(move) {
         modalOpen = true;
@@ -70,6 +80,13 @@ export function createTurnController(deps) {
                 ' · naučených situací: ' + (knowledge.situationCount || 0));
         }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
+        if (trainingAI) {
+            const turnKey = [game.currentPlayer, game.turnNumber].join(':');
+            if (turnKey !== trainingDecisionTurnKey) {
+                trainingDecisionTurnKey = turnKey;
+                trainingDecisionHistory = [];
+            }
+        }
         const legalMoves = getValidMoves(game);
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
         const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
@@ -97,6 +114,7 @@ export function createTurnController(deps) {
                 ).join('; '));
             }
             pendingAIDebugExport = {
+                decisionId: trainingAI ? 'ai-decision-' + (++trainingDecisionSequence) : null,
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
                 strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : 'untrained-v1',
@@ -126,6 +144,10 @@ export function createTurnController(deps) {
                 },
                 result: null
             };
+            if (trainingAI) {
+                trainingDecisionHistory.push(pendingAIDebugExport);
+                publishTrainingDecisionHistory();
+            }
         }
         return decision?.pieceId ?? null;
     }
@@ -144,6 +166,7 @@ export function createTurnController(deps) {
                 phaseAfter: game.phase,
                 winner: game.winner
             };
+            if (trainingAI) publishTrainingDecisionHistory();
             if (debugAI) setAIDebugExport?.(pendingAIDebugExport);
             if (trainingAI) {
                 const playerName = game.players[playerId].name;
@@ -440,6 +463,8 @@ export function createTurnController(deps) {
         modalOpen = false;
         moveAnimating = false;
         pendingAIDebugExport = null;
+        trainingDecisionHistory = [];
+        trainingDecisionTurnKey = '';
         setAIDebugExport?.(null);
     }
 
