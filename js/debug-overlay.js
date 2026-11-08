@@ -21,22 +21,16 @@ export function initDebugOverlay() {
     content.className = 'debug-overlay-content';
     const summary = document.createElement('div');
     summary.textContent = 'DEBUG';
-    const viewportSummary = document.createElement('div');
-    viewportSummary.textContent = 'VIDITELNÉ –';
     const cameraSummary = document.createElement('div');
     cameraSummary.textContent = '3D KAMERA –';
     cameraSummary.className = 'debug-overlay-camera';
-    const metaSummary = document.createElement('div');
-    metaSummary.className = 'debug-overlay-meta';
     const details = document.createElement('div');
     details.className = 'debug-overlay-details';
     const aiWeights = document.createElement('div');
     aiWeights.className = 'debug-overlay-ai-weights';
     aiWeights.textContent = 'AI VÁHY: načítám…';
     content.appendChild(summary);
-    content.appendChild(viewportSummary);
     content.appendChild(cameraSummary);
-    content.appendChild(metaSummary);
     content.appendChild(details);
     content.appendChild(aiWeights);
     panel.appendChild(toggleButton);
@@ -105,20 +99,12 @@ export function initDebugOverlay() {
         expanded = !expanded;
         details.classList.toggle('is-visible', expanded);
         aiWeights.classList.toggle('is-visible', expanded);
-        metaSummary.classList.toggle('is-visible', expanded);
         toggleButton.textContent = expanded ? '−' : '+';
         toggleButton.setAttribute('aria-label', expanded ? 'Sbalit debug panel' : 'Rozbalit debug panel');
         toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         updateSummary();
     }
     toggleButton.addEventListener('click', toggle);
-
-    const format = value => Math.round(value);
-    let fps = 0;
-    let frameCount = 0;
-    const getNow = () => window.performance && typeof window.performance.now === 'function'
-        ? window.performance.now() : Date.now();
-    let lastSample = getNow();
 
     function updatePosition() {
         const viewport = window.visualViewport;
@@ -143,33 +129,9 @@ export function initDebugOverlay() {
         }
     }
     function updateSummary() {
-        const screenWidth = window.screen ? window.screen.width : 0;
-        const screenHeight = window.screen ? window.screen.height : 0;
-        const viewport = window.visualViewport;
-        const visibleWidth = viewport ? format(viewport.width) : window.innerWidth;
-        const visibleHeight = viewport ? format(viewport.height) : window.innerHeight;
-        summary.textContent = 'DEBUG' + (expanded ? ' | ' + entries.length + ' záznamů' : '');
-        viewportSummary.textContent = visibleWidth + '×' + visibleHeight;
-        metaSummary.textContent = 'DISPLAY ' + screenWidth + '×' + screenHeight +
-            ' | OKNO ' + window.innerWidth + '×' + window.innerHeight +
-            ' | DPR ' + (window.devicePixelRatio || 1).toFixed(2) +
-            ' | FPS ' + fps;
+        summary.textContent = 'DEBUG';
         updatePosition();
     }
-    function measureFrame() {
-        const now = getNow();
-        frameCount++;
-        const elapsed = now - lastSample;
-        if (elapsed >= 1000) {
-            fps = Math.round(frameCount * 1000 / elapsed);
-            frameCount = 0;
-            lastSample = now;
-            updateSummary();
-        }
-        if (window.requestAnimationFrame) window.requestAnimationFrame(measureFrame);
-        else window.setTimeout(measureFrame, 1000 / 30);
-    }
-
     function log(name, status, duration, size) {
         entries.push({
             name: String(name),
@@ -190,45 +152,81 @@ export function initDebugOverlay() {
             });
             if (!response.ok) throw new Error('HTTP ' + response.status);
             const state = await response.json();
-            const keys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece'];
-            const oldWeights = state.previousWeights || {};
-            const nextWeights = state.candidateWeights || state.finalWeights || {};
-            const activeWeights = state.finalWeights || nextWeights;
-            const delta = state.delta || {};
-            const lines = [
-                'AI VÁHY · ' + (state.statusLabel || state.status || 'stav neznámý'),
-                'Položka: původní → kandidát (rozdíl) [aktivní]'
+            const keys = [
+                ['immediateWin', 'Okamžitá výhra', true],
+                ['ownProgress', 'Vlastní postup'],
+                ['opponentSetback', 'Zdržení soupeře'],
+                ['threatReduction', 'Snížení ohrožení'],
+                ['captureOpponent', 'Vyhození soupeře'],
+                ['captureOwn', 'Vyhození vlastní figurky'],
+                ['finishPiece', 'Dokončení figurky']
             ];
-            keys.forEach(key => {
+            const oldWeights = state.previousWeights || state.baselineWeights || {};
+            const nextWeights = state.candidateWeights || state.finalWeights || {};
+            const activeWeights = state.finalWeights || state.activeWeights || {};
+            const delta = state.delta || {};
+            const fmt = value => Number.isFinite(value) ? Number(value).toFixed(5).replace(/\\.?0+$/, '') : '—';
+            aiWeights.replaceChildren();
+            const heading = document.createElement('div');
+            heading.className = 'debug-ai-heading';
+            heading.textContent = 'AI VÁHY · ' + (state.statusLabel || state.status || 'stav neznámý');
+            aiWeights.appendChild(heading);
+            const table = document.createElement('table');
+            table.className = 'debug-ai-weight-table';
+            const thead = document.createElement('thead');
+            const head = document.createElement('tr');
+            ['Váha', 'Původní', 'Kandidát', 'Rozdíl', 'Aktivní'].forEach(label => {
+                const th = document.createElement('th'); th.textContent = label; head.appendChild(th);
+            });
+            thead.appendChild(head); table.appendChild(thead);
+            const tbody = document.createElement('tbody');
+            keys.forEach(([key, label, fixed]) => {
+                const row = document.createElement('tr');
                 const oldValue = Number(oldWeights[key]);
                 const newValue = Number(nextWeights[key]);
                 const activeValue = Number(activeWeights[key]);
                 const change = Number(delta[key]);
-                if (!Number.isFinite(oldValue) || !Number.isFinite(newValue)) return;
-                const fmt = value => Number(value.toFixed(5)).toString();
-                lines.push(key.padEnd(19) + fmt(oldValue) + ' → ' + fmt(newValue) +
-                    ' (' + (Number.isFinite(change) ? (change > 0 ? '+' : '') + fmt(change) : '—') +
-                    ') [' + (Number.isFinite(activeValue) ? fmt(activeValue) : '—') + ']');
+                const values = [label + (fixed ? ' *' : ''), fmt(oldValue), fmt(newValue),
+                    Number.isFinite(change) ? (change > 0 ? '+' : '') + fmt(change) : '—', fmt(activeValue)];
+                values.forEach((value, index) => {
+                    const cell = document.createElement(index === 0 ? 'th' : 'td');
+                    cell.textContent = value; row.appendChild(cell);
+                });
+                tbody.appendChild(row);
             });
+            table.appendChild(tbody);
+            aiWeights.appendChild(table);
+            const note = document.createElement('div');
+            note.className = 'debug-ai-note';
+            note.textContent = '* Okamžitá výhra má pevnou prioritu 100000 a trénink ji nemění.';
+            aiWeights.appendChild(note);
+            const info = document.createElement('div');
+            info.className = 'debug-ai-results';
             if (state.training?.validation) {
-                lines.push('Validace: ' + state.training.validation.improvement);
+                info.appendChild(document.createTextNode('Validace: ' + state.training.validation.improvement));
             }
             if (state.tournament) {
-                lines.push('Turnaj: ' + (state.tournament.accepted ? 'VÍTĚZSTVÍ KANDIDÁTA' : 'KANDIDÁT ZAMÍTNUT') +
-                    ' · ' + (state.tournament.gamesCompleted ?? 0) + ' her · výhry ' +
-                    (state.tournament.candidateWins ?? 0) + '/' + (state.tournament.baselineWins ?? 0));
-                Object.entries(state.tournament.boards || {}).forEach(([board, result]) => {
-                    lines.push(board + '/' + result.playerCount + ' hráčů: ' +
-                        result.candidateWins + '/' + result.gamesCompleted + ' (' +
-                        Math.round(Number(result.candidateWinRate || 0) * 100) + '%), 95% dolní mez ' +
-                        Math.round(Number(result.candidateWinRate95CI?.lower || 0) * 100) + '%; základ ' +
-                        Math.round(Number(result.expectedRandomWinRate || 0) * 100) + '%');
+                const result = state.tournament;
+                info.appendChild(document.createElement('br'));
+                info.appendChild(document.createTextNode('Turnaj: ' + (result.accepted ? 'KANDIDÁT PŘIJAT' : 'KANDIDÁT ZAMÍTNUT') +
+                    ' · ' + (result.gamesCompleted ?? 0) + ' her · výhry ' +
+                    (result.candidateWins ?? 0) + '/' + (result.baselineWins ?? 0)));
+                Object.entries(result.boards || {}).forEach(([board, item]) => {
+                    info.appendChild(document.createElement('br'));
+                    info.appendChild(document.createTextNode(board + '/' + item.playerCount + ' hráčů: ' +
+                        item.candidateWins + '/' + item.gamesCompleted + ' (' +
+                        Math.round(Number(item.candidateWinRate || 0) * 100) + '%), 95% dolní mez ' +
+                        Math.round(Number(item.candidateWinRate95CI?.lower || 0) * 100) + '%; základ ' +
+                        Math.round(Number(item.expectedRandomWinRate || 0) * 100) + '%'));
                 });
             } else {
-                lines.push('Turnaj: zatím neproběhl');
+                info.appendChild(document.createTextNode('Turnaj: zatím neproběhl'));
             }
-            if (state.updatedAt) lines.push('Aktualizováno: ' + state.updatedAt);
-            aiWeights.textContent = lines.join('\n');
+            if (state.updatedAt) {
+                info.appendChild(document.createElement('br'));
+                info.appendChild(document.createTextNode('Aktualizováno: ' + state.updatedAt));
+            }
+            aiWeights.appendChild(info);
         } catch (error) {
             aiWeights.textContent = 'AI VÁHY: report zatím není dostupný (' + error.message + ').';
         }
@@ -255,61 +253,7 @@ export function initDebugOverlay() {
             typeof detail.duration === 'number' ? detail.duration : null);
     });
 
-    // CSS načtené ještě před spuštěním modulu zjistíme z DOM a Resource Timing.
-    // Později vložené stylesheety a <style> elementy zachytí MutationObserver.
-    const trackedStyles = new WeakSet();
-    function trackStyleNode(node) {
-        if (!(node instanceof Element) || trackedStyles.has(node)) return;
-        if (node.tagName === 'LINK' && node.rel.split(/\s+/).includes('stylesheet')) {
-            trackedStyles.add(node);
-            const href = node.href || node.getAttribute('href') || '';
-            let fileName = 'inline';
-            try {
-                fileName = new URL(href, document.baseURI).pathname.split('/').pop() || 'inline';
-                fileName = fileName.replace(/\\.css$/i, '') || 'inline';
-            } catch (_) {
-                fileName = href.split('/').pop().split('?')[0].replace(/\\.css$/i, '') || 'inline';
-            }
-            const report = status => {
-                const resource = window.performance?.getEntriesByType('resource').find(item => item.name === href);
-                const duration = resource ? Math.round(resource.duration) : null;
-                const bytes = resource
-                    ? (resource.encodedBodySize || resource.decodedBodySize || resource.transferSize || 0)
-                    : 0;
-                const size = bytes > 0 ? Math.max(1, Math.round(bytes / 1024)) : null;
-                log('CSS: ' + fileName, status, duration, size);
-            };
-            if (node.sheet) report('OK');
-            else {
-                node.addEventListener('load', () => report('OK'), { once: true });
-                node.addEventListener('error', () => report('CHYBA'), { once: true });
-            }
-        } else if (node.tagName === 'STYLE') {
-            trackedStyles.add(node);
-            log('CSS: ' + (node.id || 'inline style'), 'OK');
-        }
-    }
-    document.querySelectorAll('link[rel~="stylesheet"], style').forEach(trackStyleNode);
-    if (window.MutationObserver) {
-        const styleObserver = new MutationObserver(records => {
-            records.forEach(record => record.addedNodes.forEach(node => {
-                trackStyleNode(node);
-                node.querySelectorAll?.('link[rel~="stylesheet"], style').forEach(trackStyleNode);
-            }));
-        });
-        styleObserver.observe(document.documentElement, { childList: true, subtree: true });
-    }
-
-    window.addEventListener('resize', updateSummary, { passive: true });
-    window.addEventListener('orientationchange', updateSummary, { passive: true });
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateSummary, { passive: true });
-        window.visualViewport.addEventListener('scroll', updateSummary, { passive: true });
-    }
-
     log('Debug panel inicializován', 'OK');
     updateSummary();
-    if (window.requestAnimationFrame) window.requestAnimationFrame(measureFrame);
-    else window.setTimeout(measureFrame, 1000 / 30);
     return log;
 }
