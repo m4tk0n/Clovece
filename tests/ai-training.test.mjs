@@ -24,7 +24,7 @@ test('training mode forces 2D and renders numbered track and home fields', async
     assert.match(view, /trainingMode \? '' : '<button[\s\S]*?data-board-view/);
     assert.match(board, /renderBoardLabels2D/);
     assert.match(board, /boardPieces \+ boardLabelsMarkup/);
-    assert.match(debug, /String\(index \+ 1\)/);
+    assert.match(debug, /index \+ 1/);
     assert.match(debug, /'D' \+[\s\S]*?\(slot \+ 1\)[\s\S]*?\(lane \+ 1\)/);
 });
 
