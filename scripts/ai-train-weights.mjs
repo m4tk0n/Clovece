@@ -22,7 +22,7 @@ const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']
 const minGames = Math.max(4, Number(args['min-games']) || 10);
 const minRecords = Math.max(50, Number(args['min-records']) || 100);
 
-const KEYS = ['ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece'];
+const KEYS = ['ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece', 'deployPiece', 'enterHome', 'homeProgress'];
 const INITIAL = {
     immediateWin: 100000,
     ownProgress: 0.08,
@@ -30,7 +30,10 @@ const INITIAL = {
     threatReduction: 12,
     captureOpponent: 5,
     captureOwn: 7,
-    finishPiece: 8
+    finishPiece: 8,
+    deployPiece: 1.5,
+    enterHome: 2.5,
+    homeProgress: 0.4
 };
 const BOUNDS = {
     ownProgress: [0, 0.5],
@@ -38,7 +41,10 @@ const BOUNDS = {
     threatReduction: [0, 30],
     captureOpponent: [0, 20],
     captureOwn: [0, 30],
-    finishPiece: [0, 20]
+    finishPiece: [0, 20],
+    deployPiece: [0, 10],
+    enterHome: [0, 15],
+    homeProgress: [0, 5]
 };
 
 function readJson(file, fallback = null) {
@@ -69,7 +75,10 @@ function features(candidate) {
         Number(f.threatReduction),
         f.capturedOpponent ? 1 : 0,
         f.capturedOwnPiece ? -1 : 0,
-        f.finishedPiece ? 1 : 0
+        f.finishedPiece ? 1 : 0,
+        f.deployedPiece ? 1 : 0,
+        f.enteredHome ? 1 : 0,
+        Number(f.homeProgress) || 0
     ];
     return values.every(Number.isFinite) ? values : null;
 }
@@ -80,7 +89,10 @@ function parametersFrom(weights) {
         Number(weights.threatReduction),
         Number(weights.captureOpponent),
         Number(weights.captureOwn),
-        Number(weights.finishPiece)
+        Number(weights.finishPiece),
+        Number(weights.deployPiece),
+        Number(weights.enterHome),
+        Number(weights.homeProgress)
     ];
 }
 function weightsFrom(parameters) {
@@ -91,7 +103,10 @@ function weightsFrom(parameters) {
         threatReduction: parameters[2],
         captureOpponent: parameters[3],
         captureOwn: parameters[4],
-        finishPiece: parameters[5]
+        finishPiece: parameters[5],
+        deployPiece: parameters[6],
+        enterHome: parameters[7],
+        homeProgress: parameters[8]
     };
 }
 function dot(a, b) { return a.reduce((sum, value, index) => sum + value * b[index], 0); }
@@ -170,7 +185,10 @@ for (const file of files) {
                 Number(f.threatReduction) * Number(behaviorWeights.threatReduction) +
                 (f.capturedOpponent ? Number(behaviorWeights.captureOpponent) : 0) -
                 (f.capturedOwnPiece ? Number(behaviorWeights.captureOwn) : 0) +
-                (f.finishedPiece ? Number(behaviorWeights.finishPiece) : 0);
+                (f.finishedPiece ? Number(behaviorWeights.finishPiece) : 0) +
+                (f.deployedPiece ? Number(behaviorWeights.deployPiece) : 0) +
+                (f.enteredHome ? Number(behaviorWeights.enterHome) : 0) +
+                (Number(f.homeProgress) || 0) * Number(behaviorWeights.homeProgress);
             return !Number.isFinite(expectedScore) || Math.abs(expectedScore - behaviorScores[index]) > 0.00001;
         });
         if (scoreMismatch) {
