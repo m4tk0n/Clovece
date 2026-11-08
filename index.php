@@ -9,11 +9,45 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/cron/cron.php';
 
-// Verze assetů se mění pouze při změně konkrétního souboru.
+// Verze všech lokálních assetů se odvozují z času změny konkrétního souboru.
 $assetVersion = static function (string $path): int {
     $file = __DIR__ . '/' . ltrim($path, '/');
     return is_file($file) ? (int) filemtime($file) : 1;
 };
+$jsImportMap = [];
+$cssAssetVersions = [];
+foreach (['js', 'css'] as $assetDirectory) {
+    $directory = __DIR__ . '/' . $assetDirectory;
+    if (!is_dir($directory)) {
+        continue;
+    }
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $assetFile) {
+        if (!$assetFile->isFile()) {
+            continue;
+        }
+        $relativePath = str_replace(
+            DIRECTORY_SEPARATOR,
+            '/',
+            substr($assetFile->getPathname(), strlen(__DIR__) + 1)
+        );
+        $version = (int) $assetFile->getMTime();
+        if ($assetDirectory === 'js' && str_ends_with($relativePath, '.js')) {
+            $specifier = './' . $relativePath;
+            $jsImportMap[$specifier] = $specifier . '?v=' . $version;
+        } elseif ($assetDirectory === 'css' && str_ends_with($relativePath, '.css')) {
+            $cssAssetVersions[$relativePath] = $version;
+        }
+    }
+}
+$importMap = [
+    'imports' => array_merge(
+        ['three' => 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js'],
+        $jsImportMap
+    )
+];
 $debugMode = isset($_GET['debug']) && (string) $_GET['debug'] === '1';
 $trainingMode = isset($_GET['debug']) && in_array((string) $_GET['debug'], ['trainer', 'training'], true);
 $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
@@ -39,37 +73,10 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rubik:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-            "./js/app.js": "./js/app.js?v=<?= $assetVersion('js/app.js') ?>",
-            "./js/audio.js": "./js/audio.js?v=<?= $assetVersion('js/audio.js') ?>",
-            "./js/dice.js": "./js/dice.js?v=<?= $assetVersion('js/dice.js') ?>",
-            "./js/dice-rotation.js": "./js/dice-rotation.js?v=<?= $assetVersion('js/dice-rotation.js') ?>",
-            "./js/game-board.js": "./js/game-board.js?v=<?= $assetVersion('js/game-board.js') ?>",
-            "./js/game-engine.js": "./js/game-engine.js?v=<?= $assetVersion('js/game-engine.js') ?>",
-            "./js/player-setup.js": "./js/player-setup.js?v=<?= $assetVersion('js/player-setup.js') ?>",
-            "./js/lazy-load.js": "./js/lazy-load.js?v=<?= $assetVersion('js/lazy-load.js') ?>",
-            "./js/navigation.js": "./js/navigation.js?v=<?= $assetVersion('js/navigation.js') ?>",
-            "./js/online.js": "./js/online.js?v=<?= $assetVersion('js/online.js') ?>",
-            "./js/game-screen.js": "./js/game-screen.js?v=<?= $assetVersion('js/game-screen.js') ?>",
-            "./js/online/api.js": "./js/online/api.js?v=<?= $assetVersion('js/online/api.js') ?>",
-            "./js/online/notifications.js": "./js/online/notifications.js?v=<?= $assetVersion('js/online/notifications.js') ?>",
-            "./js/online/chat-view.js": "./js/online/chat-view.js?v=<?= $assetVersion('js/online/chat-view.js') ?>",
-            "./js/online/my-games-view.js": "./js/online/my-games-view.js?v=<?= $assetVersion('js/online/my-games-view.js') ?>",
-            "./js/online/game-runtime.js": "./js/online/game-runtime.js?v=<?= $assetVersion('js/online/game-runtime.js') ?>",
-            "./js/online/game-view.js": "./js/online/game-view.js?v=<?= $assetVersion('js/online/game-view.js') ?>",
-            "./js/online/room-view.js": "./js/online/room-view.js?v=<?= $assetVersion('js/online/room-view.js') ?>",
-            "./js/online/room-actions.js": "./js/online/room-actions.js?v=<?= $assetVersion('js/online/room-actions.js') ?>",
-            "./js/online/game-controls.js": "./js/online/game-controls.js?v=<?= $assetVersion('js/online/game-controls.js') ?>",
-            "./js/online/lobby-controls.js": "./js/online/lobby-controls.js?v=<?= $assetVersion('js/online/lobby-controls.js') ?>",
-            "./js/online/room-controls.js": "./js/online/room-controls.js?v=<?= $assetVersion('js/online/room-controls.js') ?>"
-        }
-    }
+    <?= json_encode($importMap, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
     </script>
 </head>
-<body data-css-versions='<?= htmlspecialchars(json_encode([
-            'css/components-auth.css' => $assetVersion('css/components-auth.css'),
+<body data-css-versions='<?= htmlspecialchars(json_encode($cssAssetVersions, JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>'> $assetVersion('css/components-auth.css'),
             'css/components-profile.css' => $assetVersion('css/components-profile.css'),
             'css/components-player-selection.css' => $assetVersion('css/components-player-selection.css'),
             'css/components-online.css' => $assetVersion('css/components-online.css'),
