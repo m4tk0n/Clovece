@@ -105,20 +105,20 @@ test('AI checks the private instruction directory through a read-only protected 
     const endpoint = await read('../ai-training-knowledge.php');
     const client = await read('../js/ai-training-knowledge.js');
     const turn = await read('../js/game-turn.js');
-    assert.match(endpoint, /HTTP_X_CSRF_TOKEN/);
-    assert.match(endpoint, /knowledgeSameOrigin/);
-    assert.match(endpoint, /storage\\/ai-training\\/instructions/);
-    assert.match(endpoint, /Require\\s\+all\\s+denied/);
-    assert.match(endpoint, /glob\\(/);
-    assert.match(endpoint, /feedbackType/);
-    assert.doesNotMatch(endpoint, /sessionFingerprint/);
-    assert.doesNotMatch(endpoint, /\\b(?:unlink|rename|file_put_contents)\\s*\\(/i);
-    assert.match(client, /ai-training-knowledge\\.php/);
-    assert.match(client, /instructionCache/);
-    assert.match(client, /since:/);
-    assert.match(turn, /refreshAITrainingKnowledge/);
-    assert.match(turn, /await refreshAITrainingKnowledge\\(\\)/);
-    assert.match(turn, /chooseAIMoveDecision\\(game, undefined, knowledge\\.instructions\\)/);
+    assert.ok(endpoint.includes('HTTP_X_CSRF_TOKEN'));
+    assert.ok(endpoint.includes('knowledgeSameOrigin'));
+    assert.ok(endpoint.includes('storage/ai-training/instructions'));
+    assert.ok(endpoint.includes('Require\\\\s+all\\\\s+denied'));
+    assert.ok(endpoint.includes('glob('));
+    assert.ok(endpoint.includes('feedbackType'));
+    assert.ok(!endpoint.includes('sessionFingerprint'));
+    assert.ok(!/\\b(?:unlink|rename|file_put_contents)\\s*\\(/i.test(endpoint));
+    assert.ok(client.includes('ai-training-knowledge.php'));
+    assert.ok(client.includes('instructionCache'));
+    assert.ok(client.includes('since:'));
+    assert.ok(turn.includes('refreshAITrainingKnowledge'));
+    assert.ok(turn.includes('await refreshAITrainingKnowledge()'));
+    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.instructions)'));
 });
 
 test('training panel explicitly identifies decisions influenced by stored instructions', async () => {
