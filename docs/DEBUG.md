@@ -132,3 +132,7 @@ Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D po
 - Standardní herní moduly používají pouze obecné rozhraní `js/game-extensions.js`; bez registrovaného rozšíření nemá žádné diagnostické chování.
 - Číslování 2D/3D polí, trasy legálních tahů, diagnostika kamery a ruční potvrzení jediného možného tahu se připojují výhradně přes debug rozšíření.
 - Regresní kontrolu oddělení provádí `tests/debug-isolation.test.mjs`.
+
+## 7. Hlavní dokumentace ruční výuky AI
+
+Kompletní popis režimu `/?debug=training`, výukového panelu, tlačítek ODESLAT / SPRÁVNĚ / PŘESKOČIT, struktury JSON, serverového úložiště, zabezpečení a dalšího vývoje je v [AI_TRAINING.md](AI_TRAINING.md). Tento dokument je hlavním zdrojem informací o výuce AI.

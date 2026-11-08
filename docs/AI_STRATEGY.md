@@ -1,16 +1,18 @@
-# AI – výpočty a postupné učení
+# AI – strategie, výpočty a výuka
 
-**Aktuální stav:** nevyučený základ; taktické preference jsou vypnuté.  
-**Implementace:** `js/ai-strategy.js` (místní hra), `lib/game-engine.php` (online hra)  
-**Pravidla a legální tahy:** výhradně `docs/GAME_RULES.md`, `js/game-engine.js` a serverový `lib/game-engine.php`.
+**Aktuální stav:** AI nemá zapojené naučené taktické preference. Ruční sběr lidské zpětné vazby je implementovaný, její automatické využívání při rozhodování zatím ne.
+
+**Místní implementace:** `js/ai-strategy.js`  
+**Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
+**Podrobný popis výuky:** [AI_TRAINING.md](AI_TRAINING.md)
 
 ## 1. Oddělení odpovědností
 
 - Herní engine rozhoduje, co je legální. AI nesmí vytvářet vlastní tahy ani měnit pravidla.
-- Výpočtová vrstva poskytuje číselné údaje: zbývající postup v pipech, pravděpodobnost dosažení cíle hodem a pravděpodobnost ohrožení konkrétní figurky. Obdobné popisné výpočty zůstávají i v serverovém enginu.
-- Výpočty samy o sobě neurčují, který tah je dobrý. Neobsahují taktické váhy, bonusy za vyhození, ochranu figurek, flexibilitu ani adaptaci podle pořadí.
-- Taktická vrstva je zatím prázdná. Nevyučená AI vybírá rovnoměrně z legálních tahů.
-- Okamžitě vítězný tah má přednost, protože přímo ukončuje hru ve prospěch AI; nejde o naučenou taktiku.
+- Výpočtová vrstva poskytuje číselné údaje, například zbývající postup, pravděpodobnost dosažení cíle a pravděpodobnost ohrožení figurky.
+- Výpočty samy o sobě neurčují, který tah je dobrý.
+- Taktická vrstva zatím nepoužívá lidské instrukce ani naučený model.
+- Okamžitě vítězný tah má přednost, protože přímo ukončuje hru ve prospěch AI.
 
 ## 2. Zachované výpočty
 
@@ -19,24 +21,24 @@
 Pro vzdálenost (d) a možnost řetězení šestek:
 
 [
-P(d)=rac{1}{6^{lceil d/6ceil}}
+P(d)=rac{1}{6^{\lceil d/6\rceil}}
 ]
 
-Jde o základní výpočet pro přehled a budoucí učení. Skutečná pravděpodobnost konkrétního zásahu se počítá simulací přes herní engine, aby se zohlednily obsazené cíle, povinné nasazení a další aktivní pravidla.
+Jde o orientační matematický odhad. Skutečná možnost konkrétního zásahu se musí vyhodnocovat přes herní engine, aby se zohlednila obsazená pole a aktivní pravidla.
 
 ### Zbývající postup
 
-- Figurka na okruhu nebo v domečku: (max(0,L+3-q)).
-- Figurka v základně: (L+3+6), kde 6 představuje nutný hod pro nasazení.
+- Figurka na okruhu nebo v domečku: `max(0, L + 3 - q)`.
+- Figurka v základně: `L + 3 + 6`, kde 6 představuje nutný hod pro nasazení.
 - Pokud jsou všechny figurky v základně, připočítá se matematický odhad čekání na šestku podle nastavení počtu pokusů.
 
-Tyto hodnoty jsou pouze popisné. AI je zatím nepoužívá k řazení tahů.
+Tyto hodnoty jsou popisné; aktuální výběr tahu je nepoužívá jako taktické skóre.
 
 ### Ohrožení figurky
 
-Pravděpodobnost zásahu se počítá přes `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nepřidává vlastní pravidla. Výsledek je údaj o možnosti zásahu, nikoliv automatický pokyn k útěku.
+Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nesmí přidávat vlastní pravidla. Výsledek je údaj o možnosti zásahu, nikoli automatický pokyn k útěku.
 
-## 3. Co bylo z taktiky vypnuto
+## 3. Co je vypnuto
 
 - pevné preference pro vyhození soupeře;
 - automatické upřednostňování bezpečí;
@@ -44,41 +46,26 @@ Pravděpodobnost zásahu se počítá přes `rollDice()`, `getValidMoves()` a `m
 - penalizace blokovaného startu;
 - adaptivní ochota riskovat podle pořadí;
 - bodové váhy obtížností easy / medium / hard;
-- přednastavené slovní závěry typu „lepší kombinace postupu a bezpečí“.
+- staré checkpointy a modely původního trénovacího systému.
 
-Nastavení obtížnosti zatím nemění taktické rozhodování. Všichni AI hráči začínají bez taktické zkušenosti.
-
-## 4. Výběr tahu bez zkušeností
+## 4. Současný výběr tahu
 
 1. Engine vrátí seznam legálních tahů.
 2. AI ověří, zda některý z nich okamžitě vyhrává.
 3. Pokud ano, provede vítězný tah.
 4. Jinak vybere rovnoměrně jednu možnost ze seznamu.
-5. Debug chat výslovně uvede, že AI zatím nemá naučenou taktiku.
+5. Výukový panel může rozhodnutí zobrazit a uložit lidské hodnocení.
 
-## 5. Další fáze – výuka člověkem
+Aktuální AI **nečte** uložené lidské instrukce. Nejde tedy zatím o naučenou strategii.
 
-Samostatná výuková vrstva bude ukládat pouze výslovné opravy od člověka. Každá zkušenost bude obsahovat:
-- stav hry a aktivní pravidla;
-- všechny legální možnosti;
-- původní volbu AI;
-- doporučený tah člověka;
-- vysvětlení, proč byl původní tah špatný nebo proč je doporučený lepší.
+## 5. Výuka člověkem
 
-AI nebude automaticky přepisovat své znalosti podle běžně odehraných partií ani podle her AI proti AI. Zkušenost se stane součástí taktiky až po výslovném lidském hodnocení. Při podobné situaci bude AI schopna zkušenost znovu vyhledat a zohlednit.
+Výukový režim se spouští přes `/?debug=training`. Člověk může rozhodnutí AI opravit, potvrdit jako správné nebo přeskočit. Každé odeslané hodnocení se ukládá jako nový neměnný JSON soubor do `storage/ai-training/instructions/`.
 
-Ukládání výukových záznamů, jejich správa a rozhraní pro hodnocení tahů budou implementovány jako samostatný další krok. Tento základ zatím nic nemaže z databáze ani ze starých souborů na serveru.
+Podrobný popis UI, JSON struktury, zabezpečení, současného stavu a úkolů je v [docs/AI_TRAINING.md](AI_TRAINING.md).
 
+## 6. Další fáze
 
-## 6. Místní a online hra
+Je nutné doplnit vyhledávání relevantních lidských instrukcí, jejich bezpečné využití při hodnocení legálních tahů a audit konkrétních ID instrukcí použitých při každém rozhodnutí. Dokud tyto části nejsou hotové, nesmí se tvrdit, že AI už lidské opravy používá.
 
-- Místní JavaScriptová AI i serverová PHP AI mají stejný výchozí stav: žádné taktické zkušenosti.
-- Obě vybírají pouze tahy vrácené příslušným herním enginem.
-- Obě okamžitě provedou tah, který přímo ukončí hru vítězstvím AI.
-- U ostatních možností se používá náhodný výběr bez taktického skóre.
-- PHP výpočet ohrožení je v této fázi pouze orientační údaj a do výběru tahu nevstupuje.
-- Nastavení pravidel a jejich vynucení zůstává v herních enginech; výběr tahu nesmí pravidla obcházet.
-
-## 7. Co zatím není implementováno
-
-Výukové rozhraní, ukládání tvých oprav, vyhledávání podobných situací a aplikování naučených zkušeností budou samostatnou další fází. Běžné partie ani partie AI proti AI nesmějí samy vytvářet nové taktické znalosti.
+Pravidla zůstávají oddělená od strategie. Lidská výuka může ovlivnit pouze pořadí legálních možností, nikdy pravidla nebo seznam legálních tahů.
