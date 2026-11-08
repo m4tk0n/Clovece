@@ -1,17 +1,21 @@
 /**
- * Plovoucí výukové okno pro režim ?debug=training.
+ * Malé plovoucí výukové okno pro režim ?debug=training.
  * Zobrazuje rozhodnutí AI a ukládá pouze výslovné opravy člověka.
  */
 export function initAITrainingOverlay() {
     if (document.getElementById('ai-training-panel')) return;
     const panel = document.createElement('aside');
     panel.id = 'ai-training-panel';
-    panel.className = 'ai-training-panel';
+    panel.className = 'ai-training-panel is-hidden';
     panel.setAttribute('aria-label', 'Výuka umělé inteligence');
     panel.innerHTML = `
         <div class="ai-training-header">
             <strong>VÝUKA AI</strong>
             <span id="ai-training-status">Čekám na rozhodnutí AI</span>
+            <div class="ai-training-window-controls" aria-label="Velikost okna">
+                <button id="ai-training-smaller" type="button" aria-label="Zmenšit okno" title="Zmenšit">−</button>
+                <button id="ai-training-larger" type="button" aria-label="Zvětšit okno" title="Zvětšit">+</button>
+            </div>
         </div>
         <div id="ai-training-analysis" class="ai-training-analysis" aria-live="polite">
             Až AI provede tah, zobrazím zde její rozhodnutí a vysvětlení.
@@ -22,7 +26,10 @@ export function initAITrainingOverlay() {
                 placeholder="Např. Měla zachránit figurku na poli 12, protože soupeř ji může příštím hodem vyhodit."></textarea>
             <div class="ai-training-actions">
                 <span id="ai-training-save-status" role="status"></span>
-                <button id="ai-training-submit" type="submit" disabled>ODESLAT INSTRUKCI</button>
+                <div class="ai-training-buttons">
+                    <button id="ai-training-skip" type="button">PŘESKOČIT</button>
+                    <button id="ai-training-submit" type="submit" disabled>ODESLAT</button>
+                </div>
             </div>
         </form>`;
     document.body.appendChild(panel);
@@ -33,13 +40,42 @@ export function initAITrainingOverlay() {
     const form = panel.querySelector('#ai-training-form');
     const input = panel.querySelector('#ai-training-instruction');
     const submit = panel.querySelector('#ai-training-submit');
+    const skip = panel.querySelector('#ai-training-skip');
     let currentDecision = null;
     let csrfToken = null;
     let saving = false;
+    let windowSize = 0;
 
     const setSubmitState = () => {
         submit.disabled = saving || !currentDecision || !input.value.trim();
+        skip.disabled = saving || !currentDecision;
     };
+
+    const setWindowSize = value => {
+        windowSize = Math.max(0, Math.min(2, value));
+        panel.dataset.size = String(windowSize);
+        panel.querySelector('#ai-training-smaller').disabled = windowSize === 0;
+        panel.querySelector('#ai-training-larger').disabled = windowSize === 2;
+    };
+    panel.querySelector('#ai-training-smaller').addEventListener('click', () => setWindowSize(windowSize - 1));
+    panel.querySelector('#ai-training-larger').addEventListener('click', () => setWindowSize(windowSize + 1));
+    setWindowSize(0);
+
+    // Panel se ukáže až ve chvíli, kdy je skutečně viditelná herní deska.
+    const syncBoardVisibility = () => {
+        const screen = document.getElementById('game-screen');
+        const board = screen?.querySelector('#game-container');
+        const visible = Boolean(screen && !screen.classList.contains('hidden') &&
+            board && board.childElementCount > 0 &&
+            screen.getClientRects().length && board.getClientRects().length);
+        panel.classList.toggle('is-hidden', !visible);
+    };
+    const visibilityObserver = new MutationObserver(syncBoardVisibility);
+    visibilityObserver.observe(document.documentElement, {
+        subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style']
+    });
+    window.addEventListener('resize', syncBoardVisibility, { passive: true });
+    syncBoardVisibility();
 
     const addText = (parent, tag, className, value) => {
         const element = document.createElement(tag);
@@ -113,15 +149,16 @@ export function initAITrainingOverlay() {
                 return playerName + ': ' + (group.pieces || []).map((piece, pieceId) =>
                     'F' + (pieceId + 1) + '=' + (Number(piece.steps) < 0 ? 'základna' :
                         Number(piece.steps) >= Number(game.boardSize || game.trackLength) ? 'domeček' :
-                            'pole ' + (((Number(playerName === '' ? 0 : (game.players || [])[playerId]?.start || 0) + Number(piece.steps)) % Number(game.boardSize || game.trackLength)) + 1))
+                            'pole ' + ((((game.players || [])[playerId]?.start || 0) + Number(piece.steps)) % Number(game.boardSize || game.trackLength) + 1))
                 ).join(', ');
-            }).join('\n');
+            }).join('\\n');
             addText(analysis, 'details', 'ai-training-position', snapshot);
         }
 
         status.textContent = 'Rozhodnutí zaznamenáno – čekám na tvoji opravu.';
         input.value = '';
         setSubmitState();
+        syncBoardVisibility();
     }
 
     async function getToken() {
@@ -138,6 +175,14 @@ export function initAITrainingOverlay() {
     }
 
     input.addEventListener('input', setSubmitState);
+    skip.addEventListener('click', () => {
+        if (!currentDecision || saving) return;
+        currentDecision = null;
+        input.value = '';
+        saveStatus.textContent = 'Bez instrukce – nic nebylo uloženo.';
+        status.textContent = 'Rozhodnutí přeskočeno.';
+        setSubmitState();
+    });
     form.addEventListener('submit', async event => {
         event.preventDefault();
         const instruction = input.value.trim();
@@ -166,6 +211,7 @@ export function initAITrainingOverlay() {
             if (!response.ok || !payload.success || !payload.id) {
                 throw new Error(payload.error || 'Instrukci se nepodařilo uložit.');
             }
+            currentDecision = null;
             saveStatus.textContent = 'Uloženo · ' + payload.id;
             status.textContent = 'Instrukce byla uložena jako samostatný soubor.';
             input.value = '';
