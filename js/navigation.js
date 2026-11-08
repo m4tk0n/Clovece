@@ -392,4 +392,9 @@ export function initNavigation() {
             joinRoom();
         }
     });
+
+    // Výuková adresa rovnou otevře nastavení místní hry; hráč zvolí AI a pravidla.
+    if (new URLSearchParams(window.location.search).get('debug') === 'training') {
+        void openLocalGame();
+    }
 }
