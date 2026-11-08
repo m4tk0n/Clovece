@@ -94,6 +94,17 @@ export function initAITrainingOverlay() {
                 ? ' – výměna vlastní figurky na startu'
                 : ' – vyhození soupeřovy figurky';
             if (move.finishedNow) outcome += ' – vstup do domečku';
+            const afterPlayer = (result.piecesAfter || [])[Number(game.currentPlayer)];
+            const afterPiece = afterPlayer?.pieces?.[Number(move.pieceId)];
+            if (afterPiece && Number.isFinite(Number(afterPiece.steps))) {
+                const steps = Number(afterPiece.steps);
+                const trackLength = Number(game.trackLength || game.boardSize || 40);
+                const playerStart = Number(player?.start || 0);
+                const destination = steps < 0 ? 'základna'
+                    : steps >= trackLength ? 'domeček D' + (steps - trackLength + 1)
+                        : 'pole ' + (((playerStart + steps) % trackLength) + 1);
+                outcome += ' → ' + destination;
+            }
             addText(analysis, 'p', 'ai-training-result', outcome);
         }
 
