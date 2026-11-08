@@ -6,6 +6,31 @@ Debug režim se zapíná přidáním parametru `?debug=1` do adresy hry, napří
 
 Bez parametru jsou níže popsané debug prvky vypnuté. Režim je určený pro testování a diagnostiku; některé jeho funkce záměrně mění způsob ovládání tahu.
 
+
+## Ovládání debug režimů
+
+Režimy se přepínají parametrem v adrese stránky; nejde o přepínač uvnitř herního panelu.
+
+| Režim | Adresa | Ovládání a účel |
+|---|---|---|
+| Běžná hra | bez parametru | Bez diagnostických a výukových panelů. |
+| Technický debug | `/?debug=1` | Zobrazí červený diagnostický panel. Klepnutím se rozbalí nebo sbalí; rozbalený protokol lze ovládat také klávesami Enter a mezerník. |
+| Výuka AI | `/?debug=training` | Zobrazí samostatný plovoucí panel **VÝUKA AI**. Technický diagnostický panel se nezobrazuje. |
+
+Při přechodu mezi režimy změňte parametr v adrese a stránku znovu načtěte. Z technického debug režimu přejdete do výuky změnou `debug=1` na `debug=training`; opačně změňte hodnotu na `1`. Běžný režim otevřete odstraněním celého parametru `debug`.
+
+### Ovládání panelu výuky AI
+
+- Panel se zobrazí po vykreslení herní desky.
+- Přesouvá se tažením za hlavičku; tlačítka v hlavičce slouží ke změně velikosti.
+- Tlačítka **−** a **+** zmenšují a zvětšují panel.
+- **PŘESKOČIT** uzavře hodnocení aktuálního rozhodnutí bez uložení.
+- **SPRÁVNĚ** uloží pozitivní hodnocení rozhodnutí AI.
+- **ODESLAT** uloží textovou opravu napsanou člověkem. Tlačítko je aktivní až po zadání textu a dostupnosti kontextu rozhodnutí.
+- Stav uložení se zobrazí v panelu; úspěch se potvrzuje až po odpovědi serveru.
+
+Výukový panel není technický debug panel a jeho ovládání ani hodnocení nemění pravidla hry.
+
 ## 1. Diagnostický panel obrazovky
 
 Malý červený panel je připnutý ke spodnímu okraji právě viditelné části obrazovky, nikoli k obsahu stránky. Jeho polohu průběžně přizpůsobuje Visual Viewport API (včetně změn při otevření klávesnice nebo skrytí adresního řádku). Nezabírá místo v herním rozložení a neblokuje dotykové ovládání.
