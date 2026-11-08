@@ -4,7 +4,7 @@ Tento dokument je hlavním technickým popisem výuky AI v projektu Člověče, 
 
 **Stav dokumentace:** 2026-11-08  
 **Vstupní adresa:** `/?debug=trainer` (starší alias `/?debug=training`)  
-**Poznámka k názvu:** správný parametr je `training`, nikoli `trainer`.
+**Parametr:** `trainer` je hlavní název; `training` zůstává podporovaný jako alias.
 
 ## 1. Stav v kostce
 
