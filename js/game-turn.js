@@ -145,7 +145,7 @@ export function createTurnController(deps) {
                 decisionId: trainingAI ? 'ai-decision-' + (++trainingDecisionSequence) : null,
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
-                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : 'untrained-v1',
+                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : (decision.breakdown?.neuralNetwork ? 'neural-network-v1' : 'untrained-v1'),
                 game: {
                     boardSize: game.boardSize || game.trackLength,
                     trackLength: game.trackLength,
@@ -167,6 +167,8 @@ export function createTurnController(deps) {
                     selectedPieceId: decision.pieceId,
                     explanation: decision.reason || '',
                     trainedKnowledge: Boolean(decision.breakdown?.trainedKnowledge),
+                    neuralNetwork: Boolean(decision.breakdown?.neuralNetwork),
+                    neuralModelVersion: decision.breakdown?.neuralModelVersion ?? null,
                     usedInstructions: decision.breakdown?.usedInstructions || [],
                     knowledgeError: knowledge.error || null
                 },
