@@ -14,3 +14,12 @@ test('JavaScript and PHP read the same shared tactical weight source', () => {
     assert.ok(php.includes("/config/ai-tactical-weights.json"));
     assert.ok(php.includes("$weights = onlineEngineAiTacticalWeights();"));
 });
+
+
+test('generated JavaScript tactical weights exactly match the JSON source used by PHP', async () => {
+    const config = JSON.parse(fs.readFileSync(new URL('../config/ai-tactical-weights.json', import.meta.url), 'utf8'));
+    const { AI_TACTICAL_WEIGHTS: generated } = await import('../js/ai-tactical-weights.js');
+    assert.deepEqual(generated, config.weights);
+    assert.deepEqual(Object.keys(generated).sort(), Object.keys(config.weights).sort());
+    assert.equal(generated.immediateWin, 100000);
+});
