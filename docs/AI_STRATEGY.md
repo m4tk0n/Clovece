@@ -1,263 +1,70 @@
-# Strategie počítačové AI – Člověče, nezlob se!
+# AI – výpočty a postupné učení
 
-**Stav:** pipový strategický model implementovaný pro místní hru  
+**Aktuální stav:** nevyučený základ; taktické preference jsou vypnuté.  
 **Implementace:** `js/ai-strategy.js`  
-**Napojení:** `js/game-engine.js`, `js/game-turn.js`, `js/app.js`  
-**Testy:** `tests/ai-strategy.test.mjs`
+**Pravidla a legální tahy:** výhradně `docs/GAME_RULES.md` a `js/game-engine.js`.
 
-Herní pravidla a legálnost tahů určuje výhradně `docs/GAME_RULES.md` a `js/game-engine.js`. AI nesmí pravidla obcházet ani si vytvářet vlastní legální tahy.
+## 1. Oddělení odpovědností
 
-## 1. Základní principy
+- Herní engine rozhoduje, co je legální. AI nesmí vytvářet vlastní tahy ani měnit pravidla.
+- Výpočtová vrstva poskytuje číselné údaje: zbývající postup v pipech, pravděpodobnost dosažení cíle hodem a pravděpodobnost ohrožení konkrétní figurky.
+- Výpočty samy o sobě neurčují, který tah je dobrý. Neobsahují taktické váhy, bonusy za vyhození, ochranu figurek, flexibilitu ani adaptaci podle pořadí.
+- Taktická vrstva je zatím prázdná. Nevyučená AI vybírá rovnoměrně z legálních tahů.
+- Okamžitě vítězný tah má přednost, protože přímo ukončuje hru ve prospěch AI; nejde o naučenou taktiku.
 
-- AI vybírá výhradně z tahů vrácených `getValidMoves()`.
-- Každý kandidátní tah simuluje na kopii stavu pomocí `movePiece()`.
-- Pravděpodobnostní simulace používá `rollDice()`, `getValidMoves()` a `movePiece()` z enginu. Neimplementuje vlastní pravidla nasazení, domečku, bonusových hodů ani trestů.
-- AI nezná budoucí výsledky kostky a nikdy si je nevybírá.
-- Okamžitá výhra má absolutní prioritu.
-- Při shodném skóre rozhoduje nižší ID figurky, takže je výběr reprodukovatelný.
-- Algoritmus je nezávislý na délce trasy: používá `game.trackLength` a podporuje desky 40, 48 i 80 polí.
-- Tato implementace řídí místní počítačové hráče. Serverový PHP engine a pravidla online hry se tím nemění.
+## 2. Zachované výpočty
 
-## 2. Jednotná hodnota pozice – pipy
+### Pravděpodobnost dosažení cíle
 
-Všechny strategické výhody a ztráty se převádějí na společnou jednotku – pipy, tedy odhad zbývajícího postupu do vítězství.
-
-Pro délku okruhu (L):
-
-- Figurku na hlavní trase s postupem (q) stojí zbývající cesta (R=L+3-q).
-- Figurku v domečku na pozici D1–D4 stojí (R=L+3-q); D4 má hodnotu 0.
-- Figurka v základně má hodnotu (R=L+3+6). Šestka potřebná k nasazení je započítána jako spotřebovaný postup.
-- Čekání na šestku se přičítá pouze jednou na úrovni hráče, a jen pokud jsou všechny čtyři figurky v základně.
-
-### Čekání na šestku
-
-Pokud má hráč všechny figurky v základně, pravděpodobnost získání šestky během jednoho tahu je:
+Pro vzdálenost (d) a možnost řetězení šestek:
 
 [
-p_{exit}=1-(5/6)^K
+P(d)=rac{1}{6^{lceil d/6ceil}}
 ]
 
-K je 3 při zapnutém pravidle tří pokusů a 1 při vypnutém pravidle.
+Jde o základní výpočet pro přehled a budoucí učení. Skutečná pravděpodobnost konkrétního zásahu se počítá simulací přes herní engine, aby se zohlednily obsazené cíle, povinné nasazení a další aktivní pravidla.
 
-Čekání se převádí na pipy odhadem:
+### Zbývající postup
 
-[
-C_{wait}=4{,}2cdot(1/p_{exit}-1)
-]
+- Figurka na okruhu nebo v domečku: (max(0,L+3-q)).
+- Figurka v základně: (L+3+6), kde 6 představuje nutný hod pro nasazení.
+- Pokud jsou všechny figurky v základně, připočítá se matematický odhad čekání na šestku podle nastavení počtu pokusů.
 
-Hodnota 4,2 je očekávaný součet hodnot kostky v tahu s neomezeným řetězením šestek, pokud nejsou uplatněna omezení legálních tahů. Převod čekání na pipy je modelový odhad, ne přesná délka partie.
+Tyto hodnoty jsou pouze popisné. AI je zatím nepoužívá k řazení tahů.
 
-### Flexibilita a blokovaný start
+### Ohrožení figurky
 
-K pipům se přidávají malé heuristické korekce:
+Pravděpodobnost zásahu se počítá přes `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nepřidává vlastní pravidla. Výsledek je údaj o možnosti zásahu, nikoliv automatický pokyn k útěku.
 
-| Aktivní figurky na hlavní trase | Flexibilita (pipy) |
-|---:|---:|
-| 0 | −1,5 |
-| 1 | 0 |
-| 2 | +1,5 |
-| 3 | +2,2 |
-| 4 | +2,5 |
+## 3. Co bylo z taktiky vypnuto
 
-Flexibilita se od pipů odečítá, protože více aktivních figurek obvykle nabízí více možností. Pokud hráč musí nasazovat a jeho vlastní figurka blokuje start, přičte se penalizace 2 pipy.
+- pevné preference pro vyhození soupeře;
+- automatické upřednostňování bezpečí;
+- bonusy za počet aktivních figurek a flexibilitu;
+- penalizace blokovaného startu;
+- adaptivní ochota riskovat podle pořadí;
+- bodové váhy obtížností easy / medium / hard;
+- přednastavené slovní závěry typu „lepší kombinace postupu a bezpečí“.
 
-Tyto hodnoty jsou heuristiky určené k pozdějšímu ladění self-play testy.
+Nastavení obtížnosti zatím nemění taktické rozhodování. Všichni AI hráči začínají bez taktické zkušenosti.
 
-## 3. Hodnota vyhození
+## 4. Výběr tahu bez zkušeností
 
-Při vyhození figurky z hlavní trasy se její zbývající hodnota změní na cenu figurky v základně.
+1. Engine vrátí seznam legálních tahů.
+2. AI ověří, zda některý z nich okamžitě vyhrává.
+3. Pokud ano, provede vítězný tah.
+4. Jinak vybere rovnoměrně jednu možnost ze seznamu.
+5. Debug chat výslovně uvede, že AI zatím nemá naučenou taktiku.
 
-Přírůstek pipů soupeře je:
+## 5. Další fáze – výuka člověkem
 
-[
-V_{hit}=q+6+C_{wait}
-]
+Samostatná výuková vrstva bude ukládat pouze výslovné opravy od člověka. Každá zkušenost bude obsahovat:
+- stav hry a aktivní pravidla;
+- všechny legální možnosti;
+- původní volbu AI;
+- doporučený tah člověka;
+- vysvětlení, proč byl původní tah špatný nebo proč je doporučený lepší.
 
-- q je dosavadní postup vyhozené figurky.
-- 6 je cena jejího opětovného nasazení.
-- Čekání (C_{wait}) se přičte pouze tehdy, pokud vyhození vrátí do základny poslední aktivní figurku a po vyhození budou všechny čtyři figurky v základně.
+AI nebude automaticky přepisovat své znalosti podle běžně odehraných partií ani podle her AI proti AI. Zkušenost se stane součástí taktiky až po výslovném lidském hodnocení. Při podobné situaci bude AI schopna zkušenost znovu vyhledat a zohlednit.
 
-Vyhození soupeře, který postoupil daleko, má tedy vyšší hodnotu než vyhození figurky těsně po nasazení. Hodnota se automaticky přepočítává podle délky desky a stavu hráče.
-
-## 4. Riziko vyhození vlastních figurek
-
-Pro každou vlastní figurku na hlavním okruhu AI odhaduje pravděpodobnost, že ji soupeři mohou vyhodit během svých příštích tahů.
-
-### Simulace jednoho soupeřova tahu
-
-1. Vytvoří se kopie aktuálního stavu a nastaví se tah zkoumaného soupeře.
-2. Pro každou možnou hodnotu kostky 1–6 se zavolá skutečný `rollDice()`.
-3. Legální pokračování se získají z `getValidMoves()`.
-4. Každá možnost se simuluje přes `movePiece()`.
-5. Pokud některá možnost vyhodí sledovanou figurku, větev má pravděpodobnost zásahu 1.
-6. Pokud šestka ponechá tah stejnému hráči, pokračuje se dalším uzlem. Soupeř si může vybrat libovolný legální tah; model zvolí ten, který maximalizuje šanci zasáhnout sledovaný cíl.
-7. Pravděpodobnosti všech výsledků kostky se váží hodnotou 1/6.
-
-Tím se respektují skutečné důsledky pravidel: povinné nasazení, tři pokusy o šestku, opakované šestky, povinný vstup do domečku, blokování vlastních figurek i volitelné pravidlo tří šestek.
-
-Simulace pokračuje nejvýše přes tři navazující bonusové hody. Zbytek pravděpodobnostního stromu se ořízne; maximální pravděpodobnost vynechaného pokračování je 1/1296 na tah soupeře.
-
-### Model soupeře a přesnost
-
-- Pro jednoho soupeře jde o přesný výpočet pravděpodobnosti v prohledané hloubce za předpokladu, že soupeř se snaží maximalizovat zásah sledované figurky.
-- Tento předpoklad je konzervativní: neznamená, že soupeř bude v reálné hře vždy volit právě tento tah.
-- U více soupeřů se jejich odhady spojí horní mezí – součtem omezeným na 1. Je to konzervativní aproximace, protože tahy soupeřů mění společný stav a nejsou nezávislé.
-- Při hodnocení pozice se u vlastních figurek počítá hrozba od všech soupeřů. U soupeřových figurek se započítává hrozba od aktuální AI; vzájemné hrozby mezi ostatními soupeři se vynechávají, protože nejsou přímým důsledkem jejího tahu. Tím se zároveň omezuje výpočetní náročnost při 8 hráčích.
-- Model nepředstírá, že jde o přesnou pravděpodobnost celé budoucí partie.
-
-### Očekávaná ztráta
-
-Pro každou ohroženou figurku:
-
-[
-Loss_i=P(hit_i)cdot V_{hit,i}
-]
-
-Očekávané ztráty figurek hráče se sečtou a přičtou k jeho efektivním pipům. Figurka v domečku ani figurka v základně není běžným pohybem po hlavní trase ohrožena.
-
-## 5. Převod pozice na modelové skóre výhry
-
-Pro každého hráče se spočítají:
-
-- surové pipy,
-- očekávaná ztráta z ohrožených figurek,
-- efektivní pipy po započtení rizika.
-
-Efektivní pipy:
-
-[
-\widetilde P_i=P_i+RiskLoss_i
-]
-
-Pro porovnání více hráčů se používá stabilní softmax:
-
-[
-W_i=\frac{e^{-(\widetilde P_i-P_{min})/\tau}}
-{\sum_j e^{-(\widetilde P_j-P_{min})/\tau}}
-]
-
-[
-\tau=\max(8,1{,}24\cdot\sqrt{\overline P})
-]
-
-W je relativní modelové skóre pozice, nikoli ověřená skutečná pravděpodobnost vítězství. Parametr tau je počáteční aproximace a musí se později kalibrovat na výsledcích velkého počtu her.
-
-AI vybere tah s nejvyšším W. Vyhození, dokončení figurky, nasazení i únik před hrozbou tak soutěží ve stejné hodnoticí funkci. Neexistuje pevné pravidlo „vždy vyhoď“ nebo „vždy jdi do domečku“.
-
-## 6. Obtížnosti
-
-### Lehká – `easy`
-
-- Používá pipový model a engine-based odhad hrozeb.
-- Riziko vlastních figurek má váhu 0,55.
-- Neprovádí simulaci bonusového pokračování.
-- Tahy jsou stále legální a deterministické; lehčí obtížnost neznamená úmyslné porušování pravidel.
-
-### Střední – `medium` (výchozí)
-
-- Používá plnou váhu rizika 1,0.
-- Porovnává všechny legální tahy podle efektivních pipů a modelového skóre výhry.
-- Zohledňuje cenu vyhození, čekání na šestku, flexibilitu a blokovaný start.
-
-### Těžká – `hard`
-
-- Používá váhu rizika 1,1.
-- Pokud šestka ponechá tah stejnému hráči, simuluje další hody přes skutečný engine.
-- V každém uzlu vyhodnotí všechny legální tahy a vybere nejlepší pokračování.
-- Simulace pokračování má hloubku nejvýše dvou dalších hodových úrovní. Koncové stavy se vyhodnocují levnějším pipovým modelem bez opakovaného výpočtu všech hrozeb.
-- Výsledné skóre kombinuje 65 % rizikově upravené pozice a 35 % očekávaného výsledku bonusového pokračování.
-
-Těžká úroveň tedy nezná budoucí hody; počítá jejich očekávaný výsledek.
-
-## 7. Adaptivní ochota riskovat
-
-AI upravuje váhu rizika podle relativního pořadí hráče v pipovém závodu:
-
-- Pokud má AI nižší pipový odhad než soupeři, tedy je vpředu, zvyšuje váhu rizika vlastních figurek.
-- Pokud zaostává, snižuje tuto váhu a přijímá větší riziko ve snaze zlepšit šanci na vítězství.
-- Při vyrovnané pozici zůstává původní váha obtížnosti.
-- Korekce je omezena na násobek 0,8 až 1,2, aby změna pořadí nepřevážila ostatní strategické faktory.
-
-Úprava se týká pouze rizika vlastních figurek AI. Ohrožení soupeřů se nadále hodnotí plnou vahou, aby ochota AI riskovat neoslabovala její schopnost využít soupeřovy chyby. Rozhodnutí se počítá z pipů po provedení kandidátního tahu.
-
-Jde o heuristiku, nikoli o předpověď skutečné pravděpodobnosti výhry. Její přínos se musí ověřit turnaji AI proti AI.
-
-## 8. Vysvětlování rozhodnutí
-
-`chooseStrategicDecision()` vrací kromě ID figurky také:
-
-- modelové skóre vybraného tahu,
-- očekávanou ztrátu vlastních figurek,
-- hodnotu vyhozené soupeřovy figurky,
-- surové a efektivní pipy,
-- očekávané skóre bonusového pokračování,
-- skóre a základní rozklad alternativních tahů.
-
-V režimu `?debug=1` se hlavní důvody zapisují do herního chatu jako samostatná zpráva **AI rozhodování**. Text se generuje z vypočtených hodnot; nesmí tvrdit, že AI zvažovala faktor, který ve skóre nebyl.
-
-## 9. Technická architektura
-
-- `js/ai-strategy.js`: pipový model, pravděpodobnostní simulace hrozeb, vyhodnocení pozic, obtížnosti a vysvětlení.
-- `js/game-engine.js`: poskytuje AI závislosti `getValidMoves`, `getPiecePosition`, `movePiece` a `rollDice`; pravidla zůstávají v enginu.
-- `js/game-turn.js`: vybere tah a v debug režimu zapíše vysvětlení.
-- `js/app.js`: předává rozhodování do tahového automatu.
-- `tests/ai-strategy.test.mjs`: regresní testy pravděpodobností, simulace pravidel, pipů, legálních tahů a vysvětlení.
-
-## 10. Testovací požadavky
-
-Testy musí ověřovat zejména:
-
-- základní pravděpodobnost pevné cesty: vzdálenost 4 = 1/6, vzdálenost 20 = 1/1296,
-- engine-based simulaci bonusových šestek,
-- blokované mezilehlé pole,
-- respektování pravidel nasazení, tří pokusů a trestu za tři šestky,
-- cenu čekání při jednom a třech pokusech o šestku,
-- podporu desek 40, 48 a 80 bez pevně zakódované délky,
-- adaptaci rizika: vedoucí AI je opatrnější, zaostávající AI přijímá větší riziko a při shodě zůstává neutrální,
-- výběr výhradně legálního tahu,
-- absolutní prioritu okamžité výhry,
-- povinný vstup do domečku,
-- deterministické rozhodnutí a rozklad skóre.
-
-## 11. Známá omezení a další ladění
-
-- Pipový převod, flexibilita, penalizace blokovaného startu, váhy obtížností a softmax jsou heuristiky.
-- Model více soupeřů používá konzervativní horní mez a nepřepočítává celý společný stav po každém soupeřově tahu.
-- Těžká úroveň simuluje bonusové pokračování, nikoli kompletní minimax celé partie.
-- Pro další posílení je vhodné spustit automatické turnaje AI proti AI na deskách 40/48/80 a při 2–8 hráčích. Z výsledků kalibrovat parametry self-play, měřit Elo a porovnávat míru vítězství.
-- Monte Carlo rollouty a plná simulace celých kol se mají přidávat až po změření rychlosti na mobilních zařízeních. Nesmí způsobit prodlevy v běžném tahu.
-
-## 12. Pevná strategie bez průběžného trénování
-
-AI nepoužívá naučený model, dynamické váhy, MCTS učitele ani automatické aktualizace podle odehraných partií. Při každém tahu znovu vyhodnotí aktuální stav desky pomocí pevně definovaných výpočtů. Stejný stav, pravidla a hod kostkou vedou ke stejnému rozhodnutí.
-
-- Herní engine je jediným zdrojem legálních tahů a pravidel.
-- Strategie pouze simuluje legální možnosti, vyhodnotí jejich následky a seřadí je.
-- Rozhodování zohledňuje postup k cíli, dokončení figurky, vyhození soupeře, riziko ztráty vlastní figurky, počet aktivních figurek, figurky v základně a domečku, velikost desky a počet hráčů.
-- Nasazení není automaticky nejlepší ani nejhorší. Jeho přínos se mění podle počtu a rozmístění již aktivních figurek a podle taktických možností.
-- Lokální JavaScript načte strategický modul při načtení herního enginu. Serverová PHP strategie je načtena běžným `require_once`; žádný model ani pravidla se nestahují při každém hodu.
-- Místní a online implementace používají stejný soubor strategických zásad a obdobné bodové složky. Rozhodnutí serverové AI obsahuje rozklad skóre, aby bylo možné ověřit soulad obou režimů.
-
-### Vysvětlení tahu v debug chatu
-
-Při zapnutém `?debug=1` se zobrazí hod kostkou, zvolené číslo figurky, důvod výběru a bodové vyhodnocení dostupných legálních tahů. Záznam musí popisovat pouze faktory, které skutečně vstoupily do výpočtu.
-
-### Zpětná vazba a opravy strategie
-
-Pokud hráč považuje tah za chybný, použije tlačítko **Zkopírovat JSON** u debug chatu. Export posledního tahu musí obsahovat:
-
-- verzi formátu exportu a verzi strategie;
-- základní i všechna rozšířená pravidla hry;
-- velikost desky, počet hráčů, jejich typy, identifikátory a startovní pole;
-- fázi hry, aktuálního hráče, hod kostkou a případné předchozí hody v rámci tahu;
-- rozmístění všech figurek před tahem;
-- seznam legálních tahů;
-- bodové složky a slovní důvody všech vyhodnocených možností;
-- vybranou figurku a výsledek provedeného tahu;
-- rozmístění figurek po tahu.
-
-Hráč vloží JSON do konverzace a doplní, jaký tah považoval za správný a proč. Oprava se provede změnou pevné strategie a přidáním reprodukovatelného regresního testu. Export neobsahuje přihlašovací údaje, tokeny, osobní identifikátory účtů ani tajné hodnoty.
-
-### Co se již nepoužívá
-
-Z produkční hry byly odstraněny průběžné učení, lokální model v `localStorage`, centrální model, API pro synchronizaci modelu, MCTS učitel a GitHub trénovací příkazy. Staré soubory modelu na serveru nejsou součástí běžného rozhodování a lze je odstranit samostatným úklidem po ověření nasazení. Databázová tabulka případně zůstane nedotčená, dokud nebude ověřeno, že ji žádná jiná část instalace nepoužívá.
+Ukládání výukových záznamů, jejich správa a rozhraní pro hodnocení tahů budou implementovány jako samostatný další krok. Tento základ zatím nic nemaže z databáze ani ze starých souborů na serveru.
