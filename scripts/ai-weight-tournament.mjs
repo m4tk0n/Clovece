@@ -99,7 +99,8 @@ for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
         candidateWinRate: 0,
         candidateWinRate95CI: { lower: 0, upper: 0 },
         averageActions: 0,
-        seatWins: [0, 0]
+        candidateWinsBySeat: [0, 0],
+        baselineWinsBySeat: [0, 0]
     };
     let boardActions = 0;
     for (let gameIndex = 0; gameIndex < gamesPerBoard; gameIndex++) {
@@ -148,11 +149,11 @@ for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
         report.gamesCompleted++;
         if (game.winner === candidateSeat) {
             stats.candidateWins++;
-            stats.seatWins[candidateSeat]++;
+            stats.candidateWinsBySeat[candidateSeat]++;
             report.overall.candidateWins++;
         } else {
             stats.baselineWins++;
-            stats.seatWins[candidateSeat]++;
+            stats.baselineWinsBySeat[candidateSeat]++;
             report.overall.baselineWins++;
         }
         boardActions += actions;
