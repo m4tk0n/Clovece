@@ -12,11 +12,9 @@ export function initAITrainingOverlay() {
         <div class="ai-training-header">
             <strong>VÝUKA AI</strong>
             <span id="ai-training-status">Čekám na rozhodnutí AI</span>
-            <div class="ai-training-window-controls" aria-label="Velikost okna">
-                <button id="ai-training-smaller" type="button" aria-label="Zmenšit okno" title="Zmenšit">−</button>
-                <button id="ai-training-larger" type="button" aria-label="Zvětšit okno" title="Zvětšit">+</button>
-            </div>
+            <button id="ai-training-toggle" type="button" aria-label="Maximalizovat výuku AI" title="Maximalizovat">+</button>
         </div>
+        <div class="ai-training-content">
         <label class="ai-training-history-label" for="ai-training-history">Rozhodnutí v tomto tahu</label>
         <select id="ai-training-history" class="ai-training-history" disabled><option>Čekám na rozhodnutí AI</option></select>
         <div id="ai-training-analysis" class="ai-training-analysis" aria-live="polite">
@@ -34,7 +32,8 @@ export function initAITrainingOverlay() {
                     <button id="ai-training-submit" type="submit" disabled>ODESLAT</button>
                 </div>
             </div>
-        </form>`;
+        </form>
+        </div>`;
     document.body.appendChild(panel);
 
     // Stejně jako debug=1 lze malé okno uchopit za hlavičku a přesunout.
@@ -97,7 +96,7 @@ export function initAITrainingOverlay() {
     let preferredPieceId = null;
     let csrfToken = null;
     let saving = false;
-    let windowSize = 0;
+    let expanded = false;
 
     const setSubmitState = () => {
         submit.disabled = saving || !currentDecision || (!input.value.trim() && preferredPieceId === null);
@@ -105,15 +104,17 @@ export function initAITrainingOverlay() {
         correct.disabled = saving || !currentDecision;
     };
 
-    const setWindowSize = value => {
-        windowSize = Math.max(0, Math.min(2, value));
-        panel.dataset.size = String(windowSize);
-        panel.querySelector('#ai-training-smaller').disabled = windowSize === 0;
-        panel.querySelector('#ai-training-larger').disabled = windowSize === 2;
+    const toggleButton = panel.querySelector('#ai-training-toggle');
+    const setExpanded = value => {
+        expanded = Boolean(value);
+        panel.classList.toggle('is-collapsed', !expanded);
+        toggleButton.textContent = expanded ? '−' : '+';
+        toggleButton.setAttribute('aria-label', expanded ? 'Minimalizovat výuku AI' : 'Maximalizovat výuku AI');
+        toggleButton.title = expanded ? 'Minimalizovat' : 'Maximalizovat';
+        toggleButton.setAttribute('aria-expanded', String(expanded));
     };
-    panel.querySelector('#ai-training-smaller').addEventListener('click', () => setWindowSize(windowSize - 1));
-    panel.querySelector('#ai-training-larger').addEventListener('click', () => setWindowSize(windowSize + 1));
-    setWindowSize(0);
+    toggleButton.addEventListener('click', () => setExpanded(!expanded));
+    setExpanded(false);
 
     // Panel se ukáže až ve chvíli, kdy je skutečně viditelná herní deska.
     const syncBoardVisibility = () => {
@@ -155,6 +156,7 @@ export function initAITrainingOverlay() {
     }
 
     function renderDecision(detail) {
+        setExpanded(true);
         currentDecision = detail;
         preferredPieceId = Number.isInteger(Number(detail.decision?.preferredPieceId)) ? Number(detail.decision.preferredPieceId) : null;
         saveStatus.textContent = '';
