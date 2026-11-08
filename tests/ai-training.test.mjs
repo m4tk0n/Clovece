@@ -56,9 +56,9 @@ test('each human correction is stored as a new private immutable JSON file', asy
     assert.ok(endpoint.includes("$sequenceLockPath = $realDirectory . DIRECTORY_SEPARATOR . '.sequence.lock';"));
     assert.ok(!endpoint.includes("$record['id'] . '.json'"));
     const knowledge = await read('../ai-training-knowledge.php');
-    assert.ok(knowledge.includes("preg_match('/^\\\\d{8}-\\\\d{6}-(\\\\d{4,})-(ok|err)\\\\.json$/"));
-    assert.ok(knowledge.includes("hash_equals($expectedSuffix, $matches[2])"));
-    assert.ok(knowledge.includes("$isLegacyName"));
+    assert.ok(knowledge.includes("preg_match('/^\\\\d{8}-\\\\d{6}-\\\\d{4,}-(ok|err)\\\\.json$/"));
+    assert.ok(knowledge.includes("$memory['lastFile']"));
+    assert.ok(knowledge.includes("$memory['queueOffset']"));
     assert.match(endpoint, /LOCK_EX/);
     assert.ok(endpoint.includes('$denyRule = "Require all denied\\n";'));
     assert.ok(endpoint.includes("trim($denyContents) === 'Require all denied\\\\n'"));
