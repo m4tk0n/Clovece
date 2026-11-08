@@ -392,8 +392,8 @@ export function advanceTurn(game) {
 
 const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice, advanceTurn, calculatePlayerPips };
 
-export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'medium', learnedMemory = {}) {
-    return chooseStrategicDecision(game, aiDependencies, difficulty, Math.random, learnedMemory);
+export function chooseAIMoveDecision(game, difficulty = game.aiDifficulty || 'medium', learnedMemory = {}, neuralModel = null) {
+    return chooseStrategicDecision(game, aiDependencies, difficulty, Math.random, learnedMemory, neuralModel);
 }
 
 export function chooseAIMove(game, difficulty = game.aiDifficulty || 'medium') {
