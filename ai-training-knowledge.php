@@ -115,7 +115,7 @@ if ($action === 'train') {
         aiMemoryFail('Fronta výuky AI je právě uzamčena.', 503);
     }
     $initializedPath = $realRoot . '/.training-queue.initialized';
-    if (!is_file($initializedPath)) {
+    if (!is_file($initializedPath) || is_file($realRoot . '/.training-queue.needs-rebuild')) {
         $existing = glob($realDirectory . DIRECTORY_SEPARATOR . '*.json') ?: [];
         sort($existing, SORT_STRING);
         $queueTemp = $queuePath . '.tmp';
@@ -135,6 +135,7 @@ if ($action === 'train') {
             flock($lock, LOCK_UN); fclose($lock);
             aiMemoryFail('Frontu výuky AI se nepodařilo bezpečně připravit.', 500);
         }
+        @unlink($realRoot . '/.training-queue.needs-rebuild');
     }
     $queueHandle = @fopen($queuePath, 'rb');
     if ($queueHandle === false || is_link($queuePath)) {
