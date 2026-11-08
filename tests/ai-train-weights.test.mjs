@@ -40,7 +40,7 @@ test('reward trainer uses completed game results and keeps immediate win fixed',
         const result = spawnSync(process.execPath, [
             'scripts/ai-train-weights.mjs',
             '--input-dir=' + input,
-            '--weights=' + weights,
+            '--output-weights=' + weights,
             '--module=' + module,
             '--report=' + reportPath,
             '--epochs=40',
