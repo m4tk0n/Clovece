@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ai-reward-training
@@ -42,22 +42,11 @@ jobs:
       - name: Trénovat taktické váhy podle výsledků partií
         run: |
           mkdir -p artifacts
-          node scripts/ai-train-weights.mjs --input-dir=training-data/self-play --weights=config/ai-tactical-weights.json --module=js/ai-tactical-weights.js --report=artifacts/ai-weight-training-report.json
+          node scripts/ai-train-weights.mjs --input-dir=training-data/self-play --current-weights=config/ai-tactical-weights.json --output-weights=artifacts/ai-tactical-weights-candidate.json --module=artifacts/ai-tactical-weights-candidate.js --report=artifacts/ai-weight-training-report.json
       - name: Uložit report tréninku
         uses: actions/upload-artifact@v4
         with:
           name: ai-weight-training-${{ github.run_number }}
-          path: artifacts/ai-weight-training-report.json
+          path: artifacts/
           if-no-files-found: error
           retention-days: 90
-      - name: Zapsat přijaté váhy do main
-        run: |
-          if git diff --quiet -- config/ai-tactical-weights.json js/ai-tactical-weights.js; then
-            echo "Validační kontrola nepřijala lepší váhy. Stávající AI zůstává beze změny."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add config/ai-tactical-weights.json js/ai-tactical-weights.js
-          git commit -m "Train improved shared AI tactical weights"
-          git push origin main
