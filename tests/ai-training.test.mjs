@@ -189,7 +189,7 @@ test('trainer dice picker supports manual human rolls and selectable automatic/m
     const view = await read('../js/game-view.js');
     const screen = await read('../js/game-screen.js');
     const markup = await read('../screens/game.php');
-    const styles = await read('../css/game-premium.css');
+    const styles = await read('../css/debug.css');
     assert.match(turn, /trainerDiceModeKey/);
     assert.match(turn, /needsManualAIDice\(\)/);
     assert.match(turn, /function selectDice\(value\)/);
