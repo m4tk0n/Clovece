@@ -39,6 +39,8 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 
 ## Počítačová AI
 
+- Architektura průběžného učení, dynamických parametrů a návaznosti místní/online/GitHub AI: [AI_LEARNING_ARCHITECTURE.md](docs/AI_LEARNING_ARCHITECTURE.md).
+
 - Obtížnost místní AI se nastavuje při vytváření hry: lehká, střední nebo těžká.
 - Všechny úrovně vybírají pouze legální tahy herního enginu.
 - AI vyhodnocuje postup, dokončení figurek, vyhazování, riziko zásahu soupeřem a podle obtížnosti také očekávané pokračování po šestce.
