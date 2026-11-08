@@ -73,7 +73,12 @@ test('AI uses tactical evaluation instead of random selection when no trained mo
     assert.equal(last.pieceId, first.pieceId);
     assert.equal(first.breakdown.trainedKnowledge, false);
     assert.equal(first.breakdown.tacticalTeacher, true);
-    assert.equal(first.breakdown.selection, 'weighted-ai');
+    assert.equal(first.breakdown.selection, 'weighted-ai-1000');
+    assert.equal(first.breakdown.weightConfig.count, 1000);
+    assert.equal(first.breakdown.weightConfig.scoredWeightCount, 876);
+    assert.equal(first.breakdown.weightConfig.neutralConfigWeightCount, 124);
+    assert.equal(first.breakdown.selectedWeightFactors.weightCount, 1000);
+    assert.equal(first.breakdown.selectedWeightFactors.scoredWeightCount, 876);
     assert.match(first.reason, /VÁHOVÁ AI/);
 });
 
