@@ -44,7 +44,7 @@ Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné 
 - Obtížnost místní AI se nastavuje při vytváření hry: lehká, střední nebo těžká.
 - Všechny úrovně vybírají pouze legální tahy herního enginu.
 - AI vyhodnocuje postup, dokončení figurek, vyhazování, riziko zásahu soupeřem a rozmístění všech figurek. Nepoužívá průběžné trénování ani naučený model.
-- V debug režimu vysvětluje výběr tahu a bodové hodnocení alternativ; plánovaný export JSON posledního tahu umožní poslat přesnou situaci k úpravě strategie.
+- V debug režimu vysvětluje výběr tahu a bodové hodnocení alternativ; tlačítko **Zkopírovat JSON posledního tahu AI** exportuje stav hry, pravidla, legální možnosti, rozhodovací rozbor i výsledek tahu.
 - Kompletní popis algoritmu, pravděpodobností, omezení a testů je v [AI_STRATEGY.md](docs/AI_STRATEGY.md).
 
 ## Historie verzí
