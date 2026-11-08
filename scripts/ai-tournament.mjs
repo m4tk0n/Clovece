@@ -154,8 +154,8 @@ summary.averageActions = summary.gamesCompleted
 
 const output = path.resolve(String(args.output || 'artifacts/ai-tournament-metrics.json'));
 fs.mkdirSync(path.dirname(output), { recursive: true });
-fs.writeFileSync(output, JSON.stringify(summary, null, 2) + '\\n');
-process.stdout.write(JSON.stringify(summary, null, 2) + '\\n');
+fs.writeFileSync(output, JSON.stringify(summary, null, 2) + '\n');
+process.stdout.write(JSON.stringify(summary, null, 2) + '\n');
 if (summary.gamesTruncated > 0 || summary.invalidMoves > 0) {
     throw new Error('Turnaj není kompletní; neúplné hry: ' + summary.gamesTruncated +
         ', neplatné tahy: ' + summary.invalidMoves);
