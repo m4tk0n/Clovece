@@ -474,13 +474,22 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         const selfCapture = Boolean(captured?.ownPiece);
         const enemyCapture = Boolean(captured && !captured.ownPiece);
         const threatReduction = beforeThreat - afterThreat;
+        const beforeSteps = game.pieces[playerId]?.pieces[candidate.pieceId]?.steps ?? -1;
+        const afterSteps = state.pieces[playerId]?.pieces[candidate.pieceId]?.steps ?? -1;
+        const deployedPiece = Boolean(candidate.move?.deployed || (beforeSteps === -1 && afterSteps >= 0));
+        const enteredHome = beforeSteps < game.trackLength && afterSteps >= game.trackLength;
+        const homeProgress = beforeSteps >= game.trackLength && afterSteps >= beforeSteps
+            ? afterSteps - beforeSteps : 0;
         const score = winning ? weights.immediateWin :
             ownPipsGain * weights.ownProgress +
             opponentPipsGain * weights.opponentSetback +
             threatReduction * weights.threatReduction +
             (enemyCapture ? weights.captureOpponent : 0) -
             (selfCapture ? weights.captureOwn : 0) +
-            (candidate.move?.finishedNow ? weights.finishPiece : 0);
+            (candidate.move?.finishedNow ? weights.finishPiece : 0) +
+            (deployedPiece ? weights.deployPiece : 0) +
+            (enteredHome ? weights.enterHome : 0) +
+            homeProgress * weights.homeProgress;
         return {
             pieceId: candidate.pieceId,
             score: Number(score.toFixed(6)),
@@ -491,6 +500,9 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 capturedOpponent: enemyCapture,
                 capturedOwnPiece: selfCapture,
                 finishedPiece: Boolean(candidate.move?.finishedNow),
+                deployedPiece,
+                enteredHome,
+                homeProgress: Number(homeProgress.toFixed(3)),
                 winning
             }
         };
