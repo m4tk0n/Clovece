@@ -91,6 +91,7 @@ try {
 
 $feedbackType = (string) ($payload['feedbackType'] ?? 'correction');
 $instruction = trim((string) ($payload['instruction'] ?? ''));
+$note = trim((string) ($payload['note'] ?? ''));
 $context = $payload['context'] ?? null;
 if (!in_array($feedbackType, ['correction', 'positive'], true)) {
     aiTrainingFail('Neznámý typ výukového záznamu.', 400);
@@ -103,6 +104,13 @@ if ($feedbackType === 'correction'
 }
 if ($feedbackType === 'positive' && $instruction !== '') {
     aiTrainingFail('Potvrzení správného rozhodnutí nesmí obsahovat opravnou instrukci.', 400);
+}
+$noteLength = preg_match_all('/./us', $note, $noteCharacters);
+if ($noteLength === false || $noteLength > 3000) {
+    aiTrainingFail('Poznámka k rozhodnutí může mít nejvýše 3000 znaků.', 400);
+}
+if ($feedbackType === 'correction' && $note !== '') {
+    aiTrainingFail('Opravná instrukce se ukládá do pole instruction.', 400);
 }
 if (!is_array($context)
     || ($context['format'] ?? '') !== 'clovece-ai-debug'
@@ -122,6 +130,7 @@ $record = [
     'id' => bin2hex(random_bytes(16)),
     'createdAt' => gmdate('c'),
     'instruction' => $feedbackType === 'positive' ? null : $instruction,
+    'note' => $feedbackType === 'positive' ? ($note !== '' ? $note : null) : null,
     'context' => $context,
     'sessionFingerprint' => hash('sha256', session_id()),
 ];
