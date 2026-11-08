@@ -101,16 +101,22 @@ function softmax(scores) {
     const total = exps.reduce((sum, value) => sum + value, 0);
     return exps.map(value => value / total);
 }
+function actionProbabilities(record, parameters) {
+    const vectors = record.candidates.map(features);
+    return softmax(vectors.map(vector => dot(parameters, vector) / record.policyTemperature));
+}
+function importanceRatio(record, probability) {
+    return clamp(probability / record.selectedProbability, [0.2, 5]);
+}
 function policyLogLikelihood(records, parameters) {
     let total = 0;
     let count = 0;
     for (const record of records) {
         const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
         if (selectedIndex < 0) continue;
-        const vectors = record.candidates.map(features);
-        if (vectors.some(vector => !vector)) continue;
-        const probabilities = softmax(vectors.map(vector => dot(parameters, vector) / temperature));
-        total += (record.advantage || 0) * Math.log(Math.max(1e-12, probabilities[selectedIndex]));
+        const probabilities = actionProbabilities(record, parameters);
+        const ratio = importanceRatio(record, probabilities[selectedIndex]);
+        total += (record.advantage || 0) * ratio * Math.log(Math.max(1e-12, probabilities[selectedIndex]));
         count++;
     }
     return count ? total / count : 0;
@@ -126,7 +132,7 @@ previousWeights.immediateWin = INITIAL.immediateWin;
 const files = listFiles(inputDir);
 if (!files.length) throw new Error('Nebyly nalezeny žádné self-play JSONL soubory v ' + inputDir);
 const games = new Map();
-const stats = { files: files.length, records: 0, incompleteSkipped: 0, malformedSkipped: 0, winningMoveRecordsSkipped: 0 };
+const stats = { files: files.length, records: 0, incompleteSkipped: 0, malformedSkipped: 0, winningMoveRecordsSkipped: 0, nonExploratorySkipped: 0, behaviorPolicyMismatchSkipped: 0 };
 for (const file of files) {
     for (const record of readRecords(file)) {
         stats.records++;
@@ -141,14 +147,30 @@ for (const file of files) {
             stats.winningMoveRecordsSkipped++;
             continue;
         }
+        if (record.selection !== 'reinforce-softmax' ||
+            !Number.isFinite(record.policyTemperature) || record.policyTemperature < 0.25 ||
+            !Number.isFinite(record.selectedProbability) || record.selectedProbability <= 0) {
+            stats.nonExploratorySkipped++;
+            continue;
+        }
         const vectors = record.candidates.map(features);
         if (vectors.some(vector => !vector)) { stats.malformedSkipped++; continue; }
+        const behaviorScores = record.candidates.map(candidate => Number(candidate.teacherScore));
+        if (behaviorScores.some(score => !Number.isFinite(score))) { stats.malformedSkipped++; continue; }
+        const behaviorProbabilities = softmax(behaviorScores.map(score => score / record.policyTemperature));
+        const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
+        if (Math.abs(behaviorProbabilities[selectedIndex] - record.selectedProbability) > 0.0001) {
+            stats.behaviorPolicyMismatchSkipped++;
+            continue;
+        }
         if (!games.has(gameId)) games.set(gameId, []);
         games.get(gameId).push({
             gameId,
             playerId: record.playerId,
             reward: Number(record.reward),
             selectedPieceId: record.selectedPieceId,
+            selectedProbability: record.selectedProbability,
+            policyTemperature: record.policyTemperature,
             candidates: record.candidates
         });
     }
@@ -196,13 +218,14 @@ for (let epoch = 0; epoch < epochs; epoch++) {
         const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
         const vectors = record.candidates.map(features);
         if (selectedIndex < 0 || vectors.some(vector => !vector)) continue;
-        const probabilities = softmax(vectors.map(vector => dot(parameters, vector) / temperature));
+        const probabilities = actionProbabilities(record, parameters);
+        const ratio = importanceRatio(record, probabilities[selectedIndex]);
         const expected = Array(KEYS.length).fill(0);
         vectors.forEach((vector, index) => vector.forEach((value, feature) => {
             expected[feature] += probabilities[index] * value;
         }));
         const chosen = vectors[selectedIndex];
-        const advantage = record.advantage / temperature;
+        const advantage = record.advantage * ratio / record.policyTemperature;
         for (let feature = 0; feature < KEYS.length; feature++) {
             gradient[feature] += advantage * (chosen[feature] - expected[feature]);
         }
@@ -225,7 +248,7 @@ const report = {
     format: 'clovece-ai-reward-training-report',
     formatVersion: 1,
     createdAt: new Date().toISOString(),
-    method: 'REINFORCE policy-gradient from centered final-placement rewards',
+    method: 'Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction',
     source: { ...stats, completedGames: games.size, trainingGames: trainGames.size, validationGames: validationGames.size },
     decisions: { training: training.length, validation: validation.length },
     epochs, learningRate, temperature,
@@ -242,9 +265,11 @@ const report = {
         immediateWinFixed: true,
         legalMovesAndRulesUntouched: true,
         splitByWholeGame: true,
-        rejectedUnlessValidationImproves: true
+        rejectedUnlessValidationImproves: true,
+        behaviorProbabilityVerified: true,
+        importanceRatioClipped: [0.2, 5]
     },
-    note: 'Validation checks reward-weighted action likelihood on held-out games. It is not a substitute for the independent gameplay tournament.'
+    note: 'Validation checks importance-corrected reward-weighted action likelihood on held-out games. Action probabilities are corrected against the recorded behavior policy; historical state-distribution bias remains, so an independent gameplay tournament is still required.'
 };
 fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
