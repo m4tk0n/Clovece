@@ -550,3 +550,14 @@ První kandidát schema v3 měl z 200 her na desce 40/4 64 výher (32 %), prům�
 ## 24. Automatický sběr při změně AI kódu
 
 Při změně souborů AI na větvi `main` spustí self-play workflow tři samostatné sběry po 250 partiích: 40/4, 48/6 a 80/8. Každý běh používá odlišný seed a vytváří vlastní JSONL i metriky. Při ručním spuštění lze nadále vybrat jednu povolenou kombinaci a počet partií; plánované pondělní/středeční/páteční běhy sbírají vždy jednu odpovídající variantu. Archiv ukládá každý soubor zvlášť, aby trenér mohl data spojit a současně zachovat oddělené identifikátory her.
+
+
+## 25. Aktivní cyklus učení taktických vah
+
+Aktivní workflow `.github/workflows/ai-self-play.yml` archivuje skutečná rozhodnutí a konečné pořadí partií do větve `ai-training-data`. Následný workflow `.github/workflows/ai-train-weights.yml` spustí reward-based REINFORCE trenér nad dokončenými partiemi. Trenér odděluje celé partie na trénovací a validační množinu, kontroluje zaznamenanou behavior policy a ponechává `immediateWin=100000` pevné.
+
+Kandidát se následně porovná s aktivní sadou vah ve stejném produkčním JavaScriptovém enginu na deskách 40, 48 a 80. Nasazení je podmíněno dokončením všech her, nulou neplatných tahů a nedokončených partií, statisticky průkaznou výhrou kandidáta a minimální úspěšností na každé desce. Zamítnutý kandidát nikdy nepřepíše aktivní váhy.
+
+Při přijetí workflow aktualizuje společně `config/ai-tactical-weights.json` a `js/ai-tactical-weights.js`, zapíše commit do `main` a přímo spustí FTP deploy. Přímé nasazení je nutné, protože push vytvořený tokenem GitHub Actions sám o sobě nemusí spustit další workflow přes událost `push`. PHP serverová strategie načítá stejný JSON; místní JavaScript importuje jeho generovaný modul.
+
+Každý úspěšně dokončený tréninkový běh publikuje `config/ai-training-state.json` s původními vahami, kandidátem, výslednými vahami, rozdíly, validačním výsledkem a výsledkem turnaje. Tento soubor se také přímo nasazuje na server a zobrazuje se v rozbaleném panelu `?debug=1`. Hodnoty kandidáta se zobrazují i při zamítnutí, aby bylo vidět, co se trénink pokusil změnit.
