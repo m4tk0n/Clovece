@@ -112,14 +112,10 @@ export function createTurnController(deps) {
             // První povinné nasazení není taktické rozhodnutí, proto se nevytváří rozbor.
             return legalMoves[0] ?? null;
         }
-        // Váhy neuronové sítě se načtou až při skutečném tahu AI, nikoli při startu webu.
-        let neuralModel = null;
-        try {
-            const modelModule = await import('./models/ludo-ai.js');
-            if (isValidAINeuralModel(modelModule.default)) neuralModel = modelModule.default;
-        } catch (error) {
-            if (debugAI || trainingAI) addGameLogEntry('AI model', 'Neuronový model není dostupný: ' + error.message);
-        }
+        // Lokální hra nyní používá přímo konfigurační váhy 1–1000.
+        // Neuronový model zůstává podporovaný v ai-strategy.js, ale zde se
+        // dočasně nepředává, aby bylo možné ihned ověřit vliv vah z vahy.txt.
+        const neuralModel = null;
         if (!game || game !== gameAtDecision ||
             [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
         const decision = chooseAIMoveDecision
