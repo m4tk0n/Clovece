@@ -158,6 +158,7 @@ jobs:
               baselineWins: tournament.overall?.baselineWins,
               candidateWinRate: tournament.overall?.candidateWinRate,
               candidateWinRate95CI: tournament.overall?.candidateWinRate95CI,
+              boards: tournament.boards,
               decision: tournament.decision
             } : null
           };
