@@ -867,7 +867,7 @@ function onlineAiLearningChooseMove(PDO $db, array $game): array
             'model' => $model,
         ];
         $temporary = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
-        $json = json_encode($next, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $json = json_encode($next, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
         if (file_put_contents($temporary, $json, LOCK_EX) !== strlen($json) || !rename($temporary, $path)) {
             @unlink($temporary);
             throw new RuntimeException('Nepodařilo se bezpečně uložit společný model AI.');

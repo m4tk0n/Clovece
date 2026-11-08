@@ -241,7 +241,7 @@ try {
             'model' => $merged,
         ];
         $temporaryPath = $dataPath . '.' . bin2hex(random_bytes(6)) . '.tmp';
-        $json = json_encode($next, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $json = json_encode($next, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL;
         if (file_put_contents($temporaryPath, $json, LOCK_EX) !== strlen($json)) {
             @unlink($temporaryPath);
             throw new RuntimeException('Nepodařilo se zapsat centrální model AI.');
