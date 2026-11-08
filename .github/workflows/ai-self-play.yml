@@ -80,13 +80,33 @@ jobs:
       - name: Self-play partie
         run: |
           mkdir -p artifacts
-          node scripts/ai-self-play.mjs \
-            --games="${{ inputs.games || '250' }}" \
-            --players="${{ steps.config.outputs.players }}" \
-            --board="${{ steps.config.outputs.board }}" \
-            --seed="${{ steps.config.outputs.seed }}" \
-            --output=artifacts/ai-self-play.jsonl \
-            --metrics=artifacts/ai-self-play-metrics.json
+          if [ "${{ github.event_name }}" = "push" ]; then
+            index=0
+            for config in "4 40" "6 48" "8 80"; do
+              set -- $config
+              PLAYERS="$1"
+              BOARD="$2"
+              SEED=$((${{ steps.config.outputs.seed }} + index * 100000))
+              node scripts/ai-self-play.mjs \
+                --games=250 \
+                --players="$PLAYERS" \
+                --board="$BOARD" \
+                --seed="$SEED" \
+                --output="artifacts/ai-self-play-$BOARD-$PLAYERS.jsonl" \
+                --metrics="artifacts/ai-self-play-metrics-$BOARD-$PLAYERS.json"
+              index=$((index + 1))
+            done
+          else
+            PLAYERS="${{ steps.config.outputs.players }}"
+            BOARD="${{ steps.config.outputs.board }}"
+            node scripts/ai-self-play.mjs \
+              --games="${{ inputs.games || '250' }}" \
+              --players="$PLAYERS" \
+              --board="$BOARD" \
+              --seed="${{ steps.config.outputs.seed }}" \
+              --output="artifacts/ai-self-play-$BOARD-$PLAYERS.jsonl" \
+              --metrics="artifacts/ai-self-play-metrics-$BOARD-$PLAYERS.json"
+          fi
       - name: Uložit trénovací data a výsledky
         uses: actions/upload-artifact@v4
         with:
@@ -100,8 +120,13 @@ jobs:
           RUN_NUMBER: ${{ github.run_number }}
         run: |
           mkdir -p training-data/self-play
-          gzip -c artifacts/ai-self-play.jsonl > "training-data/self-play/run-${RUN_ID}.jsonl.gz"
-          cp artifacts/ai-self-play-metrics.json "training-data/self-play/run-${RUN_ID}-metrics.json"
+          for DATA_FILE in artifacts/ai-self-play-*.jsonl; do
+            [ -f "$DATA_FILE" ] || continue
+            SUFFIX="${DATA_FILE#artifacts/ai-self-play-}"
+            SUFFIX="${SUFFIX%.jsonl}"
+            gzip -c "$DATA_FILE" > "training-data/self-play/run-${RUN_ID}-${SUFFIX}.jsonl.gz"
+            cp "artifacts/ai-self-play-metrics-${SUFFIX}.json" "training-data/self-play/run-${RUN_ID}-${SUFFIX}-metrics.json"
+          done
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin ai-training-data
