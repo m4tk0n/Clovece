@@ -1,6 +1,6 @@
 # AI – strategie, výpočty a výuka
 
-**Aktuální stav:** AI nemá zapojené naučené taktické preference. Ruční sběr lidské zpětné vazby je implementovaný, její automatické využívání při rozhodování zatím ne.
+**Aktuální stav:** místní JavaScriptová AI načítá nové lidské instrukce před každým rozhodnutím a umí je použít při přesné shodě herní situace. Rozpoznání textu je zatím omezené na výslovně uvedené číslo figurky; obecné podobné situace a online PHP AI jsou další práce.
 
 **Místní implementace:** `js/ai-strategy.js`  
 **Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
@@ -11,7 +11,7 @@
 - Herní engine rozhoduje, co je legální. AI nesmí vytvářet vlastní tahy ani měnit pravidla.
 - Výpočtová vrstva poskytuje číselné údaje, například zbývající postup, pravděpodobnost dosažení cíle a pravděpodobnost ohrožení figurky.
 - Výpočty samy o sobě neurčují, který tah je dobrý.
-- Taktická vrstva zatím nepoužívá lidské instrukce ani naučený model.
+- Místní taktická vrstva může použít uloženou lidskou instrukci, pouze pokud přesně odpovídá aktuálnímu stavu a cílová figurka je legální.\n- Serverová AI online her zatím lidské instrukce nepoužívá.
 - Okamžitě vítězný tah má přednost, protože přímo ukončuje hru ve prospěch AI.
 
 ## 2. Zachované výpočty
@@ -56,7 +56,7 @@ Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `
 4. Jinak vybere rovnoměrně jednu možnost ze seznamu.
 5. Výukový panel může rozhodnutí zobrazit a uložit lidské hodnocení.
 
-Aktuální AI **nečte** uložené lidské instrukce. Nejde tedy zatím o naučenou strategii.
+Místní AI před každým výběrem tahu volá `ai-training-knowledge.php`. Nové JSON soubory si uloží do paměti aktuální hry a další kontroly načítají pouze nově vytvořené soubory. `js/ai-strategy.js` porovnává přesnou situaci a vybírá pouze z legálních tahů. Rozhodnutí, které ovlivnila instrukce, vrací `trainedKnowledge: true` a ID použitého záznamu. Okamžitá výhra má přednost.\n\nToto je první omezená fáze učení, nikoli obecné porozumění libovolnému českému textu. Online PHP AI zatím používá oddělenou strategii.
 
 ## 5. Výuka člověkem
 
@@ -66,6 +66,6 @@ Podrobný popis UI, JSON struktury, zabezpečení, současného stavu a úkolů 
 
 ## 6. Další fáze
 
-Je nutné doplnit vyhledávání relevantních lidských instrukcí, jejich bezpečné využití při hodnocení legálních tahů a audit konkrétních ID instrukcí použitých při každém rozhodnutí. Dokud tyto části nejsou hotové, nesmí se tvrdit, že AI už lidské opravy používá.
+Je nutné rozšířit rozpoznávání na podobné situace a další jasně formulované taktické záměry, doplnit trvalý audit každého použití instrukce a zapojit znalostní vrstvu také do serverové AI online her. U místní AI lze již nyní v debug režimu ověřit konkrétní ID instrukce, která skutečně ovlivnila tah.
 
 Pravidla zůstávají oddělená od strategie. Lidská výuka může ovlivnit pouze pořadí legálních možností, nikdy pravidla nebo seznam legálních tahů.
