@@ -7,7 +7,8 @@
     "test:e2e": "playwright test",
     "ai:self-play": "node scripts/ai-self-play.mjs",
     "ai:train": "node scripts/ai-train.mjs",
-    "ai:tournament": "node scripts/ai-tournament.mjs"
+    "ai:tournament": "node scripts/ai-tournament.mjs",
+    "ai:train-weights": "node scripts/ai-train-weights.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"
