@@ -2,7 +2,7 @@
 /**
  * Turnaj kandidátních taktických vah proti kopiím aktivní AI.
  * Používá produkční herní jádro a ověřuje všechny aktivní kombinace 40/4, 48/6 a 80/8.
- * Kandidát střídá všechna hráčská místa; pro každou skupinu míst se opakuje stejný seed.
+ * Kandidát střídá všechna hráčská místa; každá partie má vlastní seed.
  */
 import fs from 'node:fs';
 import path from 'node:path';
