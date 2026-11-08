@@ -48,7 +48,6 @@ jobs:
             --report=artifacts/ai-weight-training-report.json
       - name: Turnaj kandidáta proti aktivní AI na deskách 40, 48 a 80
         id: tournament
-        continue-on-error: true
         run: |
           if [ ! -f artifacts/ai-tactical-weights-candidate.json ]; then
             echo "Trénink nevytvořil lepšího kandidáta. Aktivní váhy zůstávají beze změny."
@@ -64,7 +63,7 @@ jobs:
             exit "$STATUS"
           fi
       - name: Automaticky nasadit vítězné váhy do main
-        if: steps.tournament.outcome == 'success' || steps.tournament.outcome == 'failure'
+        if: steps.tournament.outcome == 'success'
         run: |
           if [ ! -f artifacts/ai-weight-tournament-report.json ]; then
             echo "Turnaj nebyl spuštěn; aktivní váhy zůstávají beze změny."
