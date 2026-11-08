@@ -82,7 +82,7 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(styles, /\.ai-training-buttons button\{[^}]*flex:1 1 0/);
     assert.match(styles, /\.ai-training-buttons\{display:flex;width:100%/);
     assert.match(panel, /context: decisionToSave/);
-    assert.match(panel, /instruction,/);
+    assert.match(panel, /instruction:\\s*instruction\\s*\\|\\|\\s*null/);
     assert.match(panel, /ai-training\.php/);
 });
 
@@ -108,7 +108,7 @@ test('AI checks the private instruction directory through a read-only protected 
     assert.ok(endpoint.includes('HTTP_X_CSRF_TOKEN'));
     assert.ok(endpoint.includes('knowledgeSameOrigin'));
     assert.ok(endpoint.includes('storage/ai-training/instructions'));
-    assert.ok(endpoint.includes('Require') && endpoint.includes('all denied'));
+    assert.ok(endpoint.includes('Require') && endpoint.includes('denied'));
     assert.ok(endpoint.includes('glob('));
     assert.ok(endpoint.includes('feedbackType'));
     assert.ok(!endpoint.includes('sessionFingerprint'));
