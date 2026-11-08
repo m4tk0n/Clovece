@@ -57,7 +57,7 @@ test('pip calculation reports remaining route and deployment cost without tactic
     assert.equal(calculatePlayerPips(game, 0), 43 + 3 * 49);
 });
 
-test('untrained AI chooses uniformly from legal moves using injected random source', () => {
+test('AI uses tactical evaluation instead of random selection when no trained model applies', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
@@ -69,10 +69,12 @@ test('untrained AI chooses uniformly from legal moves using injected random sour
 
     const first = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0);
     const last = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0.999999);
-    assert.equal(first.pieceId, legal[0]);
-    assert.equal(last.pieceId, legal[1]);
+    assert.ok(legal.includes(first.pieceId));
+    assert.equal(last.pieceId, first.pieceId);
     assert.equal(first.breakdown.trainedKnowledge, false);
-    assert.match(first.reason, /nemám použitelné naučené hodnocení/i);
+    assert.equal(first.breakdown.tacticalTeacher, true);
+    assert.equal(first.breakdown.selection, 'tactical-teacher');
+    assert.match(first.reason, /TAKTICKÁ AI/);
 });
 
 test('AI still chooses an immediate winning move', () => {
