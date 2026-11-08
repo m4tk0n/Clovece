@@ -1,4 +1,4 @@
-/** Persistent compact AI memory. Only trainer mode imports source JSON files. */
+/** Compact AI memory client. Normal games never inspect source training JSON files. */
 let csrfToken = null;
 let tokenPromise = null;
 let memoryPromise = null;
@@ -34,7 +34,7 @@ async function requestMemory(action) {
     return data;
 }
 
-/** Normal play: load the already compiled memory once; never scan the training directory. */
+/** Ordinary play: read one compiled memory snapshot. No directory listing or JSON history scan. */
 export async function loadAITrainingMemory() {
     if (cachedMemory) return { memory: cachedMemory, error: null, processedNow: 0 };
     if (!memoryPromise) {
@@ -46,7 +46,7 @@ export async function loadAITrainingMemory() {
     return memoryPromise;
 }
 
-/** Trainer: import only files newer than persistent lastFile, then return updated compact memory. */
+/** Trainer mode only: incrementally process new feedback and refresh the in-memory snapshot. */
 export async function trainAIFromNewFeedback() {
     if (trainerPromise) return trainerPromise;
     trainerPromise = requestMemory('train')
@@ -55,6 +55,12 @@ export async function trainAIFromNewFeedback() {
         .catch(error => ({ memory: cachedMemory || { situations: {} }, error: error.message || 'Aktualizace výuky selhala.', processedNow: 0 }))
         .finally(() => { trainerPromise = null; });
     return trainerPromise;
+}
+
+/** Compatibility entry point used by the turn controller. */
+export async function refreshAITrainingKnowledge(options = {}) {
+    const result = options?.trainer ? await trainAIFromNewFeedback() : await loadAITrainingMemory();
+    return { ...result, instructions: [], memory: result.memory || { situations: {} } };
 }
 
 export function resetAITrainingKnowledgeForTests() {
