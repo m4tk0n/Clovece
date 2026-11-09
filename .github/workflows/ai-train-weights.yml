@@ -14,10 +14,6 @@ concurrency:
   group: ai-reward-training-and-tournament
   cancel-in-progress: false
 
-concurrency:
-  group: clovece-ftp-deploy
-  cancel-in-progress: true
-
 jobs:
   train-and-compete:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
@@ -197,28 +193,6 @@ jobs:
             git push origin HEAD:main
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Nasadit společné váhy a stav učení na Webzdarma
-        if: steps.state.outputs.changed == 'true' || steps.promote.outputs.promoted == 'true'
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /clovece/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            .env
-            scripts/**
-            tests/
-            package.json
-            package-lock.json
-            playwright.config.js
-            playwright-report/**
-            test-results/**
-            node_modules/****
-            tests/
       - name: Uložit report tréninku a turnaje
         if: always()
         uses: actions/upload-artifact@v4
