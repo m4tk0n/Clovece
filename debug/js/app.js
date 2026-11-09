@@ -83,6 +83,7 @@ const turnController = createTurnController({
     showGame,
     updateStartLog,
     addGameLogEntry,
+    addChatEntry,
     addAITrainingEvaluation,
     setAIDebugExport
 });
