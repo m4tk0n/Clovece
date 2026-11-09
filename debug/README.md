@@ -9,6 +9,7 @@ Otevření: `/clovece/debug/`
 - Stabilní obrazovky, pravidla, 2D vykreslování a společné UI moduly se načítají z produkčního adresáře.
 - Parametr `debug=training` vynutí 2D vykreslení. V této větvi `prepareBoardRendering()` končí před kontrolou WebGL i před dynamickým importem Three.js rendereru.
 - Produkční AI a její rozhodovací soubory se při vývoji nemění. Experimentální úpravy patří do tohoto adresáře.
+- Debug má vlastní kopii klientské výukové paměti i vlastní PHP endpointy. Záznamy, fronta, naučená paměť a váhy se ukládají do `debug/storage/`; produkční `storage/ai-training/` se nepoužívá.
 
 ## Rozbor každého rozhodnutí
 
