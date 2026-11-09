@@ -144,16 +144,12 @@ export function createTurnController(deps) {
             result: null
         };
         if (trainingAI) {
+            // Vynucený tah nemá trenérskou volbu. Panel dostane důvod před
+            // provedením a po tahu také skutečný výsledek, ale hra se nezastaví.
             trainingDecisionHistory.push(pendingAIDebugExport);
-            const reviewPromise = waitForTrainingReview(pendingAIDebugExport.decisionId);
             window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
                 detail: pendingAIDebugExport
             }));
-            const review = await reviewPromise;
-            if (review.cancel) return null;
-            if (Number.isInteger(Number(review.selectedPieceId)) && legalMoves.includes(Number(review.selectedPieceId))) {
-                pendingAIDebugExport.decision.selectedPieceId = Number(review.selectedPieceId);
-            }
         }
         return pendingAIDebugExport?.decision?.selectedPieceId ?? legalMoves[0] ?? null;
     }
@@ -190,14 +186,15 @@ export function createTurnController(deps) {
         const legalMoves = getValidMoves(game);
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
         const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
-        if (Number(game.diceValue) === 6 && hasPieceInBase) {
-            // Povinné nasazení má přednost i tehdy, když zbývá právě jedna figurka.
-            return publishForcedAIDecision(legalMoves, 'Povinné nasazení: při šestce a figurce v základně pravidlo zakazuje běžný tah.');
-        }
         if (legalMoves.length === 1) {
-            // Jediný legální tah není strategická volba, ale v debug panelu jej přesto vysvětlíme.
-            pendingAIForcedMove = trainingAI;
-            return publishForcedAIDecision(legalMoves, 'Jediný legální tah podle herního enginu; AI nemá jinou možnost.');
+            const pieceId = legalMoves[0];
+            const ruleCommand = getForcedRuleCommand(pieceId);
+            const reason = ruleCommand === '/pravidlo nasadit'
+                ? 'Povinné nasazení: padla šestka a figurka musí opustit základnu.'
+                : ruleCommand === '/povinnost do domecku'
+                    ? 'Povinný vstup do domácího sloupce: herní pravidlo nedovoluje běžný tah.'
+                    : 'Jediný legální tah podle herního enginu; AI nemá jinou možnost.';
+            return publishForcedAIDecision(legalMoves, reason);
         }
         // Produkční lokální AI používá deset pojmenovaných strategických vah.
         if (!game || game !== gameAtDecision ||
@@ -205,7 +202,10 @@ export function createTurnController(deps) {
         const decision = chooseAIMoveDecision
             ? chooseAIMoveDecision(game, undefined, knowledge.memory)
             : { pieceId: chooseAIMove(game), reason: '' };
-        if ((debugAI || trainingAI) && decision?.reason) {
+        if (!decision) return null;
+        if ((debugAI || trainingAI) && decision) {
+            decision.reason = decision.reason || 'AI vybrala figurku ' + (Number(decision.pieceId) + 1) +
+                ' z ' + legalMoves.length + ' legálních možností podle dostupného strategického hodnocení.';
             if (debugAI && decision.breakdown?.weightConfig) {
                 const config = decision.breakdown.weightConfig;
                 addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' +
@@ -347,9 +347,28 @@ export function createTurnController(deps) {
         };
     }
 
+    function getForcedRuleCommand(pieceId) {
+        if (!game) return '/pravidlo jediný legální tah';
+        const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
+        const piece = playerPieces[Number(pieceId)];
+        if (!piece) return '/pravidlo jediný legální tah';
+        const hasPieceInBase = playerPieces.some(item => Number(item.steps) < 0);
+        if (game.rules?.mustDeploy !== false && Number(game.diceValue) === 6 &&
+            hasPieceInBase && Number(piece.steps) < 0) {
+            return '/pravidlo nasadit';
+        }
+        const destination = Number(piece.steps) + Number(game.diceValue || 0);
+        if (game.rules?.mustEnterHome && Number(piece.steps) >= 0 &&
+            Number(piece.steps) < Number(game.trackLength) && destination >= Number(game.trackLength)) {
+            return '/povinnost do domecku';
+        }
+        return '/pravidlo jediný legální tah';
+    }
+
     function executeMove(pieceId, humanTrainingDecision = null) {
         if (!game || moveAnimating) return;
         const playerId = game.currentPlayer;
+        const forcedRuleCommand = trainingAI && pendingAIForcedMove ? getForcedRuleCommand(pieceId) : null;
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
@@ -364,8 +383,8 @@ export function createTurnController(deps) {
                 detail: humanTrainingDecision
             }));
         }
-        if (trainingAI && pendingAIForcedMove && game.players[playerId]?.isAI) {
-            addAITrainingEvaluation?.(game.players[playerId].name, 'jediný možný tah');
+        if (trainingAI && pendingAIForcedMove) {
+            addAITrainingEvaluation?.(game.players[playerId].name, forcedRuleCommand || '/pravidlo jediný legální tah');
         }
         pendingAIForcedMove = false;
         if ((debugAI || trainingAI) && pendingAIDebugExport && game.players[playerId]?.isAI &&
@@ -614,17 +633,15 @@ export function createTurnController(deps) {
         const autoMoveForced = getGameExtensionValue('shouldAutoMoveForced', true, game);
         if (forcedMove !== null && autoMoveForced) {
             if (isAI) {
-                const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
-                const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
-                const automaticMandatoryDeployment = Number(game.diceValue) === 6 && hasPieceInBase;
-                // Každé povinné nasazení šestkou je dané pravidlem a neobsahuje taktické rozhodnutí.
                 await chooseAndLogAIMove();
                 if (automationPaused || !game || game.phase !== 'move' || isPaused()) return;
-                if (debugAI) {
-                    addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
-                }
+            } else if (trainingAI) {
+                // Lidský tah bez alternativ se ve vývojovém režimu provede rovnou,
+                // bez požadavku na kliknutí nebo potvrzení v učicím panelu.
+                pendingAIForcedMove = true;
             }
-            performMove(forcedMove);
+            if (trainingAI) executeMove(forcedMove);
+            else performMove(forcedMove);
             return;
         }
     
