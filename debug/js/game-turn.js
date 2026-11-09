@@ -186,13 +186,9 @@ export function createTurnController(deps) {
         }
         const legalMoves = getValidMoves(game);
         if (legalMoves.length === 1) {
-            // Jediný legální tah není strategická volba, ale trainer jej přesto
-            // zaznamená jako rozhodnutí vynucené konkrétním pravidlem.
-            await publishForcedAIDecision(
-                legalMoves,
-                'Jediný legální tah určuje pravidlo hry.'
-            );
-            pendingAIForcedMove = trainingAI;
+            // Jediný legální tah určuje pravidlo, nejde o strategické rozhodnutí AI.
+            // Provede se bez vytvoření záznamu nebo zastavení v AI panelu.
+            pendingAIForcedMove = true;
             return legalMoves[0];
         }
         // Produkční lokální AI používá deset pojmenovaných strategických vah.
