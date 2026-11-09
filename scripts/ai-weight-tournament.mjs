@@ -1,3 +1,4 @@
+// /scripts/ai-weight-tournament.mjs
 #!/usr/bin/env node
 /**
  * Turnaj kandidátních taktických vah proti kopiím aktivní AI.

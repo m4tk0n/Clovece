@@ -1,3 +1,4 @@
+// /scripts/ai-train.mjs
 #!/usr/bin/env node
 /**
  * Offline pairwise trainer for the 26-feature legal-move ranker (schema v3).

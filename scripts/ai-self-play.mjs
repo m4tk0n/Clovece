@@ -1,3 +1,4 @@
+// /scripts/ai-self-play.mjs
 #!/usr/bin/env node
 /**
  * Automatický self-play sběr zkušeností. Používá výhradně produkční herní engine.

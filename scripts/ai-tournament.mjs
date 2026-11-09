@@ -1,3 +1,4 @@
+// /scripts/ai-tournament.mjs
 #!/usr/bin/env node
 /**
  * Turnaj kandidátní neuronové AI proti taktickému učiteli.

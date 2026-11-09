@@ -1,3 +1,4 @@
+// /scripts/ftp-audit.mjs
 #!/usr/bin/env node
 /**
  * Read-only FTP inventory using the same basic-ftp library as FTP-Deploy-Action.
