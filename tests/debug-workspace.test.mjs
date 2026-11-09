@@ -5,14 +5,18 @@ const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 
 test('debug page imports only its private game and AI copies', async () => {
  const html=await read('../debug/index.php'),app=await read('../debug/debug.js');
- assert.ok(html.includes('debug.css'));assert.ok(html.includes('debug.js'));
- assert.ok(app.includes("from './js/game-engine.js'"));
- assert.ok(app.includes("from './js/ai-strategy.js'"));
- assert.ok(app.includes("from './js/ai-weight-config.js'"));
+ assert.ok(html.includes('debug.css'));
+ assert.ok(html.includes('debug.js'));
+ for (const module of ['game-engine','ai-strategy','ai-weight-config']) {
+   assert.ok(app.includes("from './js/" + module + ".js'"));
+ }
  assert.ok(!app.includes("from '../js/"));
 });
-test('debug game and AI copies stay within debug/js',async()=>{
- for(const path of ['../debug/js/game-engine.js','../debug/js/ai-strategy.js','../debug/js/ai-weight-config.js']) assert.ok(!(await read(path)).includes('../js/'),path);
+test('debug modules stay within debug/js',async()=>{
+ for(const path of ['../debug/js/game-engine.js','../debug/js/ai-strategy.js','../debug/js/ai-weight-config.js','../debug/js/ai-tactical-weights.js']) {
+   const source=await read(path);
+   assert.ok(!source.includes("from '../js/"));
+ }
  assert.ok((await read('../debug/js/game-engine.js')).includes("from './ai-strategy.js'"));
  assert.ok((await read('../debug/js/ai-strategy.js')).includes("from './ai-weight-config.js'"));
  assert.ok((await read('../debug/js/ai-weight-config.js')).includes("from './ai-tactical-weights.js'"));
