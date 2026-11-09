@@ -109,6 +109,33 @@ test('deployment is rewarded when a safe newly deployed piece creates a bonus-ro
     assert.ok(decision.breakdown.selectedWeightFactors.deploymentTacticalScore > 0);
 });
 
+
+test('exact engine capture probability directly changes the move score', () => {
+    const game = createGame(1, 1, [], [], 40);
+    game.phase = 'move';
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = 5;
+    game.pieces[0].pieces.slice(1).forEach(piece => { piece.steps = game.trackLength; });
+    game.pieces[1].pieces.slice(1).forEach(piece => { piece.steps = game.trackLength; });
+    placeOpponentBehindTarget(game, 6);
+
+    const state = JSON.parse(JSON.stringify(game));
+    const move = movePiece(state, 0);
+    const ranked = evaluateTacticalCandidates(
+        game,
+        [{ pieceId: 0, move, state, winningMove: false }],
+        { ...AI_TACTICAL_WEIGHTS, captureOwn: 7, riskMultiplier: 1 },
+        aiDependencies
+    );
+    const factors = ranked[0].factors;
+
+    assert.ok(factors.pieceThreatBefore > factors.pieceThreat,
+        'posun z dosahu 6 polí do vzdálenosti 7 musí snížit přesné riziko');
+    assert.ok(factors.pieceThreatScore > 0,
+        'snížení pravděpodobnosti vyhození musí přidat body do skóre tahu');
+    assert.ok(Number.isFinite(ranked[0].score));
+});
+
 test('opponent start square becomes more dangerous with reserve pieces and near-goal progress', () => {
     function scoreStartSquareRisk(nearGoal) {
         const game = createGame(1, 1, [], [], 40);
