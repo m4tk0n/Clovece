@@ -1,62 +1,30 @@
-# Vývojové prostředí Debug
+# Vývojové prostředí AI
 
-Adresář `/debug/` je samostatný vstup do vývojové a testovací verze hry. Otevření debug prostředí nesmí přesměrovat uživatele na běžnou produkční URL ani samo měnit produkční soubory.
+Otevření: `/clovece/debug/`
 
-## Otevření
+## Izolace
 
-https://7x.wz.cz/clovece/debug/
+- Vstupní stránka je `debug/index.php`.
+- Debug používá vlastní `debug/js/bootstrap.js`, `navigation.js`, `app.js`, `game-engine.js`, `game-turn.js`, `ai-strategy.js` a vlastní konfiguraci vah.
+- Stabilní obrazovky, pravidla, 2D vykreslování a společné UI moduly se načítají z produkčního adresáře.
+- Parametr `debug=training` vynutí 2D vykreslení. V této větvi `prepareBoardRendering()` končí před kontrolou WebGL i před dynamickým importem Three.js rendereru.
+- Produkční AI a její rozhodovací soubory se při vývoji nemění. Experimentální úpravy patří do tohoto adresáře.
 
-Vstup používá společný HTML shell aplikace, ale aktivuje výukový režim. Ten vynucuje 2D desku a načítá vývojové nástroje AI z adresáře `debug/`.
+## Rozbor každého rozhodnutí
 
-## Rozdělení odpovědností
+Panel zobrazuje:
+- legální figurky, jejich výchozí a cílová pole a bodové hodnocení,
+- důvod vybraného tahu a příspěvek každé z deseti vah,
+- simulaci všech šesti možných hodnot příští kostky včetně dostupných legálních tahů,
+- pro každého soupeře všech šest hodnot kostky a legální odpovědi, včetně možnosti vyhodit právě posuzovanou figurku,
+- rozdíl mezi strategickým výběrem, naučenou pamětí a tahem vynuceným pravidly.
 
-### Produkce – kořen projektu
+Odpovědi soupeřů jsou výčtem legálních možností po jednom hodu, nikoli předpovědí, že soupeř konkrétní možnost určitě vybere. Bonusový hod je označen samostatně.
 
-V kořeni zůstávají stabilní části používané běžnou hrou:
+## Automatický smoke test
 
-- `index.php` – společný HTML shell a načítání aplikace.
-- `js/game-engine.js` – jediný společný herní engine a pravidla.
-- `js/game-board-geometry.js`, `js/game-board-2d.js` a související stabilní moduly – společná geometrie a 2D vykreslení.
-- `docs/GAME_RULES.md` – jediný zdroj pravdy pro pravidla hry.
+Při otevření debug stránky se spustí `debug/js/ai-debug-self-test.js`. Kontroluje legálnost výběru, deset vah, všech šest příštích hodů, šest hodů každého soupeře a výstupní pozice kandidátů. Výsledek se vypíše do konzole a do panelu AI.
 
-### Vývoj – adresář /debug/
+## Přenos do produkce
 
-Všechny nové experimentální a diagnostické části patří do `debug/`:
-
-- `debug/index.php` – samostatný vstup do vývojového prostředí.
-- `debug/js/` – vývojový JavaScript, diagnostika, testovací scénáře a nástroje učení AI.
-- `debug/css/` – vývojové styly a vzhled testovacích panelů.
-- `debug/README.md` – pravidla práce ve vývojovém prostředí.
-
-Nová funkce, která není ověřená, se nesmí zapisovat do produkčních CSS/JS souborů. Pokud experiment vyžaduje změnu společného enginu nebo pravidel, nejprve se změna připraví a ověří ve vývojové kopii dané části; do společného produkčního modulu se přenese až po ověření a s odpovídajícími testy. Nesmí vzniknout druhý dlouhodobě nezávislý zdroj pravidel.
-
-## Co je společné a co oddělené
-
-| Část | Debug | Produkce |
-|---|---|---|
-| Herní pravidla a stabilní engine | společné | společné |
-| Stabilní 2D deska | společná | společná |
-| Experimentální AI a její váhy | pouze debug | stabilní AI |
-| Diagnostické a tréninkové panely | pouze debug | nenačítají se |
-| Experimentální CSS/JS | pouze debug | nenačítají se |
-| 3D deska | nepoužívá se | produkční renderer |
-
-Debug používá skutečnou herní desku a skutečný herní engine, nikoliv oddělenou simulaci s vlastními pravidly. Výukový režim záměrně vynucuje 2D vykreslení; 3D se ladí až v produkční části podle samostatného zadání.
-
-## Postup práce
-
-1. Nové experimenty vytvářet výhradně v `debug/js/` a `debug/css/`.
-2. Pro testování používat skutečný společný engine, jeho legální tahy a společnou 2D desku.
-3. Ověřit chování na deskách 40, 48 a 80 a ve všech relevantních kombinacích pravidel.
-4. Doplnit nebo spustit regresní testy.
-5. Teprve hotovou a ověřenou změnu přenést do odpovídajícího produkčního souboru.
-6. Po přenosu ověřit, že produkční hra nenačítá žádné debug moduly ani debug CSS.
-
-## Důležité zásady
-
-- Debug nesmí měnit produkční soubory při běžném testování.
-- Produkce nesmí načítat experimentální soubory z `debug/`, pokud není výslovně zapnutý debug režim.
-- Pravidla se neupravují nezávisle ve dvou kopiích. Závazný dokument je `docs/GAME_RULES.md`.
-- AI smí vybírat pouze tahy vrácené společným herním enginem.
-- Vývojová a produkční verze musí používat stejné datové struktury a formát herního stavu.
-- Změny se zapisují přímo do větve `main`; její push spouští automatické FTP nasazení. Konfigurační soubor `.env` se do repozitáře ani nasazení nepřenáší.
+Do produkčních souborů se nic nepřenáší automaticky. Ověřenou změnu lze přenést až po samostatném schválení.
