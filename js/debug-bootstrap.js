@@ -1,3 +1,4 @@
+// /js/debug-bootstrap.js
 /**
  * Vstupní bod rozšířených režimů debug.
  * ?debug=1 = technická diagnostika.

@@ -1,3 +1,4 @@
+// /js/auth.js
 /**
  * Registrace, přihlášení a odhlášení hráčského účtu.
  * Formuláře jsou delegované, protože se HTML obrazovek načítá až na vyžádání.

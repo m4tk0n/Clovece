@@ -1,3 +1,4 @@
+// /js/audio.js
 /**
  * Správa zvuků.
  * Audio soubory mají preload="none" a stáhnou se až při prvním přehrání.

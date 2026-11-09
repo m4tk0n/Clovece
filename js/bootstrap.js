@@ -1,3 +1,4 @@
+// /js/bootstrap.js
 /**
  * Hlavní vstup aplikace.
  */

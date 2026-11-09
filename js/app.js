@@ -1,3 +1,4 @@
+// /js/app.js
 /**
  * Člověče, nezlob se! – herní rozhraní a lokální AI.
  * Stav hry spravuje game-engine.js; vykreslení game-board.js.

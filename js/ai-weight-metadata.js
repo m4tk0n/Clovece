@@ -1,3 +1,4 @@
+// /js/ai-weight-metadata.js
 import { AI_WEIGHT_DEFINITIONS, getAIWeightValues } from './ai-weight-config.js';
 
 export const AI_WEIGHT_CHANNELS = Object.freeze(AI_WEIGHT_DEFINITIONS.map(item => ({

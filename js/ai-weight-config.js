@@ -1,3 +1,4 @@
+// /js/ai-weight-config.js
 import { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
 // Jediná aktivní konfigurace strategické AI: přesně deset srozumitelných vah.
 export const AI_WEIGHT_DEFINITIONS = Object.freeze([
