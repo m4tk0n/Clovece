@@ -6,7 +6,15 @@ test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračován�
 
   await page.goto('?test=1');
   await expect(page.locator('#live-test-panel')).toBeVisible();
-  await page.evaluate(async () => { await import('./js/test-runner.js'); });
+  const runnerDiagnostic = await page.evaluate(async () => {
+    const script = [...document.scripts].find(item => item.src.includes('test-runner.js'));
+    let importError = null;
+    try { await import('./js/test-runner.js'); } catch (error) { importError = error.stack || error.message; }
+    return { script: script?.src || null, ready: window.__cloveceTestRunnerReady === true,
+      api: Boolean(window.__cloveceTest?.start), importError };
+  });
+  console.log('Test runner:', runnerDiagnostic);
+  expect(runnerDiagnostic.importError, 'Test runner module must import successfully').toBeNull();
   await expect.poll(() => page.evaluate(() => window.__cloveceTestRunnerReady === true)).toBe(true);
 
   const ruleNames = ['threeRolls', 'mustDeploy', 'skipHomePieces', 'mustEnterHome'];
