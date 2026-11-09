@@ -2,24 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { AI_TACTICAL_WEIGHTS } from '../js/ai-tactical-weights.js';
+import { AI_WEIGHT_KEYS, getAIStrategicWeights } from '../js/ai-weight-config.js';
 
-test('JavaScript and PHP read the same shared tactical weight source', () => {
-    const config = JSON.parse(fs.readFileSync(new URL('../config/ai-tactical-weights.json', import.meta.url), 'utf8'));
-    assert.deepEqual(AI_TACTICAL_WEIGHTS, config.weights);
-    assert.equal(AI_TACTICAL_WEIGHTS.immediateWin, 100000);
-    for (const [key, value] of Object.entries(AI_TACTICAL_WEIGHTS)) {
-        assert.ok(Number.isFinite(value), 'váha ' + key + ' musí být konečné číslo');
-    }
-    const php = fs.readFileSync(new URL('../lib/game-engine.php', import.meta.url), 'utf8');
-    assert.ok(php.includes("/config/ai-tactical-weights.json"));
-    assert.ok(php.includes("$weights = onlineEngineAiTacticalWeights();"));
-});
-
-
-test('generated JavaScript tactical weights exactly match the JSON source used by PHP', async () => {
-    const config = JSON.parse(fs.readFileSync(new URL('../config/ai-tactical-weights.json', import.meta.url), 'utf8'));
-    const { AI_TACTICAL_WEIGHTS: generated } = await import('../js/ai-tactical-weights.js');
-    assert.deepEqual(generated, config.weights);
-    assert.deepEqual(Object.keys(generated).sort(), Object.keys(config.weights).sort());
-    assert.equal(generated.immediateWin, 100000);
+test('aktivní JS a PHP konfigurace obsahují stejných deset pojmenovaných vah',()=>{
+    const config=JSON.parse(fs.readFileSync(new URL('../config/ai-tactical-weights.json',import.meta.url),'utf8'));
+    assert.deepEqual(AI_TACTICAL_WEIGHTS,config.weights);
+    assert.deepEqual(Object.keys(config.weights),AI_WEIGHT_KEYS);
+    assert.deepEqual(config.weights,getAIStrategicWeights());
+    assert.equal(Object.keys(config.weights).length,10);
+    for(const [key,value] of Object.entries(config.weights)) assert.ok(Number.isFinite(value),key);
+    const php=fs.readFileSync(new URL('../lib/game-engine.php',import.meta.url),'utf8');
+    assert.ok(php.includes('/config/ai-tactical-weights.json'));
+    assert.ok(php.includes('onlineEngineAiTacticalWeights'));
 });
