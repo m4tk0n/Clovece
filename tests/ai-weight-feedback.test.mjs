@@ -65,10 +65,10 @@ test('trainer UI applies yes/no feedback and observes human moves as well as AI 
     assert.match(turn, /clovece:ai-training-decision/);
     assert.match(turn, /waitForTrainingReview/);
     assert.match(turn, /clovece:ai-training-review-complete/);
-    assert.match(turn, /return reviewPromise\\.then/);
+    assert.match(turn, /return reviewPromise\.then/);
     assert.match(turn, /executeMove\(finalPieceId, humanTrainingDecision\)/);
     assert.match(panel, /Tvoje zvolená figurka zatím neudělala tah/);
-    assert.match(panel, /completeReview\\(detail/);
+    assert.match(panel, /completeReview\(detail/);
     assert.match(panel, /clovece:ai-training-review-complete/);
     assert.match(strategy, /weightSignals: weightSignals\.map/);
 });
