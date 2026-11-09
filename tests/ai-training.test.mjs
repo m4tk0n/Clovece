@@ -102,7 +102,7 @@ test('training chat contains only a short evaluation marker and automatic first 
     const log = await read('../js/game-log.js');
     const panel = await read('../js/ai-training-overlay.js');
     assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
-    assert.match(turn, /trainingAI && legalMoves\.length === 1[\s\S]*?pendingAIForcedMove = true[\s\S]*?return legalMoves\[0\]/);
+    assert.match(turn, /legalMoves\.length === 1[\s\S]*?pendingAIForcedMove = trainingAI[\s\S]*?return legalMoves\[0\]/);
     assert.match(turn, /addAITrainingEvaluation\?\.\(game\.players\[playerId\]\.name, 'jediný možný tah'\)/);
     assert.match(turn, /hasPieceInBase[\s\S]*?Number\(game\.diceValue\) === 6/);
     assert.match(turn, /Povinné nasazení při šestce je dané pravidlem/);
@@ -242,15 +242,15 @@ test('debug weight formatting preserves integer scale and useful decimal precisi
     assert.equal(formatDebugWeight(''), '—');
 });
 
-test('debug diagnostics report neural model provenance and refresh training state', async () => {
+test('debug diagnostics expose exactly ten named strategic weights and refresh training state', async () => {
     const debug = await read('../js/debug-overlay.js');
-    const model = await read('../js/models/ludo-ai.js');
-    assert.match(debug, /isValidAINeuralModel\(model\)/);
-    assert.match(debug, /HEURISTICKY INICIALIZOVANÝ – offline trénink neproběhl/);
+    const config = await read('../js/ai-weight-config.js');
+    assert.match(debug, /AI_WEIGHT_DEFINITIONS/);
+    assert.match(debug, /Aktivní strategické váhy/);
     assert.match(debug, /window\.setInterval\(loadAIWeightState, 30000\)/);
     assert.match(debug, /addEventListener\('visibilitychange'/);
-    assert.match(model, /"initialization": "heuristic-seed-v1"/);
-    assert.match(model, /"enabled": true/);
+    assert.match(config, /AI_WEIGHT_DEFINITIONS = Object\.freeze\(\[/);
+    assert.match(config, /flexibility/);
 });
 
 test('debug mode numbers every pawn in the center in both board renderers', async () => {
