@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Lehké rozhraní pro volitelná rozšíření hry.
  * Samotná rozšíření se registrují samostatně a mohou se načítat podle potřeby.
