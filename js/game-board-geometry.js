@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Čistá geometrie herní desky.
  * Tento modul nepracuje s DOM, úložištěm ani herním stavem.
