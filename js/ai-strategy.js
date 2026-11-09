@@ -484,15 +484,16 @@ function simulateNextDiceOutcomes(state, playerId, dependencies) {
         const legal = result.validMoves || (branch.phase === 'move' ? getValidMoves(branch, playerId) : []);
         let capture = false;
         let finish = false;
+        let bonusRoll = branch.currentPlayer === playerId && branch.phase === 'roll' && !result.turnEnded;
         for (const pieceId of legal) {
             const next = cloneGame(branch);
             const move = movePiece(next, pieceId);
             if (move.captured && !move.captured.ownPiece) capture = true;
             if (move.finishedNow || next.winner === playerId) finish = true;
+            if (next.currentPlayer === playerId && next.phase === 'roll') bonusRoll = true;
         }
         outcomes.push({ dice, legalMoveCount: legal.length, retrying: Boolean(result.retrying),
-            bonusRoll: branch.currentPlayer === playerId && branch.phase === 'roll' && !result.turnEnded,
-            capture, finish });
+            bonusRoll, capture, finish });
     }
     return outcomes;
 }
