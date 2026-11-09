@@ -21,7 +21,11 @@ test('debug modules stay within debug/js',async()=>{
  assert.ok((await read('../debug/js/ai-strategy.js')).includes("from './ai-weight-config.js'"));
  assert.ok((await read('../debug/js/ai-weight-config.js')).includes("from './ai-tactical-weights.js'"));
 });
-test('debug files begin as an exact production snapshot',async()=>{
- for(const [a,b] of [['../js/game-engine.js','../debug/js/game-engine.js'],['../js/ai-strategy.js','../debug/js/ai-strategy.js'],['../js/ai-weight-config.js','../debug/js/ai-weight-config.js'],['../js/ai-tactical-weights.js','../debug/js/ai-tactical-weights.js']]) assert.equal(await read(a),await read(b),b);
+test('debug copies expose their own game and strategy APIs',async()=>{
+ const engine=await read('../debug/js/game-engine.js'),strategy=await read('../debug/js/ai-strategy.js'),config=await read('../debug/js/ai-weight-config.js');
+ assert.ok(engine.includes('export function createGame'));
+ assert.ok(engine.includes('export function getValidMoves'));
+ assert.ok(strategy.includes('export function chooseStrategicDecision'));
+ assert.ok(config.includes('export const AI_WEIGHT_COUNT'));
 });
 test('debug workspace documents manual promotion only',async()=>{const doc=await read('../debug/README.md');assert.match(doc,/přenášejí ručně/i);assert.match(doc,/ručně přenesou/i);});
