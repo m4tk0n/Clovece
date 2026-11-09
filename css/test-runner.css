@@ -1,3 +1,4 @@
+/* /css/test-runner.css */
 .live-test-panel{position:fixed;z-index:12000;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:min(440px,calc(100vw - 24px));max-height:min(58vh,560px);overflow:hidden;display:flex;flex-direction:column;color:#f4f7fb;background:rgba(15,23,42,.97);border:1px solid rgba(148,163,184,.45);border-radius:14px;box-shadow:0 12px 42px rgba(0,0,0,.42);font:13px/1.45 system-ui,sans-serif;touch-action:pan-y}
 .live-test-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#1e293b;border-bottom:1px solid #475569;cursor:move;user-select:none;touch-action:none}
 .test-heading-title{display:flex;flex-direction:column;gap:2px;min-width:0}.test-heading-title strong{letter-spacing:.06em;font-size:11px;white-space:nowrap}.test-heading-title span{color:#a7f3d0;font-size:11px}
