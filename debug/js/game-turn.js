@@ -96,6 +96,66 @@ export function createTurnController(deps) {
         });
     }
 
+    async function publishForcedAIDecision(legalMoves, reason) {
+        if (!trainingAI && !debugAI) return legalMoves[0] ?? null;
+        const player = game.players[game.currentPlayer];
+        const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
+        const candidates = legalMoves.map(pieceId => {
+            const fromSteps = game.pieces[game.currentPlayer]?.pieces[pieceId]?.steps ?? -1;
+            const toSteps = fromSteps < 0 ? 0 : fromSteps + Number(game.diceValue || 0);
+            return { pieceId, fromSteps, toSteps, score: null, reason: 'Tah je omezen pravidlem hry.' };
+        });
+        pendingAIDebugExport = {
+            decisionId: trainingAI ? 'ai-forced-' + (++trainingDecisionSequence) : null,
+            format: 'clovece-ai-debug',
+            formatVersion: 1,
+            strategyVersion: 'engine-forced-choice-v1',
+            game: {
+                boardSize: game.boardSize || game.trackLength,
+                trackLength: game.trackLength,
+                playerCount: game.players.length,
+                players: game.players.map(item => ({
+                    id: item.id, name: item.name, color: item.color,
+                    type: item.isAI ? 'ai' : 'human', start: item.start, slot: item.slot
+                })),
+                rules: { ...game.rules },
+                currentPlayer: game.currentPlayer,
+                phase: game.phase,
+                diceValue: game.diceValue,
+                turnNumber: game.turnNumber,
+                piecesBefore
+            },
+            decision: {
+                legalMoves: [...legalMoves],
+                candidates,
+                selectedPieceId: legalMoves[0] ?? null,
+                explanation: reason,
+                ruleForced: true,
+                score: null,
+                selectedWeightFactors: null,
+                diceSimulation: [],
+                opponentResponses: [],
+                weightConfig: null,
+                trainedKnowledge: false,
+                usedInstructions: []
+            },
+            result: null
+        };
+        if (trainingAI) {
+            trainingDecisionHistory.push(pendingAIDebugExport);
+            const reviewPromise = waitForTrainingReview(pendingAIDebugExport.decisionId);
+            window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+                detail: pendingAIDebugExport
+            }));
+            const review = await reviewPromise;
+            if (review.cancel) return null;
+            if (Number.isInteger(Number(review.selectedPieceId)) && legalMoves.includes(Number(review.selectedPieceId))) {
+                pendingAIDebugExport.decision.selectedPieceId = Number(review.selectedPieceId);
+            }
+        }
+        return pendingAIDebugExport?.decision?.selectedPieceId ?? legalMoves[0] ?? null;
+    }
+
     async function chooseAndLogAIMove() {
         const gameAtDecision = game;
         const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
