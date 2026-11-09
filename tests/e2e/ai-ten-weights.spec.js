@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test('živý web načte produkční strategii s deseti vahami a vrátí legální rozhodnutí', async ({ page }) => {
     const pageErrors = [];
+    const loadedScripts = [];
     page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('request', request => { if (/\\.js(?:\\?|$)/.test(request.url())) loadedScripts.push(request.url()); });
     await page.goto('?debug=1');
     await expect.poll(() => page.evaluate(() => document.readyState)).toBe('complete');
 
@@ -42,4 +44,5 @@ test('živý web načte produkční strategii s deseti vahami a vrátí legáln�
     expect(result.simulatedDice).toEqual([1, 2, 3, 4, 5, 6]);
     expect(result.contributionCount).toBe(10);
     expect(pageErrors).toEqual([]);
+    expect(loadedScripts.some(url => /ai-original-|ai-neural-network|models\\/ludo-ai/.test(url))).toBe(false);
 });
