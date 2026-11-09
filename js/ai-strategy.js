@@ -1,6 +1,6 @@
 import { scoreAIMoveCandidates, isValidAINeuralModel } from './ai-neural-network.js';
 import { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
-import { AI_WEIGHT_VALUES, AI_WEIGHT_COUNT, getAIWeight } from './ai-weight-config.js';
+import { AI_WEIGHT_VALUES, AI_WEIGHT_COUNT, getAIWeight, getAIWeightValues } from './ai-weight-config.js';
 export { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
 
 /**
@@ -499,7 +499,7 @@ function getRuntimeTacticalWeights(difficulty = 'medium') {
 export function getAIWeightConfiguration() {
     return {
         count: AI_WEIGHT_COUNT,
-        values: AI_WEIGHT_VALUES.slice(),
+        values: getAIWeightValues(),
         difficultyPresets: {
             easy: getDifficultyProfile('easy'),
             medium: getDifficultyProfile('medium'),
