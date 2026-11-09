@@ -169,8 +169,10 @@ export function initAITrainingOverlay() {
         const decisionId = String(detail.decisionId || detail.id || '');
         if (decisionId) reviewedDecisionIds.add(decisionId);
         status.textContent = 'Hodnocení dokončeno – AI může provést tah.';
+        const hasSelection = selectedPieceId !== null && selectedPieceId !== undefined &&
+            Number.isInteger(Number(selectedPieceId));
         window.dispatchEvent(new CustomEvent('clovece:ai-training-review-complete', {
-            detail: { decisionId, selectedPieceId: Number.isInteger(Number(selectedPieceId)) ? Number(selectedPieceId) : null }
+            detail: { decisionId, selectedPieceId: hasSelection ? Number(selectedPieceId) : null }
         }));
     }
 
