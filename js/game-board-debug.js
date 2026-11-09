@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Výpočet tras legálních tahů pro vizualizaci v debug režimu.
  * Herní pravidla ani stav hry nemění.
