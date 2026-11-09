@@ -70,9 +70,11 @@ try {
     const script = [...document.scripts].find(item => item.src.includes('test-runner.js'));
     let importError = null;
     try { await import('./js/test-runner.js'); } catch (error) { importError = error.stack || error.message; }
-    return { script: script?.src || null, ready: window.__cloveceTestRunnerReady === true,
+    const result = { script: script?.src || null, ready: window.__cloveceTestRunnerReady === true,
       api: Boolean(window.__cloveceTest?.start), importError };
     try { await import('./js/app.js'); } catch (error) { result.appImportError = error.stack || error.message; }
+    result.ready = window.__cloveceTestRunnerReady === true;
+    result.api = Boolean(window.__cloveceTest?.start);
     return result;
   });
   console.log('Test runner:', JSON.stringify(runnerDiagnostic));
