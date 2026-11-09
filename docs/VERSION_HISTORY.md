@@ -1,3 +1,4 @@
+<!-- /docs/VERSION_HISTORY.md -->
 ## 1.00.00.27 – Respektování profilové barvy při vytváření místní hry
 
 **Datum:** 8. 11. 2026  

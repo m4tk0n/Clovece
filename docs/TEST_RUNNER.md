@@ -1,3 +1,4 @@
+<!-- /docs/TEST_RUNNER.md -->
 # Automatické vizuální testování hry
 
 ## Cíl

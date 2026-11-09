@@ -1,3 +1,4 @@
+<!-- /docs/IDENTITY_TRANSFER.md -->
 # Přenos identity mezi zařízeními
 
 **Stav:** cílová specifikace; implementaci je nutné ověřit a dokončit.

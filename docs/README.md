@@ -1,3 +1,4 @@
+<!-- /docs/README.md -->
 # Dokumentace projektu
 
 Technická a funkční dokumentace projektu Člověče, nezlob se! je soustředěna v tomto adresáři.

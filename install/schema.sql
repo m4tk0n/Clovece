@@ -1,3 +1,4 @@
+-- /install/schema.sql
 -- Člověče, nezlob se! – čisté databázové schéma pro online multiplayer
 -- Verze schématu: 3
 --

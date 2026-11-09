@@ -1,3 +1,4 @@
+// /js/ai-neural-network.js
 /**
  * Lehká inference neuronové sítě pro hodnocení legálních tahů.
  * Model je trénovaný offline a do prohlížeče se načítají pouze hotové váhy.

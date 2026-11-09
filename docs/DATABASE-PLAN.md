@@ -1,3 +1,4 @@
+<!-- /docs/DATABASE-PLAN.md -->
 # Databázový návrh – Člověče, nezlob se!
 
 Stav: návrh k připomínkám. Neobsahuje SQL migraci a nic nemění v databázi.

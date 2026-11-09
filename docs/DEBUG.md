@@ -1,3 +1,4 @@
+<!-- /docs/DEBUG.md -->
 # Debug režim hry
 
 Debug režim se zapíná přidáním parametru `?debug=1` do adresy hry, například:

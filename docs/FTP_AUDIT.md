@@ -1,3 +1,4 @@
+<!-- /docs/FTP_AUDIT.md -->
 # Read-only FTP audit
 
 Workflow: Actions → Read-only FTP audit → Run workflow.

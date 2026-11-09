@@ -1,3 +1,4 @@
+<!-- /docs/ROADMAP.md -->
 # Roadmapa – Člověče, nezlob se!
 
 Průběžný plán vývoje online multiplayeru a souvisejících funkcí.

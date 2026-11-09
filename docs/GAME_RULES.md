@@ -1,3 +1,4 @@
+<!-- /docs/GAME_RULES.md -->
 # Pravidla hry – Člověče, nezlob se!
 
 > Závazná specifikace herních pravidel. Lokální JavaScriptový engine i serverový PHP engine musí pravidla vyhodnocovat shodně.
