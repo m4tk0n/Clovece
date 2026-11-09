@@ -58,7 +58,7 @@ Přehled verzovaných změn projektu je veden v [docs/VERSION_HISTORY.md](docs/V
 
 - index.php – vstupní bod, pseudo-CRON a obrazovky aplikace
 - js/game-engine.js – pravidla a stav hry
-- js/ai-strategy.js – samostatné strategické vyhodnocení tahů AI a pravděpodobnost ohrožení
+- js/ai-strategy.js – strategické vyhodnocení tahů počítačového hráče
 - js/game-board.js – SVG hrací plán pro 2–8 hráčů
 - js/app.js – koordinace lokální hry a AI
 - js/dice.js – řízení hodu a volba 2D/3D animace kostky (načítá se až při použití lokální/online hry)
