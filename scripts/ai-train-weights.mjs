@@ -1,5 +1,5 @@
-#!/usr/bin/env node
 // /scripts/ai-train-weights.mjs
+#!/usr/bin/env node
 /**
  * Reward-based REINFORCE trainer for exactly ten named strategic weights.
  * Training examples are grouped and split by completed game, never by decision.
