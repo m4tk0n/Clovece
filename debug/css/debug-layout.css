@@ -21,3 +21,23 @@
         max-height: 120px;
     }
 }
+
+
+/* Debug chat vyplní celý prostor přidělený spodnímu panelu. */
+#game-screen .game-footer {
+    display: flex;
+    flex: 1 1 0%;
+    min-height: 0;
+}
+#game-screen .game-chat {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+#game-screen .game-chat .chat-messages {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+}
