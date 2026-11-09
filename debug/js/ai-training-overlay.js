@@ -1,5 +1,5 @@
 import { getAIWeight, setAIWeightOverrides } from '../../js/ai-weight-config.js';
-import { saveAIWeightFeedback } from '../../js/ai-training-knowledge.js';
+import { saveAIWeightFeedback } from './ai-training-knowledge.js';
 import { buildAIWeightReviewQuestions } from '../../js/ai-weight-metadata.js';
 
 /**
@@ -513,7 +513,7 @@ export function initAITrainingOverlay() {
     }
 
     async function getToken() {
-        const response = await fetch('ai-training.php?action=token', {
+        const response = await fetch('debug/ai-training.php?action=token', {
             credentials: 'same-origin',
             cache: 'no-store',
             headers: { Accept: 'application/json' }
@@ -550,7 +550,7 @@ export function initAITrainingOverlay() {
         saveStatus.textContent = 'Ukládám…';
         try {
             if (!csrfToken) await getToken();
-            const response = await fetch('ai-training.php', {
+            const response = await fetch('debug/ai-training.php', {
                 method: 'POST',
                 credentials: 'same-origin',
                 cache: 'no-store',
