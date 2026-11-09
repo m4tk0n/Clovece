@@ -1,4 +1,5 @@
 <?php
+// /api.php
 /**
  * Člověče, nezlob se! - API Endpoint
  * Handles all AJAX requests for the game

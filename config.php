@@ -1,4 +1,5 @@
 <?php
+// /config.php
 /**
  * Člověče, nezlob se! - Configuration File
  * For wz.cz hosting

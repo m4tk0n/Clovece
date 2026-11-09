@@ -1,3 +1,4 @@
+<!-- /README.md -->
 # Člověče, nezlob se!
 
 Moderní webová verze deskové hry pro PHP hosting na WZ.cz.

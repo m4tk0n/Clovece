@@ -1,4 +1,5 @@
 <?php
+// /ai-training-knowledge.php
 declare(strict_types=1);
 
 /** Read compact AI memory, or incrementally train it from new human feedback files. */

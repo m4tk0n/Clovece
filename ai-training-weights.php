@@ -1,4 +1,5 @@
 <?php
+// /ai-training-weights.php
 declare(strict_types=1);
 
 /** Persistent, immediately applied human feedback for individual AI weight IDs. */

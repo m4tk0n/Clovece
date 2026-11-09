@@ -1,3 +1,4 @@
+/* /css/board-2d.css */
 /* Rám a horní lišta aktivního rendereru. */
 .premium-board-shell{position:relative;width:100%;padding:clamp(8px,2vw,20px);border-radius:28px;background:linear-gradient(145deg,#263a32,#101a18 65%,#0a1110);border:1px solid rgba(198,169,107,.55);box-shadow:0 28px 80px rgba(0,0,0,.48),inset 0 1px rgba(255,255,255,.1)}
 .board-topline,.board-bottomline{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 8px 12px;color:#aeb9ac;font:700 9px/1.4 "Press Start 2P",monospace;letter-spacing:.12em}
