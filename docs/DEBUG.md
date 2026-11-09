@@ -126,3 +126,17 @@ Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D po
 
 
 
+
+
+## 7. Samostatné vývojové prostředí /debug/
+
+Vývojové prostředí se otevírá přímo na adrese `/debug/`. Jeho vstupní bod `debug/index.php` používá společný HTML shell aplikace, ale aktivuje výukový režim, který vynucuje 2D renderer. Stránka zůstává pod adresou `/debug/`; relativní produkční assety se načítají z kořene aplikace pomocí základní URL.
+
+Rozdělení souborů:
+
+- Stabilní pravidla, herní engine a hotový 2D renderer zůstávají společné v kořenových `js/` a jejich závazným popisem je `docs/GAME_RULES.md`.
+- Experimentální JavaScript, diagnostika, testovací scénáře a nástroje AI patří do `debug/js/`.
+- Experimentální styly a panely patří do `debug/css/`.
+- Produkční 3D renderer se v tomto prostředí nenačítá.
+
+Nové experimentální změny se nejprve vyvíjejí v `debug/`. Do produkčních souborů se přenášejí až po ověření na společném enginu a po průchodu regresními testy. Nesmí vzniknout druhá dlouhodobě nezávislá implementace pravidel. Podrobný pracovní postup je v `debug/README.md`.
