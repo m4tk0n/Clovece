@@ -40,7 +40,7 @@ aiStrategyAssert(in_array($last['pieceId'], $legal, true), 'Poslední náhodná 
 aiStrategyAssert($first['pieceId'] === $last['pieceId'], 'Stejný stav musí vracet deterministické taktické rozhodnutí.');
 aiStrategyAssert($first['selectedScore'] >= $last['selectedScore'],
     'AI musí vybrat kandidáta s nejvyšším taktickým skóre.');
-aiStrategyAssert(str_contains($first['reason'], 'deseti strategickými vahami'),
+aiStrategyAssert(str_contains($first['reason'], 'deseti strategickými vahami') || str_contains($first['reason'], 'deseti strategických vah'),
     'AI musí v debug vysvětlení uvést taktické vyhodnocení.');
 aiStrategyAssert(is_float(onlineEngineAiPips($game, 0)), 'Výpočet zbývajících kroků musí zůstat dostupný.');
 aiStrategyAssert(is_float(onlineEngineAiThreatLoss($game, 0)), 'Výpočet ohrožení musí zůstat dostupný.');
