@@ -1,0 +1,136 @@
+/* Styly používané pouze v diagnostice a trenéru AI. */
+/* Výběr kostky v režimu výuky AI – šest skutečných stěn s puntíky. */
+#game-screen .trainer-dice-controls {
+    flex:0 0 auto; display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%; min-height:48px; padding:3px 4px; box-sizing:border-box;
+}
+#game-screen .trainer-dice-controls.hidden { display:none; }
+#game-screen .trainer-dice-options { display:flex; align-items:center; justify-content:center; gap:clamp(4px,2vw,12px); }
+#game-screen .trainer-die {
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:2px;
+    width:clamp(34px,8vw,48px); height:clamp(34px,8vw,48px); padding:5px;
+    border:1px solid rgba(198,169,107,.7); border-radius:9px; background:#f4eddd;
+    box-shadow:0 2px 5px rgba(0,0,0,.35); cursor:pointer; touch-action:manipulation;
+}
+#game-screen .trainer-die:disabled { opacity:.45; cursor:default; }
+#game-screen .trainer-die.is-selected { outline:3px solid #c6a96b; outline-offset:2px; }
+#game-screen .trainer-die .pip { width:100%; height:100%; border-radius:50%; }
+#game-screen .trainer-die .pip.p1 { grid-area:1 / 1; }
+#game-screen .trainer-die .pip.p2 { grid-area:1 / 2; }
+#game-screen .trainer-die .pip.p3 { grid-area:1 / 3; }
+#game-screen .trainer-die .pip.p4 { grid-area:2 / 1; }
+#game-screen .trainer-die .pip.p5 { grid-area:2 / 2; }
+#game-screen .trainer-die .pip.p6 { grid-area:2 / 3; }
+#game-screen .trainer-die .pip.p7 { grid-area:3 / 1; }
+#game-screen .trainer-die .pip.p8 { grid-area:3 / 2; }
+#game-screen .trainer-die .pip.p9 { grid-area:3 / 3; }
+#game-screen .trainer-die .pip { background:#17221d; }
+#game-screen .trainer-ai-dice-mode {
+    min-height:32px; padding:5px 8px; border:1px solid rgba(198,169,107,.55); border-radius:8px;
+    background:rgba(198,169,107,.12); color:#e8d7ae; font-family:inherit; font-size:8px; font-weight:700; line-height:1.2; cursor:pointer;
+}
+@media(max-width:420px) {
+    #game-screen .trainer-dice-controls { gap:5px; min-height:40px; }
+    #game-screen .trainer-dice-options { gap:4px; }
+    #game-screen .trainer-die { width:clamp(30px,8.2vw,36px); height:clamp(30px,8.2vw,36px); padding:4px; border-radius:7px; }
+    #game-screen .trainer-ai-dice-mode { min-height:29px; padding:4px 5px; font-size:7px; }
+}
+
+
+/* Plovoucí diagnostické okno pro ?debug=1. */
+.clovece-debug-overlay {
+    position:fixed;
+    left:2px;
+    bottom:2px;
+    z-index:2147483647;
+    box-sizing:border-box;
+    display:flex;
+    align-items:stretch;
+    gap:6px;
+    width:max-content;
+    max-width:calc(100vw - 8px);
+    padding:4px 6px;
+    border:1px solid rgba(255,0,0,.7);
+    border-radius:4px;
+    background:rgba(0,0,0,.9);
+    color:#ff4545;
+    font:10px/1.4 monospace;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    pointer-events:auto;
+    user-select:none;
+    -webkit-user-select:none;
+}
+.clovece-debug-overlay .debug-overlay-toggle {
+    align-self:stretch;
+    min-width:20px;
+    padding:0 4px;
+    border:1px solid #a33;
+    border-radius:3px;
+    background:#260000;
+    color:#ff5555;
+    font:bold 14px/1 monospace;
+    cursor:pointer;
+    touch-action:manipulation;
+}
+.clovece-debug-overlay .debug-overlay-content {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:0;
+    gap:2px;
+}
+.clovece-debug-overlay .debug-overlay-content.is-draggable {
+    cursor:grab;
+    touch-action:none;
+}
+.clovece-debug-overlay .debug-overlay-content.is-dragging {
+    cursor:grabbing;
+}
+.clovece-debug-overlay .debug-overlay-camera,
+.clovece-debug-overlay .debug-overlay-meta,
+.clovece-debug-overlay .debug-overlay-details {
+    display:none;
+}
+.clovece-debug-overlay .debug-overlay-camera.is-visible {
+    display:block;
+    color:#ffb45e;
+}
+.clovece-debug-overlay .debug-overlay-details.is-visible {
+    display:block;
+}
+.clovece-debug-overlay .debug-overlay-details {
+    margin-top:5px;
+    padding-top:5px;
+    border-top:1px solid #a33;
+    max-height:55vh;
+    overflow:auto;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+}
+
+/* Kostky jsou v samostatném řádku pod celou horní lištou desky. */
+.board-dice-trainer-slot{display:flex;justify-content:center;width:100%;margin:5px 0 7px}
+.board-dice-display-btn{font:700 7px/1.2 "Press Start 2P",monospace!important}
+.board-dice-trainer-slot .trainer-dice-controls{width:100%;min-height:0;padding:0;gap:7px;flex-direction:row;flex-wrap:wrap}
+.board-dice-trainer-slot .trainer-dice-options{gap:clamp(4px,1.5vw,8px)}
+.board-dice-trainer-slot .trainer-die{width:clamp(29px,7vw,38px);height:clamp(29px,7vw,38px);padding:3px;border-radius:6px}
+.board-dice-trainer-slot .trainer-ai-dice-mode{min-height:26px;padding:3px 5px;font-size:7px}
+.trainer-dice-controls.dice-display-hidden{display:none!important}
+
+
+.clovece-debug-overlay .debug-overlay-ai-weights {
+    display:none; margin-top:5px; padding-top:5px; border-top:1px solid #a33;
+    max-height:55vh; overflow:auto; color:#ffd28a; font:9px/1.4 system-ui,sans-serif;
+}
+.clovece-debug-overlay .debug-overlay-ai-weights.is-visible { display:block; }
+.clovece-debug-overlay .debug-ai-heading { margin-bottom:5px; font-weight:800; color:#fff0c8; }
+.clovece-debug-overlay .debug-ai-model-status { margin:4px 0 6px; padding:4px 5px; border:1px solid rgba(255,210,138,.35); border-radius:3px; color:#ffe0a8; white-space:normal; overflow-wrap:anywhere; }
+.clovece-debug-overlay .debug-ai-weight-table { width:100%; border-collapse:collapse; table-layout:auto; white-space:nowrap; }
+.clovece-debug-overlay .debug-ai-weight-table th,
+.clovece-debug-overlay .debug-ai-weight-table td { padding:3px 5px; border-bottom:1px solid rgba(255,255,255,.14); text-align:right; font:inherit; }
+.clovece-debug-overlay .debug-ai-weight-table th:first-child,
+.clovece-debug-overlay .debug-ai-weight-table td:first-child { text-align:left; white-space:normal; }
+.clovece-debug-overlay .debug-ai-weight-table thead th { color:#fff0c8; font-weight:700; }
+.clovece-debug-overlay .debug-ai-note { margin-top:4px; color:#d5bd91; font-size:8px; }
+.clovece-debug-overlay .debug-ai-results { margin-top:7px; padding-top:5px; border-top:1px solid rgba(255,255,255,.2); white-space:normal; overflow-wrap:anywhere; }
