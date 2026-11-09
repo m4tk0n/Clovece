@@ -24,8 +24,7 @@ let boardStyle = loadStyle();
 // SVG je vždy pevný pohled shora. 3D kamera patří výhradně Three.js rendereru.
 const VIEW_KEY = 'clovece_board_view';
 const debugParam = new URLSearchParams(window.location.search).get('debug');
-const isDebugPath = /\/debug(?:\/|$)/.test(window.location.pathname);
-const trainingMode = isDebugPath || debugParam === 'trainer' || debugParam === 'training';
+const trainingMode = debugParam === 'trainer' || debugParam === 'training';
 let view3d = trainingMode ? false : loadView();
 let view3dUnavailable = false;
 let threeRendererPromise = null;
