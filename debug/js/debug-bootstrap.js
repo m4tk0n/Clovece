@@ -8,7 +8,8 @@ import { buildDebugMovePaths } from './game-board-debug.js';
 import { geometry, trackPosition, armPoint, laneRadius } from '../../js/game-board-geometry.js';
 
 const mode = new URLSearchParams(window.location.search).get('debug');
-const trainingMode = mode === 'trainer' || mode === 'training';
+const isDebugPath = /\/debug(?:\/|$)/.test(window.location.pathname);
+const trainingMode = isDebugPath || mode === 'trainer' || mode === 'training';
 
 if (mode) {
     const cssVersions = (() => {
@@ -112,9 +113,9 @@ const debugExtension = {
     },
 
     shouldAutoMoveForced() {
-        // Technický debug ponechává i jediný tah k ručnímu potvrzení.
-        // Výukový režim naopak nesmí měnit běžné chování hry.
-        return trainingMode ? undefined : false;
+        // V /debug/ se jediný legální tah provede automaticky u člověka i AI.
+        // Samostatný technický režim ?debug=1 zůstává ruční.
+        return trainingMode ? true : false;
     },
 
     renderBoardOverlay2D({ game, style, boardGeometry }) {
