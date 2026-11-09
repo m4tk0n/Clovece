@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Samostatný prémiový Three.js renderer.
  * Scéna se skládá výhradně z čistých herních dat; SVG rendereru se nedotýká.
