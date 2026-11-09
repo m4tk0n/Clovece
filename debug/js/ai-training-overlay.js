@@ -283,6 +283,11 @@ export function initAITrainingOverlay() {
         preferredPieceId = Number.isInteger(Number(detail.decision?.preferredPieceId)) ? Number(detail.decision.preferredPieceId) : null;
         saveStatus.textContent = '';
         analysis.replaceChildren();
+        const selfTest = window.__cloveceDebugSelfTest;
+        if (selfTest) {
+            addText(analysis, 'div', selfTest.ok ? 'ai-training-learned' : 'ai-training-knowledge-error',
+                'AUTOMATICKÝ TEST AI: ' + selfTest.summary);
+        }
 
         const game = detail.game || {};
         const decision = detail.decision || {};
@@ -362,8 +367,25 @@ export function initAITrainingOverlay() {
         if (decision.score !== null && decision.score !== undefined && Number.isFinite(Number(decision.score))) {
             addText(analysis, 'p', 'ai-training-explanation', 'Celkové skóre: ' + Number(decision.score).toFixed(4));
         }
+        if (decision.trainedKnowledge) {
+            addText(analysis, 'p', 'ai-training-learned',
+                'Tento tah vybrala naučená paměť při přesné shodě situace. Níže uvedené váhy jsou pouze srovnávací rozbor, nikoli důvod tohoto konkrétního výběru.');
+        }
         const contributions = factors.weightContributions || {};
+        const weightValues = decision.weightConfig?.values || {};
         const signals = factors.weightSignalsByName || {};
+        const weightNames = {
+            progressToGoal: 'Postup k cíli',
+            finishPiece: 'Dokončení figurky',
+            captureOpponent: 'Vyhození soupeře',
+            protectOwn: 'Ochrana vlastních figurek',
+            threatenOpponent: 'Ohrožení soupeře',
+            deployPiece: 'Nasazení figurky',
+            homeProgress: 'Postup v domečku',
+            bonusContinuation: 'Bonusový hod',
+            startFieldRisk: 'Riziko vyhození',
+            flexibility: 'Strategická flexibilita'
+        };
         const weightRows = Object.entries(contributions);
         if (weightRows.length) {
             const list = document.createElement('ul');
@@ -371,8 +393,11 @@ export function initAITrainingOverlay() {
             weightRows.forEach(([key, value]) => {
                 const signal = signals[key] ?? factors[key];
                 const item = document.createElement('li');
-                item.textContent = key + ': příspěvek ' + Number(value).toFixed(4) +
-                    (Number.isFinite(Number(signal)) ? ' · signál ' + Number(signal).toFixed(3) : '');
+                const weight = weightValues[key];
+                item.textContent = (weightNames[key] || key) +
+                    (weight !== undefined ? ' · váha ' + Number(weight).toFixed(2) : '') +
+                    (Number.isFinite(Number(signal)) ? ' × signál ' + Number(signal).toFixed(3) : '') +
+                    ' = ' + Number(value).toFixed(4);
                 list.appendChild(item);
             });
             analysis.appendChild(list);
