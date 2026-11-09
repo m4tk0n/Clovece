@@ -22,6 +22,7 @@ export function createTurnController(deps) {
     let modalOpen = false;
     let moveAnimating = false;
     let pendingAIDebugExport = null;
+    let pendingTrainingReviewId = null;
     let pendingAIForcedMove = false;
     let trainingDecisionHistory = [];
     let trainingDecisionTurnKey = '';
@@ -84,10 +85,12 @@ export function createTurnController(deps) {
     }
     
     function waitForTrainingReview(decisionId) {
+        pendingTrainingReviewId = String(decisionId);
         return new Promise(resolve => {
             const handler = event => {
                 if (String(event.detail?.decisionId || '') !== String(decisionId)) return;
                 window.removeEventListener('clovece:ai-training-review-complete', handler);
+                pendingTrainingReviewId = null;
                 resolve(event.detail || {});
             };
             window.addEventListener('clovece:ai-training-review-complete', handler);
@@ -222,6 +225,7 @@ export function createTurnController(deps) {
                     detail: pendingAIDebugExport
                 }));
                 const review = await reviewPromise;
+                if (review.cancel) return null;
                 const reviewedPieceId = review.selectedPieceId === null || review.selectedPieceId === undefined
                     ? null : Number(review.selectedPieceId);
                 if (Number.isInteger(reviewedPieceId) && legalMoves.includes(reviewedPieceId)) {
@@ -343,6 +347,7 @@ export function createTurnController(deps) {
         }));
         return reviewPromise.then(review => {
             moveAnimating = false;
+            if (review.cancel) return null;
             if (!game || game !== gameAtDecision ||
                 [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return;
             const legalMoves = humanTrainingDecision.decision.legalMoves || [];
@@ -657,6 +662,12 @@ export function createTurnController(deps) {
         stopAI();
         modalOpen = false;
         moveAnimating = false;
+        if (pendingTrainingReviewId) {
+            window.dispatchEvent(new CustomEvent('clovece:ai-training-review-complete', {
+                detail: { decisionId: pendingTrainingReviewId, cancel: true, selectedPieceId: null }
+            }));
+        }
+        pendingTrainingReviewId = null;
         pendingAIDebugExport = null;
         trainingDecisionHistory = [];
         trainingDecisionTurnKey = '';
