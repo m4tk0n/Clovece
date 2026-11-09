@@ -126,4 +126,3 @@ Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D po
 
 
 
-V rozbaleném panelu `?debug=1` se načítá `config/ai-training-state.json`. Panel zobrazuje původní a kandidátní hodnotu každé taktické váhy, rozdíl po tréninku, validační zlepšení a výsledek turnaje. Kandidát může být zobrazen i tehdy, když jej turnaj zamítl; produkční hodnoty se v takovém případě nemění.
