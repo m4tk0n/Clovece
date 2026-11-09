@@ -3,7 +3,7 @@
  * Herní stav je držen v tomto modulu; app.js předává pouze závislosti.
  */
 import { getGameExtensionValue } from '../../js/game-extensions.js';
-import { refreshAITrainingKnowledge, loadAIWeightOverrides } from '../../js/ai-training-knowledge.js';
+import { refreshAITrainingKnowledge, loadAIWeightOverrides } from './ai-training-knowledge.js';
 import { setAIWeightOverrides } from './ai-weight-config.js';
 export function createTurnController(deps) {
     const {
