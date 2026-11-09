@@ -60,6 +60,7 @@ jobs:
           node scripts/ai-weight-tournament.mjs \
             --candidate=artifacts/ai-tactical-weights-candidate.json \
             --baseline=config/ai-tactical-weights.json \
+            --original-baseline=config/ai-original-baseline.json \
             --output=artifacts/ai-weight-tournament-report.json \
             --games-per-board=120 || STATUS=$?
           if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 2 ]; then
