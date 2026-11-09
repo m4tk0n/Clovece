@@ -3,7 +3,8 @@
  * Herní stav je držen v tomto modulu; app.js předává pouze závislosti.
  */
 import { getGameExtensionValue } from './game-extensions.js';
-import { refreshAITrainingKnowledge } from './ai-training-knowledge.js';
+import { refreshAITrainingKnowledge, loadAIWeightOverrides } from './ai-training-knowledge.js';
+import { setAIWeightOverrides } from './ai-weight-config.js';
 import { isValidAINeuralModel } from './ai-neural-network.js';
 export function createTurnController(deps) {
     const {
@@ -81,10 +82,15 @@ export function createTurnController(deps) {
         const gameAtDecision = game;
         const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
         const knowledge = await refreshAITrainingKnowledge({ trainer: trainingAI });
+        const learnedWeights = await loadAIWeightOverrides();
+        setAIWeightOverrides(learnedWeights.values || {});
         if (!game || game !== gameAtDecision ||
             [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
         if (knowledge.error && (debugAI || trainingAI)) {
             addGameLogEntry('AI učení', 'Paměť se nepodařilo aktualizovat: ' + knowledge.error);
+        }
+        if (learnedWeights.error && (debugAI || trainingAI)) {
+            addGameLogEntry('AI učení', 'Naučené váhy se nepodařilo načíst: ' + learnedWeights.error);
         }
         if (trainingAI && Number(knowledge.processedNow) > 0) {
             addGameLogEntry('AI učení', 'Zpracováno nových hodnocení: ' + knowledge.processedNow +
@@ -144,7 +150,7 @@ export function createTurnController(deps) {
                 addGameLogEntry('AI učení', 'NAUČENO – použité instrukce: ' + usedIds);
             }
             const alternatives = [
-                { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown },
+                { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown, weightFactors: decision.breakdown?.selectedWeightFactors ?? null },
                 ...(decision.alternatives || [])
             ].filter(item => item.pieceId !== null && item.pieceId !== undefined);
             if (debugAI && alternatives.length) {
@@ -198,12 +204,74 @@ export function createTurnController(deps) {
         return decision?.pieceId ?? null;
     }
 
+    function createHumanTrainingDecision(pieceId) {
+        if (!trainingAI || game.players[game.currentPlayer]?.isAI) return null;
+        const legalMoves = getValidMoves(game);
+        if (legalMoves.length < 2 || !chooseAIMoveDecision) return null;
+        const analysis = chooseAIMoveDecision(game, undefined, {}, null);
+        if (!analysis || !Array.isArray(analysis.alternatives)) return null;
+        const allCandidates = [
+            { pieceId: analysis.pieceId, score: analysis.score, reason: analysis.reason,
+                weightFactors: analysis.breakdown?.selectedWeightFactors ?? null },
+            ...analysis.alternatives
+        ];
+        const chosen = allCandidates.find(item => Number(item.pieceId) === Number(pieceId));
+        if (!chosen?.weightFactors?.weightSignals) return null;
+        const orderedCandidates = [chosen, ...allCandidates.filter(item => Number(item.pieceId) !== Number(pieceId))];
+        const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
+        const player = game.players[game.currentPlayer];
+        return {
+            decisionId: 'human-decision-' + (++trainingDecisionSequence),
+            format: 'clovece-ai-debug',
+            formatVersion: 1,
+            strategyVersion: 'human-move-observation-v1',
+            aiName: player.name,
+            game: {
+                boardSize: game.boardSize || game.trackLength,
+                trackLength: game.trackLength,
+                playerCount: game.players.length,
+                players: game.players.map(item => ({
+                    id: item.id, name: item.name, color: item.color,
+                    type: item.isAI ? 'ai' : 'human', start: item.start, slot: item.slot
+                })),
+                rules: { ...game.rules },
+                currentPlayer: game.currentPlayer,
+                phase: game.phase,
+                diceValue: game.diceValue,
+                turnNumber: game.turnNumber,
+                piecesBefore
+            },
+            decision: {
+                legalMoves,
+                candidates: orderedCandidates,
+                selectedPieceId: Number(pieceId),
+                explanation: 'Pozorovaný lidský tah: figurka ' + (Number(pieceId) + 1) +
+                    '. Aktuální váhový model by zvolil figurku ' + (Number(analysis.pieceId) + 1) + '.',
+                weightConfig: analysis.breakdown?.weightConfig ?? null,
+                selectedWeightFactors: chosen.weightFactors
+            },
+            result: null
+        };
+    }
+
     function performMove(pieceId) {
         if (!game || moveAnimating) return;
         const playerId = game.currentPlayer;
+        const humanTrainingDecision = createHumanTrainingDecision(pieceId);
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
+        if (humanTrainingDecision) {
+            humanTrainingDecision.result = {
+                move: { ...move },
+                piecesAfter: JSON.parse(JSON.stringify(game.pieces)),
+                phaseAfter: game.phase,
+                winner: game.winner
+            };
+            window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+                detail: humanTrainingDecision
+            }));
+        }
         if (trainingAI && pendingAIForcedMove && game.players[playerId]?.isAI) {
             addAITrainingEvaluation?.(game.players[playerId].name, 'jediný možný tah');
         }
