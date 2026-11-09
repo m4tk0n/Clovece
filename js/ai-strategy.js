@@ -124,16 +124,17 @@ export function estimatePieceThreat(game, targetPlayerId, targetPieceId, depende
     const targetPiece = game.pieces[targetPlayerId]?.pieces[targetPieceId];
     if (!targetPiece || !isMainTrackPiece(targetPiece, game.trackLength)) return 0;
 
-    let totalThreat = 0;
+    // Kombinujeme nezávislé příležitosti soupeřů jako pravděpodobnost
+    // alespoň jednoho zásahu, nikoliv prostý součet pravděpodobností.
+    let survivalProbability = 1;
     for (const opponent of game.players) {
         if (opponent.id === targetPlayerId || opponent.finished) continue;
         const probability = estimateOpponentHitProbability(
             game, opponent.id, targetPlayerId, targetPieceId, dependencies
         );
-        totalThreat = Math.min(1, totalThreat + probability);
-        if (totalThreat >= 1) return 1;
+        survivalProbability *= 1 - Math.max(0, Math.min(1, probability));
     }
-    return totalThreat;
+    return Math.max(0, Math.min(1, 1 - survivalProbability));
 }
 
 function getWaitingCost(game) {
@@ -583,6 +584,18 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
         const beforeSteps = game.pieces[playerId]?.pieces[candidate.pieceId]?.steps ?? -1;
         const afterSteps = state.pieces[playerId]?.pieces[candidate.pieceId]?.steps ?? -1;
         const deployedPiece = Boolean(candidate.move?.deployed || (beforeSteps === -1 && afterSteps >= 0));
+        // Přesná pravděpodobnost zásahu se počítá před i po tahu přes engine.
+        // Její změna přímo ovlivňuje skóre, není pouze diagnostickým údajem.
+        const beforePieceThreat = isMainTrackPiece(game.pieces[playerId]?.pieces[candidate.pieceId], game.trackLength)
+            ? estimatePieceThreat(game, playerId, candidate.pieceId, dependencies)
+            : 0;
+        const pieceThreat = isMainTrackPiece(state.pieces[playerId]?.pieces[candidate.pieceId], state.trackLength)
+            ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
+            : 0;
+        const captureOwnWeight = Math.max(0, Number.isFinite(Number(weights.captureOwn))
+            ? Number(weights.captureOwn) : AI_TACTICAL_WEIGHTS.captureOwn);
+        const pieceThreatChange = beforePieceThreat - pieceThreat;
+        const pieceThreatScore = pieceThreatChange * captureOwnWeight * riskMultiplier * 2;
         const enteredHome = beforeSteps < game.trackLength && afterSteps >= game.trackLength;
         const homeProgress = beforeSteps >= game.trackLength && afterSteps >= beforeSteps
             ? afterSteps - beforeSteps : 0;
@@ -614,19 +627,13 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 rollDice: dependencies.rollDice
             })
             : 0;
-        const deployedPieceThreat = deployedPiece
-            ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
-            : 0;
-        const pieceThreat = isMainTrackPiece(state.pieces[playerId]?.pieces[candidate.pieceId], state.trackLength)
-            ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
-            : 0;
+        const deployedPieceThreat = deployedPiece ? pieceThreat : 0;
         const startSquareRisk = estimateOpponentStartSquareRisk(state, playerId, candidate.pieceId);
         const startSquareDangerScore = startSquareRisk.risk * pieceThreat *
             (Number(weights.captureOwn) || AI_TACTICAL_WEIGHTS.captureOwn) *
             (startSquareRisk.nearGoal ? 3 : 2);
         const deploymentTacticalScore = deployedPiece
-            ? deploymentAttackChance * (Number(weights.captureOpponent) || AI_TACTICAL_WEIGHTS.captureOpponent) * 2 -
-                deployedPieceThreat * (Number(weights.captureOwn) || AI_TACTICAL_WEIGHTS.captureOwn) * 2
+            ? deploymentAttackChance * (Number(weights.captureOpponent) || AI_TACTICAL_WEIGHTS.captureOpponent) * 2
             : 0;
 
         // Kompletní 1000-slot ensemble: každá položka konfigurace se projde
@@ -686,7 +693,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
 
         const score = winning ? 1000000 :
             progressScore + captureScore + selfCaptureScore + riskScore + homeScore + baseScore + dynamicScore +
-            allWeightsScore + deploymentTacticalScore - startSquareDangerScore +
+            allWeightsScore + deploymentTacticalScore + pieceThreatScore - startSquareDangerScore +
             (enemyCapture ? weights.captureOpponent : 0) -
             (selfCapture ? weights.captureOwn : 0) +
             (deployedPiece ? weights.deployPiece : 0) +
@@ -707,7 +714,10 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 deploymentAttackChance: Number(deploymentAttackChance.toFixed(4)),
                 deployedPieceThreat: Number(deployedPieceThreat.toFixed(4)),
                 deploymentTacticalScore: Number(deploymentTacticalScore.toFixed(4)),
+                pieceThreatBefore: Number(beforePieceThreat.toFixed(4)),
                 pieceThreat: Number(pieceThreat.toFixed(4)),
+                pieceThreatChange: Number(pieceThreatChange.toFixed(4)),
+                pieceThreatScore: Number(pieceThreatScore.toFixed(4)),
                 onOpponentStart: startSquareRisk.onOpponentStart,
                 opponentStartRisk: Number(startSquareRisk.risk.toFixed(4)),
                 opponentStartBasePieces: startSquareRisk.basePieces,
