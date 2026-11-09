@@ -25,6 +25,32 @@ export function initDebugOverlay() {
     const details = document.createElement('pre'); details.className = 'debug-overlay-details';
     const aiWeights = document.createElement('div'); aiWeights.className = 'debug-overlay-ai-weights';
     content.append(summary, camera, details, aiWeights); panel.append(toggle, content); document.body.appendChild(panel);
+
+    // Panel si rezervuje méně výšky podle skutečné výšky zobrazených kostek.
+    const syncDiceSpace = () => {
+        const slot = document.querySelector('#game-container .board-dice-trainer-slot');
+        const controls = slot?.querySelector('.trainer-dice-controls');
+        const visible = slot && controls && !controls.hidden &&
+            !controls.classList.contains('hidden') && !controls.classList.contains('dice-display-hidden') &&
+            getComputedStyle(controls).display !== 'none';
+        const height = visible ? Math.ceil(slot.getBoundingClientRect().height) : 0;
+        panel.style.setProperty('--debug-dice-reserve', height + 'px');
+    };
+    const diceObserver = new MutationObserver(syncDiceSpace);
+    diceObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+    const resizeObserver = new ResizeObserver(syncDiceSpace);
+    const observeDiceSlot = () => {
+        const slot = document.querySelector('#game-container .board-dice-trainer-slot');
+        if (slot && slot !== resizeObserver._observedSlot) {
+            if (resizeObserver._observedSlot) resizeObserver.unobserve(resizeObserver._observedSlot);
+            resizeObserver.observe(slot);
+            resizeObserver._observedSlot = slot;
+        }
+        syncDiceSpace();
+    };
+    window.addEventListener('resize', observeDiceSlot, { passive: true });
+    observeDiceSlot();
+
     let expanded = false;
     toggle.addEventListener('click', () => {
         expanded = !expanded; panel.classList.toggle('is-expanded', expanded); content.hidden = !expanded;
@@ -41,7 +67,7 @@ export function initDebugOverlay() {
             if (entry.size !== null) metrics.push(entry.size + ' kB');
             return String(index + 1).padStart(2, '0') + ' [' + entry.status + '] ' + entry.name +
                 (metrics.length ? ' (' + metrics.join(', ') + ')' : '');
-        }).join('\n');
+        }).join('\\n');
     }
     function log(name, status = 'OK', duration = null, size = null) {
         entries.push({ name: String(name), status: String(status),
@@ -53,7 +79,7 @@ export function initDebugOverlay() {
     function renderWeights(state = null) {
         const heading = document.createElement('div');
         heading.className = 'debug-overlay-weight-status';
-        heading.textContent = 'Aktivní strategické váhy: ' + AI_WEIGHT_DEFINITIONS.length + '\n' +
+        heading.textContent = 'Aktivní strategické váhy: ' + AI_WEIGHT_DEFINITIONS.length + '\\n' +
             (state?.statusLabel || 'Stav učení zatím není uložen');
         const table = document.createElement('table'); table.className = 'debug-overlay-weight-table';
         const head = document.createElement('thead'); const headerRow = document.createElement('tr');
