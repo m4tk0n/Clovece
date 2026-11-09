@@ -552,17 +552,19 @@ function onlineEngineAiNextDiceOutcomes(array $source, int $playerId): array
         }
         $capture = false;
         $finish = false;
+        $bonusRoll = (int) ($branch['currentPlayer'] ?? -1) === $playerId && ($branch['phase'] ?? '') === 'roll';
         foreach ($legal as $pieceId) {
             $next = $branch;
             $move = onlineEngineMovePiece($next, (int) $pieceId);
             if (!empty($move['captured']) && empty($move['captured']['ownPiece'])) $capture = true;
-            if (!empty($move['finishedNow']) || (int) ($next['winner'] ?? -1) === $playerId) $finish = true;
+            if (!empty($move['finishedNow']) || (($next['winner'] ?? null) !== null && (int) $next['winner'] === $playerId)) $finish = true;
+            if ((int) ($next['currentPlayer'] ?? -1) === $playerId && ($next['phase'] ?? '') === 'roll') $bonusRoll = true;
         }
         $outcomes[] = [
             'dice' => $dice,
             'legalMoveCount' => count($legal),
             'retrying' => !empty($result['retrying']),
-            'bonusRoll' => (int) ($branch['currentPlayer'] ?? -1) === $playerId && ($branch['phase'] ?? '') === 'roll',
+            'bonusRoll' => $bonusRoll,
             'capture' => $capture,
             'finish' => $finish,
         ];
