@@ -2,11 +2,11 @@ name: Deploy na FTP
 
 on:
   push:
+    branches: [main]
 
 concurrency:
   group: clovece-ftp-deploy
   cancel-in-progress: true
-    branches: [main]
 
 jobs:
   deploy:
