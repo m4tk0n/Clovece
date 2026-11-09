@@ -561,6 +561,7 @@ function simulateOpponentResponses(state, targetPlayerId, targetPieceId, depende
         responses.push({
             playerId: opponent.id,
             playerName: opponent.name,
+            start: opponent.start,
             diceOutcomes,
             canCaptureTarget: diceOutcomes.some(outcome => outcome.options.some(option => option.capturesTarget))
         });
