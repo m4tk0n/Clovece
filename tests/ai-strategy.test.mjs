@@ -136,6 +136,38 @@ test('exact engine capture probability directly changes the move score', () => {
     assert.ok(Number.isFinite(ranked[0].score));
 });
 
+
+test('deploying onto a threatened start square is penalized by exact capture risk', () => {
+    const game = createGame(1, 1, [], [], 40);
+    game.phase = 'move';
+    game.diceValue = 6;
+    game.pieces[0].pieces[1].steps = game.trackLength;
+    game.pieces[0].pieces[2].steps = game.trackLength + 1;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+    game.pieces[1].pieces.slice(1).forEach(piece => { piece.steps = game.trackLength; });
+
+    const targetPosition = game.players[0].start;
+    const attackerPosition = (targetPosition - 6 + game.trackLength) % game.trackLength;
+    game.pieces[1].pieces[0].steps =
+        (attackerPosition - game.players[1].start + game.trackLength) % game.trackLength;
+
+    const state = JSON.parse(JSON.stringify(game));
+    const move = movePiece(state, 0);
+    const ranked = evaluateTacticalCandidates(
+        game,
+        [{ pieceId: 0, move, state, winningMove: false }],
+        { ...AI_TACTICAL_WEIGHTS, captureOwn: 7, riskMultiplier: 1 },
+        aiDependencies
+    );
+    const factors = ranked[0].factors;
+
+    assert.equal(factors.deployedPiece, true);
+    assert.equal(factors.pieceThreatBefore, 0);
+    assert.ok(factors.pieceThreat > 0);
+    assert.ok(factors.pieceThreatScore < 0,
+        'nasazení do dosahu soupeřovy šestky musí snížit skóre tahu');
+});
+
 test('opponent start square becomes more dangerous with reserve pieces and near-goal progress', () => {
     function scoreStartSquareRisk(nearGoal) {
         const game = createGame(1, 1, [], [], 40);
