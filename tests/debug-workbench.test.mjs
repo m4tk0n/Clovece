@@ -22,12 +22,12 @@ test('vstup /debug/ nastaví výukový režim ještě před spuštěním JavaScr
   read('../debug/js/debug-bootstrap.js'),read('../js/game-board-2d.js')
  ]);
  assert.match(page,/searchParams\.set\("debug","training"\)/);
- assert.match(view,/isDebugPath[\s\S]*?trainingMode = isDebugPath/);
+ assert.match(view,/trainingMode = debugParam === 'trainer' \|\| debugParam === 'training'/);
  assert.match(view,/if \(trainingMode\)[\s\S]*?ensureModeStyles\('2d'\)[\s\S]*?return '2d'/);
  assert.match(view,/if \(trainingMode\) \{[\s\S]*?return '2d';\s*\}/);
  assert.match(turn,/isDebugPath[\s\S]*?trainingAI = isDebugPath/);
  assert.match(bootstrap,/return trainingMode \? true : false/);
- assert.match(board,/window\.location\.pathname/);
+ assert.match(board,/new URLSearchParams\(window\.location\.search\)\.has\('debug'\)/);
  assert.match(board,/debug-piece-number/);
 });
 
