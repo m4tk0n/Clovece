@@ -153,7 +153,7 @@ for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
             const isCandidate = game.currentPlayer === candidateSeat;
             const decision = isCandidate
                 ? chooseTacticalTeacherDecision(game, dependencies, candidate)
-                : chooseOriginalStrategicDecision(game, dependencies, 'medium', () => 0, {}, null);
+                : chooseOriginalStrategicDecision(game, dependencies, 'medium', () => 0.999999, {}, null);
             if (!decision || !legalMoves.includes(decision.pieceId)) {
                 report.invalidMoves++;
                 throw new Error('AI zvolila nelegální tah; turnaj je neplatný.');
