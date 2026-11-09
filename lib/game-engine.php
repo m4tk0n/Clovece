@@ -513,41 +513,66 @@ function onlineEngineAiTacticalWeights(): array
 {
     static $weights = null;
     if ($weights !== null) return $weights;
-
     $weights = [
-        'immediateWin' => 100000.0,
-        'ownProgress' => 0.08,
-        'opponentSetback' => 0.035,
-        'threatReduction' => 12.0,
-        'captureOpponent' => 5.0,
-        'captureOwn' => 7.0,
-        'finishPiece' => 8.0,
-        'deployPiece' => 1.5,
-        'enterHome' => 2.5,
-        'homeProgress' => 0.4,
+        'progressToGoal' => 2.0,
+        'finishPiece' => 80.0,
+        'captureOpponent' => 18.0,
+        'protectOwn' => 25.0,
+        'threatenOpponent' => 12.0,
+        'deployPiece' => 8.0,
+        'homeProgress' => 20.0,
+        'bonusContinuation' => 10.0,
+        'startFieldRisk' => 18.0,
+        'flexibility' => 4.0,
     ];
-
     $configPath = dirname(__DIR__) . '/config/ai-tactical-weights.json';
     if (!is_file($configPath)) return $weights;
-
     $config = json_decode((string) file_get_contents($configPath), true);
-    $configured = is_array($config) && is_array($config['weights'] ?? null)
-        ? $config['weights']
-        : [];
-
+    $configured = is_array($config) && is_array($config['weights'] ?? null) ? $config['weights'] : [];
     foreach ($weights as $key => $default) {
-        if ($key === 'immediateWin') continue;
-        if (isset($configured[$key]) && is_numeric($configured[$key]) &&
-            is_finite((float) $configured[$key])) {
+        if (isset($configured[$key]) && is_numeric($configured[$key]) && is_finite((float) $configured[$key])) {
             $weights[$key] = (float) $configured[$key];
         }
     }
-
     return $weights;
 }
 
+/** Simulace všech šesti hodnot další kostky přes tentýž PHP engine. */
+function onlineEngineAiNextDiceOutcomes(array $source, int $playerId): array
+{
+    $outcomes = [];
+    for ($dice = 1; $dice <= 6; $dice++) {
+        $branch = $source;
+        $branch['currentPlayer'] = $playerId;
+        $branch['phase'] = 'roll';
+        $result = onlineEngineRollDice($branch, static fn(): int => $dice);
+        $legal = is_array($result['validMoves'] ?? null) ? $result['validMoves'] : [];
+        if ($legal === [] && ($branch['phase'] ?? '') === 'move') {
+            $legal = onlineEngineValidMoves($branch, $playerId);
+        }
+        $capture = false;
+        $finish = false;
+        foreach ($legal as $pieceId) {
+            $next = $branch;
+            $move = onlineEngineMovePiece($next, (int) $pieceId);
+            if (!empty($move['captured']) && empty($move['captured']['ownPiece'])) $capture = true;
+            if (!empty($move['finishedNow']) || (int) ($next['winner'] ?? -1) === $playerId) $finish = true;
+        }
+        $outcomes[] = [
+            'dice' => $dice,
+            'legalMoveCount' => count($legal),
+            'retrying' => !empty($result['retrying']),
+            'bonusRoll' => (int) ($branch['currentPlayer'] ?? -1) === $playerId && ($branch['phase'] ?? '') === 'roll',
+            'capture' => $capture,
+            'finish' => $finish,
+        ];
+    }
+    return $outcomes;
+}
+
 /**
- * Vrací výběr i rozbor pro debug chat. Skóre je deterministické pro stejný stav.
+ * Serverová AI vybírá pouze z tahů povolených onlineEngineValidMoves().
+ * Deset signálů a vah má stejný význam jako v JavaScriptové strategii.
  */
 function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = null): array
 {
@@ -555,66 +580,67 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
     if ($valid === []) {
         return ['pieceId' => null, 'reason' => 'AI nemá žádný legální tah.', 'candidates' => []];
     }
-
     $weights = onlineEngineAiTacticalWeights();
     $playerId = (int) $game['currentPlayer'];
-    $beforeOwnPips = onlineEngineAiPips($game, $playerId);
+    $track = max(1, (int) $game['trackLength']);
+    $beforePips = onlineEngineAiPips($game, $playerId);
     $beforeThreat = onlineEngineAiThreatLoss($game, $playerId);
-    $beforeOpponentPips = 0.0;
-    foreach ($game['players'] as $opponentId => $_opponent) {
-        if ((int) $opponentId !== $playerId) {
-            $beforeOpponentPips += onlineEngineAiPips($game, (int) $opponentId);
-        }
-    }
-
     $candidates = [];
     foreach ($valid as $pieceId) {
         $simulation = json_decode(json_encode($game, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
         $move = onlineEngineMovePiece($simulation, (int) $pieceId);
         $winning = (int) ($simulation['winner'] ?? -1) === $playerId;
-        $ownProgress = $beforeOwnPips - onlineEngineAiPips($simulation, $playerId);
-        $opponentSetback = 0.0;
-        foreach ($simulation['players'] as $opponentId => $_opponent) {
-            if ((int) $opponentId !== $playerId) {
-                $opponentSetback += onlineEngineAiPips($simulation, (int) $opponentId);
-            }
-        }
-        $opponentSetback -= $beforeOpponentPips;
-        $threatReduction = $beforeThreat - onlineEngineAiThreatLoss($simulation, $playerId);
-        $capturedOwn = !empty($move['captured']['ownPiece']);
-        $capturedOpponent = !empty($move['captured']) && !$capturedOwn;
-        $finishedPiece = !empty($move['finishedNow']);
         $beforeSteps = (int) ($game['pieces'][$playerId]['pieces'][$pieceId]['steps'] ?? -1);
         $afterSteps = (int) ($simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'] ?? -1);
-        $deployedPiece = !empty($move['deployed']) || ($beforeSteps === -1 && $afterSteps >= 0);
-        $enteredHome = $beforeSteps < (int) $game['trackLength'] && $afterSteps >= (int) $game['trackLength'];
-        $homeProgress = $beforeSteps >= (int) $game['trackLength'] && $afterSteps >= $beforeSteps
-            ? $afterSteps - $beforeSteps : 0;
-        $score = $winning ? $weights['immediateWin'] :
-            $ownProgress * $weights['ownProgress'] +
-            $opponentSetback * $weights['opponentSetback'] +
-            $threatReduction * $weights['threatReduction'] +
-            ($capturedOpponent ? $weights['captureOpponent'] : 0.0) -
-            ($capturedOwn ? $weights['captureOwn'] : 0.0) +
-            ($finishedPiece ? $weights['finishPiece'] : 0.0) +
-            ($deployedPiece ? $weights['deployPiece'] : 0.0) +
-            ($enteredHome ? $weights['enterHome'] : 0.0) +
-            ($homeProgress * $weights['homeProgress']);
+        $deployed = !empty($move['deployed']) || ($beforeSteps === -1 && $afterSteps >= 0);
+        $enteredHome = $beforeSteps < $track && $afterSteps >= $track;
+        $homeProgress = $beforeSteps >= $track && $afterSteps >= $beforeSteps ? $afterSteps - $beforeSteps : 0;
+        $enemyCapture = !empty($move['captured']) && empty($move['captured']['ownPiece']);
+        $protect = ($beforeThreat - onlineEngineAiThreatLoss($simulation, $playerId)) / $track;
+        $diceOutcomes = onlineEngineAiNextDiceOutcomes($simulation, $playerId);
+        $threaten = count(array_filter($diceOutcomes, static fn(array $item): bool => $item['capture'])) / 6;
+        $bonus = count(array_filter($diceOutcomes, static fn(array $item): bool => $item['bonusRoll'])) / 6;
+        $flexibility = array_sum(array_map(static fn(array $item): int => min(4, (int) $item['legalMoveCount']), $diceOutcomes)) / 24;
+        $piece = $simulation['pieces'][$playerId]['pieces'][$pieceId];
+        $position = onlineEnginePiecePosition($simulation, $playerId, $piece);
+        $startRisk = 0.0;
+        if ($position !== null) {
+            foreach ($simulation['players'] as $opponentId => $opponent) {
+                if ((int) $opponentId === $playerId || (int) ($opponent['start'] ?? -1) !== $position) continue;
+                $baseCount = count(array_filter($simulation['pieces'][$opponentId]['pieces'],
+                    static fn(array $item): bool => (int) $item['steps'] === -1));
+                if ($baseCount > 0) $startRisk = max($startRisk, min(1.0, 0.25 + $baseCount * 0.15));
+            }
+        }
+        $signals = [
+            'progressToGoal' => max(-1.0, min(1.0, ($beforePips - onlineEngineAiPips($simulation, $playerId)) / $track)),
+            'finishPiece' => !empty($move['finishedNow']) ? 1.0 : 0.0,
+            'captureOpponent' => $enemyCapture ? 1.0 : 0.0,
+            'protectOwn' => max(-1.0, min(1.0, $protect)),
+            'threatenOpponent' => $threaten,
+            'deployPiece' => $deployed ? 1.0 : 0.0,
+            'homeProgress' => max(-1.0, min(1.0, ($enteredHome ? 1.0 : 0.0) + $homeProgress / 4)),
+            'bonusContinuation' => $bonus,
+            'startFieldRisk' => -$startRisk,
+            'flexibility' => $flexibility,
+        ];
+        $score = $winning ? 1000000.0 : 0.0;
+        if (!$winning) foreach ($weights as $key => $weight) $score += $weight * $signals[$key];
+        $contributions = [];
+        foreach ($weights as $key => $weight) $contributions[$key] = $weight * $signals[$key];
         $candidates[] = [
             'pieceId' => (int) $pieceId,
             'score' => $score,
             'winning' => $winning,
-            'reason' => $winning ? 'okamžité vítězství' : 'taktické vyhodnocení společnými vahami v2',
-            'destinationSteps' => (int) $simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'],
+            'reason' => $winning ? 'okamžité vítězství' : 'vyhodnocení deseti strategických vah',
+            'destinationSteps' => $afterSteps,
+            'weightSignals' => $signals,
+            'weightContributions' => $contributions,
+            'diceSimulation' => $diceOutcomes,
             'move' => $move,
         ];
     }
-
-    $winningMoves = array_values(array_filter(
-        $candidates,
-        static fn(array $candidate): bool => $candidate['winning']
-    ));
-
+    $winningMoves = array_values(array_filter($candidates, static fn(array $candidate): bool => $candidate['winning']));
     if ($winningMoves !== []) {
         $selected = $winningMoves[0];
     } else {
@@ -623,24 +649,24 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
         );
         $selected = $candidates[0];
     }
-
-    $alternatives = array_map(
-        static fn(array $candidate): array => [
-            'pieceId' => $candidate['pieceId'],
-            'score' => $candidate['score'],
-            'reason' => $candidate['reason'],
-            'destinationSteps' => $candidate['destinationSteps'],
-        ],
-        $candidates
-    );
-
+    $alternatives = array_map(static fn(array $candidate): array => [
+        'pieceId' => $candidate['pieceId'],
+        'score' => $candidate['score'],
+        'reason' => $candidate['reason'],
+        'destinationSteps' => $candidate['destinationSteps'],
+        'weightSignals' => $candidate['weightSignals'],
+        'weightContributions' => $candidate['weightContributions'],
+    ], $candidates);
     return [
         'pieceId' => $selected['pieceId'],
         'reason' => $selected['winning']
             ? 'Okamžitě vítězný tah – hra tím končí.'
-            : 'Taktická AI vyhodnotila ' . count($valid) .
-                ' legálních možností podle společných vah v1.',
+            : 'AI vyhodnotila ' . count($valid) . ' legálních možností pomocí deseti strategických vah a simulace šesti dalších hodů.',
         'selectedScore' => $selected['score'],
+        'weightCount' => 10,
+        'weightSignals' => $selected['weightSignals'],
+        'weightContributions' => $selected['weightContributions'],
+        'diceSimulation' => $selected['diceSimulation'],
         'candidates' => $alternatives,
     ];
 }
