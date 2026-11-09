@@ -7,7 +7,10 @@ Otevření: `/clovece/debug/`
 - Vstupní stránka je `debug/index.php`.
 - Debug používá vlastní `debug/js/bootstrap.js`, `navigation.js`, `app.js`, `game-engine.js`, `game-turn.js`, `ai-strategy.js` a vlastní konfiguraci vah.
 - Stabilní obrazovky, pravidla, 2D vykreslování a společné UI moduly se načítají z produkčního adresáře.
-- Parametr `debug=training` vynutí 2D vykreslení. V této větvi `prepareBoardRendering()` končí před kontrolou WebGL i před dynamickým importem Three.js rendereru.
+- Vstup `/debug/` sám nastaví `debug=training`; 2D režim je vynucený i kontrolou cesty. `prepareBoardRendering()` končí před kontrolou WebGL i před dynamickým importem Three.js rendereru.
+- 2D deska má očíslovanou hlavní trasu i domácí pole; každá figurka má vlastní číslo.
+- Jediný legální tah se automaticky provede člověku i AI. Chat zaznamená konkrétní důvod, například `/pravidlo nasadit` nebo `/povinnost do domecku`.
+- AI při více legálních možnostech vybírá strategicky; její důvod, alternativy, váhy a simulace jsou zobrazené v panelu.
 - Produkční AI a její rozhodovací soubory se při vývoji nemění. Experimentální úpravy patří do tohoto adresáře.
 - Debug má vlastní kopii klientské výukové paměti i vlastní PHP endpointy. Záznamy, fronta, naučená paměť a váhy se ukládají do `debug/storage/`; produkční `storage/ai-training/` se nepoužívá.
 
