@@ -83,6 +83,17 @@ export function createTurnController(deps) {
         return new Promise(resolve => window.setTimeout(resolve, ms));
     }
     
+    function waitForTrainingReview(decisionId) {
+        return new Promise(resolve => {
+            const handler = event => {
+                if (String(event.detail?.decisionId || '') !== String(decisionId)) return;
+                window.removeEventListener('clovece:ai-training-review-complete', handler);
+                resolve(event.detail || {});
+            };
+            window.addEventListener('clovece:ai-training-review-complete', handler);
+        });
+    }
+
     async function chooseAndLogAIMove() {
         const gameAtDecision = game;
         const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
@@ -203,10 +214,24 @@ export function createTurnController(deps) {
             };
             if (trainingAI) {
                 trainingDecisionHistory.push(pendingAIDebugExport);
-                publishTrainingDecisionHistory();
+                const reviewPromise = waitForTrainingReview(pendingAIDebugExport.decisionId);
+                // The AI is paused here. The trainer must review the contextual variables
+                // or explicitly skip before the selected legal move is executed.
+                window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+                    detail: pendingAIDebugExport
+                }));
+                const review = await reviewPromise;
+                const reviewedPieceId = Number(review.selectedPieceId);
+                if (Number.isInteger(reviewedPieceId) && legalMoves.includes(reviewedPieceId)) {
+                    pendingAIDebugExport.decision.selectedPieceId = reviewedPieceId;
+                    pendingAIDebugExport.decision.explanation +=
+                        ' Trenér potvrdil volbu figurky ' + (reviewedPieceId + 1) + '.';
+                }
             }
         }
-        return decision?.pieceId ?? null;
+        return trainingAI
+            ? (Number(pendingAIDebugExport?.decision?.selectedPieceId ?? decision?.pieceId) || 0)
+            : (decision?.pieceId ?? null);
     }
 
     function createHumanTrainingDecision(pieceId) {
