@@ -34,7 +34,10 @@ export function initDebugOverlay() {
             !controls.classList.contains('hidden') && !controls.classList.contains('dice-display-hidden') &&
             getComputedStyle(controls).display !== 'none';
         const height = visible ? Math.ceil(slot.getBoundingClientRect().height) : 0;
-        panel.style.setProperty('--debug-dice-reserve', height + 'px');
+        const reserve = height + 'px';
+        if (panel.style.getPropertyValue('--debug-dice-reserve') !== reserve) {
+            panel.style.setProperty('--debug-dice-reserve', reserve);
+        }
     };
     const diceObserver = new MutationObserver(syncDiceSpace);
     diceObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
