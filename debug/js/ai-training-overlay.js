@@ -119,7 +119,7 @@ export function initAITrainingOverlay() {
         toggleButton.setAttribute('aria-expanded', String(expanded));
     };
     toggleButton.addEventListener('click', () => setExpanded(!expanded));
-    setExpanded(false);
+    setExpanded(true);
 
     // Panel se ukáže až ve chvíli, kdy je skutečně viditelná herní deska.
     const syncBoardVisibility = () => {
