@@ -1,3 +1,4 @@
+// /js/online/room-actions.js
 /**
  * Akce čekající online místnosti: seznam, vytvoření, připojení,
  * pozvánky, změna identity a opuštění místnosti.

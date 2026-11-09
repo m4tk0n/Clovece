@@ -1,3 +1,4 @@
+// /js/online/chat-view.js
 /**
  * Vykreslení chatů online lobby a online hry.
  * Modul neobsahuje síťovou komunikaci ani stav online relace.

@@ -1,3 +1,4 @@
+// /js/online.js
 /**
  * Online lobby – napojení obrazovek na anonymní online API.
  * Samotné tahy se zatím nehrají online; serverová validace enginu je další krok.

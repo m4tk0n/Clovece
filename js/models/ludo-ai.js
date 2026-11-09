@@ -1,3 +1,4 @@
+// /js/models/ludo-ai.js
 /** Aktivni pocatecni model: nenulove vahy odvozene z taktickeho ucitele. */
 export default Object.freeze({
   "format": "clovece-ai-neural-model",

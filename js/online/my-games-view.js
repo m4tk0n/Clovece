@@ -1,3 +1,4 @@
+// /js/online/my-games-view.js
 /**
  * Vykreslení seznamu hráčových online místností.
  * Načítání dat a obsluha akcí zůstávají v online controlleru.

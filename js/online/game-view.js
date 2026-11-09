@@ -1,3 +1,4 @@
+// /js/online/game-view.js
 /**
  * Vykreslení aktivní online hry.
  * Síťové požadavky a životní cyklus relace zajišťuje online controller.

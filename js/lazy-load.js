@@ -1,3 +1,4 @@
+// /js/lazy-load.js
 /**
  * Pomocné lazy načítání obrázků.
  * U obrázků použij loading="lazy" přímo v HTML.

@@ -1,3 +1,4 @@
+// /js/online/room-controls.js
 /**
  * Události ovládacích prvků čekající online místnosti.
  * Načítá se až poté, co se poprvé otevře obrazovka místnosti.

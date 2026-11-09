@@ -1,3 +1,4 @@
+// /js/online/lobby-controls.js
 /**
  * Ovládací prvky online lobby.
  * Tento modul se načte při prvním otevření lobby, nikoli při startu aplikace.

@@ -1,3 +1,4 @@
+// /js/online/notifications.js
 /**
  * Jednotné hlášení chyb a stavů v online části.
  */

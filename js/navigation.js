@@ -1,3 +1,4 @@
+// /js/navigation.js
 /**
  * Navigace mezi obrazovkami.
  * HTML jednotlivých obrazovek se načítá samostatně až při první návštěvě.

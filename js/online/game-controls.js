@@ -1,3 +1,4 @@
+// /js/online/game-controls.js
 /**
  * Ovládací prvky aktivní online hry.
  * Modul se inicializuje až po otevření herní obrazovky.

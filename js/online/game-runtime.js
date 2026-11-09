@@ -1,3 +1,4 @@
+// /js/online/game-runtime.js
 /**
  * Lazy načítání vykreslovacího runtime online hry.
  * Vykreslování a animace se stáhnou až po vstupu do rozehrané hry.

@@ -1,3 +1,4 @@
+// /js/game-view.js
 /**
  * Vykreslení stavu lokální hry a ovládacích informací tahu.
  * Herní stav a renderer desky se předávají zvenku.

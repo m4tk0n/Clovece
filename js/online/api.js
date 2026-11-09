@@ -1,3 +1,4 @@
+// /js/online/api.js
 /**
  * Online API klient a anonymní identita.
  * Bootstrap i CSRF token jsou sdílené pouze uvnitř online části.
