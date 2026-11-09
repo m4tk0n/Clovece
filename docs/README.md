@@ -8,7 +8,6 @@ Technická a funkční dokumentace projektu Člověče, nezlob se! je soustřed�
 
 - [Pravidla hry](GAME_RULES.md) – jediný závazný zdroj herních pravidel.
 - [Návrh strategické AI](AI_STRATEGY.md) – jediný platný návrh nové AI s deseti naučitelnými vahami.
-- [Strategie AI](AI_STRATEGY.md) – pevná taktika a rozhodování počítačových hráčů.
 - [Přenos identity mezi zařízeními](IDENTITY_TRANSFER.md) – pravidla přenosových kódů a správy zařízení.
 - [Pravidla herního chatu a logu](CHAT_LOG.md) – formát a seskupování událostí.
 - [Diagnostika](DEBUG.md) – debug režim a diagnostické informace.
