@@ -10,7 +10,7 @@ test('debug vstup používá společný engine a 2D renderer bez přesměrován�
  ]);
  assert.match(page,/\$_GET\['debug'\]\s*=\s*'training'/);
  assert.match(page,/require dirname\(__DIR__\)\s*\.\s*'\/index\.php'/);
- assert.match(page,/<base href="\.\.\/">);
+ assert.match(page, /<base href="\.\.\/">/);
  assert.doesNotMatch(page,/header\('Location:/);
  assert.match(board,/if \(trainingMode\) \{/);
  assert.match(engine,/export function createGame/);
