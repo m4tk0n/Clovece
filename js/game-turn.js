@@ -127,15 +127,15 @@ export function createTurnController(deps) {
             }
         }
         const legalMoves = getValidMoves(game);
-        if (trainingAI && legalMoves.length === 1) {
-            // Jediný legální tah není taktické rozhodnutí a nepatří do výukového panelu.
-            pendingAIForcedMove = true;
+        if (legalMoves.length === 1) {
+            // Pravidlo ponechává jediný legální tah: není co strategicky vyhodnocovat.
+            pendingAIForcedMove = trainingAI;
             return legalMoves[0];
         }
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
         const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
-        if (trainingAI && Number(game.diceValue) === 6 && allPiecesInBase) {
-            // První povinné nasazení není taktické rozhodnutí, proto se nevytváří rozbor.
+        if (Number(game.diceValue) === 6 && allPiecesInBase) {
+            // První povinné nasazení z prázdné dráhy je dané pravidlem, ne strategickou volbou.
             return legalMoves[0] ?? null;
         }
         // Lokální hra nyní používá přímo konfigurační váhy 1–1000.
@@ -243,7 +243,9 @@ export function createTurnController(deps) {
     function createHumanTrainingDecision(pieceId) {
         if (!trainingAI || game.players[game.currentPlayer]?.isAI) return null;
         const legalMoves = getValidMoves(game);
-        if (legalMoves.length < 2 || !chooseAIMoveDecision) return null;
+        const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
+        const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
+        if (legalMoves.length < 2 || (Number(game.diceValue) === 6 && allPiecesInBase) || !chooseAIMoveDecision) return null;
         const analysis = chooseAIMoveDecision(game, undefined, {}, null);
         if (!analysis || !Array.isArray(analysis.alternatives)) return null;
         const allCandidates = [
@@ -559,7 +561,7 @@ export function createTurnController(deps) {
             if (isAI) {
                 const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
                 const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
-                const automaticFirstDeployment = trainingAI && Number(game.diceValue) === 6 && allPiecesInBase;
+                const automaticFirstDeployment = Number(game.diceValue) === 6 && allPiecesInBase;
                 // Nasazení první figurky šestkou je povinné a neobsahuje taktické rozhodnutí.
                 if (!automaticFirstDeployment) await chooseAndLogAIMove();
                 if (automationPaused || !game || game.phase !== 'move' || isPaused()) return;
