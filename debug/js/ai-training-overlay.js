@@ -345,10 +345,105 @@ export function initAITrainingOverlay() {
                     setSubmitState();
                 });
                 item.appendChild(choose);
-                addText(item, 'span', '', cleanExplanation(reason));
+                const from = candidate.fromSteps === undefined ? null : positionLabel(candidate.fromSteps, player, Number(game.trackLength || game.boardSize || 40));
+                const to = candidate.toSteps === undefined ? null : positionLabel(candidate.toSteps, player, Number(game.trackLength || game.boardSize || 40));
+                const score = Number.isFinite(Number(candidate.score)) ? ' · skóre ' + Number(candidate.score).toFixed(3) : '';
+                addText(item, 'span', '', 'F' + (pieceId + 1) + (from && to ? ' · ' + from + ' → ' + to : '') + score + ' · ' + cleanExplanation(reason));
                 list.appendChild(item);
             });
             analysis.appendChild(list);
+        }
+
+        // Podrobný rozbor je pouze ve vývojovém prostředí. Rozlišujeme přesnou
+        // simulaci legálních možností od odhadu toho, co soupeř skutečně zvolí.
+        const selectedCandidate = candidates.find(item => Number(item.pieceId) === Number(selected));
+        const factors = decision.selectedWeightFactors || selectedCandidate?.weightFactors || {};
+        addText(analysis, 'div', 'ai-training-section-title', 'PROČ AI VYBRALA TENTO TAH');
+        if (Number.isFinite(Number(decision.score))) {
+            addText(analysis, 'p', 'ai-training-explanation', 'Celkové skóre: ' + Number(decision.score).toFixed(4));
+        }
+        const contributions = factors.weightContributions || {};
+        const signals = factors.weightSignalsByName || {};
+        const weightRows = Object.entries(contributions);
+        if (weightRows.length) {
+            const list = document.createElement('ul');
+            list.className = 'ai-training-candidates';
+            weightRows.forEach(([key, value]) => {
+                const signal = signals[key] ?? factors[key];
+                const item = document.createElement('li');
+                item.textContent = key + ': příspěvek ' + Number(value).toFixed(4) +
+                    (Number.isFinite(Number(signal)) ? ' · signál ' + Number(signal).toFixed(3) : '');
+                list.appendChild(item);
+            });
+            analysis.appendChild(list);
+        } else if (decision.trainedKnowledge) {
+            addText(analysis, 'p', 'ai-training-explanation', 'Výběr ovlivnila přesná shoda s naučenou situací; strategické váhy tento výběr nepřepsaly.');
+        }
+
+        const trackLengthForForecast = Number(game.trackLength || game.boardSize || 40);
+        const diceForecast = Array.isArray(decision.diceSimulation) && decision.diceSimulation.length
+            ? decision.diceSimulation : (Array.isArray(factors.diceSimulation) ? factors.diceSimulation : []);
+        addText(analysis, 'div', 'ai-training-section-title', 'VÝPOČET VŠECH 6 MOŽNÝCH PŘÍŠTÍCH HODŮ');
+        if (diceForecast.length) {
+            const diceList = document.createElement('ul');
+            diceList.className = 'ai-training-candidates';
+            diceForecast.forEach(outcome => {
+                const item = document.createElement('li');
+                const flags = [
+                    outcome.retrying ? 'další pokus' : '',
+                    outcome.bonusRoll ? 'bonusový hod' : '',
+                    outcome.capture ? 'lze vyhodit soupeře' : '',
+                    outcome.finish ? 'možné dokončení' : ''
+                ].filter(Boolean).join(' · ');
+                const options = (outcome.options || []).map(option => {
+                    const from = positionLabel(option.fromSteps, player, trackLengthForForecast);
+                    const to = positionLabel(option.toSteps, player, trackLengthForForecast);
+                    const capture = option.captures
+                        ? (option.captures.ownPiece ? ' (výměna vlastní figurky)' : ' (vyhození hráče ' +
+                            ((game.players || []).find(p => Number(p.id) === Number(option.captures.playerId))?.name || (Number(option.captures.playerId) + 1)) +
+                            ', F' + (Number(option.captures.pieceId) + 1) + ')') : '';
+                    return 'F' + (Number(option.pieceId) + 1) + ': ' + from + ' → ' + to + capture;
+                });
+                item.textContent = 'Kostka ' + outcome.dice + ': ' + outcome.legalMoveCount +
+                    ' legálních tahů' + (flags ? ' · ' + flags : '') +
+                    (options.length ? ' · ' + options.join('; ') : ' · bez tahu');
+                diceList.appendChild(item);
+            });
+            analysis.appendChild(diceList);
+        } else {
+            addText(analysis, 'p', 'ai-training-explanation', 'Pro tuto situaci nebyla simulace příštích hodů dostupná.');
+        }
+
+        const opponentForecast = Array.isArray(decision.opponentResponses) && decision.opponentResponses.length
+            ? decision.opponentResponses : (Array.isArray(factors.opponentResponses) ? factors.opponentResponses : []);
+        addText(analysis, 'div', 'ai-training-section-title', 'MOŽNÉ REAKCE SOUPEŘŮ');
+        if (opponentForecast.length) {
+            opponentForecast.forEach(opponent => {
+                const details = document.createElement('details');
+                details.className = 'ai-training-opponent';
+                const summary = document.createElement('summary');
+                summary.textContent = opponent.playerName + (opponent.canCaptureTarget
+                    ? ' · existuje možnost vyhození naší figurky' : ' · bez nalezeného okamžitého vyhození');
+                details.appendChild(summary);
+                (opponent.diceOutcomes || []).forEach(outcome => {
+                    const line = document.createElement('div');
+                    const options = (outcome.options || []).map(option => {
+                        const from = positionLabel(option.fromSteps, opponent, trackLengthForForecast);
+                        const to = positionLabel(option.toSteps, opponent, trackLengthForForecast);
+                        return 'F' + (Number(option.pieceId) + 1) + ' ' + from + ' → ' + to +
+                            (option.capturesTarget ? ' [VYHODÍ NAŠI F' + (Number(selected) + 1) + ']' : '') +
+                            (option.bonusRoll ? ' [bonusový hod]' : '');
+                    });
+                    line.textContent = 'Hod ' + outcome.dice + ': ' +
+                        (options.length ? options.join('; ') : outcome.retrying ? 'opakovaný pokus' : 'bez legálního tahu');
+                    details.appendChild(line);
+                });
+                analysis.appendChild(details);
+            });
+            addText(analysis, 'p', 'ai-training-explanation',
+                'Jde o všechny nalezené legální odpovědi po jednom hodu soupeře, nikoli o tvrzení, že soupeř určitě zvolí konkrétní tah.');
+        } else {
+            addText(analysis, 'p', 'ai-training-explanation', 'Pro vybranou figurku není na hlavní trase žádná okamžitá soupeřova reakce k výpočtu.');
         }
 
         renderWeightReview(detail);
