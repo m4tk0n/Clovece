@@ -147,7 +147,7 @@ export function createTurnController(deps) {
             if (debugAI && decision.breakdown?.weightConfig) {
                 const config = decision.breakdown.weightConfig;
                 addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' +
-                    Object.keys(config.values || {}).length + ' strategických vah);
+                    Object.keys(config.values || {}).length + ' strategických vah');
             }
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
             if (debugAI && decision.breakdown?.selectedWeightFactors) {
