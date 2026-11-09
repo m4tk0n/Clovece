@@ -663,3 +663,26 @@
 
 /* Výsledek uvažování AI je v tréninkovém režimu odlišen zeleně. */
 #game-screen .game-chat-message.ai-training-evaluation{color:#8ee6a0;font-weight:700}
+
+
+/* Chat využije volnou výšku obrazovky místo pevného třířádkového okna. */
+#game-screen .game-container {
+    flex: 2 1 0%;
+    min-height: 0;
+}
+#game-screen .game-footer {
+    display: flex;
+    flex: 1 1 0%;
+    min-height: 0;
+}
+#game-screen .game-chat {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+#game-screen .game-chat .chat-messages {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+}
