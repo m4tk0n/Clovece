@@ -10,9 +10,7 @@ První hratelná verze podporuje lokální hru na jednom zařízení. Více živ
 
 - 2 až 8 hráčů v libovolné kombinaci lidí a AI
 - Podrobná a závazná pravidla hry včetně dostupných desek jsou vedena výhradně v [GAME_RULES.md](docs/GAME_RULES.md)
-- Automatické tahy AI se třemi úrovněmi obtížnosti (lehká, střední, těžká); taktika a pravděpodobnostní model jsou popsány v [AI_STRATEGY.md](docs/AI_STRATEGY.md)
-- AI využívá kompilovanou paměť lidských oprav a potvrzených tahů; ve výukovém režimu lze samostatně hodnotit i více rozhodnutí po sobě jdoucích hodech (např. po šestce a následném hodu). Podrobnosti: [AI_TRAINING.md](docs/AI_TRAINING.md)
-- Místní AI má připravenou, zatím vypnutou inferenční vrstvu neuronové sítě; natrénované váhy a offline trénovací pipeline jsou další fáze. Technický popis: [AI_NEURAL_NETWORK.md](docs/AI_NEURAL_NETWORK.md).
+- Návrh dalšího rozvoje počítačové AI je soustředěn v [AI_STRATEGY.md](docs/AI_STRATEGY.md)
 - Animace kostky, vyhození a vítězství
 - Responzivní rozhraní pro mobil i počítač
 
@@ -39,16 +37,9 @@ Před nasazením pro běžné hraní je nutné dokončit test na WZ.cz ve dvou s
 
 Herní pravidla jsou oddělená od vykreslování a rozhraní, aby bylo možné později připojit serverový herní engine bez přepisování celé hry.
 
-## Počítačová AI
+## Návrh dalšího rozvoje počítačové AI
 
-- Pevná, kontextově vyhodnocovaná strategie AI a postup jejího vylepšování: [AI_STRATEGY.md](docs/AI_STRATEGY.md) a [AI_STRATEGY_FEEDBACK.md](docs/AI_STRATEGY_FEEDBACK.md).
-
-- Obtížnost místní AI se nastavuje při vytváření hry: lehká, střední nebo těžká.
-- Všechny úrovně vybírají pouze legální tahy herního enginu.
-- Místní AI používá kompilovanou paměť naučených preferencí pro přesně odpovídající herní situace; bez shody vybírá z legálních možností náhradním způsobem.
-- Výukový režim `/?debug=trainer` umožňuje opravit nebo potvrdit rozhodnutí. Uchovává všechna rozhodnutí v jednom tahu, takže lze zpětně hodnotit například volbu po šestce i volbu po následujícím hodu.
-- V debug režimu vysvětluje výběr tahu a bodové hodnocení alternativ; tlačítko **Zkopírovat JSON posledního tahu AI** exportuje stav hry, pravidla, legální možnosti, rozhodovací rozbor i výsledek tahu.
-- Kompletní popis algoritmu, pravděpodobností, omezení a testů je v [AI_STRATEGY.md](docs/AI_STRATEGY.md).
+Jediný platný návrh je popsán v [AI_STRATEGY.md](docs/AI_STRATEGY.md). Cílem je deset srozumitelných naučitelných vah, simulace všech šesti hodů, vyhodnocování navazujících tahů a bonusových hodů, předvídání reakcí soupeřů, automatické učení z výsledků partií, vysvětlení každého rozhodnutí a turnajové porovnání s původní AI.
 
 ## Historie verzí
 
