@@ -57,3 +57,7 @@
 @media(max-width:520px){.ai-training-weight-review{max-height:32dvh}.ai-training-weight-card{padding:4px}.ai-training-weight-actions button{padding:5px 2px}}
 
 .ai-training-pending{margin:3px 0;padding:5px;border-left:2px solid #e6c98a;background:rgba(230,201,138,.08);color:#f1dcae;font-size:9px}
+
+.ai-training-opponent{margin:4px 0;padding:4px;border:1px solid rgba(122,145,128,.45);border-radius:4px;background:#14221b;color:#d7e0d9;font-size:9px}
+.ai-training-opponent summary{color:#f2d99c;font-weight:800;cursor:pointer}
+.ai-training-opponent div{margin:3px 0;padding-left:5px;overflow-wrap:anywhere}
