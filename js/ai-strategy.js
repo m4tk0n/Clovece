@@ -320,7 +320,7 @@ export function calculateAIMoveProbabilityFeatures(game, candidate, dependencies
  * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
  * random je injektovatelný kvůli reprodukovatelným testům.
  */
-export function chooseStrategicDecision(game, dependencies, difficulty = 'medium', random = Math.random, learnedMemory = {}, neuralModel = null) {
+export function chooseStrategicDecision(game, dependencies, difficulty = 'medium', random = Math.random, learnedMemory = {}) {
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
     const candidates = validMoves.map(pieceId => {
