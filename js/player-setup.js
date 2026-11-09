@@ -1,3 +1,4 @@
+// /js/player-setup.js
 /**
  * Výběr hráčů, barev a velikosti herní desky.
  * Tento modul neimportuje herní engine ani vykreslování.

@@ -1,3 +1,4 @@
+// /js/profile.js
 /**
  * Profil účtu a statistiky hráče.
  * Data účtu i změny profilu spravuje online API.

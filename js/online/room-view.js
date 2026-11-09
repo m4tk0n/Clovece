@@ -1,3 +1,4 @@
+// /js/online/room-view.js
 /**
  * Vykreslení čekající online místnosti a seznamu účastníků.
  * Síťové akce zůstávají v online controlleru.

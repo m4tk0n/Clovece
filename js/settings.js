@@ -1,3 +1,4 @@
+// /js/settings.js
 /**
  * Uživatelská nastavení hry.
  * Samostatný modul lze načíst z menu bez načtení herního enginu a rendereru.

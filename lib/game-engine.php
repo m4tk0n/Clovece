@@ -1,4 +1,5 @@
 <?php
+// /lib/game-engine.php
 declare(strict_types=1);
 
 /**

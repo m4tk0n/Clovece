@@ -1,3 +1,4 @@
+// /js/test-runner.js
 import {
     startTestGame, pauseTestGame, resumeTestGame, stopTestGame,
     getTestGameState, updateTestRules
