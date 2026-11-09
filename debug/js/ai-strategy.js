@@ -354,7 +354,10 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             pieceId: item.pieceId,
             score: item.winningMove ? 1000000 : (trained ? Math.max(0, Number(votes[item.pieceId]) || 0) : (ranked?.score ?? 0)),
             reason: item.winningMove ? 'okamžitá výhra' : (trained ? 'bez vyššího naučeného hodnocení' : 'skóre deseti strategických vah'),
-            weightFactors: ranked?.factors ?? null
+            weightFactors: ranked?.factors ?? null,
+            fromSteps: game.pieces[game.currentPlayer]?.pieces[item.pieceId]?.steps ?? -1,
+            toSteps: item.state.pieces[game.currentPlayer]?.pieces[item.pieceId]?.steps ?? -1,
+            move: item.move ?? null
         };
     });
     const weights = getAIStrategicWeights();
@@ -370,7 +373,11 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             intentionalBlunder: false, usedInstructions, legalMoveCount: validMoves.length,
             selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' : 'weighted-ai-10-v1'),
             selectedWeightFactors: selectedRank?.factors ?? null,
-            diceSimulation: selectedRank?.factors?.diceSimulation ?? []
+            selectedMove: selected.move ?? null,
+            selectedFromSteps: game.pieces[game.currentPlayer]?.pieces[selected.pieceId]?.steps ?? -1,
+            selectedToSteps: selected.state.pieces[game.currentPlayer]?.pieces[selected.pieceId]?.steps ?? -1,
+            diceSimulation: selectedRank?.factors?.diceSimulation ?? [],
+            opponentResponses: selectedRank?.factors?.opponentResponses ?? []
         },
         alternatives
     };
@@ -609,7 +616,8 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
             ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies) : 0;
         const startRisk = estimateOpponentStartSquareRisk(state, playerId, candidate.pieceId);
         const startFieldRisk = -clampSignal(Math.max(pieceThreat, startRisk.risk));
-        const diceSimulation = simulateNextDiceOutcomes(state, playerId, dependencies);\n        const opponentResponses = simulateOpponentResponses(state, playerId, candidate.pieceId, dependencies);
+        const diceSimulation = simulateNextDiceOutcomes(state, playerId, dependencies);
+        const opponentResponses = simulateOpponentResponses(state, playerId, candidate.pieceId, dependencies);
         const bonusContinuation = clampSignal(diceSimulation.filter(item => item.bonusRoll).length / 6);
         const flexibility = clampSignal(diceSimulation.reduce((sum, item) => sum + Math.min(4, item.legalMoveCount), 0) / 24);
         const finishPiece = candidate.move?.finishedNow ? 1 : 0;
