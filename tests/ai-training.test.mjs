@@ -104,8 +104,8 @@ test('training chat contains only a short evaluation marker and automatic first 
     assert.ok(turn.includes("addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení')"));
     assert.match(turn, /trainingAI && legalMoves\.length === 1[\s\S]*?pendingAIForcedMove = true[\s\S]*?return legalMoves\[0\]/);
     assert.match(turn, /addAITrainingEvaluation\?\.\(game\.players\[playerId\]\.name, 'jediný možný tah'\)/);
-    assert.match(turn, /allPiecesInBase[\s\S]*?trainingAI && Number\(game\.diceValue\) === 6/);
-    assert.match(turn, /První povinné nasazení není taktické/);
+    assert.match(turn, /hasPieceInBase[\s\S]*?Number\(game\.diceValue\) === 6/);
+    assert.match(turn, /Povinné nasazení při šestce je dané pravidlem/);
     assert.ok(log.includes("'[' + item.sender + ': ' + item.text + ']'"));
     assert.match(panel, /positionLabel\(beforePiece\.steps[\s\S]*?positionLabel\(afterPiece\.steps/);
     assert.match(panel, /cleanExplanation/);
@@ -267,7 +267,7 @@ test('debug mode numbers every pawn in the center in both board renderers', asyn
 test('mandatory moves and first deployment are excluded from tactical training review', async () => {
     const turn = await read('../js/game-turn.js');
     assert.match(turn, /if \(legalMoves\.length === 1\)[\s\S]*?pendingAIForcedMove = trainingAI[\s\S]*?return legalMoves\[0\]/);
-    assert.match(turn, /if \(Number\(game\.diceValue\) === 6 && allPiecesInBase\)[\s\S]*?return legalMoves\[0\] \?\? null/);
-    assert.match(turn, /if \(legalMoves\.length < 2 \|\| \(Number\(game\.diceValue\) === 6 && allPiecesInBase\) \|\| !chooseAIMoveDecision\) return null/);
-    assert.match(turn, /const automaticFirstDeployment = Number\(game\.diceValue\) === 6 && allPiecesInBase/);
+    assert.match(turn, /if \(Number\(game\.diceValue\) === 6 && hasPieceInBase\)[\s\S]*?return legalMoves\[0\] \?\? null/);
+    assert.match(turn, /if \(legalMoves\.length < 2 \|\| \(Number\(game\.diceValue\) === 6 && hasPieceInBase\) \|\| !chooseAIMoveDecision\) return null/);
+    assert.match(turn, /const automaticMandatoryDeployment = Number\(game\.diceValue\) === 6 && hasPieceInBase/);
 });
