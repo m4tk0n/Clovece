@@ -53,3 +53,11 @@ test('AI strategicky vyhodnocuje více možností nasazení a panel dostává i 
  assert.match(panel,/VÝPOČET VŠECH 6 MOŽNÝCH PŘÍŠTÍCH HODŮ/);
  assert.match(panel,/MOŽNÉ REAKCE SOUPEŘŮ/);
 });
+
+
+test('výukový debug panel je po načtení sbalený a rozbalí se jen při nevyhodnoceném strategickém tahu', async () => {
+ const panel = await read('../debug/js/ai-training-overlay.js');
+ assert.match(panel,/toggleButton\.addEventListener\('click', \(\) => setExpanded\(!expanded\)\);[\s\S]*?setExpanded\(false\);/);
+ assert.match(panel,/if \(!detail\.reviewCompleted && !detail\.decision\?\.ruleForced\) setExpanded\(true\)/);
+ assert.match(panel,/function completeReview\(detail, selectedPieceId = null\) \{[\s\S]*?setExpanded\(false\);/);
+});
