@@ -58,7 +58,15 @@ try {
       !document.querySelector('#main-menu').classList.contains('hidden');
   }, null, { timeout: 60000 });
 
-  await page.evaluate(async () => { await import('./js/test-runner.js'); });
+  const runnerDiagnostic = await page.evaluate(async () => {
+    const script = [...document.scripts].find(item => item.src.includes('test-runner.js'));
+    let importError = null;
+    try { await import('./js/test-runner.js'); } catch (error) { importError = error.stack || error.message; }
+    return { script: script?.src || null, ready: window.__cloveceTestRunnerReady === true,
+      api: Boolean(window.__cloveceTest?.start), importError };
+  });
+  console.log('Test runner:', JSON.stringify(runnerDiagnostic));
+  if (runnerDiagnostic.importError) throw new Error('Test runner import failed: ' + runnerDiagnostic.importError);
   await page.waitForFunction(() => window.__cloveceTestRunnerReady === true && Boolean(window.__cloveceTest?.start), {
     timeout: 30000
   });
@@ -130,6 +138,7 @@ try {
     failedRequests
   }, null, 2));
 } catch (error) {
+  try { await page.screenshot({ path: 'trainer-browser-failure.png', fullPage: true }); } catch {}
   console.error('Automatizace selhala:', error);
   console.error(JSON.stringify({ consoleErrors, pageErrors, failedRequests }, null, 2));
   process.exitCode = 1;
