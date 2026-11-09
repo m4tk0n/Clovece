@@ -159,7 +159,7 @@ export function createTurnController(deps) {
                 addGameLogEntry('AI učení', 'NAUČENO – použité instrukce: ' + usedIds);
             }
             const alternatives = [
-                { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown, weightFactors: decision.breakdown?.selectedWeightFactors ?? null },
+                { pieceId: decision.pieceId, score: decision.score, reason: decision.reason, breakdown: decision.breakdown, weightFactors: decision.breakdown?.selectedWeightFactors ?? null, fromSteps: decision.breakdown?.selectedFromSteps, toSteps: decision.breakdown?.selectedToSteps, move: decision.breakdown?.selectedMove ?? null },
                 ...(decision.alternatives || [])
             ].filter(item => item.pieceId !== null && item.pieceId !== undefined);
             if (debugAI && alternatives.length) {
@@ -194,6 +194,11 @@ export function createTurnController(deps) {
                     legalMoves,
                     candidates: alternatives,
                     selectedPieceId: decision.pieceId,
+                    score: decision.score,
+                    selectedWeightFactors: decision.breakdown?.selectedWeightFactors ?? null,
+                    diceSimulation: decision.breakdown?.diceSimulation ?? [],
+                    opponentResponses: decision.breakdown?.opponentResponses ?? [],
+                    weightConfig: decision.breakdown?.weightConfig ?? null,
                     explanation: decision.reason || '',
                     trainedKnowledge: Boolean(decision.breakdown?.trainedKnowledge),
                     neuralNetwork: Boolean(decision.breakdown?.neuralNetwork),
