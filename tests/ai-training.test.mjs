@@ -252,3 +252,14 @@ test('debug diagnostics report neural model provenance and refresh training stat
     assert.match(model, /"initialization": "heuristic-seed-v1"/);
     assert.match(model, /"enabled": true/);
 });
+
+test('debug mode numbers every pawn in the center in both board renderers', async () => {
+    const board2D = await read('../js/game-board-2d.js');
+    const board3D = await read('../js/game-board-3d.js');
+    assert.match(board2D, /debug-piece-number/);
+    assert.match(board2D, /fill="#000"/);
+    assert.match(board2D, /pieceId \+ 1/);
+    assert.match(board3D, /has\('debug'\)/);
+    assert.match(board3D, /fillText\(String\(pieceId \+ 1\)/);
+    assert.match(board3D, /label\.position\.set/);
+});
