@@ -1,83 +1,61 @@
 {
   "format": "clovece-ai-training-state",
-  "version": 1,
-  "updatedAt": "2026-11-08T22:34:01.340Z",
-  "status": "validation-rejected",
+  "version": 2,
+  "updatedAt": "2026-11-09T15:00:00Z",
+  "status": "initialized-not-trained",
+  "statusLabel": "10 STRATEGICKÝCH VAH AKTIVNÍCH · PRVNÍ TRÉNINK ČEKÁ",
   "stablePromotionCount": 0,
   "learningRateNextRun": 0.05,
-  "statusLabel": "VALIDACE ZAMÍTLA KANDIDÁTA",
   "previousWeights": {
-    "immediateWin": 100000,
-    "ownProgress": 0.08,
-    "opponentSetback": 0.035,
-    "threatReduction": 12,
-    "captureOpponent": 5,
-    "captureOwn": 7,
-    "finishPiece": 8,
-    "deployPiece": 1.5,
-    "enterHome": 2.5,
-    "homeProgress": 0.4
+    "progressToGoal": 2,
+    "finishPiece": 80,
+    "captureOpponent": 18,
+    "protectOwn": 25,
+    "threatenOpponent": 12,
+    "deployPiece": 8,
+    "homeProgress": 20,
+    "bonusContinuation": 10,
+    "startFieldRisk": 18,
+    "flexibility": 4
   },
-  "candidateWeights": {
-    "immediateWin": 100000,
-    "ownProgress": 0.08,
-    "opponentSetback": 0.03496380863941877,
-    "threatReduction": 11.999988851229412,
-    "captureOpponent": 4.999684486229252,
-    "captureOwn": 7,
-    "finishPiece": 8.000134227837004,
-    "deployPiece": 1.5,
-    "enterHome": 2.5,
-    "homeProgress": 0.400135577464987
-  },
+  "candidateWeights": null,
   "finalWeights": {
-    "immediateWin": 100000,
-    "ownProgress": 0.08,
-    "opponentSetback": 0.035,
-    "threatReduction": 12,
-    "captureOpponent": 5,
-    "captureOwn": 7,
-    "finishPiece": 8,
-    "deployPiece": 1.5,
-    "enterHome": 2.5,
-    "homeProgress": 0.4
+    "progressToGoal": 2,
+    "finishPiece": 80,
+    "captureOpponent": 18,
+    "protectOwn": 25,
+    "threatenOpponent": 12,
+    "deployPiece": 8,
+    "homeProgress": 20,
+    "bonusContinuation": 10,
+    "startFieldRisk": 18,
+    "flexibility": 4
   },
   "delta": {
-    "immediateWin": 0,
-    "ownProgress": 0,
-    "opponentSetback": -0.00003619,
-    "threatReduction": -0.00001115,
-    "captureOpponent": -0.00031551,
-    "captureOwn": 0,
-    "finishPiece": 0.00013423,
+    "progressToGoal": 0,
+    "finishPiece": 0,
+    "captureOpponent": 0,
+    "protectOwn": 0,
+    "threatenOpponent": 0,
     "deployPiece": 0,
-    "enterHome": 0,
-    "homeProgress": 0.00013558
+    "homeProgress": 0,
+    "bonusContinuation": 0,
+    "startFieldRisk": 0,
+    "flexibility": 0
   },
   "training": {
     "accepted": false,
+    "status": "waiting-for-first-ten-weight-self-play",
     "source": {
-      "files": 11,
-      "records": 758154,
-      "incompleteSkipped": 0,
-      "malformedSkipped": 0,
-      "winningMoveRecordsSkipped": 347423,
-      "nonExploratorySkipped": 346807,
-      "behaviorPolicyMismatchSkipped": 33410,
-      "completedGames": 281,
-      "trainingGames": 227,
-      "validationGames": 54
+      "completedGames": 0,
+      "records": 0
     },
     "decisions": {
-      "training": 25005,
-      "validation": 5509
+      "training": 0,
+      "validation": 0
     },
-    "validation": {
-      "baselineRewardWeightedLogLikelihood": 0.02644736,
-      "candidateRewardWeightedLogLikelihood": 0.02644669,
-      "improvement": -6.7e-7
-    },
-    "method": "Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction"
+    "validation": null,
+    "method": "REINFORCE over ten named strategic signals using completed-game placement rewards"
   },
   "tournament": null
 }
