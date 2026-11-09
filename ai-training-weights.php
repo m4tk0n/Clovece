@@ -84,7 +84,7 @@ if ($realStorage === false || $realRoot === false
 }
 $file = $realRoot . '/ai-learned-weights.json';
 $lockPath = $realRoot . '/.ai-learned-weights.lock';
-if (is_link($file) || is_link($lockPath)) aiWeightFail('Soubor naučených vah není bezpečný.', 500);
+if (is_link($file) || is_link($lockPath) || is_link($file . '.tmp')) aiWeightFail('Soubor naučených vah není bezpečný.', 500);
 $lock = @fopen($lockPath, 'c');
 if ($lock === false || !flock($lock, LOCK_EX)) {
     if (is_resource($lock)) fclose($lock);
@@ -131,6 +131,7 @@ if ($action === 'feedback') {
     $state['updatedAt'] = gmdate('c');
     $state['history'][] = [
         'id' => $id, 'answer' => $answer, 'signalDelta' => (float)$signalDelta,
+        'decisionId' => substr((string)($payload['decisionId'] ?? ''), 0, 100),
         'before' => $before, 'after' => $after, 'createdAt' => $state['updatedAt']
     ];
     if (count($state['history']) > 500) $state['history'] = array_slice($state['history'], -500);
