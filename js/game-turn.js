@@ -22,6 +22,7 @@ export function createTurnController(deps) {
     let modalOpen = false;
     let moveAnimating = false;
     let pendingAIDebugExport = null;
+    let pendingTrainingReviewId = null;
     let pendingAIForcedMove = false;
     let trainingDecisionHistory = [];
     let trainingDecisionTurnKey = '';
@@ -83,6 +84,19 @@ export function createTurnController(deps) {
         return new Promise(resolve => window.setTimeout(resolve, ms));
     }
     
+    function waitForTrainingReview(decisionId) {
+        pendingTrainingReviewId = String(decisionId);
+        return new Promise(resolve => {
+            const handler = event => {
+                if (String(event.detail?.decisionId || '') !== String(decisionId)) return;
+                window.removeEventListener('clovece:ai-training-review-complete', handler);
+                pendingTrainingReviewId = null;
+                resolve(event.detail || {});
+            };
+            window.addEventListener('clovece:ai-training-review-complete', handler);
+        });
+    }
+
     async function chooseAndLogAIMove() {
         const gameAtDecision = game;
         const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
@@ -104,6 +118,7 @@ export function createTurnController(deps) {
         }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         pendingAIForcedMove = false;
+        pendingAIDebugExport = null;
         if (trainingAI) {
             const turnKey = [game.currentPlayer, game.turnNumber].join(':');
             if (turnKey !== trainingDecisionTurnKey) {
@@ -203,10 +218,26 @@ export function createTurnController(deps) {
             };
             if (trainingAI) {
                 trainingDecisionHistory.push(pendingAIDebugExport);
-                publishTrainingDecisionHistory();
+                const reviewPromise = waitForTrainingReview(pendingAIDebugExport.decisionId);
+                // The AI is paused here. The trainer must review the contextual variables
+                // or explicitly skip before the selected legal move is executed.
+                window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+                    detail: pendingAIDebugExport
+                }));
+                const review = await reviewPromise;
+                if (review.cancel) return null;
+                const reviewedPieceId = review.selectedPieceId === null || review.selectedPieceId === undefined
+                    ? null : Number(review.selectedPieceId);
+                if (Number.isInteger(reviewedPieceId) && legalMoves.includes(reviewedPieceId)) {
+                    pendingAIDebugExport.decision.selectedPieceId = reviewedPieceId;
+                    pendingAIDebugExport.decision.explanation +=
+                        ' Trenér potvrdil volbu figurky ' + (reviewedPieceId + 1) + '.';
+                }
             }
         }
-        return decision?.pieceId ?? null;
+        return trainingAI
+            ? (pendingAIDebugExport?.decision?.selectedPieceId ?? decision?.pieceId ?? null)
+            : (decision?.pieceId ?? null);
     }
 
     function createHumanTrainingDecision(pieceId) {
@@ -250,7 +281,7 @@ export function createTurnController(deps) {
                 legalMoves,
                 candidates: orderedCandidates,
                 selectedPieceId: Number(pieceId),
-                explanation: 'Pozorovaný lidský tah: figurka ' + (Number(pieceId) + 1) +
+                explanation: 'Zvolený lidský tah: figurka ' + (Number(pieceId) + 1) +
                     '. Aktuální váhový model by zvolil figurku ' + (Number(analysis.pieceId) + 1) + '.',
                 weightConfig: analysis.breakdown?.weightConfig ?? null,
                 selectedWeightFactors: chosen.weightFactors
@@ -259,10 +290,9 @@ export function createTurnController(deps) {
         };
     }
 
-    function performMove(pieceId) {
+    function executeMove(pieceId, humanTrainingDecision = null) {
         if (!game || moveAnimating) return;
         const playerId = game.currentPlayer;
-        const humanTrainingDecision = createHumanTrainingDecision(pieceId);
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
@@ -293,20 +323,45 @@ export function createTurnController(deps) {
             if (debugAI) setAIDebugExport?.(pendingAIDebugExport);
             if (trainingAI) {
                 const playerName = game.players[playerId].name;
-                // V herním chatu zůstane jen stručná značka; úplný rozbor patří do panelu.
                 addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení');
                 window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
-                    detail: {
-                        ...pendingAIDebugExport,
-                        aiName: playerName
-                    }
+                    detail: { ...pendingAIDebugExport, aiName: playerName }
                 }));
             }
         }
         pendingAIDebugExport = null;
         return finishMove(move, { before, after });
     }
-    
+
+    function performMove(pieceId) {
+        if (!game || moveAnimating) return;
+        const humanTrainingDecision = createHumanTrainingDecision(pieceId);
+        if (!humanTrainingDecision) return executeMove(pieceId);
+
+        const gameAtDecision = game;
+        const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
+        moveAnimating = true;
+        const reviewPromise = waitForTrainingReview(humanTrainingDecision.decisionId);
+        window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+            detail: humanTrainingDecision
+        }));
+        return reviewPromise.then(review => {
+            moveAnimating = false;
+            if (review.cancel) return null;
+            if (!game || game !== gameAtDecision ||
+                [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return;
+            const legalMoves = humanTrainingDecision.decision.legalMoves || [];
+            const requestedPieceId = review.selectedPieceId === null || review.selectedPieceId === undefined
+                ? Number(pieceId) : Number(review.selectedPieceId);
+            const finalPieceId = legalMoves.includes(requestedPieceId) ? requestedPieceId : Number(pieceId);
+            return executeMove(finalPieceId, humanTrainingDecision);
+        }).catch(error => {
+            moveAnimating = false;
+            toast(error.message || 'Tah se nepodařilo dokončit.');
+            return null;
+        });
+    }
+
     async function animatePieceMove(move, movement) {
         if (!movement || settings.moveSpeed !== 'normal' || !settings.animations) return;
         const { before, after } = movement;
@@ -607,6 +662,12 @@ export function createTurnController(deps) {
         stopAI();
         modalOpen = false;
         moveAnimating = false;
+        if (pendingTrainingReviewId) {
+            window.dispatchEvent(new CustomEvent('clovece:ai-training-review-complete', {
+                detail: { decisionId: pendingTrainingReviewId, cancel: true, selectedPieceId: null }
+            }));
+        }
+        pendingTrainingReviewId = null;
         pendingAIDebugExport = null;
         trainingDecisionHistory = [];
         trainingDecisionTurnKey = '';

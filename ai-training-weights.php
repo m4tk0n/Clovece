@@ -111,7 +111,7 @@ if ($action === 'feedback') {
     if (!is_int($id) || $id < 1 || $id > 1000 || $reserved
         || !in_array($answer, ['yes', 'no'], true)
         || $signalDelta === false || !is_finite((float)$signalDelta)
-        || abs((float)$signalDelta) < 0.001 || abs((float)$signalDelta) > 1
+        || abs((float)$signalDelta) < 0.001 || abs((float)$signalDelta) > 2
         || $currentValue === false || !is_finite((float)$currentValue)
         || abs((float)$currentValue) > 10000) {
         flock($lock, LOCK_UN); fclose($lock);
@@ -120,7 +120,7 @@ if ($action === 'feedback') {
     $before = array_key_exists((string)$id, $state['values'])
         ? (float)$state['values'][(string)$id] : (float)$currentValue;
     $direction = ((float)$signalDelta > 0 ? 1 : -1) * ($answer === 'yes' ? 1 : -1);
-    $step = max(0.1, min(5.0, abs($before) * 0.02));
+    $step = max(0.1, min(5.0, abs($before) * 0.02)) * min(1.0, abs((float)$signalDelta));
     $after = max(-10000, min(10000, $before + $direction * $step));
     if (!is_finite($after)) {
         flock($lock, LOCK_UN); fclose($lock);

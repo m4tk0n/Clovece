@@ -601,3 +601,12 @@ Režim `/?debug=trainer` nyní podporuje samostatné hodnocení vah, nikoli pouz
 ### Důležitá technická hranice současné verze
 
 Aktuální skórování přiřazuje 876 aktivním položkám jeden z deseti signálů podle pořadí ID (`(id - 1) % 10`). Trenér zobrazuje tento skutečný kanál a upravuje přesně tu váhu, která do něj nyní vstupuje. Název a popis proměnné jsou metadata; u části starších položek se jejich slovní význam nemusí přesně shodovat s tímto historickým přiřazením. Systém proto nesmí tvrdit, že všech 876 vah už představuje 876 nezávislých herních vlastností. Přesné samostatné propojení každého popisu s herním signálem je další architektonická fáze.
+
+
+### Čekání na lidské hodnocení před tahem AI
+
+V režimu `?debug=trainer` AI po vyhodnocení legálních kandidátů pozastaví provedení tahu. Nejprve zobrazí otázky k relevantním vahám. Tah provede až poté, co jsou všechny zobrazené otázky zodpovězené (ANO/NE/NEVÍM), případně když člověk zvolí `PŘESKOČIT` nebo odešle celkové hodnocení. Bez odpovědi se AI sama neposune. Po dokončení hodnocení použije aktualizované váhy ještě před provedením tahu.
+
+Lidský hráč v tomto režimu nejprve klikne na zamýšlenou figurku, ale tah se zatím neprovede. Trenér zobrazí stejné otázky pro zvolený lidský tah a jeho legální alternativy. Po dokončení hodnocení se provede původně zvolený tah, případně figurka vybraná trenérem.
+
+Metadata trenéru používá názvy a popisy ze souboru vah pro první stovku položek a přesné názvové řady pro navazující bloky (pravděpodobnostní model, fáze hry, taktické váhy, prostorové vnímání, simulace a závěrečné hodnocení). Rezervované systémové bloky se v otázkách nenabízejí.

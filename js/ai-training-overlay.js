@@ -163,6 +163,19 @@ export function initAITrainingOverlay() {
     const weightReview = panel.querySelector('#ai-training-weight-review');
     const weightCursorKey = 'clovece-trainer-weight-cursors-v1';
 
+    function completeReview(detail, selectedPieceId = null) {
+        if (!detail || detail.reviewCompleted) return;
+        detail.reviewCompleted = true;
+        const decisionId = String(detail.decisionId || detail.id || '');
+        if (decisionId) reviewedDecisionIds.add(decisionId);
+        status.textContent = 'Hodnocení dokončeno – tah může pokračovat.';
+        const hasSelection = selectedPieceId !== null && selectedPieceId !== undefined &&
+            Number.isInteger(Number(selectedPieceId));
+        window.dispatchEvent(new CustomEvent('clovece:ai-training-review-complete', {
+            detail: { decisionId, selectedPieceId: hasSelection ? Number(selectedPieceId) : null }
+        }));
+    }
+
     function renderWeightReview(detail) {
         weightReview.replaceChildren();
         const title = addText(weightReview, 'div', 'ai-training-section-title', 'UČENÍ JEDNOTLIVÝCH PROMĚNNÝCH');
@@ -181,11 +194,14 @@ export function initAITrainingOverlay() {
         if (!questions.length) {
             addText(weightReview, 'p', 'ai-training-weight-empty',
                 'V tomto rozhodnutí není mezi legálními variantami dostatečný rozdíl v signálech pro samostatné hodnocení vah.');
+            completeReview(detail, preferredPieceId);
             return;
         }
 
+        const isHumanMove = detail.strategyVersion === 'human-move-observation-v1';
         addText(weightReview, 'p', 'ai-training-weight-intro',
-            'AI vybrala tah označený v rozboru. U každé proměnné urči, zda má tento tah podporovat. Odpověď změní pouze uvedenou váhu.');
+            (isHumanMove ? 'Ty jsi zvolil tento tah. ' : 'AI vybrala tento tah. ') +
+            'U každé proměnné urči, zda má posuzovaný tah podporovat. Odpověď změní pouze uvedenou váhu.');
         questions.forEach(question => {
             const card = document.createElement('article');
             card.className = 'ai-training-weight-card';
@@ -199,16 +215,24 @@ export function initAITrainingOverlay() {
                 ' · rozdíl signálu vybraného tahu: ' +
                 (question.signalDelta > 0 ? '+' : '') + question.signalDelta);
             addText(card, 'div', 'ai-training-weight-question',
-                'Má tato proměnná podpořit právě vybraný tah?');
+                'Má tato proměnná podpořit právě posuzovaný tah?');
             const actions = document.createElement('div');
             actions.className = 'ai-training-weight-actions';
             const result = addText(card, 'span', 'ai-training-weight-result', '');
+            const previousAnswer = detail.weightReviewAnswers?.[String(question.id)];
+            if (previousAnswer) {
+                card.dataset.answered = previousAnswer;
+                result.textContent = previousAnswer === 'unknown' ? 'Nevím – váha zůstala beze změny.' : 'Tato proměnná už byla v tomto rozhodnutí vyhodnocena.';
+            }
             const answer = async value => {
                 if (saving || card.dataset.answered) return;
                 if (value === 'unknown') {
+                    detail.weightReviewAnswers = detail.weightReviewAnswers || {};
+                    detail.weightReviewAnswers[String(question.id)] = 'unknown';
                     card.dataset.answered = 'unknown';
                     result.textContent = 'Nevím – váha zůstává beze změny.';
                     actions.querySelectorAll('button').forEach(button => { button.disabled = true; });
+                    if (questions.every(item => detail.weightReviewAnswers[String(item.id)])) completeReview(detail, preferredPieceId);
                     return;
                 }
                 saving = true;
@@ -225,10 +249,13 @@ export function initAITrainingOverlay() {
                         decisionId: String(detail.decisionId || detail.id || '')
                     });
                     setAIWeightOverrides(payload.values || {});
+                    detail.weightReviewAnswers = detail.weightReviewAnswers || {};
+                    detail.weightReviewAnswers[String(question.id)] = value;
                     card.dataset.answered = value;
                     result.textContent = 'Uloženo ihned: ' + before + ' → ' + payload.after +
                         ' · celkem úprav vah: ' + payload.feedbackCount;
                     saveStatus.textContent = 'Váha #' + question.id + ' změněna a uložena na server.';
+                    if (questions.every(item => detail.weightReviewAnswers[String(item.id)])) completeReview(detail, preferredPieceId);
                 } catch (error) {
                     result.textContent = error.message || 'Změnu váhy se nepodařilo uložit.';
                     actions.querySelectorAll('button').forEach(button => { button.disabled = false; });
@@ -241,6 +268,7 @@ export function initAITrainingOverlay() {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.textContent = label;
+                button.disabled = Boolean(previousAnswer);
                 button.addEventListener('click', () => answer(value));
                 actions.appendChild(button);
             });
@@ -260,8 +288,15 @@ export function initAITrainingOverlay() {
         const decision = detail.decision || {};
         const result = detail.result || {};
         const player = (game.players || []).find(item => Number(item.id) === Number(game.currentPlayer));
+        const isHumanMove = detail.strategyVersion === 'human-move-observation-v1';
         addText(analysis, 'div', 'ai-training-player', (detail.aiName || player?.name || 'AI') +
             ' · tah ' + (game.turnNumber ?? '—') + ' · hod ' + (game.diceValue ?? '—'));
+        if (!detail.result) {
+            addText(analysis, 'div', 'ai-training-pending',
+                isHumanMove
+                    ? 'Tvoje zvolená figurka zatím neudělala tah. Po hodnocení se tah provede.'
+                    : 'AI zatím neudělala tah. Čeká na tvoje hodnocení proměnných.');
+        }
 
         const usedInstructions = Array.isArray(decision.usedInstructions) ? decision.usedInstructions : [];
         if (decision.trainedKnowledge && usedInstructions.length) {
@@ -274,7 +309,7 @@ export function initAITrainingOverlay() {
                 'Načtení výuky se nezdařilo: ' + decision.knowledgeError);
         }
 
-        addText(analysis, 'div', 'ai-training-section-title', 'CO AI UDĚLALA');
+        addText(analysis, 'div', 'ai-training-section-title', isHumanMove ? 'TVŮJ ZVOLENÝ TAH' : 'CO AI VYBRALA');
         addText(analysis, 'p', 'ai-training-explanation',
             cleanExplanation(decision.explanation) || 'AI zatím nemá taktické zkušenosti. Vybrala legální tah podle aktuálního způsobu výběru.');
 
@@ -299,10 +334,12 @@ export function initAITrainingOverlay() {
                 choose.type = 'button';
                 choose.className = 'ai-training-candidate-choice';
                 choose.textContent = 'Učit: figurka ' + (pieceId + 1) + (chosen ? ' (zvolená)' : '') + (taught ? ' ✓' : '');
-                choose.disabled = saving;
+                choose.disabled = saving || Object.keys(currentDecision.weightReviewAnswers || {}).length > 0;
                 choose.addEventListener('click', () => {
                     preferredPieceId = pieceId;
                     currentDecision.decision.preferredPieceId = pieceId;
+                    currentDecision.weightReviewQuestions = null;
+                    currentDecision.weightReviewAnswers = {};
                     renderDecision(currentDecision);
                     input.focus();
                     setSubmitState();
@@ -371,6 +408,7 @@ export function initAITrainingOverlay() {
     input.addEventListener('input', setSubmitState);
     skip.addEventListener('click', () => {
         if (!currentDecision || saving) return;
+        completeReview(currentDecision, preferredPieceId);
         reviewedDecisionIds.add(String(currentDecision.decisionId || currentDecision.id));
         currentDecision = null;
         preferredPieceId = null;
@@ -412,6 +450,7 @@ export function initAITrainingOverlay() {
             if (!response.ok || !payload.success || !payload.id) {
                 throw new Error(payload.error || 'Záznam se nepodařilo uložit.');
             }
+            completeReview(currentDecision, preferredPieceId);
             reviewedDecisionIds.add(String(decisionToSave.decisionId || decisionToSave.id));
             currentDecision = null;
             preferredPieceId = null;
@@ -482,9 +521,15 @@ export function initAITrainingOverlay() {
         if (!detail || typeof detail !== 'object') return;
         const key = String(detail.decisionId || detail.id || '');
         const index = decisionHistory.findIndex(item => String(item.decisionId || item.id) === key);
-        if (index >= 0) decisionHistory[index] = detail;
-        else decisionHistory.push(detail);
-        updateDecisionHistory(key, true);
+        if (index >= 0) {
+            const previous = decisionHistory[index];
+            detail.weightReviewQuestions ||= previous.weightReviewQuestions;
+            detail.weightReviewAnswers ||= previous.weightReviewAnswers;
+            detail.reviewCompleted ||= previous.reviewCompleted;
+            decisionHistory[index] = detail;
+        } else decisionHistory.push(detail);
+        if (detail.result) renderDecision(detail);
+        else updateDecisionHistory(key, true);
     });
 
     getToken().catch(error => {

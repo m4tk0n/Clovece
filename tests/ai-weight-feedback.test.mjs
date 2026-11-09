@@ -20,8 +20,14 @@ test('server overrides immediately replace exactly the selected numeric weight',
 test('weight metadata distinguishes trainable values from system-only slots', () => {
     assert.equal(getAIWeightMetadata(1).name, 'w_capture');
     assert.match(getAIWeightMetadata(61).desc, /vzdálenosti 1/);
+    assert.equal(getAIWeightMetadata(151).name, 'extended_metric_beta_1');
+    assert.equal(getAIWeightMetadata(211).name, 'threat_distance_weight_1');
+    assert.equal(getAIWeightMetadata(321).name, 'piece_coordination_w_1');
+    assert.equal(getAIWeightMetadata(681).name, 'heuristic_bias_v1');
+    assert.equal(getAIWeightMetadata(961).name, 'aux_tuning_weight_961');
     assert.equal(getAIWeightMetadata(401).name, 'obtiznost_lehka_agrese');
     assert.equal(isTrainableAIWeight(416), true);
+    assert.equal(Array.from({ length: 1000 }, (_, index) => index + 1).filter(isTrainableAIWeight).length, 876);
     assert.equal(isTrainableAIWeight(417), false);
     assert.equal(isTrainableAIWeight(500), false);
     assert.equal(isTrainableAIWeight(1000), false);
@@ -63,6 +69,13 @@ test('trainer UI applies yes/no feedback and observes human moves as well as AI 
     assert.match(turn, /createHumanTrainingDecision/);
     assert.match(turn, /human-move-observation-v1/);
     assert.match(turn, /clovece:ai-training-decision/);
+    assert.match(turn, /waitForTrainingReview/);
+    assert.match(turn, /clovece:ai-training-review-complete/);
+    assert.match(turn, /return reviewPromise\.then/);
+    assert.match(turn, /executeMove\(finalPieceId, humanTrainingDecision\)/);
+    assert.match(panel, /Tvoje zvolená figurka zatím neudělala tah/);
+    assert.match(panel, /completeReview\(detail/);
+    assert.match(panel, /clovece:ai-training-review-complete/);
     assert.match(strategy, /weightSignals: weightSignals\.map/);
 });
 
