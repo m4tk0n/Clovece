@@ -536,7 +536,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
         const pieceThreat = afterPiece && isMainTrackPiece(afterPiece, state.trackLength)
             ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies) : 0;
         const startRisk = estimateOpponentStartSquareRisk(state, playerId, candidate.pieceId);
-        const startFieldRisk = -clampSignal(Math.max(pieceThreat, startRisk.risk * pieceThreat));
+        const startFieldRisk = -clampSignal(Math.max(pieceThreat, startRisk.risk));
         const diceSimulation = simulateNextDiceOutcomes(state, playerId, dependencies);
         const bonusContinuation = clampSignal(diceSimulation.filter(item => item.bonusRoll).length / 6);
         const flexibility = clampSignal(diceSimulation.reduce((sum, item) => sum + Math.min(4, item.legalMoveCount), 0) / 24);
