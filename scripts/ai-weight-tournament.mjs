@@ -10,6 +10,7 @@ import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
 import { chooseTacticalTeacherDecision } from '../js/ai-strategy.js';
+import { chooseStrategicDecision as chooseOriginalStrategicDecision } from '../js/ai-original-baseline.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
     const match = value.match(/^--([^=]+)=(.*)$/);
@@ -17,6 +18,7 @@ const args = Object.fromEntries(process.argv.slice(2).map(value => {
 }));
 const candidatePath = path.resolve(String(args.candidate || 'artifacts/ai-tactical-weights-candidate.json'));
 const baselinePath = path.resolve(String(args.baseline || 'config/ai-tactical-weights.json'));
+const originalBaselinePath = path.resolve(String(args['original-baseline'] || 'config/ai-original-baseline.json'));
 const outputPath = path.resolve(String(args.output || 'artifacts/ai-weight-tournament-report.json'));
 const gamesPerBoard = Math.max(24, Math.min(2000, Number(args['games-per-board']) || 120));
 const maxActions = Math.max(1000, Number(args['max-actions']) || 20000);
@@ -56,21 +58,27 @@ function makeRandom(initialSeed) {
     return () => ((state = (1664525 * state + 1013904223) >>> 0) / 0x100000000);
 }
 
-const baselineConfig = readJson(baselinePath);
+const activeConfig = readJson(baselinePath);
+const originalConfig = readJson(originalBaselinePath);
 const candidateConfig = readJson(candidatePath);
-const baseline = baselineConfig.weights;
+const activeWeights = activeConfig.weights;
+const originalWeights = originalConfig.weights;
 const candidate = candidateConfig.weights;
-assertWeights(baseline, 'Aktivní váhy');
+assertWeights(activeWeights, 'Aktivní deset vah');
 assertWeights(candidate, 'Kandidát');
-if (!sameWeights(candidateConfig.basedOnWeights, baseline)) {
+if (!originalWeights || !Number.isFinite(Number(originalWeights.immediateWin)) ||
+    ['ownProgress','opponentSetback','threatReduction','captureOpponent','captureOwn','finishPiece','deployPiece','enterHome','homeProgress'].some(key => !Number.isFinite(Number(originalWeights[key])))) {
+    throw new Error('Původní AI baseline nemá úplnou devítiváhovou konfiguraci.');
+}
+if (!sameWeights(candidateConfig.basedOnWeights, activeWeights)) {
     throw new Error('Kandidát vychází z jiné aktivní sady vah. Turnaj byl zastaven, aby nepřepsal novější verzi.');
 }
-if (sameWeights(candidate, baseline)) throw new Error('Kandidát je totožný s aktivní sadou vah.');
+if (sameWeights(candidate, activeWeights)) throw new Error('Kandidát je totožný s aktivní sadou vah.');
 
 const dependencies = { getValidMoves, movePiece, rollDice };
 const report = {
     format: 'clovece-ai-tactical-weight-tournament',
-    formatVersion: 2,
+    formatVersion: 3,
     createdAt: new Date().toISOString(),
     seed,
     gamesPerBoard,
@@ -78,9 +86,12 @@ const report = {
     gamesCompleted: 0,
     gamesTruncated: 0,
     invalidMoves: 0,
-    baselineWeights: baseline,
+    baselineType: 'original-1000-weight-ai-snapshot',
+    baselineSourceCommit: originalConfig.sourceCommit || null,
+    baselineWeights: originalWeights,
+    activeWeights,
     candidateWeights: candidate,
-    delta: Object.fromEntries(weightKeys.map(key => [key, Number((candidate[key] - baseline[key]).toFixed(8))])),
+    delta: Object.fromEntries(weightKeys.map(key => [key, Number((candidate[key] - activeWeights[key]).toFixed(8))])),
     boards: {},
     overall: {
         candidateWins: 0,
@@ -140,7 +151,9 @@ for (let boardIndex = 0; boardIndex < boards.length; boardIndex++) {
                 continue;
             }
             const isCandidate = game.currentPlayer === candidateSeat;
-            const decision = chooseTacticalTeacherDecision(game, dependencies, isCandidate ? candidate : baseline);
+            const decision = isCandidate
+                ? chooseTacticalTeacherDecision(game, dependencies, candidate)
+                : chooseOriginalStrategicDecision(game, dependencies, 'medium', () => 0, {}, null);
             if (!decision || !legalMoves.includes(decision.pieceId)) {
                 report.invalidMoves++;
                 throw new Error('AI zvolila nelegální tah; turnaj je neplatný.');
@@ -191,7 +204,7 @@ const statisticallyBetter = completed === gamesPerBoard * boards.length && bette
 report.accepted = everyBoardHasCoverage && report.invalidMoves === 0 &&
     report.gamesTruncated === 0 && statisticallyBetter;
 report.decision = report.accepted
-    ? 'ACCEPTED: kandidát statisticky překonal rovnoměrnou základní šanci na všech třech podporovaných kombinacích.'
+    ? 'ACCEPTED: desetiváhová AI statisticky překonala původní 1000-váhovou AI na všech třech podporovaných kombinacích.'
     : 'REJECTED: kandidát nesplnil statistickou hranici na každé kombinaci, pokrytí všech her nebo ochranu proti neplatným a nedokončeným partiím.';
 report.safeguards = {
     sameProductionEngineAndRules: true,
@@ -199,6 +212,9 @@ report.safeguards = {
     candidateSeatRotatedAcrossAllPlayers: true,
     boardConfigurations: boards,
     baselineOpponentsPerGame: [3, 5, 7],
+    originalAIBaseline: true,
+    originalBaselineSourceCommit: originalConfig.sourceCommit || null,
+    candidateUsesTenNamedWeights: true,
     overallMinimumGames: gamesPerBoard * boards.length,
     wilson95LowerBoundMustExceedRandomWinRateOnEveryBoard: true,
     noTruncatedGames: true,
