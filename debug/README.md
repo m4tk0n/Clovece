@@ -8,7 +8,7 @@ Tento adresář je oddělené experimentální prostředí projektu Člověče, 
 - Experimentální HTML/PHP, CSS a JavaScript patří do tohoto adresáře.
 - Změny v `debug/` samy o sobě nemění produkční herní obrazovku ani její styly.
 - Debug stránka používá vlastní kopie herního enginu, AI strategie a konfigurace v `debug/js/`.
-- Kopie se do debug adresáře nepřenášejí automaticky. Aktualizují se ručně, aby experimenty nemohly změnit hlavní hru.
+- Kopie se do debug adresáře nepřenášejí automaticky a ověřené změny se do hlavní hry přenášejí ručně, aby experimenty nemohly změnit produkční hru.
 - Po úpravách a úspěšném ověření se vybrané změny ručně přenesou do hlavních souborů.
 - Testovací přepsání vah je pouze v paměti aktuální stránky; neukládá je do databáze ani do produkční konfigurace.
 - Neprováděj z debug stránky zápisy do produkční databáze.
