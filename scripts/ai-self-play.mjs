@@ -8,7 +8,8 @@ import path from 'node:path';
 import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
-import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures, AI_TACTICAL_WEIGHTS } from '../js/ai-strategy.js';
+import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
+import { AI_WEIGHT_KEYS, getAIStrategicWeights } from '../js/ai-weight-config.js';
 import { AI_FEATURE_COUNT, AI_FEATURE_SCHEMA_VERSION, extractAIMoveFeatures } from '../js/ai-neural-network.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
@@ -79,8 +80,8 @@ let totalDecisions = 0;
 const summary = {
     format: 'clovece-ai-self-play-report',
     formatVersion: 2,
-    weightSchemaVersion: 2,
-    weightKeys: Object.keys(AI_TACTICAL_WEIGHTS),
+    weightSchemaVersion: 3,
+    weightKeys: AI_WEIGHT_KEYS,
     featureSchemaVersion: AI_FEATURE_SCHEMA_VERSION,
     featureCount: AI_FEATURE_COUNT,
     createdAt: new Date().toISOString(),
@@ -140,9 +141,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
         if (!decision || !legalMoves.includes(decision.pieceId)) {
             throw new Error('AI vrátila tah mimo seznam legálních tahů.');
         }
-        // Self-play sbírá zkušenosti podle stejné devítiparametrové
-        // behavior policy, kterou ověřuje reward trenér. Produkční AI nadále
-        // rozhoduje podle úplného taktického skóre včetně 1000-slot vrstvy.
+        // Self-play používá stejných deset signálů a vah jako produkční rozhodování AI.
         const trainingRanking = decision.ranking.map(item => ({
             ...item,
             score: item.trainingScore
@@ -177,7 +176,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             selectedProbability: sampledDecision.probability,
             policyTemperature: explorationTemperature,
             weightSchemaVersion: 2,
-            behaviorWeights: AI_TACTICAL_WEIGHTS,
+            behaviorWeights: getAIStrategicWeights(),
             selectedFeatures: extractAIMoveFeatures(game, {
                 ...selected,
                 probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies),
