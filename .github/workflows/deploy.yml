@@ -26,6 +26,12 @@ jobs:
             **/.git*/**
             **/.github/**
             .env
+            js/ai-original-baseline.js
+            js/ai-original-weight-config.js
+            js/ai-original-tactical-weights.js
+            js/ai-neural-network.js
+            js/models/**
+            config/ai-original-baseline.json
             scripts/**
             tests/
             package.json
