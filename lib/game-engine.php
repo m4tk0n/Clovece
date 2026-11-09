@@ -589,7 +589,7 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
     foreach ($valid as $pieceId) {
         $simulation = json_decode(json_encode($game, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
         $move = onlineEngineMovePiece($simulation, (int) $pieceId);
-        $winning = (int) ($simulation['winner'] ?? -1) === $playerId;
+        $winning = ($simulation['winner'] ?? null) !== null && (int) $simulation['winner'] === $playerId;
         $beforeSteps = (int) ($game['pieces'][$playerId]['pieces'][$pieceId]['steps'] ?? -1);
         $afterSteps = (int) ($simulation['pieces'][$playerId]['pieces'][$pieceId]['steps'] ?? -1);
         $deployed = !empty($move['deployed']) || ($beforeSteps === -1 && $afterSteps >= 0);
