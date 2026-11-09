@@ -23,7 +23,7 @@ Všechny signály jsou normalizované a mají pevně daný význam. Učit lze po
 | 9 | `startFieldRisk` | 18 | Riziko na startovních polích soupeřů |
 | 10 | `flexibility` | 4 | Zachování více použitelných možností pro další tah |
 
-Konfigurace je v `js/ai-weight-config.js`; definice a limity jsou u každé váhy. Serverové PHP čte odpovídající hodnoty z `config/ai-tactical-weights.json`. Lidská zpětná vazba smí měnit pouze ID 1–10.
+Konfigurace je v `js/ai-weight-config.js`; definice a limity jsou u každé váhy. Serverové PHP čte odpovídající hodnoty z `config/ai-tactical-weights.json`. Lidská zpětná vazba smí měnit pouze ID 1–10. Soubor `ai-learned-weights.json` používá schéma `ai-weights-10-v1`; stejné přepsané hodnoty načítá lokální JavaScript i online PHP. Starý soubor z původního 1000-slot modelu se ignoruje.
 
 ## Rozhodování a simulace
 
