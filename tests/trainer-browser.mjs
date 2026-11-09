@@ -58,7 +58,8 @@ try {
       !document.querySelector('#main-menu').classList.contains('hidden');
   }, null, { timeout: 60000 });
 
-  await page.waitForFunction(() => Boolean(window.__cloveceTest?.start), {
+  await page.evaluate(async () => { await import('./js/test-runner.js'); });
+  await page.waitForFunction(() => window.__cloveceTestRunnerReady === true && Boolean(window.__cloveceTest?.start), {
     timeout: 30000
   });
 
