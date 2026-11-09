@@ -534,6 +534,34 @@ function onlineEngineAiTacticalWeights(): array
             $weights[$key] = (float) $configured[$key];
         }
     }
+    // Stejné lidské zpětné vazby používá lokální JS i online PHP AI.
+    $learnedPath = dirname(__DIR__) . '/ai-learned-weights.json';
+    if (is_file($learnedPath) && !is_link($learnedPath)) {
+        $learned = json_decode((string) file_get_contents($learnedPath), true);
+        if (is_array($learned)
+            && (int) ($learned['version'] ?? 0) === 2
+            && ($learned['schema'] ?? '') === 'ai-weights-10-v1'
+            && is_array($learned['values'] ?? null)) {
+            $ids = [
+                'progressToGoal' => [1, 0.0, 20.0],
+                'finishPiece' => [2, 0.0, 300.0],
+                'captureOpponent' => [3, 0.0, 100.0],
+                'protectOwn' => [4, 0.0, 100.0],
+                'threatenOpponent' => [5, 0.0, 100.0],
+                'deployPiece' => [6, 0.0, 80.0],
+                'homeProgress' => [7, 0.0, 120.0],
+                'bonusContinuation' => [8, 0.0, 80.0],
+                'startFieldRisk' => [9, 0.0, 120.0],
+                'flexibility' => [10, 0.0, 40.0],
+            ];
+            foreach ($ids as $key => [$id, $min, $max]) {
+                $value = $learned['values'][(string) $id] ?? null;
+                if (is_numeric($value) && is_finite((float) $value)) {
+                    $weights[$key] = max($min, min($max, (float) $value));
+                }
+            }
+        }
+    }
     return $weights;
 }
 
