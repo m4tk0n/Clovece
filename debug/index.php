@@ -31,7 +31,7 @@ $html = str_replace('src="js/bootstrap.js', 'src="debug/js/bootstrap.js', $html)
 // Relativní importy mezi debug moduly se tak po každém FTP nasazení obnoví,
 // aniž bychom museli měnit jejich názvy nebo zasahovat do produkčního index.php.
 $html = preg_replace_callback(
-    '/<script type="importmap">\\s*(.*?)\\s*<\\/script>/is',
+    '/<script type="importmap">\s*(.*?)\s*<\/script>/is',
     static function (array $match): string {
         $map = json_decode($match[1], true);
         if (!is_array($map) || !is_array($map['imports'] ?? null)) {
