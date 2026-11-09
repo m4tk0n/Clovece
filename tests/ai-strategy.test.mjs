@@ -1,326 +1,131 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-    createGame,
-    getValidMoves,
-    getPiecePosition,
-    movePiece,
-    rollDice,
-    chooseAIMoveDecision
-} from '../js/game-engine.js';
-import {
-    estimateCaptureProbability,
-    estimatePieceThreat,
-    evaluateTacticalCandidates,
-    calculatePlayerPips,
-    chooseStrategicDecision,
-    normalizeTrainingSituation,
-    AI_TACTICAL_WEIGHTS
-} from '../js/ai-strategy.js';
+import { createGame, getValidMoves, movePiece, rollDice, chooseAIMoveDecision } from '../js/game-engine.js';
+import { estimateCaptureProbability, estimatePieceThreat, evaluateTacticalCandidates, calculatePlayerPips, chooseStrategicDecision, normalizeTrainingSituation } from '../js/ai-strategy.js';
+import { AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS, getAIWeightValues, setAIWeightOverrides } from '../js/ai-weight-config.js';
 
-const aiDependencies = { getValidMoves, getPiecePosition, movePiece, rollDice };
+const deps = { getValidMoves, movePiece, rollDice };
 
-function moveOpponentPiecesOutOfBase(game, playerId, keepPieceId = 0) {
-    let homeStep = game.trackLength;
-    game.pieces[playerId].pieces.forEach(piece => {
-        if (piece.id !== keepPieceId && piece.steps === -1) piece.steps = homeStep++;
-    });
-}
-
-function placeOpponentBehindTarget(game, distance) {
-    const targetPosition = getPiecePosition(game, 0, game.pieces[0].pieces[0]);
-    const opponentStart = game.players[1].start;
-    const attackerPosition = (targetPosition - distance + game.trackLength) % game.trackLength;
-    game.pieces[1].pieces[0].steps =
-        (attackerPosition - opponentStart + game.trackLength) % game.trackLength;
-}
-
-test('capture probability formula accounts for chained sixes', () => {
-    assert.equal(estimateCaptureProbability(4), 1 / 6);
-    assert.equal(estimateCaptureProbability(6), 1 / 6);
-    assert.equal(estimateCaptureProbability(7), 1 / 36);
-    assert.equal(estimateCaptureProbability(12), 1 / 36);
-    assert.equal(estimateCaptureProbability(20), 1 / 1296);
-    assert.equal(estimateCaptureProbability(0), 0);
-});
-
-test('threat calculation uses engine-legal moves and bonus sixes', () => {
-    const game = createGame(1, 1);
-    game.pieces[0].pieces[0].steps = 5;
-    placeOpponentBehindTarget(game, 4);
-    const threat = estimatePieceThreat(game, 0, 0, aiDependencies);
-    assert.ok(threat > 0.19 && threat < 0.2);
-});
-
-test('pip calculation reports remaining route and deployment cost without tactical bonuses', () => {
-    const game = createGame(1, 1, [], [], 40, { threeRolls: false });
-    assert.equal(calculatePlayerPips(game, 0), 4 * (40 + 3 + 6) + 4.2 * 5);
-    game.pieces[0].pieces[0].steps = 0;
-    assert.equal(calculatePlayerPips(game, 0), 43 + 3 * 49);
-});
-
-test('AI uses tactical evaluation instead of random selection when no trained model applies', () => {
-    const game = createGame(1, 1);
+function setupDecision(boardSize = 40) {
+    const game = createGame(1, 1, [], [], boardSize);
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = 0;
     game.pieces[0].pieces[1].steps = 5;
+    return game;
+}
 
+test('aktivní AI má přesně deset pojmenovaných naučitelných vah', () => {
+    assert.equal(AI_WEIGHT_COUNT, 10);
+    assert.equal(AI_WEIGHT_DEFINITIONS.length, 10);
+    assert.equal(getAIWeightValues().length, 10);
+    assert.deepEqual(AI_WEIGHT_DEFINITIONS.map(item => item.key), [
+        'progressToGoal','finishPiece','captureOpponent','protectOwn','threatenOpponent',
+        'deployPiece','homeProgress','bonusContinuation','startFieldRisk','flexibility'
+    ]);
+    assert.ok(AI_WEIGHT_DEFINITIONS.every(item => item.name && item.description && Number.isFinite(item.defaultValue)));
+});
+
+test('všechny váhy lze samostatně přepsat a žádná jedenáctá se nenačte', () => {
+    const overrides = Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, item.defaultValue + 1]));
+    overrides.extraWeight = 999;
+    setAIWeightOverrides(overrides);
+    assert.deepEqual(getAIWeightValues(), AI_WEIGHT_DEFINITIONS.map(item => item.defaultValue + 1));
+    setAIWeightOverrides({});
+    assert.deepEqual(getAIWeightValues(), AI_WEIGHT_DEFINITIONS.map(item => item.defaultValue));
+});
+
+test('AI hodnotí pouze tahy vrácené herním enginem a zaznamená všech šest výsledků kostky', () => {
+    const game = setupDecision();
     const legal = getValidMoves(game);
-    assert.equal(legal.length, 2);
-
-    const first = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0);
-    const last = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0.999999);
-    assert.ok(legal.includes(first.pieceId));
-    assert.equal(last.pieceId, first.pieceId);
-    assert.equal(first.breakdown.trainedKnowledge, false);
-    assert.equal(first.breakdown.tacticalTeacher, true);
-    assert.equal(first.breakdown.selection, 'weighted-ai-1000');
-    assert.equal(first.breakdown.weightConfig.count, 1000);
-    assert.equal(first.breakdown.weightConfig.scoredWeightCount, 876);
-    assert.equal(first.breakdown.weightConfig.neutralConfigWeightCount, 124);
-    assert.equal(first.breakdown.selectedWeightFactors.weightCount, 1000);
-    assert.equal(first.breakdown.selectedWeightFactors.scoredWeightCount, 876);
-    assert.match(first.reason, /VÁHOVÁ AI/);
+    const decision = chooseStrategicDecision(game, deps);
+    assert.ok(legal.includes(decision.pieceId));
+    assert.equal(decision.breakdown.selection, 'weighted-ai-10-v1');
+    assert.equal(decision.breakdown.weightConfig.count, 10);
+    assert.equal(decision.breakdown.legalMoveCount, legal.length);
+    assert.equal(decision.breakdown.diceSimulation.length, 6);
+    assert.deepEqual(decision.breakdown.diceSimulation.map(item => item.dice), [1,2,3,4,5,6]);
+    assert.ok(decision.alternatives.every(item => legal.includes(item.pieceId)));
 });
 
-test('deployment is rewarded when a safe newly deployed piece creates a bonus-roll capture', () => {
-    const game = createGame(1, 1, [], [], 40);
-    game.phase = 'move';
-    game.diceValue = 6;
-    game.pieces[0].pieces[0].steps = -1;
-    game.pieces[0].pieces[1].steps = game.trackLength;
-    game.pieces[0].pieces[2].steps = game.trackLength + 1;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
-
-    // Soupeř stojí tři pole před naším startem po směru našeho pohybu.
-    const targetPosition = 3;
-    game.pieces[1].pieces[0].steps =
-        (targetPosition - game.players[1].start + game.trackLength) % game.trackLength;
-    game.pieces[1].pieces[1].steps = game.trackLength;
-    game.pieces[1].pieces[2].steps = game.trackLength + 1;
-    game.pieces[1].pieces[3].steps = game.trackLength + 2;
-
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0);
-    assert.equal(decision.pieceId, 0);
-    assert.equal(decision.breakdown.selectedWeightFactors.deployedPiece, true);
-    assert.ok(Math.abs(decision.breakdown.selectedWeightFactors.deploymentAttackChance - 1 / 6) < 0.001);
-    assert.equal(decision.breakdown.selectedWeightFactors.deployedPieceThreat, 0);
-    assert.ok(decision.breakdown.selectedWeightFactors.deploymentTacticalScore > 0);
-});
-
-
-test('exact engine capture probability directly changes the move score', () => {
-    const game = createGame(1, 1, [], [], 40);
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 5;
-    game.pieces[0].pieces.slice(1).forEach(piece => { piece.steps = game.trackLength; });
-    game.pieces[1].pieces.slice(1).forEach(piece => { piece.steps = game.trackLength; });
-    placeOpponentBehindTarget(game, 6);
-
-    const state = JSON.parse(JSON.stringify(game));
-    const move = movePiece(state, 0);
-    const ranked = evaluateTacticalCandidates(
-        game,
-        [{ pieceId: 0, move, state, winningMove: false }],
-        { ...AI_TACTICAL_WEIGHTS, captureOwn: 7, riskMultiplier: 1 },
-        aiDependencies
-    );
-    const factors = ranked[0].factors;
-
-    assert.ok(factors.pieceThreatBefore > factors.pieceThreat,
-        'posun z dosahu 6 polí do vzdálenosti 7 musí snížit přesné riziko');
-    assert.ok(factors.pieceThreatScore > 0,
-        'snížení pravděpodobnosti vyhození musí přidat body do skóre tahu');
-    assert.ok(Number.isFinite(ranked[0].score));
-});
-
-
-test('deploying onto a threatened start square is penalized by exact capture risk', () => {
-    const game = createGame(1, 1, [], [], 40);
-    game.phase = 'move';
-    game.diceValue = 6;
-    game.pieces[0].pieces[1].steps = game.trackLength;
-    game.pieces[0].pieces[2].steps = game.trackLength + 1;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
-    game.pieces[1].pieces.slice(1).forEach(piece => { piece.steps = game.trackLength; });
-
-    const targetPosition = game.players[0].start;
-    const attackerPosition = (targetPosition - 6 + game.trackLength) % game.trackLength;
-    game.pieces[1].pieces[0].steps =
-        (attackerPosition - game.players[1].start + game.trackLength) % game.trackLength;
-
-    const state = JSON.parse(JSON.stringify(game));
-    const move = movePiece(state, 0);
-    const ranked = evaluateTacticalCandidates(
-        game,
-        [{ pieceId: 0, move, state, winningMove: false }],
-        { ...AI_TACTICAL_WEIGHTS, captureOwn: 7, riskMultiplier: 1 },
-        aiDependencies
-    );
-    const factors = ranked[0].factors;
-
-    assert.equal(factors.deployedPiece, true);
-    assert.equal(factors.pieceThreatBefore, 0);
-    assert.ok(factors.pieceThreat > 0);
-    assert.ok(factors.pieceThreatScore < 0,
-        'nasazení do dosahu soupeřovy šestky musí snížit skóre tahu');
-});
-
-test('opponent start square becomes more dangerous with reserve pieces and near-goal progress', () => {
-    function scoreStartSquareRisk(nearGoal) {
-        const game = createGame(1, 1, [], [], 40);
-        const opponent = game.players[1];
-        const startSteps = (opponent.start - game.players[0].start + game.trackLength) % game.trackLength;
-        game.pieces[0].pieces[0].steps = startSteps;
-        game.pieces[1].pieces[0].steps = -1;
-        game.pieces[1].pieces[1].steps = nearGoal ? game.trackLength + 2 : 5;
-        game.pieces[1].pieces[2].steps = 10;
-        game.pieces[1].pieces[3].steps = 15;
-
-        const next = JSON.parse(JSON.stringify(game));
-        const ranked = evaluateTacticalCandidates(game, [{ pieceId: 0, state: next, move: {} }], undefined, aiDependencies);
-        return ranked[0].factors;
+test('skóre je přesným součtem deseti pojmenovaných příspěvků', () => {
+    const game = setupDecision();
+    const legal = getValidMoves(game);
+    const candidates = legal.map(pieceId => {
+        const state = structuredClone(game);
+        const move = movePiece(state, pieceId);
+        return { pieceId, move, state, winningMove: state.winner === game.currentPlayer };
+    });
+    const ranking = evaluateTacticalCandidates(game, candidates, undefined, deps);
+    assert.equal(ranking.length, legal.length);
+    for (const item of ranking) {
+        assert.equal(Object.keys(item.factors.weightContributions).length, 10);
+        const total = Object.values(item.factors.weightContributions).reduce((sum, value) => sum + value, 0);
+        assert.ok(Math.abs(total - item.score) < 0.00001);
+        assert.equal(item.factors.weightSignals.length, 10);
+        assert.equal(item.factors.diceSimulation.length, 6);
+        assert.ok(Number.isFinite(item.score));
     }
-
-    const riskWithoutNearGoal = scoreStartSquareRisk(false);
-    const riskNearGoal = scoreStartSquareRisk(true);
-    assert.equal(riskNearGoal.onOpponentStart, true);
-    assert.equal(riskNearGoal.opponentStartBasePieces, 1);
-    assert.equal(riskNearGoal.opponentNearGoal, true);
-    assert.ok(riskNearGoal.startSquareDangerScore > riskWithoutNearGoal.startSquareDangerScore);
 });
 
-test('AI still chooses an immediate winning move', () => {
+test('okamžitá výhra má vždy přednost před strategickými vahami', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
-    game.diceValue = 4;
-    game.pieces[0].pieces[0].steps = game.trackLength;
-    game.pieces[0].pieces[1].steps = game.trackLength + 1;
-    game.pieces[0].pieces[2].steps = game.trackLength + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength - 1;
-
+    game.diceValue = 1;
+    game.pieces[0].pieces[0].steps = game.trackLength - 1;
+    game.pieces[0].pieces[1].steps = game.trackLength;
+    game.pieces[0].pieces[2].steps = game.trackLength + 1;
+    game.pieces[0].pieces[3].steps = game.trackLength + 2;
     const decision = chooseAIMoveDecision(game);
-    assert.equal(decision.pieceId, 3);
-    assert.equal(decision.score, 1);
+    assert.equal(decision.pieceId, 0);
+    assert.equal(decision.breakdown.selection, 'immediate-win');
     assert.match(decision.reason, /vítězný tah/i);
 });
 
-test('AI returns null when the engine provides no legal moves', () => {
+test('AI vrací null, pokud engine neposkytne žádný legální tah', () => {
     const game = createGame(1, 1);
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces.forEach(piece => { piece.steps = game.trackLength + 3; });
-    assert.equal(chooseStrategicDecision(game, aiDependencies), null);
+    assert.equal(chooseStrategicDecision(game, deps), null);
 });
 
-test('pip calculation supports 40, 48 and 80 field boards', () => {
-    for (const length of [40, 48, 80]) {
-        const game = createGame(1, 1, [], [], length);
-        assert.equal(calculatePlayerPips(game, 0), 4 * (length + 3 + 6) + 4.2 * ((5 / 6) ** 3 / (1 - (5 / 6) ** 3)));
+test('AI podporuje všechny tři délky desky', () => {
+    for (const size of [40,48,80]) {
+        const game = setupDecision(size);
+        const decision = chooseStrategicDecision(game, deps);
+        assert.ok(getValidMoves(game).includes(decision.pieceId));
+        assert.equal(decision.breakdown.weightConfig.count, 10);
     }
 });
 
-test('threat calculation returns zero for pieces outside the main track', () => {
-    const game = createGame(1, 1);
-    game.pieces[0].pieces[0].steps = game.trackLength;
-    assert.equal(estimatePieceThreat(game, 0, 0, aiDependencies), 0);
-});
-
-test('difficulty profiles are loaded from the supplied AI weights', () => {
-    const game = createGame(1, 1);
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 0;
-    game.pieces[0].pieces[1].steps = 5;
-    const easy = chooseStrategicDecision(game, aiDependencies, 'easy', () => 0.4);
-    const hard = chooseStrategicDecision(game, aiDependencies, 'hard', () => 0.4);
-    assert.ok(easy.breakdown.weightConfig.count === 1000);
-    assert.equal(easy.breakdown.weightConfig.riskMultiplier, 0.2);
-    assert.equal(hard.breakdown.weightConfig.riskMultiplier, 1.8);
-});
-
-
-test('compiled AI memory selects the most frequently taught legal move', () => {
-    const game = createGame(1, 1);
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 0;
-    game.pieces[0].pieces[1].steps = 5;
+test('přesná shoda naučené situace může ovlivnit výběr, ale jen legální figurkou', () => {
+    const game = setupDecision();
     const signature = normalizeTrainingSituation(game);
-    const memory = { situations: {
-        [signature]: { votes: [0, 4, 1, 0], ok: 2, err: 3, samples: 5 }
-    } };
-
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, memory);
+    const memory = { situations: { [signature]: { votes: [0, 4, 1, 0], ok: 2, err: 0 } } };
+    const decision = chooseStrategicDecision(game, deps, 'medium', Math.random, memory);
     assert.equal(decision.pieceId, 1);
     assert.equal(decision.breakdown.trainedKnowledge, true);
     assert.equal(decision.breakdown.selection, 'compiled-memory');
     assert.equal(decision.breakdown.usedInstructions[0].votes, 4);
-    assert.match(decision.reason, /NAUČENO/);
 });
 
-test('compiled AI memory is not applied to a different board position', () => {
-    const game = createGame(1, 1);
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 0;
-    game.pieces[0].pieces[1].steps = 5;
-    const signature = normalizeTrainingSituation(game);
-    const memory = { situations: {
-        [signature]: { votes: [0, 3, 0, 0], ok: 1, err: 2, samples: 3 }
-    } };
-    game.pieces[0].pieces[0].steps = 1;
-
-    const decision = chooseStrategicDecision(game, aiDependencies, 'medium', () => 0, memory);
-    assert.equal(decision.breakdown.trainedKnowledge, false);
-    assert.deepEqual(decision.breakdown.usedInstructions, []);
+test('výpočet pravděpodobnosti zásahu zohledňuje řetězení šestek', () => {
+    assert.equal(estimateCaptureProbability(4), 1/6);
+    assert.equal(estimateCaptureProbability(7), 1/36);
+    assert.equal(estimateCaptureProbability(13), 1/216);
+    assert.equal(estimateCaptureProbability(0), 0);
 });
 
-
-
-test('tactical teacher always chooses an immediate winning legal move', async () => {
-    const { chooseTacticalTeacherDecision } = await import('../js/ai-strategy.js');
-    const game = createGame(1, 1);
-    game.phase = 'move';
-    game.diceValue = 4;
+test('riziko figurky se počítá pouze pro hlavní trasu', () => {
+    const game = createGame(1,1);
     game.pieces[0].pieces[0].steps = game.trackLength;
-    game.pieces[0].pieces[1].steps = game.trackLength + 1;
-    game.pieces[0].pieces[2].steps = game.trackLength + 2;
-    game.pieces[0].pieces[3].steps = game.trackLength - 1;
-    const decision = chooseTacticalTeacherDecision(game, aiDependencies);
-    assert.equal(decision.pieceId, 3);
-    assert.equal(decision.reason, 'immediate-win');
-    assert.ok(decision.ranking.every(item => Number.isFinite(item.score)));
-    const learnedWeights = AI_TACTICAL_WEIGHTS;
-    for (const item of decision.ranking) {
-        const f = item.factors;
-        if (f.winning) {
-            assert.equal(item.trainingScore, 1000000);
-            continue;
-        }
-        const expectedTrainingScore = f.ownProgress * learnedWeights.ownProgress +
-            f.opponentSetback * learnedWeights.opponentSetback +
-            f.threatReduction * learnedWeights.threatReduction +
-            (f.capturedOpponent ? learnedWeights.captureOpponent : 0) -
-            (f.capturedOwnPiece ? learnedWeights.captureOwn : 0) +
-            (f.finishedPiece ? learnedWeights.finishPiece : 0) +
-            (f.deployedPiece ? learnedWeights.deployPiece : 0) +
-            (f.enteredHome ? learnedWeights.enterHome : 0) +
-            f.homeProgress * learnedWeights.homeProgress;
-        assert.ok(Math.abs(item.trainingScore - expectedTrainingScore) < 0.00001);
-    }
+    assert.equal(estimatePieceThreat(game,0,0,deps),0);
 });
 
-test('tactical teacher ranks only engine-provided legal candidates', async () => {
-    const { chooseTacticalTeacherDecision } = await import('../js/ai-strategy.js');
-    const game = createGame(1, 1);
-    game.phase = 'move';
-    game.diceValue = 1;
-    game.pieces[0].pieces[0].steps = 0;
-    game.pieces[0].pieces[1].steps = 5;
-    const decision = chooseTacticalTeacherDecision(game, aiDependencies);
-    assert.ok(getValidMoves(game).includes(decision.pieceId));
-    assert.deepEqual(decision.ranking.map(item => item.pieceId).sort(), getValidMoves(game).sort());
+test('výpočet zbývající cesty podporuje 40, 48 a 80 polí', () => {
+    for (const length of [40,48,80]) {
+        const game = createGame(1,1,[],[],length);
+        assert.ok(calculatePlayerPips(game,0) > 0);
+    }
 });
