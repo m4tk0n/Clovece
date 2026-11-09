@@ -1,3 +1,4 @@
+// /tests/e2e/debug-ai-lab.spec.js
 import { test, expect } from '@playwright/test';
 
 test('samostatná AI debug laboratoř vyhodnotí všech šest hodů bez chyby', async ({ page }) => {

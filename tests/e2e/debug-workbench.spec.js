@@ -1,3 +1,4 @@
+// /tests/e2e/debug-workbench.spec.js
 import { test, expect } from '@playwright/test';
 
 test('samostatná AI laboratoř načte deset vah a vyhodnotí testovací pozici', async ({ page }) => {

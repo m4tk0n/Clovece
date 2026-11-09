@@ -1,3 +1,4 @@
+// /tests/e2e/local-game-live.spec.js
 import { test, expect } from '@playwright/test';
 
 test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračování', async ({ page }) => {

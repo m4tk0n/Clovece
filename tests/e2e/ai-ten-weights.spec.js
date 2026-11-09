@@ -1,3 +1,4 @@
+// /tests/e2e/ai-ten-weights.spec.js
 import { test, expect } from '@playwright/test';
 
 test('živý web načte produkční strategii s deseti vahami a vrátí legální rozhodnutí', async ({ page }) => {

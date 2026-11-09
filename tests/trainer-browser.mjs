@@ -1,3 +1,4 @@
+// /tests/trainer-browser.mjs
 #!/usr/bin/env node
 /**
  * Browser automation for the live Člověče trainer.
