@@ -1,4 +1,4 @@
-import { createGame, getValidMoves, chooseAIMoveDecision } from './game-engine.js';
+import { createGame, getValidMoves, rollDice, getAvailableBoardSizes, chooseAIMoveDecision } from './game-engine.js';
 import { AI_WEIGHT_COUNT } from './ai-weight-config.js';
 import { getBoardView } from '../../js/game-board.js';
 
@@ -57,6 +57,23 @@ export function runAIDebugSelfTests() {
             (decision.alternatives || []).every(item => Number.isInteger(item.toSteps)) &&
                 Number.isInteger(decision.breakdown?.selectedToSteps),
             'výstup obsahuje pozici vybrané i ostatních figurek');
+
+        const deployGame = createGame(1, 1, ['Člověk', 'AI'], [], 40, { mustDeploy: true });
+        deployGame.phase = 'roll';
+        const deployResult = rollDice(deployGame, 6);
+        check('Povinné nasazení při šestce zůstává v enginu', deployResult.validMoves?.length === 4 &&
+            deployGame.phase === 'move', 'legální nasazení: ' + (deployResult.validMoves?.length || 0) + '/4');
+
+        for (const [boardSize, playerCount] of [[40, 4], [48, 6], [80, 8]]) {
+            const names = Array.from({ length: playerCount }, (_, index) => 'Test ' + (index + 1));
+            const boardGame = createGame(1, playerCount - 1, names, [], boardSize, {}, 'medium');
+            check('Deska ' + boardSize + ' / ' + playerCount + ' hráčů',
+                boardGame.trackLength === boardSize && boardGame.players.length === playerCount,
+                boardGame.trackLength + ' polí, ' + boardGame.players.length + ' hráčů');
+            check('Dostupnost velikosti ' + boardSize,
+                getAvailableBoardSizes(playerCount).includes(boardSize),
+                'povolené: ' + getAvailableBoardSizes(playerCount).join(', '));
+        }
 
         const failed = checks.filter(item => !item.ok);
         return {
