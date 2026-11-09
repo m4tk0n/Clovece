@@ -187,15 +187,15 @@ export function createTurnController(deps) {
         }
         const legalMoves = getValidMoves(game);
         if (legalMoves.length === 1) {
-            // Pravidlo ponechává jediný legální tah: není co strategicky vyhodnocovat.
+            // Jediný legální tah není strategická volba, ale v debug panelu jej přesto vysvětlíme.
             pendingAIForcedMove = trainingAI;
-            return legalMoves[0];
+            return publishForcedAIDecision(legalMoves, 'Jediný legální tah podle herního enginu; AI nemá jinou možnost.');
         }
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
         const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
         if (Number(game.diceValue) === 6 && hasPieceInBase) {
-            // Povinné nasazení při šestce je dané pravidlem, ne strategickou volbou.
-            return legalMoves[0] ?? null;
+            // Povinné nasazení při šestce je dané pravidlem; debug vypíše všechny legální figurky k nasazení.
+            return publishForcedAIDecision(legalMoves, 'Povinné nasazení: při šestce a figurce v základně pravidlo zakazuje běžný tah.');
         }
         // Produkční lokální AI používá deset pojmenovaných strategických vah.
         if (!game || game !== gameAtDecision ||
