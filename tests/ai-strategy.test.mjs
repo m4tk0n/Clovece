@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createGame, getValidMoves, movePiece, rollDice, chooseAIMoveDecision } from '../js/game-engine.js';
+import { createGame, getValidMoves, movePiece, rollDice } from '../js/game-engine.js';
 import { estimateCaptureProbability, estimatePieceThreat, evaluateTacticalCandidates, calculatePlayerPips, chooseStrategicDecision, normalizeTrainingSituation } from '../js/ai-strategy.js';
 import { AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS, getAIWeightValues, setAIWeightOverrides } from '../js/ai-weight-config.js';
 
@@ -76,7 +76,7 @@ test('okamžitá výhra má vždy přednost před strategickými vahami', () => 
     game.pieces[0].pieces[1].steps = game.trackLength;
     game.pieces[0].pieces[2].steps = game.trackLength + 1;
     game.pieces[0].pieces[3].steps = game.trackLength + 2;
-    const decision = chooseAIMoveDecision(game);
+    const decision = chooseStrategicDecision(game, deps);
     assert.equal(decision.pieceId, 0);
     assert.equal(decision.breakdown.selection, 'immediate-win');
     assert.match(decision.reason, /vítězný tah/i);
