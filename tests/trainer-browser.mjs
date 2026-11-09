@@ -58,6 +58,10 @@ try {
       !document.querySelector('#main-menu').classList.contains('hidden');
   }, null, { timeout: 60000 });
 
+  const runnerScript = await page.locator('script[src*="test-runner.js"]').getAttribute('src');
+  const runnerResponse = await page.request.get(new URL(runnerScript, page.url()).toString());
+  console.log('Test runner HTTP:', runnerResponse.status(), runnerResponse.headers()['content-type']);
+  if (!runnerResponse.ok()) throw new Error('test-runner.js HTTP ' + runnerResponse.status());
   const runnerDiagnostic = await page.evaluate(async () => {
     const script = [...document.scripts].find(item => item.src.includes('test-runner.js'));
     let importError = null;
