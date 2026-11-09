@@ -37,11 +37,15 @@ const page = await browser.newPage({
 const consoleErrors = [];
 const pageErrors = [];
 const failedRequests = [];
+const httpErrors = [];
 
 page.on('console', message => {
   if (message.type() === 'error') consoleErrors.push(message.text());
 });
 page.on('pageerror', error => pageErrors.push(error.message));
+page.on('response', response => {
+  if (response.status() >= 400) httpErrors.push({ url: response.url(), status: response.status() });
+});
 page.on('requestfailed', request => {
   failedRequests.push({
     url: request.url(),
@@ -68,8 +72,11 @@ try {
     try { await import('./js/test-runner.js'); } catch (error) { importError = error.stack || error.message; }
     return { script: script?.src || null, ready: window.__cloveceTestRunnerReady === true,
       api: Boolean(window.__cloveceTest?.start), importError };
+    try { await import('./js/app.js'); } catch (error) { result.appImportError = error.stack || error.message; }
+    return result;
   });
   console.log('Test runner:', JSON.stringify(runnerDiagnostic));
+  console.log('HTTP errors:', JSON.stringify(httpErrors));
   if (runnerDiagnostic.importError) throw new Error('Test runner import failed: ' + runnerDiagnostic.importError);
   await page.waitForFunction(() => window.__cloveceTestRunnerReady === true && Boolean(window.__cloveceTest?.start), {
     timeout: 30000
@@ -144,7 +151,7 @@ try {
 } catch (error) {
   try { await page.screenshot({ path: 'trainer-browser-failure.png', fullPage: true }); } catch {}
   console.error('Automatizace selhala:', error);
-  console.error(JSON.stringify({ consoleErrors, pageErrors, failedRequests }, null, 2));
+  console.error(JSON.stringify({ consoleErrors, pageErrors, failedRequests, httpErrors }, null, 2));
   process.exitCode = 1;
 } finally {
   await browser.close();
