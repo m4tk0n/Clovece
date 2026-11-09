@@ -397,7 +397,9 @@ export function createTurnController(deps) {
             if (debugAI) setAIDebugExport?.(pendingAIDebugExport);
             if (trainingAI) {
                 const playerName = game.players[playerId].name;
-                addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení');
+                if (!pendingAIDebugExport.decision.ruleForced) {
+                    addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení');
+                }
                 window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
                     detail: { ...pendingAIDebugExport, aiName: playerName }
                 }));
