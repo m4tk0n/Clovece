@@ -1,5 +1,5 @@
-// /scripts/ai-train.mjs
 #!/usr/bin/env node
+// /scripts/ai-train.mjs
 /**
  * Offline pairwise trainer for the 26-feature legal-move ranker (schema v3).
  * Reads immutable teacher self-play JSONL(.gz), holds out whole games,

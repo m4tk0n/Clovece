@@ -186,10 +186,14 @@ export function createTurnController(deps) {
         }
         const legalMoves = getValidMoves(game);
         if (legalMoves.length === 1) {
-            // Jediný legální tah není strategické rozhodnutí: neotevíráme rozbor AI.
-            // Po provedení se zapíše pouze stručný záznam do herního chatu.
-            pendingAIForcedMove = true;
-            return legalMoves[0];
+            // Jediný legální tah není strategická volba, ale trainer jej přesto
+            // zaznamená jako rozhodnutí vynucené konkrétním pravidlem.
+            const forcedPieceId = await publishForcedAIDecision(
+                legalMoves,
+                'Jediný legální tah určuje pravidlo hry.'
+            );
+            pendingAIForcedMove = trainingAI;
+            return forcedPieceId ?? legalMoves[0];
         }
         // Produkční lokální AI používá deset pojmenovaných strategických vah.
         if (!game || game !== gameAtDecision ||
@@ -379,6 +383,8 @@ export function createTurnController(deps) {
         }
         if (trainingAI && pendingAIForcedMove) {
             const player = game.players[playerId];
+            const forcedRuleCommand = getForcedRuleCommand(pieceId);
+            addAITrainingEvaluation?.(game.players[playerId].name, forcedRuleCommand);
             const labelPosition = steps => {
                 const value = Number(steps);
                 if (value < 0) return 'základna';
@@ -387,7 +393,7 @@ export function createTurnController(deps) {
             };
             addChatEntry?.(
                 '#hrac [' + player.name + ']',
-                'jediný možný tah {/pravidlo} #F' + (Number(pieceId) + 1) + ' ' +
+                forcedRuleCommand + ' #F' + (Number(pieceId) + 1) + ' ' +
                     labelPosition(before[playerId][pieceId]) + ' -> ' + labelPosition(after[playerId][pieceId])
             );
         }

@@ -13,7 +13,7 @@ Otevření: `/clovece/debug/`
 - Jediný legální tah se automaticky provede člověku i AI. Chat zaznamená konkrétní důvod, například `/pravidlo nasadit` nebo `/povinnost do domecku`.
 - AI při více legálních možnostech vybírá strategicky; její důvod, alternativy, váhy a simulace jsou zobrazené v panelu.
 - Produkční AI a její rozhodovací soubory se při vývoji nemění. Experimentální úpravy patří do tohoto adresáře.
-- Debug má vlastní kopii klientské výukové paměti i vlastní PHP endpointy. Záznamy, fronta, naučená paměť a váhy se ukládají do `debug/storage/`; produkční `storage/ai-training/` se nepoužívá.
+- Výuková paměť a její ukládání jsou určeny pouze debug prostředí. Debug má vlastní kopii klientské výukové paměti i vlastní PHP endpointy. Záznamy, fronta, naučená paměť a váhy se ukládají do `debug/storage/`; produkční `storage/ai-training/` se nepoužívá.
 
 ## Rozbor každého rozhodnutí
 
