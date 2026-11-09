@@ -197,4 +197,6 @@ if (panel) {
         dragHandle.addEventListener('pointercancel', endDrag);
     }
     updateButtons();
+    // Browserové testy čekají na tento příznak, aby neklikaly před registrací listenerů.
+    window.__cloveceTestRunnerReady = true;
 }
