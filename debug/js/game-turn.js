@@ -362,7 +362,6 @@ export function createTurnController(deps) {
     function executeMove(pieceId, humanTrainingDecision = null) {
         if (!game || moveAnimating) return;
         const playerId = game.currentPlayer;
-        const forcedRuleCommand = trainingAI && pendingAIForcedMove ? getForcedRuleCommand(pieceId) : null;
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
