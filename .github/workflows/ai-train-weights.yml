@@ -14,6 +14,10 @@ concurrency:
   group: ai-reward-training-and-tournament
   cancel-in-progress: false
 
+concurrency:
+  group: clovece-ftp-deploy
+  cancel-in-progress: true
+
 jobs:
   train-and-compete:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
