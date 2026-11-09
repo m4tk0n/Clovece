@@ -36,3 +36,22 @@
 .ai-training-history:disabled{opacity:.6}
 .ai-training-candidate-choice{margin-right:5px;padding:2px 4px;border:1px solid #718075;border-radius:3px;background:#23352b;color:#f3eddf;font:9px system-ui,sans-serif}
 .ai-training-candidates li.is-teaching-target .ai-training-candidate-choice{border-color:#c6a96b;background:#4a3b20;color:#ffe4a4}
+
+.ai-training-weight-review{max-height:34dvh;overflow:auto;margin:4px 0;padding:4px;border-top:1px solid rgba(198,169,107,.45);overscroll-behavior:contain}
+.ai-training-weight-review .ai-training-section-title{margin:2px 0 4px;color:#e6c98a}
+.ai-training-weight-intro,.ai-training-weight-empty{margin:3px 0 5px;color:#c5d0c8;font-size:9px}
+.ai-training-weight-card{margin:4px 0;padding:5px;border:1px solid rgba(122,145,128,.55);border-radius:4px;background:#14221b}
+.ai-training-weight-name{display:block;color:#f2d99c;font-size:10px;overflow-wrap:anywhere}
+.ai-training-weight-description{margin:2px 0;color:#d7e0d9;font-size:9px}
+.ai-training-weight-meta{margin:2px 0;color:#93aa9a;font:8px/1.35 monospace;overflow-wrap:anywhere}
+.ai-training-weight-question{margin:4px 0;color:#fff;font-size:10px;font-weight:700}
+.ai-training-weight-actions{display:flex;gap:4px}
+.ai-training-weight-actions button{flex:1;min-width:0;padding:5px 3px;border:1px solid #718075;border-radius:4px;background:#263a2e;color:#fff;font-size:9px;font-weight:800}
+.ai-training-weight-actions button:disabled{opacity:.4}
+.ai-training-weight-actions button:first-child{border-color:#83bd8b}
+.ai-training-weight-actions button:nth-child(2){border-color:#d59a87}
+.ai-training-weight-result{display:block;margin-top:3px;color:#a8d9ad;font-size:8px;overflow-wrap:anywhere}
+.ai-training-weight-card[data-answered="yes"]{border-color:#83bd8b}
+.ai-training-weight-card[data-answered="no"]{border-color:#d59a87}
+.ai-training-weight-card[data-answered="unknown"]{opacity:.7}
+@media(max-width:520px){.ai-training-weight-review{max-height:32dvh}.ai-training-weight-card{padding:4px}.ai-training-weight-actions button{padding:5px 2px}}
