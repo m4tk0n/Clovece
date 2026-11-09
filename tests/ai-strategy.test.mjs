@@ -1,3 +1,4 @@
+// /tests/ai-strategy.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame, getValidMoves, movePiece, rollDice } from '../js/game-engine.js';

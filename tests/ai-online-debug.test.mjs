@@ -1,3 +1,4 @@
+// /tests/ai-online-debug.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';

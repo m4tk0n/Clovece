@@ -1,3 +1,4 @@
+// /tests/ai-weight-feedback.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getAIWeight, getAIWeightValues, setAIWeightOverrides, AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS } from '../js/ai-weight-config.js';

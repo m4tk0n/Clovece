@@ -1,4 +1,5 @@
 <?php
+// /tests/ai-strategy.php
 declare(strict_types=1);
 
 require_once __DIR__ . '/../lib/game-engine.php';

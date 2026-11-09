@@ -1,3 +1,4 @@
+// /tests/board-scene.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGame } from '../js/game-engine.js';

@@ -1,3 +1,4 @@
+// /tests/board-geometry.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { trackPosition } from '../js/game-board-geometry.js';
