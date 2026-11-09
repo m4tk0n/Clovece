@@ -1,18 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "trainedAt": null,
-  "trainingMethod": "initial-baseline-expanded-features",
+  "trainingMethod": "initial-ten-strategic-weights",
   "sourceGames": 0,
   "weights": {
-    "immediateWin": 100000,
-    "ownProgress": 0.08,
-    "opponentSetback": 0.035,
-    "threatReduction": 12,
-    "captureOpponent": 5,
-    "captureOwn": 7,
-    "finishPiece": 8,
-    "deployPiece": 1.5,
-    "enterHome": 2.5,
-    "homeProgress": 0.4
+    "progressToGoal": 2,
+    "finishPiece": 80,
+    "captureOpponent": 18,
+    "protectOwn": 25,
+    "threatenOpponent": 12,
+    "deployPiece": 8,
+    "homeProgress": 20,
+    "bonusContinuation": 10,
+    "startFieldRisk": 18,
+    "flexibility": 4
   }
 }
