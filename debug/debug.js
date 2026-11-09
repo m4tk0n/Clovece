@@ -53,105 +53,138 @@ function buildScenario(boardSize) {
   return game;
 }
 
-function renderDecision(decision, game) {
-  const root = $('decision');
-  root.replaceChildren();
-  if (!decision) {
-    root.textContent = 'V této pozici není k dispozici legální tah.';
-    return;
-  }
-  const breakdown = decision.breakdown || {};
-  const metrics = [
-    ['Vybraný tah', 'Figurka ' + (decision.pieceId + 1)],
-    ['Počet legálních tahů', String(breakdown.legalMoveCount ?? '—')],
-    ['Aktivní váhy', String(breakdown.weightConfig?.count ?? 10)],
-    ['Verze strategie', breakdown.selection || '—']
-  ];
-  const grid = document.createElement('div');
-  grid.className = 'result-grid';
-  for (const [label, value] of metrics) {
-    const item = document.createElement('div');
-    item.className = 'metric';
-    const strong = document.createElement('strong');
-    strong.textContent = value;
-    const span = document.createElement('span');
-    span.textContent = label;
-    item.append(strong, span);
-    grid.append(item);
-  }
-  const reason = document.createElement('p');
-  reason.textContent = decision.reason || 'Bez textového vysvětlení.';
-  reason.className = 'muted';
-  root.append(grid, reason);
-  const candidates = [{ pieceId: decision.pieceId, score: breakdown.selectedWeightFactors?.score ?? 'vybráno', selected: true }, ...(decision.alternatives || [])];
-  if (candidates.length) {
-    const heading = document.createElement('h3');
-    heading.textContent = 'Porovnání kandidátů';
-    root.append(heading);
-    const table = document.createElement('table');
-    table.innerHTML = '<thead><tr><th>Figurka</th><th>Skóre</th><th>Legální</th></tr></thead>';
-    const body = document.createElement('tbody');
-    for (const candidate of candidates) {
-      const row = document.createElement('tr');
-      const piece = candidate.pieceId ?? candidate.id ?? '—';
-      const score = candidate.score ?? candidate.totalScore ?? '—';
-      row.innerHTML = '<td></td><td></td><td></td>';
-      row.cells[0].textContent = String(Number(piece) + 1);
-      row.cells[1].textContent = numberFormat(score);
-      row.cells[2].textContent = getValidMoves(game).includes(Number(piece)) ? (candidate.selected ? 'ANO · vybráno' : 'ANO') : 'NE';
-      body.append(row);
-    }
-    table.append(body);
-    root.append(table);
-  }
-}
+function renderDiceOutcomes(outcomes) {
+  const decisionRoot = $('decision');
+  const diceRoot = $('dice-results');
+  decisionRoot.replaceChildren();
+  diceRoot.replaceChildren();
 
-function renderDice(decision) {
-  const root = $('dice-results');
-  root.replaceChildren();
-  const simulation = decision?.breakdown?.diceSimulation || [];
-  if (!simulation.length) {
-    root.textContent = 'Engine neposkytl záznam simulace šesti hodů.';
-    return;
-  }
+  const summary = document.createElement('p');
+  summary.textContent = 'Vyhodnoceno všech šest hodnot kostky odděleně. Každá větev začíná ze stejného stavu hry.';
+  decisionRoot.append(summary);
+
   const table = document.createElement('table');
-  table.innerHTML = '<thead><tr><th>Kostka</th><th>Legální tahy</th><th>Bonusový hod</th><th>Výsledek</th></tr></thead>';
+  table.innerHTML = '<thead><tr><th>Kostka</th><th>Fáze enginu</th><th>Legální tahy</th><th>Volba AI</th><th>Skóre</th></tr></thead>';
   const body = document.createElement('tbody');
-  for (const outcome of simulation) {
+
+  for (const outcome of outcomes) {
     const row = document.createElement('tr');
     const values = [
       outcome.dice,
-      outcome.legalMoveCount ?? outcome.validMoves?.length ?? '—',
-      outcome.bonusRoll ? 'ANO' : 'NE',
-      outcome.finish ? 'Možné dokončení' : (outcome.capture ? 'Možné vyhození' : (outcome.retrying ? 'Opakování hodu' : 'Běžný výsledek'))
+      outcome.phase,
+      outcome.legalMoves.length ? outcome.legalMoves.map(id => id + 1).join(', ') : 'žádné',
+      outcome.decision ? 'Figurka ' + (outcome.decision.pieceId + 1) : 'bez tahu',
+      outcome.decision ? numberFormat(outcome.decision.score) : '—'
     ];
     for (const value of values) {
       const cell = document.createElement('td');
       cell.textContent = String(value);
       row.append(cell);
     }
+    if (outcome.decision && !outcome.legalMoves.includes(outcome.decision.pieceId)) {
+      row.className = 'invalid';
+    }
     body.append(row);
   }
   table.append(body);
-  root.append(table);
+  diceRoot.append(table);
+
+  for (const outcome of outcomes) {
+    const card = document.createElement('article');
+    card.className = 'die-outcome';
+    const heading = document.createElement('h3');
+    heading.textContent = 'Výsledek kostky ' + outcome.dice;
+    card.append(heading);
+
+    const status = document.createElement('p');
+    status.textContent = 'Fáze: ' + outcome.phase + ' · legální figurky: ' +
+      (outcome.legalMoves.length ? outcome.legalMoves.map(id => id + 1).join(', ') : 'žádné');
+    card.append(status);
+
+    if (outcome.decision) {
+      const decision = document.createElement('p');
+      decision.className = 'selected';
+      decision.textContent = 'AI vybrala figurku ' + (outcome.decision.pieceId + 1) +
+        ' · skóre ' + numberFormat(outcome.decision.score);
+      card.append(decision);
+
+      const reason = document.createElement('p');
+      reason.textContent = outcome.decision.reason || 'Bez vysvětlení.';
+      card.append(reason);
+
+      const factors = outcome.decision.breakdown?.selectedWeightFactors;
+      if (factors?.weightContributions) {
+        const detail = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = 'Příspěvky všech deseti vah';
+        const list = document.createElement('ul');
+        for (const [key, value] of Object.entries(factors.weightContributions)) {
+          const item = document.createElement('li');
+          item.textContent = key + ': ' + numberFormat(value);
+          list.append(item);
+        }
+        detail.append(summary, list);
+        card.append(detail);
+      }
+      const alternatives = document.createElement('p');
+      alternatives.textContent = 'Ostatní legální možnosti: ' +
+        (outcome.decision.alternatives || []).map(item =>
+          'figurka ' + (item.pieceId + 1) + ' (' + numberFormat(item.score) + ')'
+        ).join(' · ');
+      card.append(alternatives);
+    } else {
+      const noMove = document.createElement('p');
+      noMove.textContent = outcome.rollResult?.retrying
+        ? 'Engine vyžaduje opakovaný hod.'
+        : 'V tomto výsledku není možné provést tah.';
+      card.append(noMove);
+    }
+
+    const nextRolls = outcome.decision?.breakdown?.diceSimulation || [];
+    if (nextRolls.length) {
+      const follow = document.createElement('p');
+      follow.className = 'muted';
+      follow.textContent = 'Navazující simulace: ' + nextRolls.map(item =>
+        item.dice + ' → ' + (item.legalMoveCount ?? 0) + ' tahů' +
+        (item.bonusRoll ? ' + bonusový hod' : '')
+      ).join(' · ');
+      card.append(follow);
+    }
+    decisionRoot.append(card);
+  }
 }
 
 function run() {
   const button = $('run-test');
   button.disabled = true;
-  $('status').textContent = 'Vyhodnocuji…';
+  $('status').textContent = 'Vyhodnocuji šest větví…';
   try {
     readWeights();
     const boardSize = Number($('board-size').value);
-    const game = buildScenario(boardSize);
-    const legalMoves = getValidMoves(game);
-    const decision = chooseStrategicDecision(game, { getValidMoves, movePiece, rollDice });
-    if (decision && !legalMoves.includes(decision.pieceId)) {
-      throw new Error('AI vybrala tah, který herní engine neoznačil za legální.');
+    const initial = buildScenario(boardSize);
+    initial.phase = 'roll';
+    initial.diceValue = 0;
+    const outcomes = [];
+
+    for (let dice = 1; dice <= 6; dice++) {
+      const game = JSON.parse(JSON.stringify(initial));
+      const rollResult = rollDice(game, dice);
+      const legalMoves = getValidMoves(game);
+      const decision = legalMoves.length
+        ? chooseStrategicDecision(game, { getValidMoves, movePiece, rollDice })
+        : null;
+
+      if (decision && !legalMoves.includes(decision.pieceId)) {
+        throw new Error('Při hodu ' + dice + ' AI vybrala nelegální tah.');
+      }
+      outcomes.push({ dice, phase: game.phase, rollResult, legalMoves, decision });
     }
-    renderDecision(decision, game);
-    renderDice(decision);
-    $('status').textContent = 'Test dokončen. Deska ' + boardSize + ' polí; legálních tahů: ' + legalMoves.length + '.';
+
+    renderDiceOutcomes(outcomes);
+    const moveBranches = outcomes.filter(item => item.decision).length;
+    $('status').textContent = 'Test dokončen: deska ' + boardSize +
+      ' polí · prověřeno všech 6 výsledků · AI vyhodnotila ' + moveBranches +
+      ' větví s legálním tahem. Produkční hra nebyla změněna.';
   } catch (error) {
     $('status').textContent = 'Test selhal: ' + error.message;
     console.error('[AI debug lab]', error);
