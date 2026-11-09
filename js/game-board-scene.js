@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Převod neměnného herního stavu na neutrální data desky.
  * Bez DOM, rendererů, úložiště a vedlejších účinků.
