@@ -8,7 +8,7 @@ import { setAIWeightOverrides } from './ai-weight-config.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
-        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, addAITrainingEvaluation, setAIDebugExport
+        settings, animateDice, isPaused, toast, play, showGame, updateStartLog, addGameLogEntry, addChatEntry, addAITrainingEvaluation, setAIDebugExport
     } = deps;
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
@@ -185,14 +185,10 @@ export function createTurnController(deps) {
         }
         const legalMoves = getValidMoves(game);
         if (legalMoves.length === 1) {
-            const pieceId = legalMoves[0];
-            const ruleCommand = getForcedRuleCommand(pieceId);
-            const reason = ruleCommand === '/pravidlo nasadit'
-                ? 'Povinné nasazení: padla šestka a figurka musí opustit základnu.'
-                : ruleCommand === '/povinnost do domecku'
-                    ? 'Povinný vstup do domácího sloupce: herní pravidlo nedovoluje běžný tah.'
-                    : 'Jediný legální tah podle herního enginu; AI nemá jinou možnost.';
-            return publishForcedAIDecision(legalMoves, reason);
+            // Jediný legální tah není strategické rozhodnutí: neotevíráme rozbor AI.
+            // Po provedení se zapíše pouze stručný záznam do herního chatu.
+            pendingAIForcedMove = true;
+            return legalMoves[0];
         }
         // Produkční lokální AI používá deset pojmenovaných strategických vah.
         if (!game || game !== gameAtDecision ||
@@ -382,7 +378,18 @@ export function createTurnController(deps) {
             }));
         }
         if (trainingAI && pendingAIForcedMove) {
-            addAITrainingEvaluation?.(game.players[playerId].name, forcedRuleCommand || '/pravidlo jediný legální tah');
+            const player = game.players[playerId];
+            const labelPosition = steps => {
+                const value = Number(steps);
+                if (value < 0) return 'základna';
+                if (value >= Number(game.trackLength)) return 'D' + (value - Number(game.trackLength) + 1);
+                return String(((Number(player.start || 0) + value) % Number(game.trackLength)) + 1);
+            };
+            addChatEntry?.(
+                '#hrac [' + player.name + ']',
+                'jediný možný tah {/pravidlo} #F' + (Number(pieceId) + 1) + ' ' +
+                    labelPosition(before[playerId][pieceId]) + ' -> ' + labelPosition(after[playerId][pieceId])
+            );
         }
         pendingAIForcedMove = false;
         if ((debugAI || trainingAI) && pendingAIDebugExport && game.players[playerId]?.isAI &&
