@@ -64,6 +64,9 @@ test('skóre je přesným součtem deseti pojmenovaných příspěvků', () => {
         assert.ok(Math.abs(total - item.score) < 0.00001);
         assert.equal(item.factors.weightSignals.length, 10);
         assert.equal(item.factors.diceSimulation.length, 6);
+        assert.equal(item.factors.diceSimulation.find(outcome => outcome.dice === 6)?.bonusRoll, true);
+        assert.ok(Number.isFinite(item.factors.ownCaptureRisk));
+        assert.ok(Number.isFinite(item.factors.opponentCaptureChance));
         assert.ok(Number.isFinite(item.score));
     }
 });
