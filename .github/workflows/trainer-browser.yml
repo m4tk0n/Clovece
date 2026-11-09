@@ -52,6 +52,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trainer-browser-result-${{ github.run_number }}
-          path: trainer-launch.json
+          path: |
+            trainer-launch.json
+            trainer-browser-failure.png
           if-no-files-found: ignore
           retention-days: 14
