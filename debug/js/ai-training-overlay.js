@@ -119,7 +119,8 @@ export function initAITrainingOverlay() {
         toggleButton.setAttribute('aria-expanded', String(expanded));
     };
     toggleButton.addEventListener('click', () => setExpanded(!expanded));
-    setExpanded(true);
+    // Výukový panel zůstává po načtení hry sbalený; otevře se až při skutečném rozboru tahu.
+    setExpanded(false);
 
     // Panel se ukáže až ve chvíli, kdy je skutečně viditelná herní deska.
     const syncBoardVisibility = () => {
@@ -165,6 +166,7 @@ export function initAITrainingOverlay() {
 
     function completeReview(detail, selectedPieceId = null) {
         if (!detail || detail.reviewCompleted) return;
+        setExpanded(false);
         detail.reviewCompleted = true;
         const decisionId = String(detail.decisionId || detail.id || '');
         if (decisionId) reviewedDecisionIds.add(decisionId);
@@ -278,7 +280,9 @@ export function initAITrainingOverlay() {
     }
 
     function renderDecision(detail) {
-        setExpanded(true);
+        // Rozbalit jen při novém, dosud nevyhodnoceném strategickém rozhodnutí.
+        // Aktualizace výsledku již dokončeného tahu panel znovu neotevře.
+        if (!detail.reviewCompleted && !detail.decision?.ruleForced) setExpanded(true);
         currentDecision = detail;
         preferredPieceId = Number.isInteger(Number(detail.decision?.preferredPieceId)) ? Number(detail.decision.preferredPieceId) : null;
         saveStatus.textContent = '';
