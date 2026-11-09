@@ -24,4 +24,4 @@ test('debug modules stay within debug/js',async()=>{
 test('debug files begin as an exact production snapshot',async()=>{
  for(const [a,b] of [['../js/game-engine.js','../debug/js/game-engine.js'],['../js/ai-strategy.js','../debug/js/ai-strategy.js'],['../js/ai-weight-config.js','../debug/js/ai-weight-config.js'],['../js/ai-tactical-weights.js','../debug/js/ai-tactical-weights.js']]) assert.equal(await read(a),await read(b),b);
 });
-test('debug workspace documents manual promotion only',async()=>{const doc=await read('../debug/README.md');assert.match(doc,/nepřenáší automaticky/i);assert.match(doc,/ručně/i);});
+test('debug workspace documents manual promotion only',async()=>{const doc=await read('../debug/README.md');assert.match(doc,/přenášejí ručně/i);assert.match(doc,/ručně přenesou/i);});
