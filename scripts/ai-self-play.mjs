@@ -8,9 +8,8 @@ import path from 'node:path';
 import {
     createGame, determineStartingPlayer, getValidMoves, movePiece, rollDice, advanceTurn
 } from '../js/game-engine.js';
-import { chooseTacticalTeacherDecision, calculateAIMoveProbabilityFeatures } from '../js/ai-strategy.js';
+import { chooseTacticalTeacherDecision } from '../js/ai-strategy.js';
 import { AI_WEIGHT_KEYS, getAIStrategicWeights } from '../js/ai-weight-config.js';
-import { AI_FEATURE_COUNT, AI_FEATURE_SCHEMA_VERSION, extractAIMoveFeatures } from '../js/ai-neural-network.js';
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => {
     const match = value.match(/^--([^=]+)=(.*)$/);
@@ -82,8 +81,6 @@ const summary = {
     formatVersion: 2,
     weightSchemaVersion: 3,
     weightKeys: AI_WEIGHT_KEYS,
-    featureSchemaVersion: AI_FEATURE_SCHEMA_VERSION,
-    featureCount: AI_FEATURE_COUNT,
     createdAt: new Date().toISOString(),
     seed,
     gamesRequested: games,
@@ -163,11 +160,6 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
                 const teacher = decision.ranking.find(item => item.pieceId === candidate.pieceId);
                 return {
                     pieceId: candidate.pieceId,
-                    features: extractAIMoveFeatures(game, {
-                        ...candidate,
-                        probabilityFeatures: calculateAIMoveProbabilityFeatures(game, candidate, dependencies),
-                        tacticalFeatures: teacher?.factors
-                    }, legalMoves.length),
                     teacherScore: teacher?.trainingScore ?? null,
                     teacherFactors: teacher?.factors ?? null
                 };
@@ -177,11 +169,6 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             policyTemperature: explorationTemperature,
             weightSchemaVersion: 3,
             behaviorWeights: getAIStrategicWeights(),
-            selectedFeatures: extractAIMoveFeatures(game, {
-                ...selected,
-                probabilityFeatures: calculateAIMoveProbabilityFeatures(game, selected, dependencies),
-                tacticalFeatures: decision.ranking.find(item => item.pieceId === selected.pieceId)?.factors
-            }, legalMoves.length),
             selection: sampledDecision.forced ? 'forced-immediate-win' : 'reinforce-softmax',
             teacherRanking: trainingRanking
         });
