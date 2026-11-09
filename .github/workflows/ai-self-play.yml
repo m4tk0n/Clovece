@@ -32,6 +32,8 @@ on:
       - 'js/ai-strategy.js'
       - 'js/ai-weight-config.js'
       - 'js/ai-original-baseline.js'
+      - 'js/ai-original-weight-config.js'
+      - 'js/ai-original-tactical-weights.js'
       - 'config/ai-tactical-weights.json'
       - 'config/ai-original-baseline.json'
       - 'js/ai-neural-network.js'
