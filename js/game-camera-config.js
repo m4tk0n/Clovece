@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Jediný zdroj nastavení kamery 3D hrací desky.
  * Renderer ani ovládací prvky nesmí obsahovat vlastní kopie těchto hodnot.
