@@ -6,6 +6,11 @@ test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračován�
 
   await page.goto('?test=1');
   await expect(page.locator('#live-test-panel')).toBeVisible();
+  const runnerScript = await page.locator('script[src*="test-runner.js"]').getAttribute('src');
+  const runnerResponse = await page.request.get(new URL(runnerScript, page.url()).toString());
+  console.log('Test runner HTTP:', runnerResponse.status(), runnerResponse.headers()['content-type'],
+    (await runnerResponse.text()).slice(0, 180));
+  expect(runnerResponse.ok(), 'test-runner.js must be served by FTP').toBe(true);
   const runnerDiagnostic = await page.evaluate(async () => {
     const script = [...document.scripts].find(item => item.src.includes('test-runner.js'));
     let importError = null;
