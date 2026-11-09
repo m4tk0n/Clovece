@@ -22,8 +22,6 @@ jobs:
             **/.git*/**
             **/.github/**
             .env
-            README.md
-            docs/**
             scripts/**
             tests/
             package.json
