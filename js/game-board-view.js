@@ -1,3 +1,4 @@
+// /js/game-board-view.js
 /**
  * FTP deploy marker: force-refresh the board view module on the live host.
  * Řízení zobrazení herní desky: výběr stylu, 2D/3D a kompatibilní API.

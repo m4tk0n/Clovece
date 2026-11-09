@@ -1,3 +1,4 @@
+// /js/game-engine.js
 /**
  * Člověče, nezlob se! – čisté herní jádro.
  * Nezávislé na DOM a serveru, připravené pro pozdější autoritativní online API.

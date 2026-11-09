@@ -1,3 +1,4 @@
+// /js/game-board-3d.js
 // FTP sync refresh marker 2026-11-09
 /**
  * Samostatný prémiový Three.js renderer.

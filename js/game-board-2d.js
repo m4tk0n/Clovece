@@ -1,3 +1,4 @@
+// /js/game-board-2d.js
 // FTP sync refresh marker 2026-11-09
 /**
  * Samostatný SVG renderer herní desky.

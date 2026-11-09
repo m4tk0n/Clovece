@@ -1,3 +1,4 @@
+// /js/game-board-scene.js
 // FTP sync refresh marker 2026-11-09
 /**
  * Převod neměnného herního stavu na neutrální data desky.

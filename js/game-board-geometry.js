@@ -1,3 +1,4 @@
+// /js/game-board-geometry.js
 // FTP sync refresh marker 2026-11-09
 /**
  * Čistá geometrie herní desky.

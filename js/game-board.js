@@ -1,3 +1,4 @@
+// /js/game-board.js
 /**
  * FTP deploy marker: force-refresh the public board module on the live host.
  * Veřejné kompatibilní rozhraní herní desky.

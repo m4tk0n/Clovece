@@ -1,3 +1,4 @@
+// /js/dice-rotation.js
 /**
  * Společná logika natočení kostky pro 2D CSS a 3D Three.js.
  * Neobsahuje DOM ani vykreslování; oba renderery dostávají stejný plán.

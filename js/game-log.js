@@ -1,3 +1,4 @@
+// /js/game-log.js
 /**
  * Herní chat a stručný záznam událostí.
  * Stav hry se předává přes getter, modul proto není závislý na app.js.

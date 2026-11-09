@@ -1,3 +1,4 @@
+// /js/dice.js
 /**
  * Řízení hodu kostkou.
  * Společný rotační plán je v dice-rotation.js; vzhled 2D v CSS,

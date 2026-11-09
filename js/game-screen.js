@@ -1,3 +1,4 @@
+// /js/game-screen.js
 /**
  * Ovládání herní obrazovky lokální hry.
  * Modul se načítá až po otevření herní obrazovky.

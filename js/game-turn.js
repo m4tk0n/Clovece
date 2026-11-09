@@ -1,3 +1,4 @@
+// /js/game-turn.js
 /**
  * Průběh tahu, pohyb figurek, hody kostkou a řízení AI.
  * Herní stav je držen v tomto modulu; app.js předává pouze závislosti.
