@@ -334,10 +334,12 @@ export function initAITrainingOverlay() {
                 choose.type = 'button';
                 choose.className = 'ai-training-candidate-choice';
                 choose.textContent = 'Učit: figurka ' + (pieceId + 1) + (chosen ? ' (zvolená)' : '') + (taught ? ' ✓' : '');
-                choose.disabled = saving;
+                choose.disabled = saving || Object.keys(currentDecision.weightReviewAnswers || {}).length > 0;
                 choose.addEventListener('click', () => {
                     preferredPieceId = pieceId;
                     currentDecision.decision.preferredPieceId = pieceId;
+                    currentDecision.weightReviewQuestions = null;
+                    currentDecision.weightReviewAnswers = {};
                     renderDecision(currentDecision);
                     input.focus();
                     setSubmitState();
