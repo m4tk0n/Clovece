@@ -14,4 +14,7 @@ test('aktivní JS a PHP konfigurace obsahují stejných deset pojmenovaných vah
     const php=fs.readFileSync(new URL('../lib/game-engine.php',import.meta.url),'utf8');
     assert.ok(php.includes('/config/ai-tactical-weights.json'));
     assert.ok(php.includes('onlineEngineAiTacticalWeights'));
+    assert.ok(php.includes('ai-learned-weights.json'));
+    assert.ok(php.includes('ai-weights-10-v1'));
+    assert.ok(php.includes('bonusContinuation'));
 });
