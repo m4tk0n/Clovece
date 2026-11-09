@@ -98,6 +98,7 @@ export function createTurnController(deps) {
 
     async function publishForcedAIDecision(legalMoves, reason) {
         if (!trainingAI && !debugAI) return legalMoves[0] ?? null;
+        pendingAIForcedMove = trainingAI;
         const player = game.players[game.currentPlayer];
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         const candidates = legalMoves.map(pieceId => {
