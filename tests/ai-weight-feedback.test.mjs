@@ -59,6 +59,7 @@ test('serverový endpoint ověřuje CSRF, ukládá bezpečně a povoluje pouze I
     assert.match(endpoint,/ai-learned-weights\.json/);
     assert.match(endpoint,/ai-weights-10-v1/);
     assert.match(endpoint,/version' => 2/);
+    assert.match(endpoint,/původnímu 1000-slot modelu/);
     assert.match(endpoint,/\$id > 10/);
     assert.match(endpoint,/rename\(\$temp, \$file\)/);
 });
