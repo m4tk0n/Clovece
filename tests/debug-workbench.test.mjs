@@ -1,26 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, getValidMoves, movePiece, rollDice } from '../js/game-engine.js';
-import { chooseStrategicDecision } from '../js/ai-strategy.js';
-import { AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS, setAIWeightOverrides, getAIStrategicWeights } from '../js/ai-weight-config.js';
+import { createGame, getValidMoves, movePiece, rollDice } from '../debug/js/game-engine.js';
+import { chooseStrategicDecision } from '../debug/js/ai-strategy.js';
+import { AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS, setAIWeightOverrides, getAIStrategicWeights } from '../debug/js/ai-weight-config.js';
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 
-test('debug laboratoř má vlastní vstup, styly a skript mimo produkční entry point', async () => {
+test('debug laboratoř má vlastní vstup, styly a oddělené moduly', async () => {
   const [page, script, style, production] = await Promise.all([
     read('../debug/index.php'), read('../debug/debug.js'), read('../debug/debug.css'), read('../index.php')
   ]);
-  assert.match(page, /debug\.css/);
-  assert.match(page, /debug\.js/);
-  assert.match(page, /noindex,nofollow/);
-  assert.match(script, /\.\.\/js\/game-engine\.js/);
-  assert.match(script, /\.\.\/js\/ai-strategy\.js/);
-  assert.doesNotMatch(production, /debug\/debug\.js|debug\/debug\.css/);
+  assert.ok(page.includes('debug.css'));
+  assert.ok(page.includes('debug.js'));
+  assert.ok(page.includes('noindex,nofollow'));
+  assert.ok(script.includes("from './js/game-engine.js'"));
+  assert.ok(script.includes("from './js/ai-strategy.js'"));
+  assert.ok(script.includes("from './js/ai-weight-config.js'"));
+  assert.ok(!production.includes('debug/debug.js'));
+  assert.ok(!production.includes('debug/debug.css'));
   assert.ok(style.length > 100);
 });
 
-test('debug nastavení používá přesně deset vah a změna nepřepisuje výchozí hodnoty', async () => {
+test('debug používá přesně deset vah a jejich úpravy neovlivňují hlavní hru', async () => {
   const original = { ...getAIStrategicWeights() };
   assert.equal(AI_WEIGHT_COUNT, 10);
   assert.equal(AI_WEIGHT_DEFINITIONS.length, 10);
@@ -31,7 +33,7 @@ test('debug nastavení používá přesně deset vah a změna nepřepisuje vých
   assert.deepEqual(getAIStrategicWeights(), original);
 });
 
-test('debug AI vybere pouze legální tah a poskytne šest výsledků kostky pro všechny desky', () => {
+test('debug AI vybírá pouze legální tah a simuluje šest výsledků pro všechny desky', () => {
   for (const boardSize of [40, 48, 80]) {
     const game = createGame(1, 1, ['Člověk', 'AI'], [], boardSize);
     game.currentPlayer = 1;
