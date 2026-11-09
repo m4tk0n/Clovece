@@ -124,7 +124,6 @@ export function getAIWeightMetadata(id) {
  return {id:n,name:'ai_weight_'+n,desc:'Aktivní číselná váha '+n};
 }
 
-}
 export function buildAIWeightReviewQuestions(detail, cursors = {}) {
  const candidates=Array.isArray(detail?.decision?.candidates)?detail.decision.candidates:[];
  const selectedId=Number(detail?.decision?.preferredPieceId ?? detail?.decision?.selectedPieceId);
