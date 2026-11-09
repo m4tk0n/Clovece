@@ -6,6 +6,7 @@ test('živá automatická hra: aktuální pravidla, pohyb, pauza a pokračován�
 
   await page.goto('?test=1');
   await expect(page.locator('#live-test-panel')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.__cloveceTestRunnerReady === true)).toBe(true);
 
   const ruleNames = ['threeRolls', 'mustDeploy', 'skipHomePieces', 'mustEnterHome'];
   for (const name of ruleNames) {
