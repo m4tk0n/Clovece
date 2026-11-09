@@ -1,0 +1,18 @@
+{
+  "format": "clovece-original-ai-tournament-baseline",
+  "version": 1,
+  "sourceCommit": "92abccc345063d3b37d37efc81f3df6002572818",
+  "description": "Původní serverová taktická AI s původními devíti strategickými vahami; slouží pouze jako neměnný turnajový soupeř pro novou desetiváhovou AI.",
+  "weights": {
+    "immediateWin": 100000,
+    "ownProgress": 0.08,
+    "opponentSetback": 0.035,
+    "threatReduction": 12,
+    "captureOpponent": 5,
+    "captureOwn": 7,
+    "finishPiece": 8,
+    "deployPiece": 1.5,
+    "enterHome": 2.5,
+    "homeProgress": 0.4
+  }
+}
