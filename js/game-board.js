@@ -1,4 +1,5 @@
 /**
+ * FTP deploy marker: force-refresh the public board module on the live host.
  * Veřejné kompatibilní rozhraní herní desky.
  * Implementace přepínání zobrazení je v game-board-view.js.
  */
