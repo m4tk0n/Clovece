@@ -19,7 +19,7 @@ $html = (string) ob_get_clean();
 
 $html = preg_replace(
     '/<head>(?!.*<base\b)/is',
-    '<head>' . PHP_EOL . '    <base href="../">' ,
+    '<head>' . PHP_EOL . '    <base href="../"><script>(function(){var u=new URL(window.location.href);u.searchParams.set("debug","training");window.history.replaceState(window.history.state,"",u.pathname+u.search+u.hash);})();</script>' ,
     $html,
     1
 );
