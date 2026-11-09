@@ -147,7 +147,7 @@ export function createTurnController(deps) {
             if (debugAI && decision.breakdown?.weightConfig) {
                 const config = decision.breakdown.weightConfig;
                 addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' +
-                    Object.keys(config.values || {}).length + ' strategických vah · ' + config.difficulty);
+                    Object.keys(config.values || {}).length + ' strategických vah);
             }
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
             if (debugAI && decision.breakdown?.selectedWeightFactors) {
@@ -174,7 +174,7 @@ export function createTurnController(deps) {
                 decisionId: trainingAI ? 'ai-decision-' + (++trainingDecisionSequence) : null,
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
-                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : (decision.breakdown?.weightConfig ? 'weighted-ai-10-v1' : (decision.breakdown?.neuralNetwork ? 'neural-network-v1' : 'untrained-v1')),
+                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : 'weighted-ai-10-v1',
                 game: {
                     boardSize: game.boardSize || game.trackLength,
                     trackLength: game.trackLength,
