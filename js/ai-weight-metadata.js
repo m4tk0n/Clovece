@@ -34,7 +34,7 @@ export function getAIWeightMetadata(id) {
 }
 export function buildAIWeightReviewQuestions(detail, cursors = {}) {
  const candidates=Array.isArray(detail?.decision?.candidates)?detail.decision.candidates:[];
- const selectedId=Number(detail?.decision?.selectedPieceId);
+ const selectedId=Number(detail?.decision?.preferredPieceId ?? detail?.decision?.selectedPieceId);
  const selected=candidates.find(item=>Number(item.pieceId)===selectedId);
  const selectedSignals=selected?.weightFactors?.weightSignals;
  const others=candidates.filter(item=>Number(item.pieceId)!==selectedId).map(item=>item.weightFactors?.weightSignals);
