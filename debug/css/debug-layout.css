@@ -1,0 +1,50 @@
+/* Rozložení a posouvání určené pouze pro /debug/. */
+#game-screen .game-chat {
+    flex: 0 0 auto;
+}
+#game-screen .game-chat .chat-messages {
+    box-sizing: border-box;
+    flex: 0 1 auto;
+    width: 100%;
+    height: clamp(84px, 19dvh, 190px);
+    min-height: 84px;
+    max-height: 190px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+@media (max-height: 620px) {
+    #game-screen .game-chat .chat-messages {
+        height: clamp(58px, 14dvh, 110px);
+        min-height: 58px;
+        max-height: 110px;
+    }
+}
+
+/* Celý obsah trenérského panelu se posouvá uvnitř panelu. */
+.ai-training-panel:not(.is-collapsed) {
+    height: min(86dvh, calc(100dvh - 8px));
+    max-height: calc(100dvh - 8px);
+    min-height: 0;
+}
+.ai-training-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+.ai-training-analysis,
+.ai-training-weight-review {
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+}
+.ai-training-form {
+    flex: 0 0 auto;
+}
