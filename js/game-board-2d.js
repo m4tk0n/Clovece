@@ -39,7 +39,7 @@ function pawnMarkup(x, y, pr, color, playerId, pieceId, selectable) {
         // Hlava a tělo používají výhradně základní barvu hráče.
         '<circle cx="' + x.toFixed(2) + '" cy="' + headY.toFixed(2) + '" r="' + headR.toFixed(2) +
         '" fill="' + color + '"/>' +
-        ((new URLSearchParams(window.location.search).has('debug') || /\/debug(?:\/|$)/.test(window.location.pathname)) ?
+        (new URLSearchParams(window.location.search).has('debug') ?
             '<text class="debug-piece-number" x="' + x.toFixed(2) + '" y="' + (y + pr * .10).toFixed(2) +
             '" text-anchor="middle" dominant-baseline="middle" font-family="Arial,sans-serif" font-size="' + Math.max(11, pr * 1.05).toFixed(1) +
             '" font-weight="900" fill="#000" stroke="#fff" stroke-opacity=".7" stroke-width="' + Math.max(1, pr * .07).toFixed(1) +
