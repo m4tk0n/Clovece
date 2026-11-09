@@ -26,6 +26,15 @@ $html = preg_replace(
 
 // Debug prostředí používá vlastní bootstrap a vlastní kopie AI/engine modulů.
 $html = str_replace('src="js/bootstrap.js', 'src="debug/js/bootstrap.js', $html);
+$debugBootstrapVersion = is_file(__DIR__ . '/js/bootstrap.js')
+    ? (int) filemtime(__DIR__ . '/js/bootstrap.js')
+    : 1;
+$html = preg_replace(
+    '/src="debug\\/js\\/bootstrap\\.js\\?v=\\d+"/',
+    'src="debug/js/bootstrap.js?v=' . $debugBootstrapVersion . '"',
+    $html,
+    1
+);
 
 // Import map přidá filemtime cache-busting pro všechny moduly v /debug/js/.
 // Relativní importy mezi debug moduly se tak po každém FTP nasazení obnoví,
