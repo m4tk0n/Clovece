@@ -4,7 +4,7 @@ test('živý web načte produkční strategii s deseti vahami a vrátí legáln�
     const pageErrors = [];
     const loadedScripts = [];
     page.on('pageerror', error => pageErrors.push(error.message));
-    page.on('request', request => { if (/\\.js(?:\\?|$)/.test(request.url())) loadedScripts.push(request.url()); });
+    page.on('request', request => { if (request.url().includes('.js')) loadedScripts.push(request.url()); });
     await page.goto('?debug=1');
     await expect.poll(() => page.evaluate(() => document.readyState)).toBe('complete');
 
@@ -44,5 +44,5 @@ test('živý web načte produkční strategii s deseti vahami a vrátí legáln�
     expect(result.simulatedDice).toEqual([1, 2, 3, 4, 5, 6]);
     expect(result.contributionCount).toBe(10);
     expect(pageErrors).toEqual([]);
-    expect(loadedScripts.some(url => /ai-original-|ai-neural-network|models\\/ludo-ai/.test(url))).toBe(false);
+    expect(loadedScripts.some(url => url.includes('ai-original-') || url.includes('ai-neural-network') || url.includes('models/ludo-ai'))).toBe(false);
 });
