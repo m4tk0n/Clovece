@@ -27,6 +27,7 @@ test('weight metadata distinguishes trainable values from system-only slots', ()
     assert.equal(getAIWeightMetadata(961).name, 'aux_tuning_weight_961');
     assert.equal(getAIWeightMetadata(401).name, 'obtiznost_lehka_agrese');
     assert.equal(isTrainableAIWeight(416), true);
+    assert.equal(Array.from({ length: 1000 }, (_, index) => index + 1).filter(isTrainableAIWeight).length, 876);
     assert.equal(isTrainableAIWeight(417), false);
     assert.equal(isTrainableAIWeight(500), false);
     assert.equal(isTrainableAIWeight(1000), false);
