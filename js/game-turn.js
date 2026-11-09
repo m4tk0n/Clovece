@@ -286,10 +286,9 @@ export function createTurnController(deps) {
         };
     }
 
-    function performMove(pieceId) {
+    function executeMove(pieceId, humanTrainingDecision = null) {
         if (!game || moveAnimating) return;
         const playerId = game.currentPlayer;
-        const humanTrainingDecision = createHumanTrainingDecision(pieceId);
         const before = snapshotPieceSteps();
         const move = movePiece(game, pieceId);
         const after = snapshotPieceSteps();
@@ -320,20 +319,43 @@ export function createTurnController(deps) {
             if (debugAI) setAIDebugExport?.(pendingAIDebugExport);
             if (trainingAI) {
                 const playerName = game.players[playerId].name;
-                // V herním chatu zůstane jen stručná značka; úplný rozbor patří do panelu.
                 addAITrainingEvaluation?.(playerName, pendingAIDebugExport.decision.trainedKnowledge ? 'naučeno' : 'vyhodnocení');
                 window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
-                    detail: {
-                        ...pendingAIDebugExport,
-                        aiName: playerName
-                    }
+                    detail: { ...pendingAIDebugExport, aiName: playerName }
                 }));
             }
         }
         pendingAIDebugExport = null;
         return finishMove(move, { before, after });
     }
-    
+
+    function performMove(pieceId) {
+        if (!game || moveAnimating) return;
+        const humanTrainingDecision = createHumanTrainingDecision(pieceId);
+        if (!humanTrainingDecision) return executeMove(pieceId);
+
+        const gameAtDecision = game;
+        const decisionState = [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':');
+        moveAnimating = true;
+        const reviewPromise = waitForTrainingReview(humanTrainingDecision.decisionId);
+        window.dispatchEvent(new CustomEvent('clovece:ai-training-decision', {
+            detail: humanTrainingDecision
+        }));
+        return reviewPromise.then(review => {
+            moveAnimating = false;
+            if (!game || game !== gameAtDecision ||
+                [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return;
+            const legalMoves = humanTrainingDecision.decision.legalMoves || [];
+            const requestedPieceId = review.selectedPieceId === null || review.selectedPieceId === undefined
+                ? Number(pieceId) : Number(review.selectedPieceId);
+            const finalPieceId = legalMoves.includes(requestedPieceId) ? requestedPieceId : Number(pieceId);
+            return executeMove(finalPieceId, humanTrainingDecision);
+        }).catch(error => {
+            moveAnimating = false;
+            throw error;
+        });
+    }
+
     async function animatePieceMove(move, movement) {
         if (!movement || settings.moveSpeed !== 'normal' || !settings.animations) return;
         const { before, after } = movement;
