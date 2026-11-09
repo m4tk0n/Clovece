@@ -90,14 +90,21 @@ if ($lock === false || !flock($lock, LOCK_EX)) {
     if (is_resource($lock)) fclose($lock);
     aiWeightFail('Váhy AI jsou právě uzamčeny.', 503);
 }
-$state = ['version' => 1, 'updatedAt' => null, 'feedbackCount' => 0, 'values' => [], 'history' => []];
+$state = ['version' => 2, 'schema' => 'ai-weights-10-v1', 'updatedAt' => null, 'feedbackCount' => 0, 'values' => [], 'history' => []];
 if (is_file($file)) {
     $saved = json_decode((string)@file_get_contents($file), true);
-    if (!is_array($saved) || (int)($saved['version'] ?? 0) !== 1 || !is_array($saved['values'] ?? null)) {
+    if (!is_array($saved) || !is_array($saved['values'] ?? null)) {
         flock($lock, LOCK_UN); fclose($lock);
         aiWeightFail('Soubor naučených vah je poškozený.', 500);
     }
-    $state = array_merge($state, $saved);
+    // Starý version-1 soubor patřil původnímu 1000-slot modelu. Jeho ID se nesmí
+    // přenést do nové desetiváhové strategie.
+    if ((int)($saved['version'] ?? 0) === 2 && ($saved['schema'] ?? '') === 'ai-weights-10-v1') {
+        $state = array_merge($state, $saved);
+    } elseif ((int)($saved['version'] ?? 0) !== 1) {
+        flock($lock, LOCK_UN); fclose($lock);
+        aiWeightFail('Soubor naučených vah má neznámé schéma.', 500);
+    }
 }
 if ($action === 'feedback') {
     $id = filter_var($payload['id'] ?? null, FILTER_VALIDATE_INT);
