@@ -28,6 +28,11 @@ export function createTurnController(deps) {
     let trainingDecisionSequence = 0;
     const trainerDiceModeKey = 'clovece-trainer-ai-dice-mode';
 
+    // Trainer loads persistent human-adjusted values before the first local move.
+    if (trainingAI) {
+        loadAIWeightOverrides().then(result => setAIWeightOverrides(result.values || {}));
+    }
+
     function getAIDiceMode() {
         try { return localStorage.getItem(trainerDiceModeKey) === 'auto' ? 'auto' : 'manual'; }
         catch { return 'manual'; }
