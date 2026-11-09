@@ -21,10 +21,7 @@
 
 Pro vzdálenost (d) a možnost řetězení šestek:
 
-[
-P(d)=
-rac{1}{6^{\lceil d/6\rceil}}
-]
+`P(d) = 1 / 6^ceil(d/6)`
 
 Jde o orientační matematický odhad. Skutečná možnost konkrétního zásahu se musí vyhodnocovat přes herní engine, aby se zohlednila obsazená pole a aktivní pravidla.
 
