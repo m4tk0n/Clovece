@@ -131,7 +131,7 @@ test('normal AI reads compiled memory only; trainer imports queued new JSON incr
     assert.ok(client.includes("requestMemory('train')"));
     assert.ok(client.includes('refreshAITrainingKnowledge'));
     assert.ok(turn.includes("refreshAITrainingKnowledge({ trainer: trainingAI })"));
-    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.memory, neuralModel)'));
+    assert.ok(turn.includes('chooseAIMoveDecision(game, undefined, knowledge.memory)'));
     assert.ok(strategy.includes('learnedMemory.situations'));
     assert.ok(strategy.includes('compiled-memory'));
 });
