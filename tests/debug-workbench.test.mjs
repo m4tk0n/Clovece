@@ -8,7 +8,7 @@ test('debug vstup vykresluje společnou hru v izolovaném výukovém režimu', a
   read('../debug/index.php'),read('../index.php'),read('../js/game-board-view.js'),read('../debug/js/debug-bootstrap.js')
  ]);
  assert.match(page,/\$_GET\['debug'\]\s*=\s*'training'/);
- assert.match(page,/<base href="\.\.\/">);
+ assert.match(page,/<base href="\.\.\/">/);
  assert.match(index,/debug\/js\/debug-bootstrap\.js/);
  assert.match(index,/debug\/css\/ai-training\.css/);
  assert.match(board,/trainingMode/);
