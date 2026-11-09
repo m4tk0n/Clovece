@@ -115,6 +115,7 @@ export function createTurnController(deps) {
         }
         const piecesBefore = JSON.parse(JSON.stringify(game.pieces));
         pendingAIForcedMove = false;
+        pendingAIDebugExport = null;
         if (trainingAI) {
             const turnKey = [game.currentPlayer, game.turnNumber].join(':');
             if (turnKey !== trainingDecisionTurnKey) {
