@@ -14,6 +14,17 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Verify Markdown documentation is deployed to FTP
+        env:
+          BASE_URL: https://7x.wz.cz/clovece
+        run: |
+          curl --fail-with-body --silent --show-error "$BASE_URL/docs/AI_STRATEGY.md" -o ai-strategy-live.md
+          python - <<'PY'
+          from pathlib import Path
+          content = Path("ai-strategy-live.md").read_text(encoding="utf-8")
+          assert "deset naučitelných vah" in content, "Na serveru není aktuální AI dokumentace."
+          print("PASS: docs/AI_STRATEGY.md is deployed and readable")
+          PY
       - name: Check remote PHP and database schema
         env:
           BASE_URL: https://7x.wz.cz/clovece
