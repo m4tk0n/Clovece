@@ -184,8 +184,6 @@ export function createTurnController(deps) {
             }
         }
         const legalMoves = getValidMoves(game);
-        const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
-        const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
         if (legalMoves.length === 1) {
             const pieceId = legalMoves[0];
             const ruleCommand = getForcedRuleCommand(pieceId);
