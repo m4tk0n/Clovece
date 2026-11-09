@@ -1,6 +1,6 @@
 # AI – strategie, výpočty a výuka
 
-**Aktuální stav:** běžná místní AI načte kompilovanou paměť `ai-memory.json` a při dalších tazích ji používá z cache. Pouze `/?debug=trainer` před každým tahem kontroluje frontu nových hodnocení a aktualizuje trvalou paměť. Připravená je také inferenční vrstva neuronové sítě (`js/ai-neural-network.js`) a její rozhraní modelu (`js/models/ludo-ai.js`); model je zatím záměrně vypnutý, protože nemáme natrénované váhy. Detail: [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
+**Aktuální stav:** místní hra vybírá tah pomocí taktického hodnocení 1000 konfiguračních hodnot a případné přesné lidské paměti. Výukový režim `/?debug=trainer` navíc před rozhodnutím načítá nová hodnocení a ukládá úpravy vah. Neuronová inferenční vrstva i heuristicky inicializovaný model existují, ale `js/game-turn.js` jí nyní záměrně nepředává model; místní rozhodování proto běží přes váhového učitele. Model není výsledkem offline trénování. Detail: [AI_NEURAL_NETWORK.md](AI_NEURAL_NETWORK.md).
 
 **Místní implementace:** `js/ai-strategy.js`  
 **Pravidla a legální tahy:** centrální herní pravidla a herní engine.  
@@ -21,9 +21,7 @@
 
 Pro vzdálenost (d) a možnost řetězení šestek:
 
-[
-P(d)=rac{1}{6^{\lceil d/6\rceil}}
-]
+`P(d) = 1 / 6^ceil(d/6)`
 
 Jde o orientační matematický odhad. Skutečná možnost konkrétního zásahu se musí vyhodnocovat přes herní engine, aby se zohlednila obsazená pole a aktivní pravidla.
 
@@ -37,33 +35,37 @@ Tyto hodnoty jsou popisné; aktuální výběr tahu je nepoužívá jako taktick
 
 ### Ohrožení figurky
 
-Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nesmí přidávat vlastní pravidla. Výsledek je údaj o možnosti zásahu, nikoli automatický pokyn k útěku.
+Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nesmí přidávat vlastní pravidla. Pro každého soupeře se prohledají legální možnosti včetně bonusových šestek (s omezenou hloubkou), následně se pravděpodobnosti soupeřů kombinují jako pravděpodobnost alespoň jednoho zásahu.
+
+**Riziko nyní přímo ovlivňuje skóre tahu:** pro právě přesouvanou figurku se vypočte pravděpodobnost zásahu před tahem a po tahu. Rozdíl se násobí vahou `captureOwn` a násobitelem rizika dané obtížnosti. Tah, který figurku dostane z dosahu soupeře, získá body; tah, který ji vystaví většímu riziku, body ztratí. U nasazení se stejným způsobem hodnotí nové vystavení figurky. Tato přesná změna rizika již není pouze diagnostický údaj.
+
+Jde o pravděpodobnostní model možností zásahu při nejvýhodnějším legálním útočném tahu, nikoli o jistou předpověď konkrétní strategie soupeře.
 
 ## 3. Co je vypnuto
 
-- pevné preference pro vyhození soupeře;
-- automatické upřednostňování bezpečí;
-- bonusy za počet aktivních figurek a flexibilitu;
-- penalizace blokovaného startu;
-- adaptivní ochota riskovat podle pořadí;
-- bodové váhy obtížností easy / medium / hard;
-- staré checkpointy a modely původního trénovacího systému.
+- Neuronová síť není v běžném místním tahu aktivována: `game-turn.js` předává `null`, takže výběr zůstává u váhového učitele.
+- Samostatný offline natrénovaný model s prokázaným zlepšením zatím neexistuje.
+- Lidská paměť zobecňuje jen omezeně: preference se používá při přesné shodě celé herní situace.
+- Serverová PHP AI online hry zatím nepoužívá stejnou rozhodovací a výukovou vrstvu jako místní JavaScriptová AI.
+
+Naopak aktivní jsou váhové profily obtížnosti, taktické hodnocení postupu a vyhození a nově také přímé bodové hodnocení změny přesné pravděpodobnosti vyhození právě přesouvané figurky.
 
 ## 4. Současný výběr tahu
 
 1. Engine vrátí seznam legálních tahů.
-2. AI ověří, zda některý z nich okamžitě vyhrává.
-3. Pokud ano, provede vítězný tah.
-4. Pokud neexistuje naučená preference pro přesnou situaci a je načten platný neuronový model, ohodnotí jím všechny legální kandidáty a vybere nejvyšší skóre.
-5. Pokud není dostupný platný model, použije bezpečný náhradní výběr z legálních tahů.
+2. AI ověří, zda některý z nich okamžitě vyhrává; vítězný tah má nejvyšší prioritu.
+3. Pokud existuje naučená preference pro přesnou shodu situace, může vybrat nejlépe hodnocený legální tah.
+4. Jinak váhový učitel vypočítá skóre všech legálních kandidátů. Zahrnuje postup, vyhození, vlastní vyhození, vstup a postup v domečku, nasazení, bonusový hod, riziko soupeřova startu a změnu pravděpodobnosti zásahu přesouvané figurky.
+5. Náhodnost a četnost záměrných chyb se řídí zvolenou obtížností. Výběr nikdy neopustí seznam legálních tahů.
 
-Běžný režim načítá pouze kompilovanou paměť `storage/ai-training/ai-memory.json`; zdrojové výukové JSON neprochází. Paměť se drží v cache prohlížeče po dobu běhu stránky.
+Běžný režim načítá kompilovanou paměť `storage/ai-training/ai-memory.json`; zdrojové výukové JSON neprochází. Paměť se drží v cache prohlížeče po dobu běhu stránky.
 
-Režim `/?debug=trainer` před každým rozhodnutím zavolá `ai-training-knowledge.php`. Endpoint zpracovává pouze názvy souborů z append-only fronty `.training-queue`, pokračuje od uloženého bajtového offsetu a aktualizuje `ai-memory.json`. Celý adresář JSON se pro migraci starších záznamů prohledá pouze jednou. Po úspěšném zpracování lze původní JSON odstranit; kompilovaná paměť a fronta zůstávají.
+Režim `/?debug=trainer` před každým rozhodnutím zavolá `ai-training-knowledge.php`. Endpoint zpracovává pouze názvy souborů z append-only fronty `.training-queue`, pokračuje od uloženého bajtového offsetu a aktualizuje `ai-memory.json`. Celý adresář JSON se pro migraci starších záznamů prohledá pouze jednou.
 
 `js/ai-strategy.js` porovnává přesný podpis situace a vybere legální figurku s nejvyšším počtem naučených hlasů. Rozhodnutí ovlivněné pamětí vrací `trainedKnowledge: true` a souhrn počtu hodnocení. Okamžitá výhra má přednost.
 
-Jde o první omezenou fázi učení: ukládá se preference konkrétní figurky v přesné situaci, nikoli obecné pochopení libovolného českého taktického pokynu. Online PHP AI zatím používá oddělenou strategii.
+Jde o omezenou formu učení: ukládá se preference konkrétní figurky v přesné situaci, nikoli obecné pochopení libovolného českého taktického pokynu.
+
 ## 5. Výuka člověkem
 
 Výukový režim se spouští přes `/?debug=trainer` (starší alias `/?debug=training` zůstává podporován). Člověk může přepínat mezi všemi rozhodnutími AI v aktuálním tahu (například samostatně hodnotit rozhodnutí po šestce i po dalším hodu), opravit je, potvrdit jako správné nebo přeskočit. Opravu lze cílit přímo na konkrétní legální figurku pomocí strukturovaného `preferredPieceId`. Každé odeslané hodnocení se ukládá jako nový neměnný JSON soubor do `storage/ai-training/instructions/`.
@@ -86,25 +88,18 @@ Každý faktor je vypočítán pro simulovaný legální tah a jeho příspěvek
 
 ## 8. Konfigurace 1000 vah z `vahy.txt`
 
-Místní rozhodovací vrstva načítá všech 1000 číselných položek z `js/ai-weight-config.js` a při vyhodnocení každého legálního kandidáta prochází všechna ID 1–1000. Hodnoty strategických položek se normalizují funkcí `tanh(value / 100)` a násobí jedním z deseti stavových signálů: postup, útok, obrana, domácí sloupec, nasazení, tlak na soupeře, dokončení figurky, pozice na trase, flexibilita a riziko. Součet je normalizován odmocninou z počtu aktivních vah.
+Místní rozhodovací vrstva načítá všech 1000 číselných položek z `js/ai-weight-config.js`. Při hodnocení každého legálního kandidáta prochází ID 1–1000. U strategických položek se hodnota normalizuje funkcí `tanh(value / 100)` a násobí jedním z deseti stavových signálů: postup, útok, obrana, domácí sloupec, nasazení, tlak na soupeře, dokončení figurky, pozice na trase, flexibilita a riziko.
+
+**Důležité omezení:** 876 aktivních číselných položek není 876 nezávislých taktických schopností. Kód je přiřazuje opakovaně do deseti společných signálů pomocí `weightSignals[(id - 1) % 10]`. Každá z těchto vah tak může upravit příspěvek svého společného signálu, ale sama o sobě nepředstavuje novou samostatnou vlastnost herní situace.
 
 **Rozdělení položek:**
-- 876 strategických / ladicích vah vstupuje do součtu skóre každého legálního tahu.
-- 124 položek je v dodaném souboru výslovně označeno jako systémová metadata, kontrolní značky, telemetrie, příznaky nebo rezervované sloty. Ty se načítají a procházejí, ale jejich příspěvek je záměrně neutrální, aby například kontrolní token `99999` nebo checksum neovládal strategii.
-- ID 401–416 současně nastavují profil obtížnosti; jejich hodnoty jsou rovněž součástí strategického součtu, pokud nejde o výše uvedená metadata.
+- 876 strategických / ladicích položek vstupuje do normalizovaného součtu skóre.
+- 124 systémových metadat, kontrolních značek, telemetrie, příznaků a rezervovaných slotů je záměrně neutrálních.
+- ID 401–416 současně nastavují profily obtížnosti; jejich číselné hodnoty se zároveň účastní strategického součtu, pokud nejde o neutrální metadata.
 
-Příspěvek celého 1000-slot ensemble je součástí konečného skóre. Debug zobrazuje počet načtených položek, počet skutečných skórovacích vah, počet neutrálních systémových položek a číselný příspěvek ensemble pro vybraný tah i alternativy. Engine zůstává jediným zdrojem legálních tahů.
+Vedle tohoto společného součtu používá učitel i konkrétní pojmenované faktory, například `captureOwn`, `captureOpponent`, `deployPiece`, `enterHome` a `homeProgress`. Debug vrací jednotlivé faktory, příspěvek 1000-slot ensemble i skóre alternativ. Změna vah mění pouze pořadí legálních tahů; pravidla a seznam legálních tahů určuje engine.
 
-
-Místní hra načítá kompletní číselnou konfiguraci 1–1000 z `js/ai-weight-config.js`. Index pole odpovídá ID minus jedna; hodnoty jsou beze změny převzaté z dodaného `vahy.txt`. Konfigurace se načítá spolu s modulem AI, nikoli na úvodní obrazovce.
-
-- ID 1–100: základní strategické, poziční, rizikové, postupové a pravidlové parametry. Významné herní faktory z této skupiny vstupují do váženého skóre kandidátních tahů.
-- ID 401–416: aktivní předvolby obtížnosti. Lehká používá agresi 50, riziko 0,2, chybu 0,15 a náhodnost 0,35; střední 150, 1,0, 0,05 a 0,1; těžká 250, 1,8, 0 a 0. Hloubka těžké simulace je 4.
-- Ostatní ID jsou rovněž načtena a dostupná přes `getAIWeight(id)`; jejich skupiny slouží jako další konfigurační/ladicí parametry. Ne všechny mají zatím jednoznačně definovaný samostatný herní faktor, proto se nesmějí vydávat za 1000 nezávislých aktivních taktických schopností.
-
-V lokální hře je dočasně upřednostněn váhový učitel nad neuronovým modelem, aby bylo možné ověřit skutečný vliv dodaných vah. Explicitní předání neuronového modelu do `chooseStrategicDecision` zůstává podporováno. Výuková paměť s přesnou shodou situace a okamžitá výhra mají vyšší prioritu než běžné vážené hodnocení.
-
-Při `?debug=1` se do herního logu vypíše počet načtených hodnot, zvolená obtížnost, její aktivní parametry a hodnoty hlavních strategických vah. Engine stále jako jediný určuje legální tahy; váhy smějí měnit pouze pořadí legálních možností.
+Místní hra načítá hodnoty 1–1000 z `js/ai-weight-config.js`; index pole odpovídá ID minus jedna. Hodnoty profilů obtížnosti jsou: lehká (agrese 50, riziko 0,2, chyba 0,15, náhodnost 0,35), střední (150, 1,0, 0,05, 0,1) a těžká (250, 1,8, 0, 0).
 
 ## 9. Riziko obsazení soupeřova startu
 
