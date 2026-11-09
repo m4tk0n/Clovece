@@ -616,7 +616,7 @@ export function createTurnController(deps) {
                 const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
                 const automaticMandatoryDeployment = Number(game.diceValue) === 6 && hasPieceInBase;
                 // Každé povinné nasazení šestkou je dané pravidlem a neobsahuje taktické rozhodnutí.
-                if (!automaticMandatoryDeployment) await chooseAndLogAIMove();
+                await chooseAndLogAIMove();
                 if (automationPaused || !game || game.phase !== 'move' || isPaused()) return;
                 if (debugAI) {
                     addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
