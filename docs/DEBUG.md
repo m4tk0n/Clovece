@@ -15,21 +15,7 @@ Režimy se přepínají parametrem v adrese stránky; nejde o přepínač uvnit�
 |---|---|---|
 | Běžná hra | bez parametru | Bez diagnostických a výukových panelů. |
 | Technický debug | `/?debug=1` | Zobrazí červený diagnostický panel. Klepnutím se rozbalí nebo sbalí; rozbalený protokol lze ovládat také klávesami Enter a mezerník. |
-| Výuka AI | `/?debug=training` | Zobrazí samostatný plovoucí panel **VÝUKA AI**. Technický diagnostický panel se nezobrazuje. |
 
-Při přechodu mezi režimy změňte parametr v adrese a stránku znovu načtěte. Z technického debug režimu přejdete do výuky změnou `debug=1` na `debug=training`; opačně změňte hodnotu na `1`. Běžný režim otevřete odstraněním celého parametru `debug`.
-
-### Ovládání panelu výuky AI
-
-- Panel se zobrazí po vykreslení herní desky.
-- Přesouvá se tažením za hlavičku; tlačítka v hlavičce slouží ke změně velikosti.
-- Tlačítka **−** a **+** zmenšují a zvětšují panel.
-- **PŘESKOČIT** uzavře hodnocení aktuálního rozhodnutí bez uložení.
-- **SPRÁVNĚ** uloží pozitivní hodnocení rozhodnutí AI.
-- **ODESLAT** uloží textovou opravu napsanou člověkem. Tlačítko je aktivní až po zadání textu a dostupnosti kontextu rozhodnutí.
-- Stav uložení se zobrazí v panelu; úspěch se potvrzuje až po odpovědi serveru.
-
-Výukový panel není technický debug panel a jeho ovládání ani hodnocení nemění pravidla hry.
 
 ## 1. Diagnostický panel obrazovky
 
@@ -113,37 +99,6 @@ To umožňuje testerovi zkontrolovat dostupnou možnost a ručně vybrat figurku
 
 Toto nastavení se týká běžného zpracování tahu v lokální herní logice. Automatické rozhodování AI má vlastní větev a AI si tah vybírá sama.
 
-## 5. Ruční trénink AI
-
-Samostatný režim výuky se spouští adresou:
-
-`/?debug=training`
-
-Po otevření se zobrazí výběr místní hry. Režim používá stejný herní engine a stejná aktivní pravidla jako běžná místní hra, ale vždy vynutí 2D desku.
-
-- Na všech polích hlavního okruhu jsou viditelná čísla 1 až 40, 1 až 48 nebo 1 až 80.
-- Cílová pole jsou označena `D1-1` až `D8-4` podle pozice ramene.
-- Technický debug panel, měření CSS, velikost okna, FPS a informace o 3D kameře se v tomto režimu nezobrazují.
-- Běžný herní chat zůstává zachován. Po tahu AI se přidá zelená zpráva ve formátu `[Jméno AI: vyhodnocení]`.
-- Plovoucí panel ukazuje, co AI vybrala, její vysvětlení, ostatní legální možnosti a výsledek tahu.
-- Ve spodní části panelu člověk napíše, co měla AI udělat a proč, a odešle instrukci.
-
-### Ukládání instrukcí
-
-Každé odeslané hodnocení dostane vlastní JSON soubor s názvem `YYYYMMDD-HHmmss-XXXX-[ok|err].json` ve složce `storage/ai-training/instructions/`. Pořadové číslo je společné pro oba typy záznamů a začíná hodnotou `0001`.
-
-Záznam obsahuje čas vytvoření, text instrukce, verzi formátu a úplný kontext rozhodnutí: nastavení pravidel, hráče, stav figurek před tahem, legální možnosti, výběr AI, vysvětlení a výsledek tahu.
-
-- `ok` označuje pozitivní hodnocení (`feedbackType: positive`), `err` opravnou instrukci (`feedbackType: correction`).
-- Pořadové číslo `XXXX` se zvyšuje společně pro všechny záznamy: `0001`, `0002`, `0003`…
-- Soubor se vytváří výhradně v režimu „create new“; existující záznam se nikdy nepřepisuje.
-- Endpoint nemá operaci pro mazání ani úpravu instrukcí.
-- Úložiště je uvnitř složky `storage/`, kterou webový server blokuje přes `.htaccess`.
-- Ukládání používá session CSRF token, kontrolu původu požadavku a limit velikosti instrukce.
-- Záznamy se neodesílají do GitHubu ani do databáze. Zůstávají na serveru.
-
-**Důležité:** tato část zatím bezpečně shromažďuje tvoje opravy a kontext. Samotné vyhledávání podobných instrukcí, jejich zapojení do rozhodování AI a audit toho, které uložené instrukce AI při konkrétním tahu skutečně použila, bude navazující implementace. Uložené soubory se proto nesmějí považovat za již naučenou taktiku.
-
 ## 6. Vypnutí
 
 Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D polí, vizualizace legálních tahů a ruční výběr místo automatického vynuceného tahu se pak vypnou.
@@ -158,10 +113,6 @@ Odstraňte z adresy parametr `debug=1`. Diagnostický panel, číslování 3D po
 - Číslování 2D/3D polí, trasy legálních tahů, diagnostika kamery a ruční potvrzení jediného možného tahu se připojují výhradně přes debug rozšíření.
 - Regresní kontrolu oddělení provádí `tests/debug-isolation.test.mjs`.
 
-## 7. Hlavní dokumentace ruční výuky AI
-
-Kompletní popis režimu `/?debug=training`, výukového panelu, tlačítek ODESLAT / SPRÁVNĚ / PŘESKOČIT, struktury JSON, serverového úložiště, zabezpečení a dalšího vývoje je v [AI_TRAINING.md](AI_TRAINING.md). Tento dokument je hlavním zdrojem informací o výuce AI.
-
 ## Umístění stylů diagnostického panelu
 
 - Plovoucí technický panel zobrazovaný pouze při `?debug=1` vytváří `js/debug-overlay.js`.
@@ -169,11 +120,10 @@ Kompletní popis režimu `/?debug=training`, výukového panelu, tlačítek ODES
 - JavaScript smí nastavovat pouze dynamické hodnoty nutné pro funkčnost a umístění při přetažení nebo změně viditelného viewportu. Nesmí obsahovat pevné definice vzhledu přes `style.cssText` ani nastavování vizuálních vlastností přes `element.style`.
 - CSS třídy ovládané JavaScriptem (například zobrazení/skrytí údajů, rozbalení panelu a stav tažení) slouží pouze ke změně stavu; jejich vizuální podobu určuje `css/debug.css`.
 - `css/debug.css` se načítá dynamicky pouze při aktivním debug režimu. Nesmí se načítat v běžné hře.
-- Stejné oddělení platí pro všechny prvky určené výhradně pro debug a výuku AI: jejich vzhled patří do `css/debug.css`, nikoli do běžných herních stylesheetů.
 - Při přidání nového debug prvku se jeho styly zapisují rovnou do `css/debug.css`; do běžných CSS souborů se nepřidávají.
 
 
 
-## Stav a změny taktických vah AI
+
 
 V rozbaleném panelu `?debug=1` se načítá `config/ai-training-state.json`. Panel zobrazuje původní a kandidátní hodnotu každé taktické váhy, rozdíl po tréninku, validační zlepšení a výsledek turnaje. Kandidát může být zobrazen i tehdy, když jej turnaj zamítl; produkční hodnoty se v takovém případě nemění.
