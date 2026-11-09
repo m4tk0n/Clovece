@@ -68,7 +68,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
     <link rel="stylesheet" href="css/test-runner.css?v=<?= $assetVersion('css/test-runner.css') ?>">
     <?php endif; ?>
     <?php if ($trainingMode): ?>
-    <link rel="stylesheet" href="css/ai-training.css?v=<?= $assetVersion('css/ai-training.css') ?>">
+    <link rel="stylesheet" href="debug/css/ai-training.css?v=<?= $assetVersion('debug/css/ai-training.css') ?>">
     <?php endif; ?>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Rubik:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -205,7 +205,7 @@ $testMode = isset($_GET['test']) && (string) $_GET['test'] === '1';
     <audio id="move-sound" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="none"></audio>
     <!-- JavaScript -->
     <?php if ($debugMode || $trainingMode): ?>
-    <script type="module" src="js/debug-bootstrap.js?v=<?= $assetVersion('js/debug-bootstrap.js') ?>"></script>
+    <script type="module" src="debug/js/debug-bootstrap.js?v=<?= $assetVersion('debug/js/debug-bootstrap.js') ?>"></script>
     <?php endif; ?>
     <script type="module" src="js/bootstrap.js?v=<?= $assetVersion('js/bootstrap.js') ?>"></script>
     <?php if ($testMode): ?>
