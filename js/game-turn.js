@@ -133,9 +133,9 @@ export function createTurnController(deps) {
             return legalMoves[0];
         }
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
-        const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
-        if (Number(game.diceValue) === 6 && allPiecesInBase) {
-            // První povinné nasazení z prázdné dráhy je dané pravidlem, ne strategickou volbou.
+        const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
+        if (Number(game.diceValue) === 6 && hasPieceInBase) {
+            // Povinné nasazení při šestce je dané pravidlem, ne strategickou volbou.
             return legalMoves[0] ?? null;
         }
         // Lokální hra nyní používá přímo konfigurační váhy 1–1000.
@@ -244,8 +244,8 @@ export function createTurnController(deps) {
         if (!trainingAI || game.players[game.currentPlayer]?.isAI) return null;
         const legalMoves = getValidMoves(game);
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
-        const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
-        if (legalMoves.length < 2 || (Number(game.diceValue) === 6 && allPiecesInBase) || !chooseAIMoveDecision) return null;
+        const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
+        if (legalMoves.length < 2 || (Number(game.diceValue) === 6 && hasPieceInBase) || !chooseAIMoveDecision) return null;
         const analysis = chooseAIMoveDecision(game, undefined, {}, null);
         if (!analysis || !Array.isArray(analysis.alternatives)) return null;
         const allCandidates = [
@@ -560,10 +560,10 @@ export function createTurnController(deps) {
         if (forcedMove !== null && autoMoveForced) {
             if (isAI) {
                 const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
-                const allPiecesInBase = playerPieces.length > 0 && playerPieces.every(piece => Number(piece.steps) < 0);
-                const automaticFirstDeployment = Number(game.diceValue) === 6 && allPiecesInBase;
-                // Nasazení první figurky šestkou je povinné a neobsahuje taktické rozhodnutí.
-                if (!automaticFirstDeployment) await chooseAndLogAIMove();
+                const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
+                const automaticMandatoryDeployment = Number(game.diceValue) === 6 && hasPieceInBase;
+                // Každé povinné nasazení šestkou je dané pravidlem a neobsahuje taktické rozhodnutí.
+                if (!automaticMandatoryDeployment) await chooseAndLogAIMove();
                 if (automationPaused || !game || game.phase !== 'move' || isPaused()) return;
                 if (debugAI) {
                     addGameLogEntry('AI rozhodování', 'Mám pouze jeden legální tah, proto nemám jinou možnost než pohnout figurkou ' + (forcedMove + 1) + '.');
