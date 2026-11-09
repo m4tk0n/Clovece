@@ -20,6 +20,11 @@ test('server overrides immediately replace exactly the selected numeric weight',
 test('weight metadata distinguishes trainable values from system-only slots', () => {
     assert.equal(getAIWeightMetadata(1).name, 'w_capture');
     assert.match(getAIWeightMetadata(61).desc, /vzdálenosti 1/);
+    assert.equal(getAIWeightMetadata(151).name, 'extended_metric_beta_1');
+    assert.equal(getAIWeightMetadata(211).name, 'threat_distance_weight_1');
+    assert.equal(getAIWeightMetadata(321).name, 'piece_coordination_w_1');
+    assert.equal(getAIWeightMetadata(681).name, 'heuristic_bias_v1');
+    assert.equal(getAIWeightMetadata(961).name, 'aux_tuning_weight_961');
     assert.equal(getAIWeightMetadata(401).name, 'obtiznost_lehka_agrese');
     assert.equal(isTrainableAIWeight(416), true);
     assert.equal(isTrainableAIWeight(417), false);
