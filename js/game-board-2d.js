@@ -1,3 +1,4 @@
+// FTP sync refresh marker 2026-11-09
 /**
  * Samostatný SVG renderer herní desky.
  * Přijímá herní stav pouze ke čtení a nevykonává herní pravidla.
