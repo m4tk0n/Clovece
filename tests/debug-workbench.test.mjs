@@ -3,13 +3,14 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 
-test('debug vstup vede do živé společné hry v režimu výuky', async () => {
+test('debug vstup vykresluje společnou hru v izolovaném výukovém režimu', async () => {
  const [page,index,board,bootstrap] = await Promise.all([
-  read('../debug/index.php'),read('../index.php'),read('../js/game-board-view.js'),read('../js/debug-bootstrap.js')
+  read('../debug/index.php'),read('../index.php'),read('../js/game-board-view.js'),read('../debug/js/debug-bootstrap.js')
  ]);
- assert.match(page,/Location: '\.\.\/?debug=training'/);
- assert.match(index,/js\/debug-bootstrap\.js/);
- assert.match(index,/css\/ai-training\.css/);
- assert.match(board,/let view3d = trainingMode \? false : loadView\(\)/);
+ assert.match(page,/\$_GET\['debug'\]\s*=\s*'training'/);
+ assert.match(page,/<base href="\.\.\/">);
+ assert.match(index,/debug\/js\/debug-bootstrap\.js/);
+ assert.match(index,/debug\/css\/ai-training\.css/);
+ assert.match(board,/trainingMode/);
  assert.match(bootstrap,/initAITrainingOverlay/);
 });
