@@ -1,3 +1,4 @@
+<!-- /docs/CHAT_LOG.md -->
 # Herní log a chat
 
 Tento dokument popisuje, co se zobrazuje v chatu během lokální i online partie a jak se má uchovávat stav rozehrané lokální hry.

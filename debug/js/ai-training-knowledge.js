@@ -1,3 +1,4 @@
+// /debug/js/ai-training-knowledge.js
 /** Compact AI memory client. Normal games never inspect source training JSON files. */
 let csrfToken = null;
 let tokenPromise = null;

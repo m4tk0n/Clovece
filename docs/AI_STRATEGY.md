@@ -1,3 +1,4 @@
+<!-- /docs/AI_STRATEGY.md -->
 # Strategická AI – deset naučitelných vah
 
 ## Stav implementace

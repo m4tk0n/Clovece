@@ -1,3 +1,4 @@
+// /debug/js/debug-overlay.js
 /**
  * Diagnostický panel aktivovaný pouze v režimu ?debug=1.
  * Zobrazuje deset aktivních strategických vah a stav tréninku.

@@ -1,3 +1,4 @@
+// /debug/js/ai-training-overlay.js
 import { getAIWeight, setAIWeightOverrides } from '../../js/ai-weight-config.js';
 import { saveAIWeightFeedback } from './ai-training-knowledge.js';
 import { buildAIWeightReviewQuestions } from '../../js/ai-weight-metadata.js';

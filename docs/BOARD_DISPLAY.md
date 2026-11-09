@@ -1,3 +1,4 @@
+<!-- /docs/BOARD_DISPLAY.md -->
 # Zobrazení herní desky
 
 ## Aktuální nastavení
