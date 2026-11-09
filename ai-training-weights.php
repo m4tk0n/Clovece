@@ -57,7 +57,7 @@ $storageDeny = $storage . '/.htaccess';
 if (!is_file($storageDeny)) {
     $denyHandle = @fopen($storageDeny, 'x');
     if ($denyHandle !== false) {
-        $denyRule = "Require all denied\\n";
+        $denyRule = "Require all denied\n";
         $ok = fwrite($denyHandle, $denyRule) === strlen($denyRule) && fflush($denyHandle);
         fclose($denyHandle);
         if (!$ok) aiWeightFail('Nelze zabezpečit úložiště AI.', 500);
@@ -67,7 +67,7 @@ $rootDeny = $root . '/.htaccess';
 if (!is_file($rootDeny)) {
     $denyHandle = @fopen($rootDeny, 'x');
     if ($denyHandle !== false) {
-        $denyRule = "Require all denied\\n";
+        $denyRule = "Require all denied\n";
         $ok = fwrite($denyHandle, $denyRule) === strlen($denyRule) && fflush($denyHandle);
         fclose($denyHandle);
         if (!$ok) aiWeightFail('Nelze zabezpečit váhy AI.', 500);
