@@ -20,8 +20,7 @@ test('debug jediný legální tah se neodesílá do panelu AI', async () => {
 test('debug chat shows more recent log lines and AI panel scrolls internally', async () => {
     const styles = await read('../debug/css/debug-layout.css');
     const index = await read('../debug/index.php');
-    assert.match(styles, /\.game-chat \.chat-messages[\s\S]*?height: clamp\(84px, 19dvh, 190px\)/);
-    assert.match(styles, /\.ai-training-content[\s\S]*?overflow-y: auto/);
-    assert.match(styles, /max-height: calc\(100dvh - 8px\)/);
+    assert.match(styles, /#game-screen \.game-footer[\s\S]*?flex: 1 1 0%;[\s\S]*?min-height: 0/);
+    assert.match(styles, /#game-screen \.game-chat \.chat-messages[\s\S]*?flex: 1 1 auto;[\s\S]*?height: auto;[\s\S]*?min-height: 0;[\s\S]*?max-height: none/);
     assert.match(index, /debug\/css\/debug-layout\.css/);
 });
