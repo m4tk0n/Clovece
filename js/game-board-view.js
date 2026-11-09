@@ -1,4 +1,5 @@
 /**
+ * FTP deploy marker: force-refresh the board view module on the live host.
  * Řízení zobrazení herní desky: výběr stylu, 2D/3D a kompatibilní API.
  *  - klasik: hvězdice s rameny (4 / 6 / 8 ramen = 40 / 48 / 80 polí),
  *  - mnohoúhelník: pole po obvodu čtyř-, šesti- a osmiúhelníku.
