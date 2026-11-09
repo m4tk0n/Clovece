@@ -10,7 +10,7 @@ test('samostatná AI debug laboratoř vyhodnotí všech šest hodů bez chyby', 
   for (const boardSize of ['40', '48', '80']) {
     await page.locator('#board-size').selectOption(boardSize);
     await page.locator('#run-test').click();
-    await expect(page.locator('#status')).toContainText('prověřeno všech 6 výsledků');
+    await expect(page.locator('#status')).toContainText('prověřeno všech 6 větví');
     await expect(page.locator('#dice-results tbody tr')).toHaveCount(6);
     await expect(page.locator('#decision .die-outcome')).toHaveCount(6);
   }
