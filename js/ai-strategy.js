@@ -721,6 +721,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = AI_TACTIC
                 scoredWeightCount,
                 neutralConfigWeightCount,
                 allWeightsScore: Number(allWeightsScore.toFixed(6)),
+                weightSignals: weightSignals.map(value => Number(value.toFixed(5))),
                 winning
             }
         };
