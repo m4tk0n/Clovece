@@ -22,7 +22,8 @@
 Pro vzdálenost (d) a možnost řetězení šestek:
 
 [
-P(d)=rac{1}{6^{\lceil d/6\rceil}}
+P(d)=
+rac{1}{6^{\lceil d/6\rceil}}
 ]
 
 Jde o orientační matematický odhad. Skutečná možnost konkrétního zásahu se musí vyhodnocovat přes herní engine, aby se zohlednila obsazená pole a aktivní pravidla.
@@ -37,7 +38,11 @@ Tyto hodnoty jsou popisné; aktuální výběr tahu je nepoužívá jako taktick
 
 ### Ohrožení figurky
 
-Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nesmí přidávat vlastní pravidla. Výsledek je údaj o možnosti zásahu, nikoli automatický pokyn k útěku.
+Pravděpodobnost zásahu se simuluje pomocí `rollDice()`, `getValidMoves()` a `movePiece()`. Simulace nesmí přidávat vlastní pravidla. Pro každého soupeře se prohledají legální možnosti včetně bonusových šestek (s omezenou hloubkou), následně se pravděpodobnosti soupeřů kombinují jako pravděpodobnost alespoň jednoho zásahu.
+
+**Riziko nyní přímo ovlivňuje skóre tahu:** pro právě přesouvanou figurku se vypočte pravděpodobnost zásahu před tahem a po tahu. Rozdíl se násobí vahou `captureOwn` a násobitelem rizika dané obtížnosti. Tah, který figurku dostane z dosahu soupeře, získá body; tah, který ji vystaví většímu riziku, body ztratí. U nasazení se stejným způsobem hodnotí nové vystavení figurky. Tato přesná změna rizika již není pouze diagnostický údaj.
+
+Jde o pravděpodobnostní model možností zásahu při nejvýhodnějším legálním útočném tahu, nikoli o jistou předpověď konkrétní strategie soupeře.
 
 ## 3. Co je vypnuto
 
