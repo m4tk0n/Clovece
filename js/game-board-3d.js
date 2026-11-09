@@ -90,6 +90,27 @@ function pawn(T,color,size,playerId,pieceId,selectable) {
     add(T,group,new T.SphereGeometry(.255*scale,40,32),plastic,0,1.08*scale,0);
     const shine=add(T,group,new T.SphereGeometry(.035*scale,12,10),new T.MeshBasicMaterial({color:0xffffff}),-.085*scale,1.17*scale,.22*scale,false);
     shine.scale.set(1.2,.7,.4);group.userData={playerId,pieceId,selectable};
+    if (new URLSearchParams(window.location.search).has('debug')) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, 128, 128);
+        context.fillStyle = '#000000';
+        context.font = '900 88px Arial,sans-serif';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(String(pieceId + 1), 64, 66);
+        const texture = new T.CanvasTexture(canvas);
+        texture.colorSpace = T.SRGBColorSpace;
+        const label = new T.Sprite(new T.SpriteMaterial({
+            map: texture, transparent: true, depthWrite: false, toneMapped: false
+        }));
+        label.position.set(0, .70 * scale, .24 * scale);
+        label.scale.set(.34 * scale, .34 * scale, 1);
+        label.renderOrder = 20;
+        group.add(label);
+    }
     group.traverse(object=>{object.userData.pawnRoot=group});return group;
 }
 function createBoardShape(T,data) {
