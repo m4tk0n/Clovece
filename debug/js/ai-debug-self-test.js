@@ -1,3 +1,4 @@
+// /debug/js/ai-debug-self-test.js
 import { createGame, getValidMoves, rollDice, getAvailableBoardSizes, chooseAIMoveDecision } from './game-engine.js';
 import { AI_WEIGHT_COUNT } from './ai-weight-config.js';
 import { getBoardView } from '../../js/game-board.js';

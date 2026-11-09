@@ -1,3 +1,4 @@
+// /debug/js/ai-tactical-weights.js
 // Generated from config/ai-tactical-weights.json. Do not edit manually.
 export const AI_TACTICAL_WEIGHTS = Object.freeze({
   "progressToGoal": 2,

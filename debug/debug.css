@@ -1,3 +1,4 @@
+/* /debug/debug.css */
 :root{color-scheme:dark;--bg:#10151d;--panel:#192330;--line:#304052;--text:#edf3fa;--muted:#a7b5c5;--accent:#77b8ff;--good:#86d7a5}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}

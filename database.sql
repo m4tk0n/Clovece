@@ -1,3 +1,4 @@
+-- /database.sql
 -- ============================================
 -- Člověče, nezlob se! - MySQL Database Schema
 -- For wz.cz hosting

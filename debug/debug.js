@@ -1,3 +1,4 @@
+// /debug/debug.js
 import { createGame, getValidMoves, movePiece, rollDice } from './js/game-engine.js';
 import { chooseStrategicDecision } from './js/ai-strategy.js';
 import { AI_WEIGHT_DEFINITIONS, getAIStrategicWeights, setAIWeightOverrides } from './js/ai-weight-config.js';

@@ -1,3 +1,4 @@
+<!-- /debug/README.md -->
 # Vývojové prostředí AI
 
 Otevření: `/clovece/debug/`

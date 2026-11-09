@@ -1,4 +1,5 @@
 <?php
+// /debug/ai-training.php
 declare(strict_types=1);
 
 /**

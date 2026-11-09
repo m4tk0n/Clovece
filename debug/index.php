@@ -1,4 +1,5 @@
 <?php
+// /debug/index.php
 declare(strict_types=1);
 
 /**
