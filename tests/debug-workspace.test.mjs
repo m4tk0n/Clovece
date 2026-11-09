@@ -28,4 +28,4 @@ test('debug copies expose their own game and strategy APIs',async()=>{
  assert.ok(strategy.includes('export function chooseStrategicDecision'));
  assert.ok(config.includes('export const AI_WEIGHT_COUNT'));
 });
-test('debug workspace documents manual promotion only',async()=>{const doc=await read('../debug/README.md');assert.match(doc,/přenášejí ručně/i);assert.match(doc,/ručně přenesou/i);});
+test('debug workspace documents manual promotion only',async()=>{const doc=await read('../debug/README.md');assert.match(doc,/nepřenášejí automaticky/i);assert.match(doc,/ručně přenesou/i);});
