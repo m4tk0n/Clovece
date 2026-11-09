@@ -13,8 +13,9 @@ export function createTurnController(deps) {
     const $ = id => document.getElementById(id);
     const speedDelay = () => 950;
     const debugMode = new URLSearchParams(window.location.search).get('debug');
-    const debugAI = debugMode === '1';
-    const trainingAI = debugMode === 'trainer' || debugMode === 'training';
+    const isDebugPath = /\/debug(?:\/|$)/.test(window.location.pathname);
+    const debugAI = debugMode === '1' && !isDebugPath;
+    const trainingAI = isDebugPath || debugMode === 'trainer' || debugMode === 'training';
     let game = null;
     let aiTimer = null;
     let automationPaused = false;
