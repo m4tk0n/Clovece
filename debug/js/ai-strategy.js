@@ -498,6 +498,66 @@ function simulateNextDiceOutcomes(state, playerId, dependencies) {
     return outcomes;
 }
 
+function simulateOpponentResponses(state, targetPlayerId, targetPieceId, dependencies) {
+    const { getValidMoves, movePiece, rollDice } = dependencies;
+    if (typeof rollDice !== 'function' || typeof movePiece !== 'function' || typeof getValidMoves !== 'function') return [];
+    const target = state.pieces[targetPlayerId]?.pieces[targetPieceId];
+    if (!target || !isMainTrackPiece(target, state.trackLength)) return [];
+    const responses = [];
+    for (const opponent of state.players) {
+        if (opponent.id === targetPlayerId || opponent.finished) continue;
+        const diceOutcomes = [];
+        for (let dice = 1; dice <= 6; dice++) {
+            const branch = cloneGame(state);
+            branch.currentPlayer = opponent.id;
+            branch.phase = 'roll';
+            branch.diceValue = 0;
+            branch.baseRollAttempts = 0;
+            branch.thirdAttemptSix = false;
+            branch.consecutiveSixes = 0;
+            branch.threeSixesPenaltyPending = false;
+            const result = rollDice(branch, dice);
+            const legal = branch.phase === 'move' ? (result.validMoves || getValidMoves(branch, opponent.id)) : [];
+            const options = legal.map(pieceId => {
+                const before = branch.pieces[opponent.id].pieces[pieceId]?.steps ?? -1;
+                const next = cloneGame(branch);
+                const move = movePiece(next, pieceId);
+                const after = next.pieces[opponent.id].pieces[pieceId]?.steps ?? before;
+                const capturesTarget = Boolean(move.captured && !move.captured.ownPiece &&
+                    move.captured.playerId === targetPlayerId && move.captured.pieceId === targetPieceId);
+                return {
+                    pieceId,
+                    fromSteps: before,
+                    toSteps: after,
+                    capturesTarget,
+                    captured: move.captured ? {
+                        playerId: move.captured.playerId,
+                        pieceId: move.captured.pieceId,
+                        ownPiece: Boolean(move.captured.ownPiece)
+                    } : null,
+                    deployed: Boolean(move.deployed),
+                    finishedNow: Boolean(move.finishedNow),
+                    bonusRoll: next.winner === null && next.currentPlayer === opponent.id && next.phase === 'roll'
+                };
+            });
+            diceOutcomes.push({
+                dice,
+                legalMoveCount: legal.length,
+                retrying: Boolean(result.retrying),
+                noMove: !legal.length && !result.retrying,
+                options
+            });
+        }
+        responses.push({
+            playerId: opponent.id,
+            playerName: opponent.name,
+            diceOutcomes,
+            canCaptureTarget: diceOutcomes.some(outcome => outcome.options.some(option => option.capturesTarget))
+        });
+    }
+    return responses;
+}
+
 export function evaluateTacticalCandidates(game, candidates, weights = getAIStrategicWeights(), dependencies = {}) {
     const playerId = game.currentPlayer;
     const beforeThreat = estimateFastTrackThreat(game, playerId);
@@ -538,7 +598,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
             ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies) : 0;
         const startRisk = estimateOpponentStartSquareRisk(state, playerId, candidate.pieceId);
         const startFieldRisk = -clampSignal(Math.max(pieceThreat, startRisk.risk));
-        const diceSimulation = simulateNextDiceOutcomes(state, playerId, dependencies);
+        const diceSimulation = simulateNextDiceOutcomes(state, playerId, dependencies);\n        const opponentResponses = simulateOpponentResponses(state, playerId, candidate.pieceId, dependencies);
         const bonusContinuation = clampSignal(diceSimulation.filter(item => item.bonusRoll).length / 6);
         const flexibility = clampSignal(diceSimulation.reduce((sum, item) => sum + Math.min(4, item.legalMoveCount), 0) / 24);
         const finishPiece = candidate.move?.finishedNow ? 1 : 0;
@@ -574,7 +634,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
             onOpponentStart: startRisk.onOpponentStart,
             opponentStartRisk: Number(startRisk.risk.toFixed(4)),
             enteredHome, homeProgressSteps: homeProgress, deployedPiece, capturedOpponent: enemyCapture,
-            capturedOwnPiece: selfCapture, winning, diceSimulation
+            capturedOwnPiece: selfCapture, winning, diceSimulation, opponentResponses
         };
         return { pieceId: candidate.pieceId, score: Number(score.toFixed(6)),
             trainingScore: Number(score.toFixed(6)), factors };
