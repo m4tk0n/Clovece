@@ -597,7 +597,7 @@ function onlineEngineChooseAIMoveDecision(array $game, ?callable $randomIndex = 
         $homeProgress = $beforeSteps >= $track && $afterSteps >= $beforeSteps ? $afterSteps - $beforeSteps : 0;
         $enemyCapture = !empty($move['captured']) && empty($move['captured']['ownPiece']);
         $protect = ($beforeThreat - onlineEngineAiThreatLoss($simulation, $playerId)) / $track;
-        $diceOutcomes = onlineEngineAiNextDiceOutcomes($simulation, $playerId);
+        $diceOutcomes = $winning ? [] : onlineEngineAiNextDiceOutcomes($simulation, $playerId);
         $threaten = count(array_filter($diceOutcomes, static fn(array $item): bool => $item['capture'])) / 6;
         $bonus = count(array_filter($diceOutcomes, static fn(array $item): bool => $item['bonusRoll'])) / 6;
         $flexibility = array_sum(array_map(static fn(array $item): int => min(4, (int) $item['legalMoveCount']), $diceOutcomes)) / 24;
