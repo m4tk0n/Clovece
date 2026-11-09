@@ -352,7 +352,7 @@ export function initAITrainingOverlay() {
                 item.appendChild(choose);
                 const from = candidate.fromSteps === undefined ? null : positionLabel(candidate.fromSteps, player, Number(game.trackLength || game.boardSize || 40));
                 const to = candidate.toSteps === undefined ? null : positionLabel(candidate.toSteps, player, Number(game.trackLength || game.boardSize || 40));
-                const score = candidate.score !== null && candidate.score !== undefined && Number.isFinite(Number(candidate.score)) ? ' · skóre ' + Number(candidate.score).toFixed(3) : '';
+                const score = candidate.score !== null && candidate.score !== undefined && Number.isFinite(Number(candidate.score)) ? (decision.trainedKnowledge ? ' · naučené hlasy ' + Number(candidate.score).toFixed(0) : ' · skóre ' + Number(candidate.score).toFixed(3)) : '';
                 addText(item, 'span', '', 'F' + (pieceId + 1) + (from && to ? ' · ' + from + ' → ' + to : '') + score + ' · ' + cleanExplanation(reason));
                 list.appendChild(item);
             });
@@ -365,7 +365,7 @@ export function initAITrainingOverlay() {
         const factors = decision.selectedWeightFactors || selectedCandidate?.weightFactors || {};
         addText(analysis, 'div', 'ai-training-section-title', 'PROČ AI VYBRALA TENTO TAH');
         if (decision.score !== null && decision.score !== undefined && Number.isFinite(Number(decision.score))) {
-            addText(analysis, 'p', 'ai-training-explanation', 'Celkové skóre: ' + Number(decision.score).toFixed(4));
+            addText(analysis, 'p', 'ai-training-explanation', (decision.trainedKnowledge ? 'Naučené hlasování: ' : 'Strategické skóre: ') + Number(decision.score).toFixed(decision.trainedKnowledge ? 0 : 4));
         }
         if (decision.trainedKnowledge) {
             addText(analysis, 'p', 'ai-training-learned',
