@@ -149,7 +149,7 @@ jobs:
             Number((Number(candidate[key]) - Number(previous[key])).toFixed(8))]));
           const state = {
             format: 'clovece-ai-training-state',
-            version: 1,
+            version: 2,
             updatedAt: new Date().toISOString(),
             status: alreadyPromoted ? 'promoted' :
               stale ? 'stale-candidate' :
