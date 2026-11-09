@@ -263,3 +263,11 @@ test('debug mode numbers every pawn in the center in both board renderers', asyn
     assert.match(board3D, /fillText\(String\(pieceId \+ 1\)/);
     assert.match(board3D, /label\.position\.set/);
 });
+
+test('mandatory moves and first deployment are excluded from tactical training review', async () => {
+    const turn = await read('../js/game-turn.js');
+    assert.match(turn, /if \(legalMoves\.length === 1\)[\s\S]*?pendingAIForcedMove = trainingAI[\s\S]*?return legalMoves\[0\]/);
+    assert.match(turn, /if \(Number\(game\.diceValue\) === 6 && allPiecesInBase\)[\s\S]*?return legalMoves\[0\] \?\? null/);
+    assert.match(turn, /if \(legalMoves\.length < 2 \|\| \(Number\(game\.diceValue\) === 6 && allPiecesInBase\) \|\| !chooseAIMoveDecision\) return null/);
+    assert.match(turn, /const automaticFirstDeployment = Number\(game\.diceValue\) === 6 && allPiecesInBase/);
+});
