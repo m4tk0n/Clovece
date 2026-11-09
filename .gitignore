@@ -44,3 +44,7 @@ test-results/
 
 # AI training reports and local experiment output
 artifacts/
+
+# Server-side human feedback weights (private runtime state)
+/ai-learned-weights.json
+/.ai-learned-weights.lock
