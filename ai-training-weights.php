@@ -108,12 +108,12 @@ if ($action === 'feedback') {
         ($id >= 417 && $id <= 430) || ($id >= 441 && $id <= 500)
         || ($id >= 941 && $id <= 960) || ($id >= 971 && $id <= 1000)
     );
-    if (!is_int($id) || $id < 1 || $id > 1000 || $reserved
+    if (!is_int($id) || $id < 1 || $id > 10 || $reserved
         || !in_array($answer, ['yes', 'no'], true)
         || $signalDelta === false || !is_finite((float)$signalDelta)
         || abs((float)$signalDelta) < 0.001 || abs((float)$signalDelta) > 2
         || $currentValue === false || !is_finite((float)$currentValue)
-        || abs((float)$currentValue) > 10000) {
+        || abs((float)$currentValue) > 300) {
         flock($lock, LOCK_UN); fclose($lock);
         aiWeightFail('Hodnocení proměnné nemá platné údaje.', 400);
     }

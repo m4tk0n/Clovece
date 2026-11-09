@@ -138,9 +138,7 @@ export function createTurnController(deps) {
             // Povinné nasazení při šestce je dané pravidlem, ne strategickou volbou.
             return legalMoves[0] ?? null;
         }
-        // Lokální hra nyní používá přímo konfigurační váhy 1–1000.
-        // Neuronový model zůstává podporovaný v ai-strategy.js, ale zde se
-        // dočasně nepředává, aby bylo možné ihned ověřit vliv vah z vahy.txt.
+        // Produkční lokální AI používá deset pojmenovaných strategických vah.
         const neuralModel = null;
         if (!game || game !== gameAtDecision ||
             [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
@@ -151,19 +149,12 @@ export function createTurnController(deps) {
             if (debugAI && decision.breakdown?.weightConfig) {
                 const config = decision.breakdown.weightConfig;
                 addGameLogEntry('AI váhy', config.count + ' načtených hodnot · ' +
-                    (config.scoredWeightCount || 876) + ' zapojených do skóre · ' +
-                    (config.neutralConfigWeightCount || 124) + ' systémových / rezervních položek neutrálních · ' +
-                    config.difficulty + ' · agrese ' + config.aggression +
-                    ' · riziko ×' + config.riskMultiplier + ' · chyba ' + config.blunderRate +
-                    ' · náhodnost ' + config.randomness);
+                    Object.keys(config.values || {}).length + ' strategických vah · ' + config.difficulty);
             }
             if (debugAI) addGameLogEntry('AI rozhodování', decision.reason);
             if (debugAI && decision.breakdown?.selectedWeightFactors) {
                 const factors = decision.breakdown.selectedWeightFactors;
-                addGameLogEntry('AI příspěvek vah', 'součet 876 vah: ' + factors.allWeightsScore +
-                    ' bodů · postup ' + factors.ownProgress + ' · útok ' + factors.capturedOpponent +
-                    ' · obrana ' + factors.threatReduction + ' · domeček ' + factors.homeProgress +
-                    ' · nasazení ' + factors.deployedPiece + ' · rizikový násobitel ' + factors.riskMultiplier);
+                addGameLogEntry('AI příspěvek vah', 'příspěvky deseti vah: ' + Object.entries(factors.weightContributions || {}).map(([key, value]) => key + '=' + value).join(', '));
             }
             if (debugAI && decision.breakdown?.trainedKnowledge && decision.breakdown.usedInstructions?.length) {
                 const usedIds = decision.breakdown.usedInstructions.map(item => item.id).join(', ');
@@ -177,7 +168,7 @@ export function createTurnController(deps) {
                 addGameLogEntry('AI možnosti', alternatives.map(item =>
                     'figurka ' + (Number(item.pieceId) + 1) + ': ' +
                     Number(item.score || 0).toFixed(4) + ' bodů' +
-                    (item.weightFactors ? ' [1000-slot ' + item.weightFactors.allWeightsScore + ']' : '') +
+                    (item.weightFactors ? ' [10 vah]' : '') +
                     ' (' + (item.reason || 'vyhodnocení') + ')'
                 ).join('; '));
             }
@@ -185,7 +176,7 @@ export function createTurnController(deps) {
                 decisionId: trainingAI ? 'ai-decision-' + (++trainingDecisionSequence) : null,
                 format: 'clovece-ai-debug',
                 formatVersion: 1,
-                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : (decision.breakdown?.weightConfig ? 'weighted-ai-1000-v1' : (decision.breakdown?.neuralNetwork ? 'neural-network-v1' : 'untrained-v1')),
+                strategyVersion: decision.breakdown?.trainedKnowledge ? 'human-instructions-v1' : (decision.breakdown?.weightConfig ? 'weighted-ai-10-v1' : (decision.breakdown?.neuralNetwork ? 'neural-network-v1' : 'untrained-v1')),
                 game: {
                     boardSize: game.boardSize || game.trackLength,
                     trackLength: game.trackLength,
