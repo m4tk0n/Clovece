@@ -221,7 +221,8 @@ export function createTurnController(deps) {
                     detail: pendingAIDebugExport
                 }));
                 const review = await reviewPromise;
-                const reviewedPieceId = Number(review.selectedPieceId);
+                const reviewedPieceId = review.selectedPieceId === null || review.selectedPieceId === undefined
+                    ? null : Number(review.selectedPieceId);
                 if (Number.isInteger(reviewedPieceId) && legalMoves.includes(reviewedPieceId)) {
                     pendingAIDebugExport.decision.selectedPieceId = reviewedPieceId;
                     pendingAIDebugExport.decision.explanation +=
