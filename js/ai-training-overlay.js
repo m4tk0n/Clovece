@@ -253,7 +253,7 @@ export function initAITrainingOverlay() {
                     result.textContent = 'Uloženo ihned: ' + before + ' → ' + payload.after +
                         ' · celkem úprav vah: ' + payload.feedbackCount;
                     saveStatus.textContent = 'Váha #' + question.id + ' změněna a uložena na server.';
-                    if (questions.every(item => detail.weightReviewAnswers[String(item.id)])) completeReview(detail);
+                    if (questions.every(item => detail.weightReviewAnswers[String(item.id)])) completeReview(detail, preferredPieceId);
                 } catch (error) {
                     result.textContent = error.message || 'Změnu váhy se nepodařilo uložit.';
                     actions.querySelectorAll('button').forEach(button => { button.disabled = false; });
