@@ -503,6 +503,20 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
     const strategicWeights = { ...getAIStrategicWeights(), ...(weights || {}) };
     return candidates.map(candidate => {
         const state = candidate.state;
+        if (candidate.winningMove || state.winner === playerId) {
+            return {
+                pieceId: candidate.pieceId,
+                score: 1000000,
+                trainingScore: 1000000,
+                factors: {
+                    winning: true,
+                    weightSignals: Array(AI_WEIGHT_COUNT).fill(0),
+                    weightSignalsByName: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, 0])),
+                    weightContributions: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, 0])),
+                    diceSimulation: []
+                }
+            };
+        }
         const beforePiece = game.pieces[playerId]?.pieces[candidate.pieceId];
         const afterPiece = state.pieces[playerId]?.pieces[candidate.pieceId];
         const captured = candidate.move?.captured || null;
