@@ -26,7 +26,7 @@ const boards = [
     { boardSize: 48, playerCount: 6 },
     { boardSize: 80, playerCount: 8 }
 ];
-const weightKeys = ['immediateWin', 'ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece', 'deployPiece', 'enterHome', 'homeProgress'];
+const weightKeys = ['progressToGoal', 'finishPiece', 'captureOpponent', 'protectOwn', 'threatenOpponent', 'deployPiece', 'homeProgress', 'bonusContinuation', 'startFieldRisk', 'flexibility'];
 
 function readJson(file) {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -34,9 +34,6 @@ function readJson(file) {
 function assertWeights(weights, label) {
     if (!weights || weightKeys.some(key => !Number.isFinite(Number(weights[key])))) {
         throw new Error(label + ': neplatná sada taktických vah.');
-    }
-    if (Number(weights.immediateWin) !== 100000) {
-        throw new Error(label + ': immediateWin musí zůstat pevně 100000.');
     }
 }
 function sameWeights(a, b) {
