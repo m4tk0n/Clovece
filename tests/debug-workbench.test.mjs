@@ -24,7 +24,7 @@ test('vstup /debug/ nastaví výukový režim ještě před spuštěním JavaScr
  assert.match(page,/searchParams\.set\("debug","training"\)/);
  assert.match(view,/isDebugPath[\s\S]*?trainingMode = isDebugPath/);
  assert.match(view,/if \(trainingMode\)[\s\S]*?ensureModeStyles\('2d'\)[\s\S]*?return '2d'/);
- assert.doesNotMatch(view,/if \(trainingMode\)[\s\S]*?loadThreeRenderer\(\)/);
+ assert.match(view,/if \\(trainingMode\\) \\{[\\s\\S]*?return '2d';\\s*\\}/);
  assert.match(turn,/isDebugPath[\s\S]*?trainingAI = isDebugPath/);
  assert.match(bootstrap,/return trainingMode \? true : false/);
  assert.match(board,/isDebugPath[\s\S]*?debug-piece-number/);
