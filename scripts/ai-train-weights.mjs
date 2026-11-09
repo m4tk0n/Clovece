@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * Reward-based REINFORCE trainer for the shared tactical weights.
- * Uses completed self-play outcomes, never teacherScore as a training label.
- * Immediate wins remain a fixed, non-trainable priority.
+ * Reward-based REINFORCE trainer for exactly ten named strategic weights.
+ * Training examples are grouped and split by completed game, never by decision.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -18,326 +17,81 @@ const outputWeightsPath = path.resolve(String(args['output-weights'] || 'artifac
 const modulePath = path.resolve(String(args.module || 'artifacts/ai-tactical-weights-candidate.js'));
 const reportPath = path.resolve(String(args.report || 'artifacts/ai-weight-training-report.json'));
 const epochs = Math.max(1, Math.min(200, Number(args.epochs) || 30));
-const trainingStatePath = path.resolve(String(args['training-state'] || 'config/ai-training-state.json'));
-const priorTrainingState = readJson(trainingStatePath, {});
-const stablePromotionCount = Math.max(0, Number(priorTrainingState.stablePromotionCount) || 0);
-const requestedLearningRate = args['learning-rate'] !== undefined
-    ? Number(args['learning-rate'])
-    : (stablePromotionCount >= 3 ? 0.01 : 0.05);
-const learningRate = Math.max(0.0001, Math.min(0.1, requestedLearningRate || 0.05));
-const learningRatePhase = args['learning-rate'] !== undefined
-    ? 'manual-override'
-    : (stablePromotionCount >= 3 ? 'fine-tuning-0.01' : 'initial-learning-0.05');
 const minGames = Math.max(4, Number(args['min-games']) || 10);
-const minRecords = Math.max(50, Number(args['min-records']) || 100);
+const minRecords = Math.max(20, Number(args['min-records']) || 100);
+const learningRate = Math.max(0.0001, Math.min(0.1, Number(args['learning-rate']) || 0.05));
+const KEYS = ['progressToGoal','finishPiece','captureOpponent','protectOwn','threatenOpponent','deployPiece','homeProgress','bonusContinuation','startFieldRisk','flexibility'];
+const DEFAULTS = {progressToGoal:2,finishPiece:80,captureOpponent:18,protectOwn:25,threatenOpponent:12,deployPiece:8,homeProgress:20,bonusContinuation:10,startFieldRisk:18,flexibility:4};
+const BOUNDS = {progressToGoal:[0,20],finishPiece:[0,300],captureOpponent:[0,100],protectOwn:[0,100],threatenOpponent:[0,100],deployPiece:[0,80],homeProgress:[0,120],bonusContinuation:[0,80],startFieldRisk:[0,120],flexibility:[0,40]};
+function readJson(file,fallback=null){try{return JSON.parse(fs.readFileSync(file,'utf8'));}catch(error){if(error.code==='ENOENT')return fallback;throw error;}}
+function listFiles(dir){if(!fs.existsSync(dir))return[];return fs.readdirSync(dir).filter(name=>/\.jsonl(?:\.gz)?$/i.test(name)).map(name=>path.join(dir,name)).sort();}
+function readRecords(file){const raw=fs.readFileSync(file);const body=file.endsWith('.gz')?zlib.gunzipSync(raw).toString('utf8'):raw.toString('utf8');return body.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));}
+function hash(value){let h=2166136261;for(const char of String(value))h=Math.imul(h^char.charCodeAt(0),16777619);return h>>>0;}
+function clamp(value,min,max){return Math.max(min,Math.min(max,value));}
+function features(candidate){const values=candidate.teacherFactors?.weightSignals;return Array.isArray(values)&&values.length===KEYS.length&&values.every(value=>Number.isFinite(Number(value)))?values.map(Number):null;}
+function vectorScore(weights,vector){return KEYS.reduce((sum,key,index)=>sum+Number(weights[key])*vector[index],0);}
+function softmax(scores){const max=Math.max(...scores);const values=scores.map(value=>Math.exp(clamp(value-max,-40,40)));const total=values.reduce((a,b)=>a+b,0);return values.map(value=>value/total);}
+function policyLogLikelihood(records,weights){let total=0,count=0;for(const record of records){const index=record.candidates.findIndex(item=>item.pieceId===record.selectedPieceId);if(index<0)continue;const vectors=record.candidates.map(features);const probs=softmax(vectors.map(vector=>vectorScore(weights,vector)/record.policyTemperature));const ratio=clamp(probs[index]/record.selectedProbability,0.2,5);total+=(record.advantage||0)*ratio*Math.log(Math.max(1e-12,probs[index]));count++;}return count?total/count:0;}
 
-const KEYS = ['ownProgress', 'opponentSetback', 'threatReduction', 'captureOpponent', 'captureOwn', 'finishPiece', 'deployPiece', 'enterHome', 'homeProgress'];
-const INITIAL = {
-    immediateWin: 100000,
-    ownProgress: 0.08,
-    opponentSetback: 0.035,
-    threatReduction: 12,
-    captureOpponent: 5,
-    captureOwn: 7,
-    finishPiece: 8,
-    deployPiece: 1.5,
-    enterHome: 2.5,
-    homeProgress: 0.4
-};
-const BOUNDS = {
-    ownProgress: [0, 0.5],
-    opponentSetback: [0, 0.2],
-    threatReduction: [0, 30],
-    captureOpponent: [0, 20],
-    captureOwn: [0, 30],
-    finishPiece: [0, 20],
-    deployPiece: [0, 10],
-    enterHome: [0, 15],
-    homeProgress: [0, 5]
-};
-
-function readJson(file, fallback = null) {
-    try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
-    catch (error) { if (error.code === 'ENOENT') return fallback; throw error; }
+const config=readJson(currentWeightsPath,{weights:DEFAULTS});
+const previousWeights={...DEFAULTS,...(config.weights||{})};
+for(const key of KEYS)if(!Number.isFinite(Number(previousWeights[key])))throw new Error('Neplatná aktivní váha: '+key);
+const files=listFiles(inputDir);
+if(!files.length)throw new Error('Nebyly nalezeny self-play JSONL soubory: '+inputDir);
+const games=new Map();
+const stats={files:files.length,records:0,incompleteSkipped:0,malformedSkipped:0,nonExploratorySkipped:0,behaviorPolicyMismatchSkipped:0};
+for(const file of files)for(const record of readRecords(file)){
+    stats.records++;
+    if(record.completed!==true||!Number.isFinite(record.reward)||!Array.isArray(record.candidates)){stats.incompleteSkipped++;continue;}
+    const gameId=String(record.gameId||'');if(!gameId){stats.malformedSkipped++;continue;}
+    if(record.selection!=='reinforce-softmax'||!Number.isFinite(record.policyTemperature)||record.policyTemperature<0.25||!Number.isFinite(record.selectedProbability)||record.selectedProbability<=0){stats.nonExploratorySkipped++;continue;}
+    if(record.candidates.length<2||record.candidates.some(item=>item.teacherFactors?.winning)){stats.nonExploratorySkipped++;continue;}
+    const vectors=record.candidates.map(features);
+    if(vectors.some(vector=>!vector)){stats.malformedSkipped++;continue;}
+    const behaviorWeights=record.behaviorWeights;
+    if(!behaviorWeights||KEYS.some(key=>!Number.isFinite(Number(behaviorWeights[key])))){stats.malformedSkipped++;continue;}
+    const scores=record.candidates.map((item,index)=>Number(item.teacherScore));
+    if(scores.some((score,index)=>!Number.isFinite(score)||Math.abs(score-vectorScore(behaviorWeights,vectors[index]))>0.0001)){stats.behaviorPolicyMismatchSkipped++;continue;}
+    const probabilities=softmax(scores.map(score=>score/record.policyTemperature));
+    const selectedIndex=record.candidates.findIndex(item=>item.pieceId===record.selectedPieceId);
+    if(selectedIndex<0||Math.abs(probabilities[selectedIndex]-record.selectedProbability)>0.0001){stats.behaviorPolicyMismatchSkipped++;continue;}
+    if(!games.has(gameId))games.set(gameId,[]);
+    games.get(gameId).push({...record});
 }
-function listFiles(dir) {
-    if (!fs.existsSync(dir)) return [];
-    return fs.readdirSync(dir).filter(name => /\.jsonl(?:\.gz)?$/i.test(name))
-        .map(name => path.join(dir, name)).sort();
-}
-function readRecords(file) {
-    const raw = fs.readFileSync(file);
-    const content = file.endsWith('.gz') ? zlib.gunzipSync(raw).toString('utf8') : raw.toString('utf8');
-    return content.split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line));
-}
-function gameHash(value) {
-    let hash = 2166136261;
-    for (const char of String(value)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
-    return hash >>> 0;
-}
-function clamp(value, [min, max]) { return Math.max(min, Math.min(max, value)); }
-function features(candidate) {
-    const f = candidate.teacherFactors || {};
-    const values = [
-        Number(f.ownProgress) / 10,
-        Number(f.opponentSetback) / 10,
-        Number(f.threatReduction),
-        f.capturedOpponent ? 1 : 0,
-        f.capturedOwnPiece ? -1 : 0,
-        f.finishedPiece ? 1 : 0,
-        f.deployedPiece ? 1 : 0,
-        f.enteredHome ? 1 : 0,
-        Number(f.homeProgress) || 0
-    ];
-    return values.every(Number.isFinite) ? values : null;
-}
-function parametersFrom(weights) {
-    return [
-        Number(weights.ownProgress) * 10,
-        Number(weights.opponentSetback) * 10,
-        Number(weights.threatReduction),
-        Number(weights.captureOpponent),
-        Number(weights.captureOwn),
-        Number(weights.finishPiece),
-        Number(weights.deployPiece),
-        Number(weights.enterHome),
-        Number(weights.homeProgress)
-    ];
-}
-function weightsFrom(parameters) {
-    return {
-        immediateWin: INITIAL.immediateWin,
-        ownProgress: parameters[0] / 10,
-        opponentSetback: parameters[1] / 10,
-        threatReduction: parameters[2],
-        captureOpponent: parameters[3],
-        captureOwn: parameters[4],
-        finishPiece: parameters[5],
-        deployPiece: parameters[6],
-        enterHome: parameters[7],
-        homeProgress: parameters[8]
-    };
-}
-function dot(a, b) { return a.reduce((sum, value, index) => sum + value * b[index], 0); }
-function softmax(scores) {
-    const max = Math.max(...scores);
-    const exps = scores.map(value => Math.exp(Math.max(-40, Math.min(40, value - max))));
-    const total = exps.reduce((sum, value) => sum + value, 0);
-    return exps.map(value => value / total);
-}
-function actionProbabilities(record, parameters) {
-    const vectors = record.candidates.map(features);
-    return softmax(vectors.map(vector => dot(parameters, vector) / record.policyTemperature));
-}
-function importanceRatio(record, probability) {
-    return clamp(probability / record.selectedProbability, [0.2, 5]);
-}
-function policyLogLikelihood(records, parameters) {
-    let total = 0;
-    let count = 0;
-    for (const record of records) {
-        const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
-        if (selectedIndex < 0) continue;
-        const probabilities = actionProbabilities(record, parameters);
-        const ratio = importanceRatio(record, probabilities[selectedIndex]);
-        total += (record.advantage || 0) * ratio * Math.log(Math.max(1e-12, probabilities[selectedIndex]));
-        count++;
-    }
-    return count ? total / count : 0;
-}
-
-const currentConfig = readJson(currentWeightsPath, { version: 1, weights: INITIAL });
-const previousWeights = { ...INITIAL, ...(currentConfig.weights || {}) };
-for (const key of Object.keys(INITIAL)) {
-    if (!Number.isFinite(Number(previousWeights[key]))) throw new Error('Neplatná současná váha: ' + key);
-}
-previousWeights.immediateWin = INITIAL.immediateWin;
-
-const files = listFiles(inputDir);
-if (!files.length) throw new Error('Nebyly nalezeny žádné self-play JSONL soubory v ' + inputDir);
-const games = new Map();
-const stats = { files: files.length, records: 0, incompleteSkipped: 0, malformedSkipped: 0, winningMoveRecordsSkipped: 0, nonExploratorySkipped: 0, behaviorPolicyMismatchSkipped: 0 };
-for (const file of files) {
-    for (const record of readRecords(file)) {
-        stats.records++;
-        if (record.completed !== true || !Number.isFinite(record.reward) || !Array.isArray(record.candidates)) {
-            stats.incompleteSkipped++;
-            continue;
-        }
-        const gameId = String(record.gameId || '');
-        if (!gameId) { stats.malformedSkipped++; continue; }
-        const selected = record.candidates.find(candidate => candidate.pieceId === record.selectedPieceId);
-        if (!selected || record.candidates.length < 2 || record.candidates.some(candidate => candidate.teacherFactors?.winning)) {
-            stats.winningMoveRecordsSkipped++;
-            continue;
-        }
-        if (record.selection !== 'reinforce-softmax' ||
-            !Number.isFinite(record.policyTemperature) || record.policyTemperature < 0.25 ||
-            !Number.isFinite(record.selectedProbability) || record.selectedProbability <= 0) {
-            stats.nonExploratorySkipped++;
-            continue;
-        }
-        const vectors = record.candidates.map(features);
-        if (vectors.some(vector => !vector)) { stats.malformedSkipped++; continue; }
-        const behaviorScores = record.candidates.map(candidate => Number(candidate.teacherScore));
-        const behaviorWeights = record.behaviorWeights;
-        const behaviorKeys = Object.keys(INITIAL);
-        if (behaviorScores.some(score => !Number.isFinite(score)) ||
-            !behaviorWeights || behaviorKeys.some(key => !Number.isFinite(Number(behaviorWeights[key])))) {
-            stats.malformedSkipped++;
-            continue;
-        }
-        const scoreMismatch = record.candidates.some((candidate, index) => {
-            const f = candidate.teacherFactors || {};
-            const expectedScore = Number(f.ownProgress) * Number(behaviorWeights.ownProgress) +
-                Number(f.opponentSetback) * Number(behaviorWeights.opponentSetback) +
-                Number(f.threatReduction) * Number(behaviorWeights.threatReduction) +
-                (f.capturedOpponent ? Number(behaviorWeights.captureOpponent) : 0) -
-                (f.capturedOwnPiece ? Number(behaviorWeights.captureOwn) : 0) +
-                (f.finishedPiece ? Number(behaviorWeights.finishPiece) : 0) +
-                (f.deployedPiece ? Number(behaviorWeights.deployPiece) : 0) +
-                (f.enteredHome ? Number(behaviorWeights.enterHome) : 0) +
-                (Number(f.homeProgress) || 0) * Number(behaviorWeights.homeProgress);
-            return !Number.isFinite(expectedScore) || Math.abs(expectedScore - behaviorScores[index]) > 0.00001;
-        });
-        if (scoreMismatch) {
-            stats.behaviorPolicyMismatchSkipped++;
-            continue;
-        }
-        const behaviorProbabilities = softmax(behaviorScores.map(score => score / record.policyTemperature));
-        const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
-        if (Math.abs(behaviorProbabilities[selectedIndex] - record.selectedProbability) > 0.0001) {
-            stats.behaviorPolicyMismatchSkipped++;
-            continue;
-        }
-        if (!games.has(gameId)) games.set(gameId, []);
-        games.get(gameId).push({
-            gameId,
-            playerId: record.playerId,
-            reward: Number(record.reward),
-            selectedPieceId: record.selectedPieceId,
-            selectedProbability: record.selectedProbability,
-            policyTemperature: record.policyTemperature,
-            candidates: record.candidates
-        });
-    }
-}
-if (games.size < minGames) throw new Error('Nedostatek dokončených partií: ' + games.size + '; potřeba alespoň ' + minGames + '.');
-
-const trainGames = new Set();
-const validationGames = new Set();
-for (const gameId of games.keys()) {
-    if (gameHash(gameId) % 5 === 0) validationGames.add(gameId);
-    else trainGames.add(gameId);
-}
-if (trainGames.size < 2 || validationGames.size < 2) {
-    throw new Error('Nelze vytvořit oddělenou trénovací a validační množinu podle celých partií.');
-}
-function prepareRecords(gameSet) {
-    const result = [];
-    for (const gameId of gameSet) {
-        const records = games.get(gameId);
-        const playerRewards = new Map();
-        for (const record of records) playerRewards.set(record.playerId, record.reward);
-        const meanReward = [...playerRewards.values()].reduce((sum, value) => sum + value, 0) /
-            Math.max(1, playerRewards.size);
-        for (const record of records) {
-            const advantage = Math.max(-1.5, Math.min(1.5, record.reward - meanReward));
-            if (Math.abs(advantage) < 1e-9) continue;
-            result.push({ ...record, advantage });
-        }
-    }
-    return result;
-}
-const training = prepareRecords(trainGames);
-const validation = prepareRecords(validationGames);
-if (training.length < minRecords || validation.length < Math.max(20, Math.floor(minRecords / 5))) {
-    throw new Error('Nedostatek použitelných rozhodnutí: train=' + training.length + ', validation=' +
-        validation.length + '. Je potřeba více dokončených partií.');
-}
-
-let parameters = parametersFrom(previousWeights);
-const baselineValidation = policyLogLikelihood(validation, parameters);
-for (let epoch = 0; epoch < epochs; epoch++) {
-    const gradient = Array(KEYS.length).fill(0);
-    let used = 0;
-    for (const record of training) {
-        const selectedIndex = record.candidates.findIndex(candidate => candidate.pieceId === record.selectedPieceId);
-        const vectors = record.candidates.map(features);
-        if (selectedIndex < 0 || vectors.some(vector => !vector)) continue;
-        const probabilities = actionProbabilities(record, parameters);
-        const ratio = importanceRatio(record, probabilities[selectedIndex]);
-        const expected = Array(KEYS.length).fill(0);
-        vectors.forEach((vector, index) => vector.forEach((value, feature) => {
-            expected[feature] += probabilities[index] * value;
-        }));
-        const chosen = vectors[selectedIndex];
-        const advantage = record.advantage * ratio / record.policyTemperature;
-        for (let feature = 0; feature < KEYS.length; feature++) {
-            gradient[feature] += advantage * (chosen[feature] - expected[feature]);
-        }
+if(games.size<minGames)throw new Error('Nedostatek dokončených partií: '+games.size+'; potřeba alespoň '+minGames+'.');
+const trainingGames=new Set(),validationGames=new Set();
+for(const gameId of games.keys())(hash(gameId)%5===0?validationGames:trainingGames).add(gameId);
+if(trainingGames.size<2||validationGames.size<2)throw new Error('Nelze rozdělit celé partie na trénink a validaci.');
+function prepare(set){const result=[];for(const id of set){const records=games.get(id);const rewards=new Map();for(const r of records)rewards.set(r.playerId,r.reward);const mean=[...rewards.values()].reduce((a,b)=>a+b,0)/Math.max(1,rewards.size);for(const r of records){r.advantage=clamp(r.reward-mean,-1.5,1.5);if(Math.abs(r.advantage)>1e-9)result.push(r);}}return result;}
+const training=prepare(trainingGames),validation=prepare(validationGames);
+if(training.length<minRecords||validation.length<Math.max(10,Math.floor(minRecords/5)))throw new Error('Nedostatek rozhodnutí: train='+training.length+', validation='+validation.length);
+let candidate={...previousWeights};
+const baselineValidation=policyLogLikelihood(validation,candidate);
+for(let epoch=0;epoch<epochs;epoch++){
+    const gradient=Object.fromEntries(KEYS.map(key=>[key,0]));let used=0;
+    for(const record of training){
+        const vectors=record.candidates.map(features);const selected=record.candidates.findIndex(item=>item.pieceId===record.selectedPieceId);if(selected<0)continue;
+        const probs=softmax(vectors.map(vector=>vectorScore(candidate,vector)/record.policyTemperature));
+        const ratio=clamp(probs[selected]/record.selectedProbability,0.2,5);
+        for(let k=0;k<KEYS.length;k++){const expected=vectors.reduce((sum,vector,index)=>sum+probs[index]*vector[k],0);gradient[KEYS[k]]+=record.advantage*ratio*(vectors[selected][k]-expected)/record.policyTemperature;}
         used++;
     }
-    if (!used) throw new Error('Trénink nemá žádná použitelná rozhodnutí.');
-    for (let feature = 0; feature < parameters.length; feature++) {
-        const key = KEYS[feature];
-        const [min, max] = BOUNDS[key];
-        const delta = Math.max(-0.25, Math.min(0.25, gradient[feature] / used));
-        parameters[feature] = clamp(parameters[feature] + learningRate * delta, [min * (key === 'ownProgress' || key === 'opponentSetback' ? 10 : 1), max * (key === 'ownProgress' || key === 'opponentSetback' ? 10 : 1)]);
-    }
+    if(!used)throw new Error('Trénink nemá použitelná rozhodnutí.');
+    for(const key of KEYS){const [min,max]=BOUNDS[key];candidate[key]=clamp(candidate[key]+learningRate*clamp(gradient[key]/used,-0.25,0.25),min,max);}
 }
-const candidateWeights = weightsFrom(parameters);
-const candidateValidation = policyLogLikelihood(validation, parameters);
-const improvement = candidateValidation - baselineValidation;
-const accepted = Number.isFinite(candidateValidation) && improvement > 1e-7;
-const finalWeights = accepted ? candidateWeights : previousWeights;
-const report = {
-    format: 'clovece-ai-reward-training-report',
-    formatVersion: 1,
-    createdAt: new Date().toISOString(),
-    method: 'Off-policy REINFORCE with centered final-placement rewards and clipped action-probability correction',
-    source: { ...stats, completedGames: games.size, trainingGames: trainGames.size, validationGames: validationGames.size },
-    decisions: { training: training.length, validation: validation.length },
-    epochs, learningRate, learningRatePhase, stablePromotionCountAtStart: stablePromotionCount,
-    policyTemperatures: [...new Set([...training, ...validation].map(record => record.policyTemperature))].sort((a, b) => a - b),
-    previousWeights,
-    candidateWeights,
-    finalWeights,
-    validation: {
-        baselineRewardWeightedLogLikelihood: Number(baselineValidation.toFixed(8)),
-        candidateRewardWeightedLogLikelihood: Number(candidateValidation.toFixed(8)),
-        improvement: Number(improvement.toFixed(8))
-    },
-    accepted,
-    safeguards: {
-        immediateWinFixed: true,
-        legalMovesAndRulesUntouched: true,
-        splitByWholeGame: true,
-        rejectedUnlessValidationImproves: true,
-        behaviorProbabilityVerified: true,
-        importanceRatioClipped: [0.2, 5]
-    },
-    note: 'Validation checks importance-corrected reward-weighted action likelihood on held-out games. Action probabilities are corrected against the recorded behavior policy; historical state-distribution bias remains, so an independent gameplay tournament is still required.'
-};
-fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
-if (accepted) {
-    const config = {
-        version: 1,
-        candidateCreatedAt: report.createdAt,
-        trainingMethod: report.method,
-        sourceGames: games.size,
-        basedOnWeights: previousWeights,
-        weights: finalWeights
-    };
-    fs.mkdirSync(path.dirname(outputWeightsPath), { recursive: true });
-    fs.writeFileSync(outputWeightsPath, JSON.stringify(config, null, 2) + '\n');
-    fs.mkdirSync(path.dirname(modulePath), { recursive: true });
-    fs.writeFileSync(modulePath, '// Candidate only; generated from reward-based self-play training.\n' +
-        'export const AI_TACTICAL_WEIGHTS = Object.freeze(' + JSON.stringify(finalWeights, null, 2) + ');\n');
-} else {
-    for (const file of [outputWeightsPath, modulePath]) {
-        if (fs.existsSync(file)) fs.rmSync(file);
-    }
-}
-process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+const candidateValidation=policyLogLikelihood(validation,candidate);
+const improvement=candidateValidation-baselineValidation;
+const accepted=Number.isFinite(candidateValidation)&&improvement>1e-7;
+const finalWeights=accepted?candidate:previousWeights;
+const report={format:'clovece-ai-ten-weight-training-report',formatVersion:2,createdAt:new Date().toISOString(),
+    method:'REINFORCE over ten named strategic signals using completed-game placement rewards',
+    source:{...stats,completedGames:games.size,trainingGames:trainingGames.size,validationGames:validationGames.size},
+    decisions:{training:training.length,validation:validation.length},epochs,learningRate,previousWeights,candidateWeights:candidate,finalWeights,
+    validation:{baselineRewardWeightedLogLikelihood:Number(baselineValidation.toFixed(8)),candidateRewardWeightedLogLikelihood:Number(candidateValidation.toFixed(8)),improvement:Number(improvement.toFixed(8))},
+    accepted,safeguards:{exactlyTenTrainableWeights:true,immediateWinPriorityFixedInStrategy:true,legalMovesAndRulesUntouched:true,splitByWholeGame:true,rejectedUnlessValidationImproves:true,behaviorPolicyVerified:true,importanceRatioClipped:[0.2,5]}};
+fs.mkdirSync(path.dirname(reportPath),{recursive:true});fs.writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');
+if(accepted){const output={version:2,candidateCreatedAt:report.createdAt,trainingMethod:report.method,sourceGames:games.size,basedOnWeights:previousWeights,weights:finalWeights};
+fs.mkdirSync(path.dirname(outputWeightsPath),{recursive:true});fs.writeFileSync(outputWeightsPath,JSON.stringify(output,null,2)+'\n');
+fs.mkdirSync(path.dirname(modulePath),{recursive:true});fs.writeFileSync(modulePath,'// Candidate generated from completed-game reward training.\nexport const AI_TACTICAL_WEIGHTS = Object.freeze('+JSON.stringify(finalWeights,null,2)+');\n');
+}else{for(const file of [outputWeightsPath,modulePath])if(fs.existsSync(file))fs.rmSync(file);}
+process.stdout.write(JSON.stringify(report,null,2)+'\n');
