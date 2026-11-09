@@ -40,7 +40,7 @@ aiStrategyAssert(in_array($last['pieceId'], $legal, true), 'Poslední náhodná 
 aiStrategyAssert($first['pieceId'] === $last['pieceId'], 'Stejný stav musí vracet deterministické taktické rozhodnutí.');
 aiStrategyAssert($first['selectedScore'] >= $last['selectedScore'],
     'AI musí vybrat kandidáta s nejvyšším taktickým skóre.');
-aiStrategyAssert(str_contains($first['reason'], 'Taktická AI vyhodnotila'),
+aiStrategyAssert(str_contains($first['reason'], 'deseti strategickými vahami'),
     'AI musí v debug vysvětlení uvést taktické vyhodnocení.');
 aiStrategyAssert(is_float(onlineEngineAiPips($game, 0)), 'Výpočet zbývajících kroků musí zůstat dostupný.');
 aiStrategyAssert(is_float(onlineEngineAiThreatLoss($game, 0)), 'Výpočet ohrožení musí zůstat dostupný.');
@@ -56,6 +56,9 @@ $winning['pieces'][0]['pieces'][3]['steps'] = 43;
 $winningDecision = onlineEngineChooseAIMoveDecision($winning, static fn(int $count): int => $count - 1);
 aiStrategyAssert($winningDecision['pieceId'] !== null, 'AI musí najít vítězný tah.');
 aiStrategyAssert($winningDecision['pieceId'] === 0, 'Okamžité vítězství musí mít přednost před náhodným výběrem.');
-aiStrategyAssert($winningDecision['selectedScore'] === 100000.0, 'Vítězný tah musí používat pevnou prioritu okamžité výhry.');
+aiStrategyAssert($winningDecision['selectedScore'] === 1000000.0, 'Vítězný tah musí používat pevnou prioritu okamžité výhry.');
 
-fwrite(STDOUT, "OK: online AI je nevyučená, zachovává výpočty a vybírá pouze legální tahy.\n");
+aiStrategyAssert(($first['weightCount'] ?? 0) === 10, 'Online AI musí používat přesně deset vah.');
+aiStrategyAssert(count($first['diceSimulation'] ?? []) === 6, 'Online AI musí simulovat všech šest dalších hodů.');
+aiStrategyAssert(count($first['weightSignals'] ?? []) === 10, 'Rozhodnutí musí obsahovat deset strategických signálů.');
+fwrite(STDOUT, "OK: online AI používá deset vah, simuluje šest hodů a vybírá pouze legální tahy.\n");
