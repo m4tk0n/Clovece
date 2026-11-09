@@ -230,7 +230,7 @@ export function createTurnController(deps) {
             }
         }
         return trainingAI
-            ? (Number(pendingAIDebugExport?.decision?.selectedPieceId ?? decision?.pieceId) || 0)
+            ? (pendingAIDebugExport?.decision?.selectedPieceId ?? decision?.pieceId ?? null)
             : (decision?.pieceId ?? null);
     }
 
