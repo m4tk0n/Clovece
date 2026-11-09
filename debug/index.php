@@ -24,6 +24,15 @@ $html = preg_replace(
     1
 );
 
+$debugLayoutVersion = is_file(__DIR__ . '/css/debug-layout.css')
+    ? (int) filemtime(__DIR__ . '/css/debug-layout.css')
+    : 1;
+$html = str_replace(
+    '</head>',
+    '<link rel="stylesheet" href="debug/css/debug-layout.css?v=' . $debugLayoutVersion . '">' . PHP_EOL . '</head>',
+    $html
+);
+
 // Debug prostředí používá vlastní bootstrap a vlastní kopie AI/engine modulů.
 $html = str_replace('src="js/bootstrap.js', 'src="debug/js/bootstrap.js', $html);
 $debugBootstrapVersion = is_file(__DIR__ . '/js/bootstrap.js')
