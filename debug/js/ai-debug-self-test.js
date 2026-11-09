@@ -64,6 +64,29 @@ export function runAIDebugSelfTests() {
         check('Povinné nasazení při šestce zůstává v enginu', deployResult.validMoves?.length === 4 &&
             deployGame.phase === 'move', 'legální nasazení: ' + (deployResult.validMoves?.length || 0) + '/4');
 
+        const deployChoiceGame = createGame(1, 1, ['Člověk', 'AI'], [], 40, { mustDeploy: true });
+        deployChoiceGame.currentPlayer = 1;
+        deployChoiceGame.phase = 'move';
+        deployChoiceGame.diceValue = 6;
+        deployChoiceGame.pieces[1].pieces[0].steps = 4;
+        const mandatoryDeployMoves = getValidMoves(deployChoiceGame);
+        const mandatoryDeployDecision = chooseAIMoveDecision(deployChoiceGame, 'medium', {});
+        check('AI strategicky vyhodnotí výběr mezi povinnými nasazeními',
+            mandatoryDeployMoves.length === 3 &&
+                mandatoryDeployMoves.includes(mandatoryDeployDecision?.pieceId) &&
+                mandatoryDeployDecision?.alternatives?.length === mandatoryDeployMoves.length - 1,
+            'nasazení: ' + mandatoryDeployMoves.length + ' možností, AI vybrala F' +
+                (Number(mandatoryDeployDecision?.pieceId ?? -1) + 1));
+
+        const optionalDeployGame = JSON.parse(JSON.stringify(deployChoiceGame));
+        optionalDeployGame.rules.mustDeploy = false;
+        const optionalMoves = getValidMoves(optionalDeployGame);
+        const optionalDecision = chooseAIMoveDecision(optionalDeployGame, 'medium', {});
+        check('Při vypnutém povinném nasazení AI porovná i běžný tah',
+            optionalMoves.length === 4 && optionalMoves.includes(optionalDecision?.pieceId) &&
+                optionalDecision?.alternatives?.length === optionalMoves.length - 1,
+            'všechny legální tahy: ' + optionalMoves.length);
+
         for (const [boardSize, playerCount] of [[40, 4], [48, 6], [80, 8]]) {
             const names = Array.from({ length: playerCount }, (_, index) => 'Test ' + (index + 1));
             const boardGame = createGame(1, playerCount - 1, names, [], boardSize, {}, 'medium');
