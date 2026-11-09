@@ -28,7 +28,7 @@ $version = date('Ymd-His');
       <div class="section-heading"><div><h2>Testovací situace</h2><p class="muted">Kontrolní pozice pro 40, 48 a 80 polí.</p></div></div>
       <div class="controls">
         <label>Velikost desky<select id="board-size"><option value="40">40 polí</option><option value="48">48 polí</option><option value="80">80 polí</option></select></label>
-        <button id="run-test" type="button">Vyhodnotit tah AI</button>
+        <button id="run-test" type="button">Vyhodnotit všech 6 hodů</button>
       </div>
       <p id="status" class="status" role="status">Připraveno k testu.</p>
     </section>
@@ -37,7 +37,7 @@ $version = date('Ymd-His');
       <div id="decision" class="result"><p class="muted">Zatím nebyl spuštěn test.</p></div>
     </section>
     <section class="panel">
-      <h2>Simulace všech šesti hodů</h2>
+      <h2>Vyhodnocení všech šesti výsledků kostky</h2>
       <div id="dice-results" class="table-wrap"><p class="muted">Výsledky se zobrazí po vyhodnocení tahu.</p></div>
     </section>
     <footer>Debug laboratoř · samostatné soubory · změny se do hlavní hry přenášejí až po ověření a ručním sloučení.</footer>
