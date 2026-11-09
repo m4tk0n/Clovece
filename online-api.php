@@ -240,7 +240,7 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
                 $actionResult['aiDebug'] = [
                     'format' => 'clovece-ai-debug',
                     'formatVersion' => 1,
-                    'strategyVersion' => 'fixed-v1',
+                    'strategyVersion' => 'weighted-ai-10-v1',
                     'game' => [
                         'boardSize' => (int) ($aiStateBefore['boardSize'] ?? $aiStateBefore['trackLength']),
                         'playerCount' => count($aiStateBefore['players']),
@@ -263,6 +263,10 @@ function onlineProcessAiTurns(PDO $db, int $gameId): void
                         'candidates' => $decision['candidates'],
                         'selectedPieceId' => $pieceId,
                         'explanation' => $decision['reason'],
+                        'weightCount' => $decision['weightCount'] ?? 10,
+                        'weightSignals' => $decision['weightSignals'] ?? [],
+                        'weightContributions' => $decision['weightContributions'] ?? [],
+                        'diceSimulation' => $decision['diceSimulation'] ?? [],
                     ],
                     'result' => [
                         'move' => $actionResult,
