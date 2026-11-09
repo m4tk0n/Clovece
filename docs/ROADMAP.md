@@ -210,7 +210,6 @@ Push oznámení a registrace nejsou součástí prvních etap. Přijdou až po s
 
 - Retenční lhůty 30 dní pro neaktivní a 7 dní pro dokončené hry jsou přijatelné; budou nastavitelné v `/cron/config.php`.
 - Chat a herní události se v rozhraní zobrazí společně v jednom časovém proudu, ale v databázi se budou ukládat odděleně.
-- Datový model bude připraven na AI hráče. První online verzi doporučujeme spustit s živými hráči; AI doplníme po stabilizaci multiplayeru.
 
 ## Záznam provedených updateů
 
@@ -350,7 +349,7 @@ Důležité: online místnosti a serverově ověřované tahy jsou napojené na 
 - [ ] Prakticky ověřit povinný vstup, možnost jiného tahu při vypnutém pravidle a situaci bez legálního vstupu.
 
 
-## Strategická počítačová AI – 2026-11-06
+
 
 - [x] Oddělit taktiku AI do samostatného modulu `js/ai-strategy.js`.
 - [x] Vytvořit úplný popis strategie, pravděpodobností, omezení a obtížností v `AI_STRATEGY.md`.
