@@ -1,0 +1,3 @@
+/** Debug bootstrap – spouští výhradně debug navigaci a debug app. */
+async function startDebugApp(){try{document.getElementById('loading-screen')?.classList.add('hidden');document.getElementById('main-menu')?.classList.remove('hidden');const {initNavigation}=await import('./navigation.js');initNavigation();}catch(error){console.error('Debug prostředí se nepodařilo spustit:',error);const p=document.querySelector('#loading-screen p');if(p)p.textContent='Debug se nepodařilo načíst: '+(error?.message||'neznámá chyba');}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>void startDebugApp(),{once:true});else void startDebugApp();
