@@ -73,9 +73,9 @@ test('okamžitá výhra má vždy přednost před strategickými vahami', () => 
     game.phase = 'move';
     game.diceValue = 1;
     game.pieces[0].pieces[0].steps = game.trackLength - 1;
-    game.pieces[0].pieces[1].steps = game.trackLength;
-    game.pieces[0].pieces[2].steps = game.trackLength + 1;
-    game.pieces[0].pieces[3].steps = game.trackLength + 2;
+    game.pieces[0].pieces[1].steps = game.trackLength + 1;
+    game.pieces[0].pieces[2].steps = game.trackLength + 2;
+    game.pieces[0].pieces[3].steps = game.trackLength + 3;
     const decision = chooseStrategicDecision(game, deps);
     assert.equal(decision.pieceId, 0);
     assert.equal(decision.breakdown.selection, 'immediate-win');
