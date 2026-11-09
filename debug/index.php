@@ -16,10 +16,10 @@ $version = date('Ymd-His');
   <main class="lab">
     <header class="lab-header">
       <div><p class="eyebrow">ODDĚLENÉ TESTOVACÍ PROSTŘEDÍ</p><h1>AI laboratoř</h1>
-        <p class="muted">Změny zde neovlivňují běžnou hru. Váhy se mění pouze v této otevřené stránce.</p></div>
+        <p class="muted">Změny zde neovlivňují běžnou hru. Laboratoř používá vlastní kopie herních a AI souborů.</p></div>
       <a href="../">Běžná hra ↗</a>
     </header>
-    <section class="notice"><strong>Režim testování</strong><span>Výpočty používají herní engine a strategii z hlavní hry pouze jako nezměněné závislosti. Experimentální rozhraní a nastavení jsou samostatně v adresáři <code>debug/</code>.</span></section>
+    <section class="notice"><strong>Režim testování</strong><span>Výpočty používají samostatné kopie herního enginu, strategie a konfigurace uložené pouze v adresáři debug/js/. Hlavní hra tyto soubory nenačítá.</span></section>
     <section class="panel">
       <div class="section-heading"><div><h2>Deset strategických vah</h2><p class="muted">Uprav hodnoty a spusť nové vyhodnocení. Nic se neukládá na server.</p></div><button id="reset-weights" class="secondary" type="button">Výchozí hodnoty</button></div>
       <div id="weights" class="weights"><p>Načítám definice vah…</p></div>
