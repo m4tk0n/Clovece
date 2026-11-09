@@ -33,3 +33,5 @@ th{color:var(--muted);font-weight:650}
 code{color:#c5ddff}
 footer{color:var(--muted);font-size:11px;text-align:center;padding:8px}
 @media(max-width:600px){.lab{padding:12px}.weights{grid-template-columns:1fr}.panel,.notice{padding:12px}.result-grid{grid-template-columns:1fr 1fr}}
+
+.die-outcome{border:1px solid var(--line);border-radius:9px;padding:12px;margin:10px 0;background:#101923}.die-outcome h3{margin:0 0 8px;font-size:15px}.die-outcome p{font-size:12px}.die-outcome .selected{color:var(--good);font-weight:700}.die-outcome details{font-size:12px;margin-top:8px}.die-outcome ul{columns:2;margin:6px 0;padding-left:18px}.invalid{color:#ff9b9b}
