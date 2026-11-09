@@ -26,6 +26,9 @@ const log = trainingMode ? null : await import('./debug-overlay.js').then(module
 if (trainingMode) {
     const { initAITrainingOverlay } = await import('./ai-training-overlay.js');
     initAITrainingOverlay();
+    const { runAIDebugSelfTests } = await import('./ai-debug-self-test.js');
+    window.__cloveceDebugSelfTest = runAIDebugSelfTests();
+    console.info('[DEBUG AI]', window.__cloveceDebugSelfTest.summary, window.__cloveceDebugSelfTest.checks);
 }
 
 const format = value => Number.isFinite(value) ? Number(value).toFixed(3) : '—';
