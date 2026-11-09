@@ -77,7 +77,7 @@ test('training panel sends the complete AI context together with the teacher cor
     assert.match(panel, /note: note \|\| null/);
     assert.match(panel, /ai-training-toggle/);
     assert.match(panel, /setExpanded\(true\)/);
-    assert.match(panel, /setExpanded\(false\)/);
+    assert.match(panel, /setExpanded\(!expanded\)/);
     assert.match(panel, /childElementCount > 0/);
     assert.match(panel, /currentDecision = null/);
     assert.match(panel, /Bez instrukce – nic nebylo uloženo/);
