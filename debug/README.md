@@ -15,7 +15,7 @@ Tento adresář je oddělené experimentální prostředí projektu Člověče, 
 
 Po nasazení přes FTP otevři:
 
-`https://7x.wz.cz/clovece/debug/`
+`https://7x.wz.cz/clovece/debug/index.php`
 
 ## Soubory
 
