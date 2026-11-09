@@ -583,3 +583,21 @@ Aktivní taktický model má nyní 10 hodnot. Devět z nich trenér optimalizuje
 Nové tři faktory jsou součástí skóre každého legálního kandidátního tahu, zapisují se do self-play záznamu, vstupují do reward-based trenéru a do turnaje. Stejná sada vah je načítána v JavaScriptové místní AI i v PHP serverové AI z `config/ai-tactical-weights.json`.
 
 Self-play záznamy nesou `weightSchemaVersion: 2` a úplnou sadu `behaviorWeights`. Trenér ověřuje, že zaznamenané skóre odpovídá všem faktorům a vahám, a nekompatibilní záznamy nepoužije.
+
+
+## 11. Přímé učení jednotlivých číselných vah
+
+Režim `/?debug=trainer` nyní podporuje samostatné hodnocení vah, nikoli pouze celkového tahu.
+
+- Rozbor se vytváří pro rozhodnutí AI i pro skutečně provedený tah lidského hráče. U lidského tahu se stejným hodnoticím modelem propočítají legální alternativy; skutečně zvolený tah se označí jako posuzovaný.
+- Herní engine zůstává jediným zdrojem legálních tahů. Tréninková vrstva pouze porovnává jejich vypočítané signály.
+- Každý kandidát předává deset číselných signálů, které se používají v aktuálním 1000-slot skórování.
+- Trenér nabídne nejvýše jednu relevantní proměnnou z každého kanálu, tedy nejvýše deset otázek na jedno rozhodnutí. Proměnné se v rámci kanálu postupně střídají, takže se nezahlcuje panel stovkami duplicitních otázek v jednom tahu.
+- Otázka zní, zda má daná váha podpořit právě posuzovaný tah. **ANO** upraví hodnotu ve směru, který zvýší podporu posuzovaného tahu; **NE** ji upraví opačně; **NEVÍM** hodnotu nezmění.
+- Každá odpověď ANO/NE upraví pouze jednu číselnou položku a ihned ji uloží na server. Nová hodnota se zároveň ihned aktivuje v běžícím JavaScriptovém modulu, takže další rozhodnutí v téže partii už používá změněnou váhu.
+- Trvalé hodnoty jsou uloženy odděleně od původní konfigurace v `storage/ai-training/ai-learned-weights.json`. Historie uchovává ID proměnné, odpověď, rozdíl signálu a původní i novou hodnotu.
+- Běžná hra načte uložené číselné úpravy jednou při prvním rozhodování AI; neprochází adresář s jednotlivými výukovými JSON záznamy.
+
+### Důležitá technická hranice současné verze
+
+Aktuální skórování přiřazuje 876 aktivním položkám jeden z deseti signálů podle pořadí ID (`(id - 1) % 10`). Trenér zobrazuje tento skutečný kanál a upravuje přesně tu váhu, která do něj nyní vstupuje. Název a popis proměnné jsou metadata; u části starších položek se jejich slovní význam nemusí přesně shodovat s tímto historickým přiřazením. Systém proto nesmí tvrdit, že všech 876 vah už představuje 876 nezávislých herních vlastností. Přesné samostatné propojení každého popisu s herním signálem je další architektonická fáze.

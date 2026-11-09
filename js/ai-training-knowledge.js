@@ -4,6 +4,8 @@ let tokenPromise = null;
 let memoryPromise = null;
 let trainerPromise = null;
 let cachedMemory = null;
+let cachedWeightOverrides = null;
+let weightPromise = null;
 
 async function getToken() {
     if (csrfToken) return csrfToken;
@@ -32,6 +34,44 @@ async function requestMemory(action) {
     if (!response.ok || !data.success || !data.memory) throw new Error(data.error || 'Paměť AI se nepodařilo načíst.');
     cachedMemory = data.memory;
     return data;
+}
+
+async function requestWeights(payload) {
+    const token = await getToken();
+    const response = await fetch('ai-training-weights.php', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-Token': token },
+        body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (response.status === 403) csrfToken = null;
+    if (!response.ok || !data.success || !data.values) {
+        throw new Error(data.error || 'Naučené váhy AI se nepodařilo načíst.');
+    }
+    cachedWeightOverrides = data.values;
+    return data;
+}
+
+/** Load persisted numeric overrides once; normal play also uses the trained values. */
+export async function loadAIWeightOverrides() {
+    if (cachedWeightOverrides) return { values: cachedWeightOverrides, error: null };
+    if (!weightPromise) {
+        weightPromise = requestWeights({ action: 'load' })
+            .then(data => ({ values: data.values || {}, error: null, feedbackCount: Number(data.feedbackCount) || 0 }))
+            .catch(error => ({ values: cachedWeightOverrides || {}, error: error.message || 'Naučené váhy nejsou dostupné.', feedbackCount: 0 }))
+            .finally(() => { weightPromise = null; });
+    }
+    return weightPromise;
+}
+
+/** One explicit Yes/No answer changes exactly one active weight on the server. */
+export async function saveAIWeightFeedback(feedback) {
+    const data = await requestWeights({ action: 'feedback', ...feedback });
+    return {
+        ...data,
+        values: data.values || {},
+        feedbackCount: Number(data.feedbackCount) || 0
+    };
 }
 
 /** Ordinary play: read one compiled memory snapshot. No directory listing or JSON history scan. */
@@ -69,4 +109,6 @@ export function resetAITrainingKnowledgeForTests() {
     memoryPromise = null;
     trainerPromise = null;
     cachedMemory = null;
+    cachedWeightOverrides = null;
+    weightPromise = null;
 }

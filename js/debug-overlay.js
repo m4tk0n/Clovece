@@ -4,7 +4,8 @@
  */
 import model from './models/ludo-ai.js';
 import { isValidAINeuralModel } from './ai-neural-network.js';
-import { AI_WEIGHT_VALUES, AI_WEIGHT_COUNT } from './ai-weight-config.js';
+import { AI_WEIGHT_COUNT, getAIWeightValues, setAIWeightOverrides } from './ai-weight-config.js';
+import { loadAIWeightOverrides } from './ai-training-knowledge.js';
 
 export function formatDebugWeight(value) {
     if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return '—';
@@ -91,12 +92,13 @@ export function initDebugOverlay() {
         head.appendChild(headerRow);
         table.appendChild(head);
         const body = document.createElement('tbody');
+        const effectiveValues = getAIWeightValues();
         for (let id = 1; id <= AI_WEIGHT_COUNT; id++) {
             const row = document.createElement('tr');
             const idCell = document.createElement('td');
             const valueCell = document.createElement('td');
             idCell.textContent = String(id);
-            valueCell.textContent = formatDebugWeight(AI_WEIGHT_VALUES[id - 1]);
+            valueCell.textContent = formatDebugWeight(effectiveValues[id - 1]);
             row.append(idCell, valueCell);
             body.appendChild(row);
         }
@@ -131,6 +133,10 @@ export function initDebugOverlay() {
     document.addEventListener('visibilitychange', loadAIWeightState);
     window.setInterval(loadAIWeightState, 30000);
     renderWeights(null);
+    void loadAIWeightOverrides().then(result => {
+        setAIWeightOverrides(result.values || {});
+        renderWeights(null);
+    });
     void loadAIWeightState();
     return log;
 }
