@@ -194,7 +194,7 @@ export function initAITrainingOverlay() {
         if (!questions.length) {
             addText(weightReview, 'p', 'ai-training-weight-empty',
                 'V tomto rozhodnutí není mezi legálními variantami dostatečný rozdíl v signálech pro samostatné hodnocení vah.');
-            completeReview(detail);
+            completeReview(detail, preferredPieceId);
             return;
         }
 
@@ -230,7 +230,7 @@ export function initAITrainingOverlay() {
                     card.dataset.answered = 'unknown';
                     result.textContent = 'Nevím – váha zůstává beze změny.';
                     actions.querySelectorAll('button').forEach(button => { button.disabled = true; });
-                    if (questions.every(item => detail.weightReviewAnswers[String(item.id)])) completeReview(detail);
+                    if (questions.every(item => detail.weightReviewAnswers[String(item.id)])) completeReview(detail, preferredPieceId);
                     return;
                 }
                 saving = true;
@@ -397,7 +397,7 @@ export function initAITrainingOverlay() {
     input.addEventListener('input', setSubmitState);
     skip.addEventListener('click', () => {
         if (!currentDecision || saving) return;
-        completeReview(currentDecision);
+        completeReview(currentDecision, preferredPieceId);
         reviewedDecisionIds.add(String(currentDecision.decisionId || currentDecision.id));
         currentDecision = null;
         preferredPieceId = null;
