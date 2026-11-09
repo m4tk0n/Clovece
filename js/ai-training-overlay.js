@@ -1,6 +1,10 @@
+import { getAIWeight, setAIWeightOverrides } from './ai-weight-config.js';
+import { saveAIWeightFeedback } from './ai-training-knowledge.js';
+import { buildAIWeightReviewQuestions } from './ai-weight-metadata.js';
+
 /**
- * Malé plovoucí výukové okno pro režim ?debug=training.
- * Zobrazuje rozhodnutí AI a ukládá pouze výslovné opravy člověka.
+ * Výukové okno pro režim ?debug=trainer.
+ * Zobrazuje rozhodnutí AI i pozorované lidské tahy a učí jednotlivé váhy.
  */
 export function initAITrainingOverlay() {
     if (document.getElementById('ai-training-panel')) return;
@@ -18,8 +22,9 @@ export function initAITrainingOverlay() {
         <label class="ai-training-history-label" for="ai-training-history">Rozhodnutí v tomto tahu</label>
         <select id="ai-training-history" class="ai-training-history" disabled><option>Čekám na rozhodnutí AI</option></select>
         <div id="ai-training-analysis" class="ai-training-analysis" aria-live="polite">
-            Až AI provede tah, zobrazím zde její rozhodnutí a vysvětlení.
+            Až přijde tah hráče nebo AI, zobrazím jeho rozbor.
         </div>
+        <section id="ai-training-weight-review" class="ai-training-weight-review" aria-label="Otázky k jednotlivým vahám"></section>
         <form id="ai-training-form" class="ai-training-form">
             <label for="ai-training-instruction">Co měla AI udělat správně a proč?</label>
             <textarea id="ai-training-instruction" rows="3" maxlength="3000"
@@ -155,6 +160,95 @@ export function initAITrainingOverlay() {
             .trim();
     }
 
+    const weightReview = panel.querySelector('#ai-training-weight-review');
+    const weightCursorKey = 'clovece-trainer-weight-cursors-v1';
+
+    function renderWeightReview(detail) {
+        weightReview.replaceChildren();
+        const title = addText(weightReview, 'div', 'ai-training-section-title', 'UČENÍ JEDNOTLIVÝCH PROMĚNNÝCH');
+        const questions = Array.isArray(detail.weightReviewQuestions)
+            ? detail.weightReviewQuestions
+            : (() => {
+                let cursors = {};
+                try { cursors = JSON.parse(localStorage.getItem(weightCursorKey) || '{}'); } catch {}
+                const generated = buildAIWeightReviewQuestions(detail, cursors);
+                generated.forEach(question => { cursors[question.channel] = question.nextCursor; });
+                try { localStorage.setItem(weightCursorKey, JSON.stringify(cursors)); } catch {}
+                detail.weightReviewQuestions = generated;
+                return generated;
+            })();
+
+        if (!questions.length) {
+            addText(weightReview, 'p', 'ai-training-weight-empty',
+                'V tomto rozhodnutí není mezi legálními variantami dostatečný rozdíl v signálech pro samostatné hodnocení vah.');
+            return;
+        }
+
+        addText(weightReview, 'p', 'ai-training-weight-intro',
+            'AI vybrala tah označený v rozboru. U každé proměnné urči, zda má tento tah podporovat. Odpověď změní pouze uvedenou váhu.');
+        questions.forEach(question => {
+            const card = document.createElement('article');
+            card.className = 'ai-training-weight-card';
+            card.dataset.weightId = String(question.id);
+            addText(card, 'strong', 'ai-training-weight-name',
+                '#' + question.id + ' · ' + question.name);
+            addText(card, 'div', 'ai-training-weight-description', question.description);
+            addText(card, 'div', 'ai-training-weight-meta',
+                'Kanál: ' + question.channelName +
+                ' · hodnota: ' + getAIWeight(question.id) +
+                ' · rozdíl signálu vybraného tahu: ' +
+                (question.signalDelta > 0 ? '+' : '') + question.signalDelta);
+            addText(card, 'div', 'ai-training-weight-question',
+                'Má tato proměnná podpořit právě vybraný tah?');
+            const actions = document.createElement('div');
+            actions.className = 'ai-training-weight-actions';
+            const result = addText(card, 'span', 'ai-training-weight-result', '');
+            const answer = async value => {
+                if (saving || card.dataset.answered) return;
+                if (value === 'unknown') {
+                    card.dataset.answered = 'unknown';
+                    result.textContent = 'Nevím – váha zůstává beze změny.';
+                    actions.querySelectorAll('button').forEach(button => { button.disabled = true; });
+                    return;
+                }
+                saving = true;
+                actions.querySelectorAll('button').forEach(button => { button.disabled = true; });
+                setSubmitState();
+                const before = getAIWeight(question.id);
+                result.textContent = 'Ukládám změnu váhy…';
+                try {
+                    const payload = await saveAIWeightFeedback({
+                        id: question.id,
+                        answer: value,
+                        signalDelta: question.signalDelta,
+                        currentValue: before,
+                        decisionId: String(detail.decisionId || detail.id || '')
+                    });
+                    setAIWeightOverrides(payload.values || {});
+                    card.dataset.answered = value;
+                    result.textContent = 'Uloženo ihned: ' + before + ' → ' + payload.after +
+                        ' · celkem úprav vah: ' + payload.feedbackCount;
+                    saveStatus.textContent = 'Váha #' + question.id + ' změněna a uložena na server.';
+                } catch (error) {
+                    result.textContent = error.message || 'Změnu váhy se nepodařilo uložit.';
+                    actions.querySelectorAll('button').forEach(button => { button.disabled = false; });
+                } finally {
+                    saving = false;
+                    setSubmitState();
+                }
+            };
+            [['ANO','yes'],['NE','no'],['NEVÍM','unknown']].forEach(([label,value]) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = label;
+                button.addEventListener('click', () => answer(value));
+                actions.appendChild(button);
+            });
+            card.appendChild(actions);
+            weightReview.appendChild(card);
+        });
+    }
+
     function renderDecision(detail) {
         setExpanded(true);
         currentDecision = detail;
@@ -219,6 +313,8 @@ export function initAITrainingOverlay() {
             });
             analysis.appendChild(list);
         }
+
+        renderWeightReview(detail);
 
         const move = result.move || {};
         if (move.pieceId !== undefined) {
@@ -372,7 +468,12 @@ export function initAITrainingOverlay() {
         if (selectedItem) renderDecision(selectedItem);
     });
     window.addEventListener('clovece:ai-training-decisions', event => {
-        decisionHistory = Array.isArray(event.detail?.decisions) ? event.detail.decisions : [];
+        const humanHistory = decisionHistory.filter(item => {
+            const player = (item.game?.players || []).find(entry => Number(entry.id) === Number(item.game?.currentPlayer));
+            return player?.type === 'human' && !reviewedDecisionIds.has(String(item.decisionId || item.id));
+        });
+        const incoming = Array.isArray(event.detail?.decisions) ? event.detail.decisions : [];
+        decisionHistory = [...humanHistory, ...incoming].slice(-50);
         decisionHistory.forEach(item => { item.id = item.id || item.decisionId || (Date.now().toString(36) + '-' + Math.random().toString(36).slice(2)); });
         updateDecisionHistory(event.detail?.currentId || null, true);
     });
