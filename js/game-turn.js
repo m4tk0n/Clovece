@@ -277,7 +277,7 @@ export function createTurnController(deps) {
                 legalMoves,
                 candidates: orderedCandidates,
                 selectedPieceId: Number(pieceId),
-                explanation: 'Pozorovaný lidský tah: figurka ' + (Number(pieceId) + 1) +
+                explanation: 'Zvolený lidský tah: figurka ' + (Number(pieceId) + 1) +
                     '. Aktuální váhový model by zvolil figurku ' + (Number(analysis.pieceId) + 1) + '.',
                 weightConfig: analysis.breakdown?.weightConfig ?? null,
                 selectedWeightFactors: chosen.weightFactors
@@ -352,7 +352,8 @@ export function createTurnController(deps) {
             return executeMove(finalPieceId, humanTrainingDecision);
         }).catch(error => {
             moveAnimating = false;
-            throw error;
+            toast(error.message || 'Tah se nepodařilo dokončit.');
+            return null;
         });
     }
 
