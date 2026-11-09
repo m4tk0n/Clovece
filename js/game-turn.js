@@ -5,7 +5,6 @@
 import { getGameExtensionValue } from './game-extensions.js';
 import { refreshAITrainingKnowledge, loadAIWeightOverrides } from './ai-training-knowledge.js';
 import { setAIWeightOverrides } from './ai-weight-config.js';
-import { isValidAINeuralModel } from './ai-neural-network.js';
 export function createTurnController(deps) {
     const {
         getValidMoves, getForcedMove, movePiece, rollDice, advanceTurn, chooseAIMove, chooseAIMoveDecision,
@@ -139,11 +138,10 @@ export function createTurnController(deps) {
             return legalMoves[0] ?? null;
         }
         // Produkční lokální AI používá deset pojmenovaných strategických vah.
-        const neuralModel = null;
         if (!game || game !== gameAtDecision ||
             [game.currentPlayer, game.turnNumber, game.phase, game.diceValue].join(':') !== decisionState) return null;
         const decision = chooseAIMoveDecision
-            ? chooseAIMoveDecision(game, undefined, knowledge.memory, neuralModel)
+            ? chooseAIMoveDecision(game, undefined, knowledge.memory)
             : { pieceId: chooseAIMove(game), reason: '' };
         if ((debugAI || trainingAI) && decision?.reason) {
             if (debugAI && decision.breakdown?.weightConfig) {
@@ -199,7 +197,6 @@ export function createTurnController(deps) {
                     explanation: decision.reason || '',
                     trainedKnowledge: Boolean(decision.breakdown?.trainedKnowledge),
                     neuralNetwork: Boolean(decision.breakdown?.neuralNetwork),
-                    neuralModelVersion: decision.breakdown?.neuralModelVersion ?? null,
                     weightConfig: decision.breakdown?.weightConfig ?? null,
                     intentionalBlunder: Boolean(decision.breakdown?.intentionalBlunder),
                     usedInstructions: decision.breakdown?.usedInstructions || [],
