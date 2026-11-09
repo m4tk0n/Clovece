@@ -1,3 +1,4 @@
+# .github/workflows/ai-self-play.yml
 name: AI self-play sběr dat
 
 on:

@@ -1,3 +1,4 @@
+# .github/workflows/report-test-issue.yml
 name: Nahlásit chybu z testu
 
 on:

@@ -1,3 +1,4 @@
+# .github/workflows/local-game-tests.yml
 name: Test místní hry
 
 on:

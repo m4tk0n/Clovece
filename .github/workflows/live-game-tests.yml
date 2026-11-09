@@ -1,3 +1,4 @@
+# .github/workflows/live-game-tests.yml
 name: Živé testy místní hry
 
 on:

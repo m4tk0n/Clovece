@@ -1,3 +1,4 @@
+# .github/workflows/ai-train-weights.yml
 name: AI reward training and tactical tournament
 
 on:

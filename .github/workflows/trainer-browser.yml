@@ -1,3 +1,4 @@
+# .github/workflows/trainer-browser.yml
 name: Vzdálené spuštění hry přes PHP
 
 on:

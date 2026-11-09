@@ -1,3 +1,4 @@
+# .github/workflows/remote-test.yml
 name: Remote hosting smoke test
 
 on:
