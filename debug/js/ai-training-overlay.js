@@ -300,7 +300,7 @@ export function initAITrainingOverlay() {
             addText(analysis, 'div', 'ai-training-pending',
                 isHumanMove
                     ? 'Tvoje zvolená figurka zatím neudělala tah. Po hodnocení se tah provede.'
-                    : (detail.decision?.ruleForced ? 'Tah je určen pravidly; po zaznamenání rozboru pokračuje hra.' : 'AI zatím neudělala tah. Čeká na tvoje hodnocení proměnných.'));
+                    : (detail.decision?.ruleForced ? 'Tah je určen pravidly a provede se automaticky.' : 'AI zatím neudělala tah. Čeká na tvoje hodnocení proměnných.'));
         }
 
         const usedInstructions = Array.isArray(decision.usedInstructions) ? decision.usedInstructions : [];
