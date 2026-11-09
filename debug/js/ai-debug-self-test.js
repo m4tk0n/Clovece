@@ -1,5 +1,6 @@
 import { createGame, getValidMoves, chooseAIMoveDecision } from './game-engine.js';
 import { AI_WEIGHT_COUNT } from './ai-weight-config.js';
+import { getBoardView } from '../../js/game-board.js';
 
 /**
  * Rychlý izolovaný smoke-test debug AI. Běží pouze v /debug/ a používá
@@ -39,6 +40,7 @@ export function runAIDebugSelfTests() {
         const dice = decision?.breakdown?.diceSimulation || factors.diceSimulation || [];
         const opponents = decision?.breakdown?.opponentResponses || factors.opponentResponses || [];
 
+        check('Debug používá pouze 2D renderer', getBoardView() === '2d', 'režim: ' + getBoardView());
         check('AI vybírá pouze legální tah', legalMoves.includes(decision?.pieceId),
             'legální možnosti: ' + legalMoves.join(', '));
         check('AI vrací všech 10 strategických vah',
