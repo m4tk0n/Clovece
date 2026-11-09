@@ -175,7 +175,7 @@ for (let gameIndex = 0; gameIndex < games; gameIndex++) {
             selectedPieceId,
             selectedProbability: sampledDecision.probability,
             policyTemperature: explorationTemperature,
-            weightSchemaVersion: 2,
+            weightSchemaVersion: 3,
             behaviorWeights: getAIStrategicWeights(),
             selectedFeatures: extractAIMoveFeatures(game, {
                 ...selected,
