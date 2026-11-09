@@ -24,4 +24,6 @@ $html = preg_replace(
     1
 );
 
+// Debug prostředí používá vlastní bootstrap a vlastní kopie AI/engine modulů.
+$html = str_replace('src="js/bootstrap.js', 'src="debug/js/bootstrap.js', $html);
 echo $html;
