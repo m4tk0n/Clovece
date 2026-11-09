@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createGame, getValidMoves, getPiecePosition, movePiece, rollDice } from '../js/game-engine.js';
 import { chooseStrategicDecision as chooseOriginal } from '../js/ai-original-baseline.js';
 import { AI_WEIGHT_COUNT as originalWeightCount } from '../js/ai-original-weight-config.js';
+import { AI_TACTICAL_WEIGHTS as originalTacticalWeights } from '../js/ai-original-tactical-weights.js';
 import { chooseStrategicDecision as chooseTenWeight } from '../js/ai-strategy.js';
 import { AI_WEIGHT_COUNT } from '../js/ai-weight-config.js';
 import { readFile } from 'node:fs/promises';
@@ -32,6 +33,7 @@ test('turnaj používá původní AI snapshot a nemění jej tréninkem',async()
     assert.equal(config.sourceCommit,'92abccc345063d3b37d37efc81f3df6002572818');
     assert.equal(config.weights.immediateWin,100000);
     assert.equal(Object.keys(config.weights).length,10);
+    assert.deepEqual(originalTacticalWeights,config.weights);
     assert.match(tournament,/chooseStrategicDecision as chooseOriginalStrategicDecision/);
     assert.match(tournament,/chooseOriginalStrategicDecision\(game, dependencies/);
     assert.match(tournament,/originalAIBaseline: true/);
