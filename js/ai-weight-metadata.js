@@ -11,26 +11,119 @@ export function getAIWeightMetadata(id) {
  const n=Number(id); if (!isTrainableAIWeight(n)) return null;
  if (n<=100) return FIRST[n-1];
  if (DIFFICULTY[n]) return {id:n,name:DIFFICULTY[n][0],desc:DIFFICULTY[n][1]};
- let name,desc;
- if(n<=110){name='taktika_krok_'+(n-100);desc='Analýza: hloubkové vyhodnocení navazujícího kroku '+(n-100);}
- else if(n<=120){name='souper_vzdalenost_'+(n-110);desc='Kontaktní zóna: vzdálenost soupeřovy figurky '+(n-110)+' polí';}
- else if(n===121){name='pohyb_start_bonus';desc='Pravděpodobnost: bonus za startovní výpad po nasazení';}
- else if(n===122){name='pohyb_cile_bonus';desc='Pravděpodobnost: bonus za přiblížení k domácímu sloupci';}
- else if(n<=128){name='kostka_sance_'+(n-122);desc='Kostka: váha pravděpodobnosti hodu '+(n-122);}
- else if(n===129){name='simulace_hloubka_max';desc='Simulace: maximální hloubka prohledávání';}
- else if(n===130){name='simulace_uzly_limit';desc='Simulace: limit prohledávaných uzlů';}
- else if(n<=140){const labels=['faze_hry_zacatek','faze_hry_stred','faze_hry_konec','adaptace_rychlost','emoce_agrese_faktor','emoce_strach_faktor','pamet_tahu_delka','blunder_multiplier','krizova_situace_boost','vitezna_vora_boost'];name=labels[n-131];desc='Strategický parametr fáze hry a přizpůsobení '+(n-130);}
- else if(n<=200){name='extended_metric_alpha_'+(n-140);desc='Rozšiřující metrika pro hodnocení pozice '+(n-140);}
- else if(n<=300){name='prob_model_factor_'+(n-200);desc='Pravděpodobnostní model: váhový faktor '+(n-200);}
- else if(n<=400){name='dynamic_state_var_'+(n-300);desc='Dynamický stav: konfigurační proměnná '+(n-300);}
- else if(n<=440){name='extra_tuning_param_'+(n-430);desc='Doplňkový ladicí parametr '+(n-430);}
- else if(n<=600){name='tactical_weight_alpha_'+(n-500);desc='Taktická váha pro vyhodnocení tahu '+(n-500);}
- else if(n<=700){name='spatial_awareness_w_'+(n-600);desc='Prostorové vnímání: váha '+(n-600);}
- else if(n<=800){name='sim_branching_factor_'+(n-700);desc='Větvení simulace: parametr '+(n-700);}
- else if(n<=900){name='position_eval_bonus_'+(n-800);desc='Evaluace pozice: bonus '+(n-800);}
- else if(n<=940){name='final_stretch_boost_'+(n-900);desc='Závěrečný úsek: bonus domácího sloupce '+(n-900);}
- else {name='aux_tuning_weight_'+(n-960);desc='Pomocná ladicí váha '+(n-960);}
- return {id:n,name,desc};
+ const series = [
+  [101,110,'taktika_krok_','Analýza: Hloubková analýza kroku '],
+  [111,120,'souper_vzdalenost_','Kontaktní zóna: Vzdálenost soupeře '],
+  [123,128,'kostka_sance_','Kostka: Váha hodu '],
+  [141,150,'extended_metric_alpha_','Rozšíření: Alfa metrika políčka '],
+  [151,160,'extended_metric_beta_','Rozšíření: Beta penalizace '],
+  [161,170,'path_weight_node_','Cesta: Váha uzlu na trase '],
+  [171,180,'turn_penalty_step_','Tahy: Penalizace za zdržení '],
+  [181,190,'board_zone_weight_','Zóny: Váha zóny desky '],
+  [191,200,'sub_heuristic_mod_','Sub-heuristika: Modifikátor '],
+  [201,210,'prob_model_factor_','Pravděpodobnostní model: Faktor '],
+  [211,220,'threat_distance_weight_','Hrozby: Váha ohrožení na vzdálenost '],
+  [221,230,'dice_expectation_bias_','Kostka: Očekávaná pravděpodobnostní úprava pro hod '],
+  [231,240,'safety_cell_bonus_','Bezpečí: Bonus za bezpečnou buňku '],
+  [241,250,'simulation_weight_param_','Simulace: Parametr simulačního uzlu '],
+  [251,260,'monte_carlo_factor_','Monte Carlo: Vzorkovací faktor '],
+  [261,270,'heuristic_layer_val_','Heuristická vrstva: Hodnoticí vrstva '],
+  [271,280,'aggression_profile_mod_','Agrese: Útočný modifikátor '],
+  [281,290,'defense_profile_mod_','Defenziva: Obranný modifikátor '],
+  [291,300,'speed_profile_mod_','Rychlost: Rychlostní modifikátor '],
+  [301,310,'dynamic_state_var_','Dynamický stav: Proměnná stavu '],
+  [321,330,'piece_coordination_w_','Koordinace: Váha spolupráce figur '],
+  [331,340,'board_position_score_','Pozice desky: Skóre pozice '],
+  [341,350,'risk_mitigation_factor_','Riziko: Ochranný faktor '],
+  [351,360,'goal_orientation_w_','Cíl: Směrová váha '],
+  [361,370,'home_stretch_modifier_','Domácí sloupec: Modifikátor '],
+  [371,380,'opponent_modeling_factor_','Model soupeře: Predikční faktor '],
+  [381,390,'meta_heuristic_weight_','Meta-heuristika: Nadstavbová váha '],
+  [391,400,'strategy_blend_ratio_','Strategie: Míchací poměr '],
+  [431,440,'extra_tuning_param_','Ladění: Doplňkový parametr '],
+  [501,510,'tactical_weight_alpha_','Taktická váha Alpha '],
+  [511,520,'tactical_weight_beta_','Taktická penalizace Beta '],
+  [521,530,'board_cluster_factor_','Shlukování: Faktor shluku figurek '],
+  [531,540,'offensive_momentum_','Ofenzivní momentum '],
+  [541,550,'defensive_stability_','Obranná stabilita '],
+  [551,560,'routing_weight_step_','Směrování kroku '],
+  [561,570,'interception_chance_w_','Šance na zachycení '],
+  [571,580,'retreat_penalty_w_','Penalizace ústupu '],
+  [581,590,'tempo_control_factor_','Kontrola tempa '],
+  [591,600,'parity_eval_metric_','Paritní metrika '],
+  [601,610,'spatial_awareness_w_','Prostorové vnímání: Váha prostoru '],
+  [611,620,'threat_matrix_factor_','Matice hrozeb: Faktor '],
+  [621,630,'opportunity_cost_w_','Náklady obětované příležitosti '],
+  [631,640,'pawn_isolation_penalty_','Penalizace izolované figurky '],
+  [641,650,'synergy_multiplier_','Synergie: Násobitel '],
+  [651,660,'endgame_conversion_w_','Koncovka: Konverzní váha '],
+  [661,670,'board_pressure_index_','Index tlaku na desce '],
+  [671,680,'risk_tolerance_mod_','Riziko: Modifikátor tolerance '],
+  [681,690,'heuristic_bias_v','Heuristický bias V'],
+  [691,700,'ai_evaluation_scalar_','AI skalární hodnocení '],
+  [701,710,'sim_branching_factor_','Větvení simulace '],
+  [711,720,'move_prioritization_w_','Prioritizace tahu '],
+  [721,730,'board_occupancy_cost_','Náklady obsazení desky '],
+  [731,740,'tactical_depth_scaler_','Skalér hloubky taktiky '],
+  [741,750,'heuristic_weight_factor_','Heuristický váhový faktor '],
+  [751,760,'safe_path_preference_','Preference bezpečné cesty '],
+  [761,770,'aggression_ramp_rate_','Míra nárůstu agrese '],
+  [771,780,'board_state_eval_w_','Evaluace stavu desky '],
+  [781,790,'piece_mobility_index_','Index mobility figurky '],
+  [791,800,'game_tempo_modifier_','Modifikátor herního tempa '],
+  [801,810,'position_eval_bonus_','Evaluace pozice: Bonus za strategické pole '],
+  [811,820,'vulnerability_score_','Zranitelnost: Penalizace pozice '],
+  [821,830,'capture_incentive_w_','Motivace vyhodit: Bonus '],
+  [831,840,'home_entry_priority_','Priorita vstupu do domku '],
+  [841,850,'deploy_urgency_mult_','Naléhavost nasazení: Násobitel '],
+  [851,860,'chain_sixes_strategy_','Strategie řetězení šestek '],
+  [861,870,'opponent_lead_penalty_','Penalizace při vedení soupeře '],
+  [871,880,'pawn_advancement_w_','Váha postupu figurky '],
+  [881,890,'blocking_efficiency_','Efektivita blokování cesty '],
+  [891,900,'safe_landing_bonus_','Bonus za bezpečné přistání '],
+  [901,910,'final_stretch_boost_','Závěrečný boost v domácím sloupci '],
+  [911,920,'error_recovery_w_','Zotavení po chybě '],
+  [921,930,'stochastic_weight_','Stochastická váha '],
+  [931,940,'master_controller_gain_','Zisk hlavního regulátoru ']
+ ];
+ const group=series.find(([from,to])=>n>=from&&n<=to);
+ if(group){
+  const index=n-group[0]+1;
+  const suffix=group[1]===690&&group[0]===681?String(index):String(index);
+  const name=group[2]+suffix;
+  return {id:n,name,desc:group[3]+index};
+ }
+ const special = {
+  121:['pohyb_start_bonus','Pravděpodobnost: Bonus za startovní výpad po nasazení'],
+  122:['pohyb_cile_bonus','Pravděpodobnost: Bonus za přiblížení k cílovému domácímu sloupci'],
+  129:['simulace_hloubka_max','Simulace: Maximální hloubka rekurzivního prohledávání'],
+  130:['simulace_uzly_limit','Simulace: Limit prohledávaných uzlů v jednom tahu AI'],
+  131:['faze_hry_zacatek','Fáze hry: Koeficient pro zahájení partie'],
+  132:['faze_hry_stred','Fáze hry: Koeficient pro střední fázi hry'],
+  133:['faze_hry_konec','Fáze hry: Koeficient pro koncovou fázi hry'],
+  134:['adaptace_rychlost','Adaptace: Rychlost přizpůsobení AI stylu soupeře'],
+  135:['emoce_agrese_faktor','Emoce AI: Zvyšování agrese'],
+  136:['emoce_strach_faktor','Emoce AI: Zvyšování opatrnosti'],
+  137:['pamet_tahu_delka','Paměť: Počet zapamatovaných tahů soupeře'],
+  138:['blunder_multiplier','Chyby: Šance na úmyslnou lehkou chybu'],
+  139:['krizova_situace_boost','Krize: Bonus při hrozbě celkové prohry'],
+  140:['vitezna_vora_boost','Vedení: Bonus při těsném vedení v partii'],
+  311:['game_phase_early_mult','Fáze hry: Časný násobitel pro začátek partie'],
+  312:['game_phase_mid_mult','Fáze hry: Střední násobitel pro rozehranou desku'],
+  313:['game_phase_late_mult','Fáze hry: Pozdní násobitel pro pokročilou fázi'],
+  314:['game_phase_end_mult','Fáze hry: Koncový násobitel pro boj o domky'],
+  315:['game_phase_transition_1','Fáze hry: Procentuální hranice přechodu 1'],
+  316:['game_phase_transition_2','Fáze hry: Procentuální hranice přechodu 2'],
+  317:['game_phase_transition_3','Fáze hry: Procentuální hranice přechodu 3'],
+  318:['adaptive_modifier_cap','Adaptace: Horní limit dynamického modifikátoru'],
+  319:['adaptive_modifier_floor','Adaptace: Dolní limit dynamického modifikátoru'],
+  320:['adaptive_learning_rate','Adaptace: Rychlost přizpůsobení AI za běhu hry']
+ };
+ if(special[n]) return {id:n,name:special[n][0],desc:special[n][1]};
+ if(n>=961&&n<=970) return {id:n,name:'aux_tuning_weight_'+n,desc:'Pomocná ladicí váha '+n};
+ return {id:n,name:'ai_weight_'+n,desc:'Aktivní číselná váha '+n};
+}
+
 }
 export function buildAIWeightReviewQuestions(detail, cursors = {}) {
  const candidates=Array.isArray(detail?.decision?.candidates)?detail.decision.candidates:[];
