@@ -1,5 +1,5 @@
-// /scripts/ai-self-play.mjs
 #!/usr/bin/env node
+// /scripts/ai-self-play.mjs
 /**
  * Automatický self-play sběr zkušeností. Používá výhradně produkční herní engine.
  * Záměrně zatím neexportuje ani nezapíná neuronový model.
