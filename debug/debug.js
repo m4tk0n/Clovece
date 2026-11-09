@@ -83,7 +83,7 @@ function renderDecision(decision, game) {
   reason.textContent = decision.reason || 'Bez textového vysvětlení.';
   reason.className = 'muted';
   root.append(grid, reason);
-  const candidates = breakdown.candidates || decision.alternatives || [];
+  const candidates = [{ pieceId: decision.pieceId, score: breakdown.selectedWeightFactors?.score ?? 'vybráno', selected: true }, ...(decision.alternatives || [])];
   if (candidates.length) {
     const heading = document.createElement('h3');
     heading.textContent = 'Porovnání kandidátů';
@@ -98,7 +98,7 @@ function renderDecision(decision, game) {
       row.innerHTML = '<td></td><td></td><td></td>';
       row.cells[0].textContent = String(Number(piece) + 1);
       row.cells[1].textContent = numberFormat(score);
-      row.cells[2].textContent = getValidMoves(game).includes(Number(piece)) ? 'ANO' : 'NE';
+      row.cells[2].textContent = getValidMoves(game).includes(Number(piece)) ? (candidate.selected ? 'ANO · vybráno' : 'ANO') : 'NE';
       body.append(row);
     }
     table.append(body);
@@ -123,7 +123,7 @@ function renderDice(decision) {
       outcome.dice,
       outcome.legalMoveCount ?? outcome.validMoves?.length ?? '—',
       outcome.bonusRoll ? 'ANO' : 'NE',
-      outcome.summary || outcome.description || outcome.outcome || 'Simulováno'
+      outcome.finish ? 'Možné dokončení' : (outcome.capture ? 'Možné vyhození' : (outcome.retrying ? 'Opakování hodu' : 'Běžný výsledek'))
     ];
     for (const value of values) {
       const cell = document.createElement('td');
