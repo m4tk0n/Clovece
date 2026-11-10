@@ -33,7 +33,7 @@ Společné vizuální hodnoty jsou v `css/00_styles.css`:
 - písmo,
 - mobilní breakpointy.
 
-Obrazovkové CSS se přebírá z funkční produkční verze, aby se styly neduplikovaly. Pokud se později bude měnit vzhled konkrétní obrazovky, její pravidla se přesunou do samostatného souboru v `styling/css/`.
+Obrazovkové CSS vychází z funkční produkční verze, ale jeho pracovní kopie je uložena samostatně v `styling/css/`. Vývoj vzhledu proto nezasahuje do produkčních stylů. Každá obrazovka má vlastní soubor, společné hodnoty a rozměry jsou pouze v `00_styles.css`.
 
 ## Navigace
 
