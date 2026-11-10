@@ -37,5 +37,5 @@ header('Cache-Control: no-store');
 ob_start();
 require $file;
 $html = (string) ob_get_clean();
-$html = preg_replace('/^\\/\\/ \\/screens\\/[^\\r\\n]*\\R/u', '', $html, 1) ?? $html;
+$html = preg_replace('/^\\/\\/ \\/styling\\/screens\\/[^\\r\\n]*\\R/u', '', $html, 1) ?? $html;
 echo $html;
