@@ -210,14 +210,13 @@
     #main-menu.menu-screen {
         padding-inline: var(--menu-page-gutter, 12px);
     }
-    #main-menu .game-title { max-width: 330px; font-size: var(--menu-title-size, clamp(39px, 11vw, 54px)); }
-    #main-menu .game-logo { width: var(--menu-logo-width, 100px); height: var(--menu-logo-height, 68px); margin: var(--menu-logo-margin-top, 14px) auto var(--menu-logo-bottom-gap, 58px); border-radius: var(--menu-logo-radius, 19px); }
+    #main-menu .game-title { max-width: 330px; }
+    
     #main-menu .game-logo-die { font-size: 35px; }
     #main-menu .game-logo-pawns { height: 36px; }
     #main-menu .game-logo-pawn { font-size: 26px; }
-    #main-menu .menu-buttons { gap: var(--menu-control-gap, 8px); }
-    #main-menu .menu-buttons .menu-btn { min-height: var(--menu-main-button-height, 47px); padding: var(--menu-main-button-padding, 11px 14px); border-radius: var(--menu-main-button-radius, 13px); font-size: 11px; }
-    #main-menu #play-btn { min-height: var(--menu-feature-button-height, 54px); }
+    #main-menu .menu-buttons .menu-btn { font-size: 11px; }
+    
     #main-menu .credits { margin-top: 16px; }
 }
 
@@ -225,14 +224,13 @@
     #main-menu.menu-screen {
         padding-inline: var(--menu-page-gutter, 7px);
     }
-    #main-menu .game-title { font-size: var(--menu-title-size, clamp(34px, 10vw, 42px)); }
-    #main-menu .game-logo { width: var(--menu-logo-width, 82px); height: var(--menu-logo-height, 54px); margin: var(--menu-logo-margin-top, 9px) auto var(--menu-logo-bottom-gap, 52px); border-radius: var(--menu-logo-radius, 15px); }
+    
+    
     #main-menu .game-logo-die { font-size: 28px; }
     #main-menu .game-logo-pawns { height: 30px; }
     #main-menu .game-logo-pawn { font-size: 21px; }
-    #main-menu .menu-buttons { gap: var(--menu-control-gap, 6px); }
-    #main-menu .menu-buttons .menu-btn { min-height: var(--menu-main-button-height, 40px); padding: var(--menu-main-button-padding, 8px 10px); font-size: 10px; }
-    #main-menu #play-btn { min-height: var(--menu-feature-button-height, 44px); }
+    #main-menu .menu-buttons .menu-btn { font-size: 10px; }
+    
     #main-menu .credits { margin-top: 10px; }
 }
 
