@@ -287,22 +287,36 @@ export function calculateAIMoveProbabilityFeatures(game, candidate, dependencies
 
     const canEnumerate = typeof rollDice === 'function' &&
         typeof movePiece === 'function' && typeof getValidMoves === 'function';
-    const opponentCaptureChance = canEnumerate
-        ? enumerateOneRoll(stateAfter, playerId, ({ move }) =>
-            Boolean(move.captured && !move.captured.ownPiece)
-        )
-        : 0;
-    const safeFinishChance = canEnumerate && target && target.steps >= 0 && target.steps < maxSteps
-        ? enumerateOneRoll(stateAfter, playerId, ({ next, legalPieceId }) =>
-            legalPieceId === pieceId &&
-            next.pieces[playerId].pieces[pieceId].steps === maxSteps
-        )
-        : 0;
-    const extraTurnChance = canEnumerate
-        ? enumerateOneRoll(stateAfter, playerId, ({ next }) =>
-            next.winner === null && next.currentPlayer === playerId && next.phase === 'roll'
-        )
-        : 0;
+    let opponentCaptureChance = 0;
+    let safeFinishChance = 0;
+    let extraTurnChance = 0;
+    if (canEnumerate) {
+        // Jediný průchod všemi šesti hody: zjistí šanci na vyhození, bezpečné dokončení i bonus.
+        let captureDice = 0, finishDice = 0, extraDice = 0;
+        const canFinish = Boolean(target && target.steps >= 0 && target.steps < maxSteps);
+        for (let dice = 1; dice <= 6; dice++) {
+            const rolled = prepareRollState(stateAfter, playerId);
+            const result = rollDice(rolled, dice);
+            if (rolled.phase !== 'move') continue;
+            const legal = result.validMoves || getValidMoves(rolled, playerId);
+            let cap = false, fin = false, extra = false;
+            for (const legalPieceId of legal) {
+                const next = cloneGame(rolled);
+                const move = movePiece(next, legalPieceId);
+                if (move.captured && !move.captured.ownPiece) cap = true;
+                if (canFinish && legalPieceId === pieceId &&
+                    next.pieces[playerId].pieces[pieceId].steps === maxSteps) fin = true;
+                if (next.winner === null && next.currentPlayer === playerId && next.phase === 'roll') extra = true;
+                if (cap && fin && extra) break;
+            }
+            if (cap) captureDice++;
+            if (fin) finishDice++;
+            if (extra) extraDice++;
+        }
+        opponentCaptureChance = captureDice / 6;
+        safeFinishChance = finishDice / 6;
+        extraTurnChance = extraDice / 6;
+    }
 
     return {
         ownCaptureRisk: Math.max(0, Math.min(1, captureRisk)),
@@ -321,7 +335,10 @@ export function calculateAIMoveProbabilityFeatures(game, candidate, dependencies
  * oprava musí jednoznačně označit figurku a tato figurka musí být legální.
  * random je injektovatelný kvůli reprodukovatelným testům.
  */
-export function chooseStrategicDecision(game, dependencies, difficulty = 'medium', random = Math.random, learnedMemory = {}) {
+export function chooseStrategicDecision(game, dependencies, difficulty = 'medium', random = Math.random, learnedMemory = {}, options = {}) {
+    options = options || {};
+    const profile = getDifficultyProfile(difficulty);
+    const activeWeights = options.weights ? { ...getAIStrategicWeights(), ...options.weights } : getAIStrategicWeights();
     const validMoves = dependencies.getValidMoves(game);
     if (!validMoves.length) return null;
     const candidates = validMoves.map(pieceId => {
@@ -337,9 +354,21 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
         .map(candidate => ({ ...candidate, votes: Math.max(0, Number(votes[candidate.pieceId]) || 0) }))
         .sort((a, b) => b.votes - a.votes || a.pieceId - b.pieceId);
     const learned = !winning && learnedCandidates[0]?.votes > 0 ? learnedCandidates[0] : null;
-    const ranking = winning ? [] : evaluateTacticalCandidates(game, candidates, getAIStrategicWeights(), dependencies);
+    const ranking = winning ? [] : evaluateTacticalCandidates(game, candidates, activeWeights, dependencies,
+        { detail: options.detail !== false, level: profile.level });
     const byPiece = new Map(ranking.map(item => [item.pieceId, item]));
-    const selected = winning || learned || candidates.find(item => item.pieceId === ranking[0]?.pieceId);
+    let pickedId = ranking[0]?.pieceId;
+    if (!winning && !learned && profile.temperature > 0 && ranking.length > 1) {
+        // Lehká obtížnost: vzorkování podle skóre, vždy jen z legálních tahů.
+        const top = ranking[0].score;
+        const weightsRaw = ranking.map(item => Math.exp((item.score - top) / profile.temperature));
+        let draw = random() * weightsRaw.reduce((sum, value) => sum + value, 0);
+        for (let index = 0; index < ranking.length; index++) {
+            draw -= weightsRaw[index];
+            if (draw <= 0) { pickedId = ranking[index].pieceId; break; }
+        }
+    }
+    const selected = winning || learned || candidates.find(item => item.pieceId === pickedId);
     if (!selected) return null;
     const trained = Boolean(learned && selected.pieceId === learned.pieceId);
     const usedInstructions = trained ? [{
@@ -361,7 +390,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
             move: item.move ?? null
         };
     });
-    const weights = getAIStrategicWeights();
+    const weights = activeWeights;
     return {
         pieceId: selected.pieceId,
         reason: winning ? 'Okamžitě vítězný tah – hra tím končí.' :
@@ -370,7 +399,7 @@ export function chooseStrategicDecision(game, dependencies, difficulty = 'medium
         score: winning ? 1000000 : (trained ? Math.min(999999, 500000 + learned.votes) : (selectedRank?.score ?? 0)),
         breakdown: {
             trainedKnowledge: trained, neuralNetwork: false, tacticalTeacher: !winning && !trained,
-            weightConfig: { count: AI_WEIGHT_COUNT, keys: Object.keys(weights), values: weights, difficulty: String(difficulty || 'medium') },
+            weightConfig: { count: AI_WEIGHT_COUNT, keys: Object.keys(weights), values: weights, difficulty: profile.level },
             intentionalBlunder: false, usedInstructions, legalMoveCount: validMoves.length,
             selection: winning ? 'immediate-win' : (trained ? 'compiled-memory' : 'weighted-ai-10-v1'),
             selectedWeightFactors: selectedRank?.factors ?? null,
@@ -410,9 +439,20 @@ function estimateFastTrackThreat(game, playerId) {
     return total;
 }
 
-function getDifficultyProfile(difficulty = 'medium') {
-    const level = String(difficulty || 'medium').toLowerCase();
-    return { label: level === 'easy' ? 'Lehká' : (level === 'hard' ? 'Těžká' : 'Střední') };
+/**
+ * Obtížnost mění způsob výběru, nikoli pravidla:
+ * easy   - vybírá náhodně podle skóre (softmax s vysokou teplotou), takže dělá chyby,
+ * medium - vždy nejlepší tah podle vah, jednohodový odhad rizika,
+ * hard   - nejlepší tah podle vah, riziko počítá i přes řetězení šestek.
+ */
+export function getDifficultyProfile(difficulty = 'medium') {
+    const level = ['easy', 'hard'].includes(String(difficulty || '').toLowerCase())
+        ? String(difficulty).toLowerCase() : 'medium';
+    return {
+        level,
+        label: level === 'easy' ? 'Lehká' : (level === 'hard' ? 'Těžká' : 'Střední'),
+        temperature: level === 'easy' ? 14 : 0
+    };
 }
 
 export function getAIWeightConfiguration() {
@@ -577,7 +617,9 @@ function simulateOpponentResponses(state, targetPlayerId, targetPieceId, depende
     return responses;
 }
 
-export function evaluateTacticalCandidates(game, candidates, weights = getAIStrategicWeights(), dependencies = {}) {
+export function evaluateTacticalCandidates(game, candidates, weights = getAIStrategicWeights(), dependencies = {}, options = {}) {
+    const detail = options.detail !== false;
+    const deepThreat = options.level === 'hard';
     const playerId = game.currentPlayer;
     const beforeThreat = estimateFastTrackThreat(game, playerId);
     const strategicWeights = { ...getAIStrategicWeights(), ...(weights || {}) };
@@ -613,12 +655,17 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
         const protectOwn = clampSignal((beforeThreat - afterThreat) / 2);
         const probabilityFeatures = calculateAIMoveProbabilityFeatures(game, candidate, dependencies);
         const threatenOpponent = clampSignal(probabilityFeatures.opponentCaptureChance);
+        // Těžká obtížnost počítá riziko přes řetězení šestek; ostatní stačí jednohodový odhad.
         const pieceThreat = afterPiece && isMainTrackPiece(afterPiece, state.trackLength)
-            ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies) : 0;
+            ? (deepThreat
+                ? estimatePieceThreat(state, playerId, candidate.pieceId, dependencies)
+                : probabilityFeatures.ownCaptureRisk)
+            : 0;
         const startRisk = estimateOpponentStartSquareRisk(state, playerId, candidate.pieceId);
         const startFieldRisk = -clampSignal(Math.max(pieceThreat, startRisk.risk));
         const diceSimulation = simulateNextDiceOutcomes(state, playerId, dependencies);
-        const opponentResponses = simulateOpponentResponses(state, playerId, candidate.pieceId, dependencies);
+        const opponentResponses = detail
+            ? simulateOpponentResponses(state, playerId, candidate.pieceId, dependencies) : [];
         const bonusContinuation = clampSignal(diceSimulation.filter(item => item.bonusRoll).length / 6);
         const flexibility = clampSignal(diceSimulation.reduce((sum, item) => sum + Math.min(4, item.legalMoveCount), 0) / 24);
         const finishPiece = candidate.move?.finishedNow ? 1 : 0;
@@ -680,4 +727,29 @@ export function chooseTacticalTeacherDecision(game, dependencies, weights = getA
 
 export function chooseStrategicMove(game, dependencies, difficulty = 'medium') {
     return chooseStrategicDecision(game, dependencies, difficulty)?.pieceId ?? null;
+}
+
+/**
+ * Signály všech legálních tahů pro trénink: vrací deset signálů každého tahu,
+ * aniž by tah vybíral. Používá jen legální tahy enginu.
+ */
+export function computeMoveSignals(game, dependencies, options = {}) {
+    const legalMoves = dependencies.getValidMoves(game);
+    if (!legalMoves.length) return [];
+    const candidates = legalMoves.map(pieceId => {
+        const state = cloneGame(game);
+        const move = dependencies.movePiece(state, pieceId);
+        return { pieceId, move, state, winningMove: state.winner === game.currentPlayer };
+    });
+    const ranking = evaluateTacticalCandidates(game, candidates, options.weights || getAIStrategicWeights(),
+        dependencies, { detail: false, level: options.level || 'medium' });
+    const byPiece = new Map(ranking.map(item => [item.pieceId, item]));
+    return legalMoves.map(pieceId => {
+        const item = byPiece.get(pieceId);
+        return {
+            pieceId,
+            winning: Boolean(item?.factors?.winning),
+            signals: item?.factors?.weightSignals ? [...item.factors.weightSignals] : Array(AI_WEIGHT_COUNT).fill(0)
+        };
+    });
 }

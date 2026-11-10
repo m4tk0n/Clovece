@@ -296,7 +296,7 @@ export function createTurnController(deps) {
         const playerPieces = game.pieces[game.currentPlayer]?.pieces || [];
         const hasPieceInBase = playerPieces.some(piece => Number(piece.steps) < 0);
         if (legalMoves.length < 2 || (Number(game.diceValue) === 6 && hasPieceInBase) || !chooseAIMoveDecision) return null;
-        const analysis = chooseAIMoveDecision(game, undefined, {}, null);
+        const analysis = chooseAIMoveDecision(game, 'medium', {}, null);
         if (!analysis || !Array.isArray(analysis.alternatives)) return null;
         const allCandidates = [
             { pieceId: analysis.pieceId, score: analysis.score, reason: analysis.reason,
