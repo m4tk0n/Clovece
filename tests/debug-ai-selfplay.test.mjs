@@ -8,6 +8,9 @@ import {
 } from '../debug/js/game-engine.js';
 import { computeMoveSignals, getDifficultyProfile } from '../debug/js/ai-strategy.js';
 import { AI_WEIGHT_DEFINITIONS } from '../debug/js/ai-weight-config.js';
+import { AI_EXTENDED_WEIGHT_DEFINITIONS } from '../debug/js/ai-extended-weights.js';
+
+const ALL_DEFINITIONS = [...AI_WEIGHT_DEFINITIONS, ...AI_EXTENDED_WEIGHT_DEFINITIONS];
 import { main as trainMain, playGame, evaluateMatch, randomFor } from '../debug/scripts/train-selfplay.mjs';
 
 function scenario(difficulty = 'medium') {
@@ -52,16 +55,27 @@ test('vlastní váhy se promítnou do rozhodnutí a rychlý režim vynechá rozb
     assert.equal(decision.breakdown.weightConfig.values.progressToGoal, 20);
 });
 
-test('computeMoveSignals vrací deset signálů pro každý legální tah', () => {
+test('computeMoveSignals vrací 10 základních + 8 rozšířených signálů v rozsahu -1..1', () => {
     const game = scenario();
     const signals = computeMoveSignals(game, deps);
     assert.deepEqual(signals.map(item => item.pieceId), getValidMoves(game));
-    assert.ok(signals.every(item => item.signals.length === 10 && item.signals.every(Number.isFinite)));
+    assert.ok(signals.every(item => item.signals.length === 18 &&
+        item.signals.every(value => Number.isFinite(value) && value >= -1 && value <= 1)));
+});
+
+test('rozšířené váhy jsou ve výchozím stavu nulové a nemění původní rozhodnutí', () => {
+    assert.equal(AI_EXTENDED_WEIGHT_DEFINITIONS.length, 8);
+    assert.deepEqual(AI_EXTENDED_WEIGHT_DEFINITIONS.map(item => item.id), [11, 12, 13, 14, 15, 16, 17, 18]);
+    assert.ok(AI_EXTENDED_WEIGHT_DEFINITIONS.every(item => item.defaultValue === 0));
+    const game = scenario();
+    const base = chooseAIMoveDecision(game, 'medium', {});
+    const zeros = Object.fromEntries(AI_EXTENDED_WEIGHT_DEFINITIONS.map(item => [item.key, 0]));
+    assert.equal(chooseAIMoveDecision(game, 'medium', {}, { weights: zeros }).pieceId, base.pieceId);
 });
 
 test('self-play partie používá jen legální tahy a evaluateMatch je reprodukovatelný', () => {
     const setup = { playerCount: 2, boardSize: 40 };
-    const policy = { type: 'weights', weights: AI_WEIGHT_DEFINITIONS.map(i => i.defaultValue), temperature: 0 };
+    const policy = { type: 'weights', weights: ALL_DEFINITIONS.map(i => i.defaultValue), temperature: 0 };
     const result = playGame({ setup, policies: [policy, { type: 'random' }], seed: 5, maxTurns: 600 });
     assert.ok(result.cutoff || [0, 1].includes(result.winner));
     const args = { candidate: policy.weights, opponent: { type: 'random' }, setups: [setup], games: 4, seedBase: 100, maxTurns: 600 };
@@ -83,7 +97,8 @@ test('trenér ukládá checkpoint, drží váhy v rozsahu, obnovuje se a nepřep
         assert.equal(checkpoint.step, 2);
         assert.equal(report.schema, 'clovece-selfplay-report-v1');
         assert.equal(report.status, 'completed');
-        AI_WEIGHT_DEFINITIONS.forEach((definition, index) => {
+        assert.equal(checkpoint.weights.length, 18);
+        ALL_DEFINITIONS.forEach((definition, index) => {
             assert.ok(checkpoint.weights[index] >= definition.min && checkpoint.weights[index] <= definition.max);
         });
         await assert.rejects(trainMain(common), /Checkpoint již existuje/);
