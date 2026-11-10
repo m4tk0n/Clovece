@@ -5,14 +5,14 @@
  */
 
 const SCREEN_CONFIG = Object.freeze({
-    login:       { id: 'login-screen',       file: 'login',       css: ['../css/components-auth.css'] },
+    login:       { id: 'login-screen',       file: 'login',       css: ['css/10_auth.css'] },
     register:    { id: 'register-screen',    file: 'register',    css: ['../css/components-auth.css'] },
-    lobby:       { id: 'lobby-screen',       file: 'lobby',       css: ['../css/components-online.css'] },
+    lobby:       { id: 'lobby-screen',       file: 'lobby',       css: ['css/14_online.css'] },
     room:        { id: 'room-screen',        file: 'room',        css: ['../css/components-online.css'] },
-    settings:    { id: 'settings-screen',    file: 'settings',    css: ['../css/components-settings.css'] },
-    rules:       { id: 'rules-screen',       file: 'rules',       css: ['../css/components-rules.css'] },
-    'local-games': { id: 'local-games-screen', file: 'local-games', css: ['../css/components-local-games.css'] },
-    profile:     { id: 'profile-screen',     file: 'profile',     css: ['../css/components-auth.css', '../css/components-profile.css'] }
+    settings:    { id: 'settings-screen',    file: 'settings',    css: ['css/12_settings.css'] },
+    rules:       { id: 'rules-screen',       file: 'rules',       css: ['css/13_rules.css'] },
+    'local-games': { id: 'local-games-screen', file: 'local-games', css: ['css/15_local-games.css'] },
+    profile:     { id: 'profile-screen',     file: 'profile',     css: ['css/10_auth.css', 'css/11_profile.css'] }
 });
 
 const loadedScreens = new Map();
