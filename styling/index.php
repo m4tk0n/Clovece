@@ -12,6 +12,14 @@ $assets = [
     '../css/menu-main.css',
     'css/00_styles.css',
 ];
+$screenCss = [
+    '../css/components-auth.css',
+    '../css/components-online.css',
+    '../css/components-settings.css',
+    '../css/components-rules.css',
+    '../css/components-local-games.css',
+    '../css/components-profile.css',
+];
 function assetVersion(string $relative): int {
     $path = __DIR__ . '/' . $relative;
     return is_file($path) ? (int) filemtime($path) : 1;
@@ -32,7 +40,7 @@ function assetVersion(string $relative): int {
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body data-screen-css-versions='<?= htmlspecialchars(json_encode(array_combine($screenCss, array_map('assetVersion', $screenCss)), JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>'>
     <div id="main-menu" class="menu-screen">
         <div class="menu-bg">
             <div class="auth-buttons" id="auth-buttons">
