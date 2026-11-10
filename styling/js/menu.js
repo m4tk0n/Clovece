@@ -6,9 +6,9 @@
 
 const SCREEN_CONFIG = Object.freeze({
     login:       { id: 'login-screen',       file: 'login',       css: ['css/10_auth.css'] },
-    register:    { id: 'register-screen',    file: 'register',    css: ['../css/components-auth.css'] },
+    register:    { id: 'register-screen',    file: 'register',    css: ['css/10_auth.css'] },
     lobby:       { id: 'lobby-screen',       file: 'lobby',       css: ['css/14_online.css'] },
-    room:        { id: 'room-screen',        file: 'room',        css: ['../css/components-online.css'] },
+    room:        { id: 'room-screen',        file: 'room',        css: ['css/14_online.css'] },
     settings:    { id: 'settings-screen',    file: 'settings',    css: ['css/12_settings.css'] },
     rules:       { id: 'rules-screen',       file: 'rules',       css: ['css/13_rules.css'] },
     'local-games': { id: 'local-games-screen', file: 'local-games', css: ['css/15_local-games.css'] },
