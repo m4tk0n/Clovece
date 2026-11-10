@@ -10,13 +10,8 @@
  */
 import { mkdir, open, readFile, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { evaluateMatch, randomFor, toObject, clampVector } from './train-selfplay.mjs';
-import { AI_WEIGHT_DEFINITIONS } from '../js/ai-weight-config.js';
-import { AI_TACTICAL_WEIGHTS } from '../js/ai-tactical-weights.js';
+import { evaluateMatch, randomFor, toObject, clampVector, KEYS, RANGE, DEFAULT_WEIGHTS as DEFAULTS } from './train-selfplay.mjs';
 
-const KEYS = AI_WEIGHT_DEFINITIONS.map(item => item.key);
-const DEFAULTS = KEYS.map(key => AI_TACTICAL_WEIGHTS[key]);
-const FLOOR = 0.05;
 const SETUPS = [{ playerCount: 2, boardSize: 40 }, { playerCount: 4, boardSize: 40 }];
 
 function gaussian(random) {
@@ -51,11 +46,14 @@ export async function main(argv = process.argv.slice(2)) {
     let state = await readJson(args.checkpoint);
     if (state) {
         if (!args.resume) throw new Error('Checkpoint již existuje. Použij --resume.');
+        if (state.version !== 2 || !Array.isArray(state.weights) || state.weights.length !== KEYS.length) {
+            throw new Error('Checkpoint je ze starší verze (jiný počet vah). Spusť nový trénink bez --resume.');
+        }
     } else {
         if (args.resume) throw new Error('Checkpoint pro obnovu nebyl nalezen.');
         // Stejný formát jako train-selfplay.mjs, aby šel použít promote-weights.mjs.
         state = {
-            format: 'clovece-selfplay-checkpoint', version: 1, method: 'cem',
+            format: 'clovece-selfplay-checkpoint', version: 2, method: 'cem',
             createdAt: new Date().toISOString(), step: 0, gamesPlayed: 0, cutoffGames: 0,
             weights: [...DEFAULTS], champion: [...DEFAULTS],
             sigma: Array(KEYS.length).fill(args.sigma), generations: [], evaluations: []
@@ -78,8 +76,9 @@ export async function main(argv = process.argv.slice(2)) {
         const opponent = { type: 'weights', weights: state.champion, temperature: 0 };
         const population = Array.from({ length: args.population }, () => {
             const noise = KEYS.map(() => gaussian(random));
+            // Rozptyl úměrný velikosti váhy, u malých a nulových vah alespoň 10 % jejího rozsahu.
             const vector = clampVector(state.weights.map((value, index) =>
-                Math.max(FLOOR, value) * Math.exp(state.sigma[index] * noise[index])));
+                value + Math.max(Math.abs(value), 0.1 * RANGE[index]) * state.sigma[index] * noise[index]));
             return { vector, noise };
         });
         const scored = population.map(item => {
@@ -92,11 +91,12 @@ export async function main(argv = process.argv.slice(2)) {
         }).sort((a, b) => b.score - a.score);
 
         const top = scored.slice(0, elites);
-        const logs = top.map(item => item.vector.map(value => Math.log(Math.max(FLOOR, value))));
-        const meanLog = KEYS.map((_, k) => logs.reduce((s, row) => s + row[k], 0) / logs.length);
-        const stdLog = KEYS.map((_, k) => Math.sqrt(logs.reduce((s, row) => s + (row[k] - meanLog[k]) ** 2, 0) / logs.length));
-        state.weights = clampVector(KEYS.map((_, k) => Math.exp(0.5 * Math.log(Math.max(FLOOR, state.weights[k])) + 0.5 * meanLog[k])));
-        state.sigma = state.sigma.map((value, k) => Math.max(0.06, 0.5 * value + 0.5 * stdLog[k]));
+        const scale = state.weights.map((value, k) => Math.max(Math.abs(value), 0.1 * RANGE[k]));
+        const meanElite = KEYS.map((_, k) => top.reduce((sum, item) => sum + item.vector[k], 0) / top.length);
+        const stdElite = KEYS.map((_, k) => Math.sqrt(
+            top.reduce((sum, item) => sum + (item.vector[k] - meanElite[k]) ** 2, 0) / top.length));
+        state.weights = clampVector(state.weights.map((value, k) => 0.5 * value + 0.5 * meanElite[k]));
+        state.sigma = state.sigma.map((value, k) => Math.min(0.6, Math.max(0.06, 0.5 * value + 0.5 * stdElite[k] / scale[k])));
 
         const check = evaluateMatch({
             candidate: state.weights, opponent, setups: args.setups, games: args.finalGames,

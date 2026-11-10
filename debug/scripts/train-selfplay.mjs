@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Self-play trénink deseti strategických vah (debug prostředí).
+ * Self-play trénink osmnácti strategických vah (10 základních + 8 rozšířených) (debug prostředí).
  *
  * Co se skutečně děje:
  *  1. Učící se hráč (kandidát) hraje partie proti šampionovi. Vybírá tah vzorkováním
@@ -18,13 +18,15 @@ import { dirname } from 'node:path';
 import { createGame, rollDice, getValidMoves, movePiece, advanceTurn } from '../js/game-engine.js';
 import { computeMoveSignals } from '../js/ai-strategy.js';
 import { AI_WEIGHT_DEFINITIONS } from '../js/ai-weight-config.js';
-import { AI_TACTICAL_WEIGHTS } from '../js/ai-tactical-weights.js';
+import { AI_EXTENDED_WEIGHT_DEFINITIONS } from '../js/ai-extended-weights.js';
 
-const KEYS = AI_WEIGHT_DEFINITIONS.map(item => item.key);
-const MIN = AI_WEIGHT_DEFINITIONS.map(item => item.min);
-const MAX = AI_WEIGHT_DEFINITIONS.map(item => item.max);
-const RANGE = AI_WEIGHT_DEFINITIONS.map(item => item.max - item.min);
-const DEFAULT_WEIGHTS = KEYS.map(key => AI_TACTICAL_WEIGHTS[key]);
+// Trénuje se deset základních vah (ID 1–10) i osm rozšířených (ID 11–18).
+const ALL_DEFINITIONS = [...AI_WEIGHT_DEFINITIONS, ...AI_EXTENDED_WEIGHT_DEFINITIONS];
+export const KEYS = ALL_DEFINITIONS.map(item => item.key);
+const MIN = ALL_DEFINITIONS.map(item => item.min);
+const MAX = ALL_DEFINITIONS.map(item => item.max);
+export const RANGE = ALL_DEFINITIONS.map(item => item.max - item.min);
+export const DEFAULT_WEIGHTS = ALL_DEFINITIONS.map(item => item.defaultValue);
 const ALL_SETUPS = [
     { playerCount: 2, boardSize: 40 },
     { playerCount: 4, boardSize: 40 },
@@ -224,7 +226,7 @@ function buildReport(state, args, status) {
         schema: 'clovece-selfplay-report-v1',
         status,
         generatedAt: new Date().toISOString(),
-        method: 'REINFORCE (Adam) over ten strategic weights; learner vs greedy champion; z-test gate',
+        method: 'REINFORCE (Adam) over eighteen strategic weights; learner vs greedy champion; z-test gate',
         settings: { ...args, setups: args.setups },
         progress: { step: state.step, updates: args.updates, gamesPlayed: state.gamesPlayed, cutoffGames: state.cutoffGames },
         weights: { default: toObject(DEFAULT_WEIGHTS), candidate: toObject(state.weights), champion: toObject(state.champion) },
@@ -245,14 +247,14 @@ export async function main(argv = process.argv.slice(2)) {
     let state = await readJson(args.checkpoint);
     if (state) {
         if (!args.resume) throw new Error('Checkpoint již existuje. Použij --resume; data nebyla přepsána.');
-        if (state.format !== 'clovece-selfplay-checkpoint' || state.version !== 1 ||
+        if (state.format !== 'clovece-selfplay-checkpoint' || state.version !== 2 ||
             !Array.isArray(state.weights) || state.weights.length !== KEYS.length) {
             throw new Error('Checkpoint má neplatný formát; data nebyla přepsána.');
         }
     } else {
         if (args.resume) throw new Error('Checkpoint pro obnovu nebyl nalezen: ' + args.checkpoint);
         state = {
-            format: 'clovece-selfplay-checkpoint', version: 1,
+            format: 'clovece-selfplay-checkpoint', version: 2,
             createdAt: new Date().toISOString(), step: 0, gamesPlayed: 0, cutoffGames: 0,
             weights: [...DEFAULT_WEIGHTS], champion: [...DEFAULT_WEIGHTS],
             adam: { t: 0, m: Array(KEYS.length).fill(0), v: Array(KEYS.length).fill(0), beta1: 0.9, beta2: 0.999, epsilon: 1e-8 },
