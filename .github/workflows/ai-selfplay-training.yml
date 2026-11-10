@@ -1,0 +1,101 @@
+name: AI self-play training (debug)
+
+on:
+  workflow_dispatch:
+    inputs:
+      method:
+        description: "cem = přímá optimalizace míry výher, reinforce = policy gradient"
+        required: true
+        type: choice
+        options: [cem, reinforce]
+        default: cem
+      generations:
+        description: Počet generací (cem) nebo aktualizací (reinforce)
+        required: true
+        type: number
+        default: 20
+      games:
+        description: Partií na kandidáta (cem) nebo na dávku (reinforce)
+        required: true
+        type: number
+        default: 200
+      final_games:
+        description: Partií pro ověření průměru / šampiona
+        required: true
+        type: number
+        default: 500
+      resume:
+        description: Pokračovat z uloženého checkpointu (artefakt předchozího běhu)
+        required: false
+        type: boolean
+        default: false
+      resume_run_id:
+        description: ID předchozího běhu tohoto workflow (jen při resume)
+        required: false
+        type: string
+        default: ''
+
+concurrency:
+  group: ai-selfplay-training
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Restore previous checkpoint
+        if: inputs.resume && inputs.resume_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ai-selfplay-results
+          path: artifacts
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.resume_run_id }}
+
+      - name: Automated tests
+        run: node --experimental-default-type=module --test tests/debug-ai-selfplay.test.mjs
+
+      - name: Train
+        timeout-minutes: 320
+        run: |
+          RESUME=""
+          if [ "${{ inputs.resume }}" = "true" ]; then RESUME="--resume"; fi
+          if [ "${{ inputs.method }}" = "cem" ]; then
+            node --experimental-default-type=module debug/scripts/train-cem.mjs \
+              --generations=${{ inputs.generations }} --games=${{ inputs.games }} \
+              --final-games=${{ inputs.final_games }} --setups=2 \
+              --checkpoint=artifacts/selfplay-checkpoint.json --report=artifacts/selfplay-report.json $RESUME
+          else
+            node --experimental-default-type=module debug/scripts/train-selfplay.mjs \
+              --updates=${{ inputs.generations }} --batch=${{ inputs.games }} \
+              --gate-games=${{ inputs.final_games }} --anchor-games=${{ inputs.final_games }} --setups=2 \
+              --checkpoint=artifacts/selfplay-checkpoint.json --report=artifacts/selfplay-report.json $RESUME
+          fi
+
+      - name: Independent validation vs original weights (writes nothing)
+        if: always()
+        run: |
+          if [ -f artifacts/selfplay-checkpoint.json ]; then
+            node --experimental-default-type=module debug/scripts/promote-weights.mjs \
+              --checkpoint=artifacts/selfplay-checkpoint.json --games=600 | tee artifacts/validation.txt
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-selfplay-results
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 90
