@@ -44,6 +44,7 @@ export async function main(argv = process.argv.slice(2)) {
         games: Number(read('games', 150)), finalGames: Number(read('final-games', 400)),
         sigma: Number(read('sigma', 0.3)), maxTurns: Number(read('max-turns', 1500)),
         setups: SETUPS.slice(0, Number(read('setups', 1))), seed: Number(read('seed', 20261111)),
+        maxMinutes: Number(read('max-minutes', 0)),
         checkpoint: read('checkpoint', 'artifacts/cem-checkpoint.json'),
         report: read('report', 'artifacts/cem-report.json'), resume: argv.includes('--resume')
     };
@@ -62,7 +63,16 @@ export async function main(argv = process.argv.slice(2)) {
     }
     const elites = Math.max(2, Math.round(args.population * 0.25));
 
+    const startedAt = Date.now();
+    let lastMinutes = 0;
     while (state.step < args.generations) {
+        // Časový rozpočet: novou generaci nezačne, pokud by se nevešla do limitu.
+        if (args.maxMinutes > 0 && lastMinutes > 0 &&
+            (Date.now() - startedAt) / 60000 + 1.2 * lastMinutes > args.maxMinutes) {
+            process.stdout.write('Časový rozpočet vyčerpán, stav je uložen. Pokračuj s --resume.\n');
+            return;
+        }
+        const generationStart = Date.now();
         const random = randomFor(args.seed + state.step * 7919);
         const seedBase = args.seed + 100000 + state.step * 100000;
         const opponent = { type: 'weights', weights: state.champion, temperature: 0 };
@@ -110,6 +120,7 @@ export async function main(argv = process.argv.slice(2)) {
             generations: state.generations
         }, null, 2) + '\n');
         await atomicWrite(args.checkpoint, JSON.stringify(state, null, 2) + '\n');
+        lastMinutes = (Date.now() - generationStart) / 60000;
     }
     process.stdout.write('Hotovo. Šampion: ' + JSON.stringify(toObject(state.champion.map(v => Number(v.toFixed(3))))) + '\n');
 }

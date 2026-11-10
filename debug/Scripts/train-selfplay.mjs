@@ -186,6 +186,7 @@ function parseArgs(argv) {
         gateGames: number('gate-games', 120, 10, 5000),
         anchorGames: number('anchor-games', 80, 10, 5000),
         seed: number('seed', 20261110, 1, 2 ** 31),
+        maxMinutes: number('max-minutes', 0, 0, 100000),
         checkpoint: read('checkpoint', 'artifacts/selfplay-checkpoint.json'),
         report: read('report', 'artifacts/selfplay-report.json'),
         resume: argv.includes('--resume')
@@ -266,7 +267,13 @@ export async function main(argv = process.argv.slice(2)) {
         await save(args, state, 'running');
     }
 
+    const startedAt = Date.now();
+    let lastEvalMinutes = 0;
     while (state.step < args.updates) {
+        if (args.maxMinutes > 0 && (Date.now() - startedAt) / 60000 + 1.2 * lastEvalMinutes > args.maxMinutes) {
+            process.stdout.write('Časový rozpočet vyčerpán, stav je uložen. Pokračuj s --resume.\n');
+            return;
+        }
         const gradient = Array(KEYS.length).fill(0);
         let decisions = 0, wins = 0, played = 0;
         for (let game = 0; game < args.batch; game++) {
@@ -298,7 +305,9 @@ export async function main(argv = process.argv.slice(2)) {
             ' | rozhodnutí ' + decisions + '\n');
 
         if (state.step % args.evalEvery === 0 || state.step === args.updates) {
+            const evalStart = Date.now();
             const evaluation = evaluateAll(state, args, 'krok ' + state.step);
+            lastEvalMinutes = (Date.now() - evalStart) / 60000;
             process.stdout.write('  Vyhodnocení: vs šampion ' + evaluation.vsChampion.wins + '/' + evaluation.vsChampion.decisive +
                 ' (z ' + evaluation.vsChampion.z.toFixed(2) + (evaluation.promoted ? ', POVÝŠEN' : '') + ') | vs původní váhy ' +
                 (evaluation.vsDefault.winRate * 100).toFixed(1) + ' % (šance ' + (evaluation.vsDefault.chanceRate * 100).toFixed(1) +
