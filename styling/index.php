@@ -6,19 +6,18 @@ declare(strict_types=1);
  * Používá původní HTML obrazovek, ale vlastní navigaci a načítání stylů.
  */
 $assets = [
-    '../css/variables.css',
-    '../css/reset.css',
-    '../css/menu-base.css',
-    '../css/menu-main.css',
     'css/00_styles.css',
+    'css/01_reset.css',
+    'css/02_menu-base.css',
+    'css/03_main-menu.css',
 ];
 $screenCss = [
-    '../css/components-auth.css',
-    '../css/components-online.css',
-    '../css/components-settings.css',
-    '../css/components-rules.css',
-    '../css/components-local-games.css',
-    '../css/components-profile.css',
+    'css/10_auth.css',
+    'css/11_profile.css',
+    'css/12_settings.css',
+    'css/13_rules.css',
+    'css/14_online.css',
+    'css/15_local-games.css',
 ];
 function assetVersion(string $relative): int {
     $path = __DIR__ . '/' . $relative;
