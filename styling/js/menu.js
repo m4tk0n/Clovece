@@ -93,7 +93,7 @@ async function loadScreen(name) {
 export async function showMenuScreen(name) {
     const token = ++navigationToken;
     const target = name === 'main-menu' ? $('main-menu') : await loadScreen(name);
-    if (name !== 'main-menu') await prepareStyles(name);
+    await prepareStyles(name);
     if (token !== navigationToken) return false;
 
     document.querySelectorAll('.menu-screen').forEach(screen => {
