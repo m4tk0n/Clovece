@@ -24,6 +24,16 @@
     --menu-panel-start: rgba(26, 43, 37, .97);
     --menu-panel-end: rgba(9, 17, 18, .97);
 
+    --primary: #ff6b6b;
+    --secondary: #4ecdc4;
+    --control-accent: #4ecdc4;
+    --white: #ffffff;
+    --radius: 10px;
+    --radius-full: 50%;
+    --gradient-1: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    --gradient-2: linear-gradient(135deg, #4ecdc4, #44a08d);
+    --gradient-dark: linear-gradient(135deg, #080f13, #14231f 55%, #090f13);
+
     --gold: #c6a96b;
     --gold-light: #e5c47e;
     --gold-line: rgba(198, 169, 107, .38);
