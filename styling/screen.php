@@ -24,7 +24,7 @@ if (!isset($screens[$name])) {
     exit('Obrazovka není součástí vývojového menu.');
 }
 
-$file = __DIR__ . '/../screens/' . $screens[$name];
+$file = __DIR__ . '/screens/' . $screens[$name];
 if (!is_file($file) || !is_readable($file)) {
     http_response_code(500);
     header('Content-Type: text/plain; charset=UTF-8');
