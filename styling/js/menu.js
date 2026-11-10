@@ -5,19 +5,17 @@
  */
 
 const SCREEN_CONFIG = Object.freeze({
-    login:       { id: 'login-screen',       file: 'login',       css: ['css/10_auth.css'] },
-    register:    { id: 'register-screen',    file: 'register',    css: ['css/10_auth.css'] },
-    lobby:       { id: 'lobby-screen',       file: 'lobby',       css: ['css/09_game-list.css', 'css/14_online.css'] },
-    room:        { id: 'room-screen',        file: 'room',        css: ['css/14_online.css'] },
-    settings:    { id: 'settings-screen',    file: 'settings',    css: ['css/12_settings.css'] },
-    rules:       { id: 'rules-screen',       file: 'rules',       css: ['css/13_rules.css'] },
-    'local-games': { id: 'local-games-screen', file: 'local-games', css: ['css/09_game-list.css', 'css/15_local-games.css'] },
-    profile:     { id: 'profile-screen',     file: 'profile',     css: ['css/10_auth.css', 'css/11_profile.css'] }
+    login:       { id: 'login-screen',       file: 'login' },
+    register:    { id: 'register-screen',    file: 'register' },
+    lobby:       { id: 'lobby-screen',       file: 'lobby' },
+    room:        { id: 'room-screen',        file: 'room' },
+    settings:    { id: 'settings-screen',    file: 'settings' },
+    rules:       { id: 'rules-screen',       file: 'rules' },
+    'local-games': { id: 'local-games-screen', file: 'local-games' },
+    profile:     { id: 'profile-screen',     file: 'profile' }
 });
 
 const loadedScreens = new Map();
-let screenCssVersions = null;
-const loadedStyles = new Map();
 let navigationToken = 0;
 let authModulePromise = null;
 let profileModulePromise = null;
@@ -33,41 +31,6 @@ function showToast(message) {
     toast.classList.remove('hidden');
     clearTimeout(toast._timer);
     toast._timer = window.setTimeout(() => toast.classList.add('hidden'), 2600);
-}
-
-function loadStyle(path) {
-    if (loadedStyles.has(path)) return loadedStyles.get(path);
-    if (!screenCssVersions) {
-        try { screenCssVersions = JSON.parse(document.body.dataset.screenCssVersions || '{}'); }
-        catch { screenCssVersions = {}; }
-    }
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = path + '?v=' + encodeURIComponent(screenCssVersions[path] || 1);
-    link.dataset.menuStyle = path;
-    const promise = new Promise((resolve, reject) => {
-        link.addEventListener('load', resolve, { once: true });
-        link.addEventListener('error', () => {
-            loadedStyles.delete(path);
-            link.remove();
-            reject(new Error('Nepodařilo se načíst styl ' + path));
-        }, { once: true });
-    });
-    loadedStyles.set(path, promise);
-    document.head.append(link);
-    return promise;
-}
-
-async function prepareStyles(name, token = navigationToken) {
-    const required = SCREEN_CONFIG[name]?.css || [];
-    await Promise.all(required.map(loadStyle));
-    if (token !== navigationToken) return;
-    for (const [path] of loadedStyles) {
-        if (!required.includes(path)) {
-            document.querySelector('link[data-menu-style="' + path + '"]')?.remove();
-            loadedStyles.delete(path);
-        }
-    }
 }
 
 export async function loadMenuScreen(name) {
@@ -100,8 +63,6 @@ export async function showMenuScreen(name) {
     const token = ++navigationToken;
     try {
         const target = name === 'main-menu' ? $('main-menu') : await loadMenuScreen(name);
-        if (token !== navigationToken) return false;
-        await prepareStyles(name, token);
         if (token !== navigationToken) return false;
 
         document.querySelectorAll('.menu-screen').forEach(screen => {
