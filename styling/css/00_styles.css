@@ -77,13 +77,9 @@
 
 html, body {
     width: 100%;
-    min-height: 100%;
-    margin: 0;
     background: var(--menu-bg-start);
     font-family: var(--font-ui);
 }
-body { min-height: 100vh; min-height: 100dvh; }
-
 #main-menu.menu-screen,
 #screen-container > .menu-screen {
     padding-left: var(--menu-page-gutter);
@@ -108,7 +104,6 @@ body { min-height: 100vh; min-height: 100dvh; }
     text-align: center;
     box-shadow: 0 10px 28px rgba(0,0,0,.35);
 }
-.toast.hidden { display: none !important; }
 
 @media (max-width: 600px) {
     :root {
