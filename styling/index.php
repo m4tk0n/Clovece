@@ -5,21 +5,7 @@ declare(strict_types=1);
  * Izolované prostředí pro vývoj kompletního menu.
  * Používá původní HTML obrazovek, ale vlastní navigaci a načítání stylů.
  */
-$assets = [
-    'css/01_reset.css',
-    'css/02_menu-base.css',
-    'css/03_main-menu.css',
-    'css/00_styles.css', // centrální proměnné a přepisy se aplikují jako poslední
-];
-$screenCss = [
-    'css/09_game-list.css',
-    'css/10_auth.css',
-    'css/11_profile.css',
-    'css/12_settings.css',
-    'css/13_rules.css',
-    'css/14_online.css',
-    'css/15_local-games.css',
-];
+$assets = ['css/menu.css'];
 function assetVersion(string $relative): int {
     $path = __DIR__ . '/' . $relative;
     return is_file($path) ? (int) filemtime($path) : 1;
@@ -40,7 +26,7 @@ function assetVersion(string $relative): int {
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Rubik:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body data-screen-css-versions='<?= htmlspecialchars(json_encode(array_combine($screenCss, array_map('assetVersion', $screenCss)), JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8') ?>'>
+<body>
     <div id="main-menu" class="menu-screen">
         <div class="menu-bg">
             <div class="auth-buttons" id="auth-buttons">
