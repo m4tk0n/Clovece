@@ -156,8 +156,10 @@ async function openGame(gameId, inviteUrl = '') {
 }
 
 
-export async function initOnline({ gamesContainerId = null } = {}) {
-    initOnlineLobbyControls({ resumeMyGame, loadMyGames, createRoom, api, notify, joinRoom, schedulePoll });
+export async function initOnline({ gamesContainerId = null, controls = true } = {}) {
+    if (controls) {
+        initOnlineLobbyControls({ resumeMyGame, loadMyGames, createRoom, api, notify, joinRoom, schedulePoll });
+    }
 
     try {
         const identity = await bootstrapOnline();
