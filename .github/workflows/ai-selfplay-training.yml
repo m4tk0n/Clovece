@@ -86,13 +86,13 @@ jobs:
           RESUME=""
           if [ "${{ inputs.resume }}" = "true" ]; then RESUME="--resume"; fi
           if [ "${{ inputs.method }}" = "cem" ]; then
-            node --experimental-default-type=module debug/Scripts/train-cem.mjs \
+            node --experimental-default-type=module debug/scripts/train-cem.mjs \
               --generations=${{ inputs.generations }} --games=${{ inputs.games }} \
               --final-games=${{ inputs.final_games }} --setups=2 \
               --max-minutes=${{ inputs.max_minutes }} \
               --checkpoint=artifacts/selfplay-checkpoint.json --report=artifacts/selfplay-report.json $RESUME
           else
-            node --experimental-default-type=module debug/Scripts/train-selfplay.mjs \
+            node --experimental-default-type=module debug/scripts/train-selfplay.mjs \
               --updates=${{ inputs.generations }} --batch=${{ inputs.games }} \
               --gate-games=${{ inputs.final_games }} --anchor-games=${{ inputs.final_games }} --setups=2 \
               --max-minutes=${{ inputs.max_minutes }} \
@@ -114,7 +114,7 @@ jobs:
       - name: Independent validation vs original weights (only when finished; writes nothing)
         if: always() && steps.progress.outputs.done == 'true'
         run: |
-          node --experimental-default-type=module debug/Scripts/promote-weights.mjs \
+          node --experimental-default-type=module debug/scripts/promote-weights.mjs \
             --checkpoint=artifacts/selfplay-checkpoint.json --games=600 | tee artifacts/validation.txt
 
       - name: Upload results
