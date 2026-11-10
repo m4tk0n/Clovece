@@ -1,5 +1,8 @@
 name: AI self-play training (debug)
 
+# Trénink běží po částech (výchozí rozpočet 85 min), po každé části uloží checkpoint
+# a sám spustí další část, dokud nejsou hotové všechny generace (nebo dojde chain_left).
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +13,7 @@ on:
         options: [cem, reinforce]
         default: cem
       generations:
-        description: Počet generací (cem) nebo aktualizací (reinforce)
+        description: CELKOVÝ počet generací (cem) nebo aktualizací (reinforce)
         required: true
         type: number
         default: 20
@@ -24,8 +27,18 @@ on:
         required: true
         type: number
         default: 500
+      max_minutes:
+        description: Časový rozpočet jedné části v minutách (pod limit běhu)
+        required: true
+        type: number
+        default: 85
+      chain_left:
+        description: Kolikrát se smí workflow automaticky spustit znovu (pojistka)
+        required: true
+        type: number
+        default: 12
       resume:
-        description: Pokračovat z uloženého checkpointu (artefakt předchozího běhu)
+        description: Pokračovat z checkpointu předchozího běhu
         required: false
         type: boolean
         default: false
@@ -41,12 +54,12 @@ concurrency:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
 
 jobs:
   train:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,11 +76,12 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ inputs.resume_run_id }}
 
-      - name: Automated tests
+      - name: Automated tests (first part only)
+        if: ${{ !inputs.resume }}
         run: node --experimental-default-type=module --test tests/debug-ai-selfplay.test.mjs
 
-      - name: Train
-        timeout-minutes: 320
+      - name: Train (time-limited part)
+        timeout-minutes: 98
         run: |
           RESUME=""
           if [ "${{ inputs.resume }}" = "true" ]; then RESUME="--resume"; fi
@@ -75,21 +89,33 @@ jobs:
             node --experimental-default-type=module debug/scripts/train-cem.mjs \
               --generations=${{ inputs.generations }} --games=${{ inputs.games }} \
               --final-games=${{ inputs.final_games }} --setups=2 \
+              --max-minutes=${{ inputs.max_minutes }} \
               --checkpoint=artifacts/selfplay-checkpoint.json --report=artifacts/selfplay-report.json $RESUME
           else
             node --experimental-default-type=module debug/scripts/train-selfplay.mjs \
               --updates=${{ inputs.generations }} --batch=${{ inputs.games }} \
               --gate-games=${{ inputs.final_games }} --anchor-games=${{ inputs.final_games }} --setups=2 \
+              --max-minutes=${{ inputs.max_minutes }} \
               --checkpoint=artifacts/selfplay-checkpoint.json --report=artifacts/selfplay-report.json $RESUME
           fi
 
-      - name: Independent validation vs original weights (writes nothing)
+      - name: Check progress
+        id: progress
         if: always()
         run: |
+          DONE=false
           if [ -f artifacts/selfplay-checkpoint.json ]; then
-            node --experimental-default-type=module debug/scripts/promote-weights.mjs \
-              --checkpoint=artifacts/selfplay-checkpoint.json --games=600 | tee artifacts/validation.txt
+            STEP=$(node -e "console.log(JSON.parse(require('fs').readFileSync('artifacts/selfplay-checkpoint.json','utf8')).step)")
+            echo "Hotovo $STEP z ${{ inputs.generations }}"
+            if [ "$STEP" -ge "${{ inputs.generations }}" ]; then DONE=true; fi
           fi
+          echo "done=$DONE" >> "$GITHUB_OUTPUT"
+
+      - name: Independent validation vs original weights (only when finished; writes nothing)
+        if: always() && steps.progress.outputs.done == 'true'
+        run: |
+          node --experimental-default-type=module debug/scripts/promote-weights.mjs \
+            --checkpoint=artifacts/selfplay-checkpoint.json --games=600 | tee artifacts/validation.txt
 
       - name: Upload results
         if: always()
@@ -99,3 +125,18 @@ jobs:
           path: artifacts/
           if-no-files-found: warn
           retention-days: 90
+
+      - name: Start next part automatically
+        if: steps.progress.outputs.done == 'false' && inputs.chain_left > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run ai-selfplay-training.yml --ref "${{ github.ref_name }}" \
+            -f method="${{ inputs.method }}" \
+            -f generations="${{ inputs.generations }}" \
+            -f games="${{ inputs.games }}" \
+            -f final_games="${{ inputs.final_games }}" \
+            -f max_minutes="${{ inputs.max_minutes }}" \
+            -f chain_left="$(( ${{ inputs.chain_left }} - 1 ))" \
+            -f resume=true \
+            -f resume_run_id="${{ github.run_id }}"
