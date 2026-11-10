@@ -1,0 +1,81 @@
+/* Isolated menu stylesheet, based on css/components-settings.css. */
+/* /css/components-settings.css */
+/* ============================================================
+   NASTAVENÍ (#settings-screen)
+   ============================================================ */
+
+.settings-container {
+    max-width: 520px;
+    margin: 0 auto 12px;
+    padding: 12px 16px;
+    border: 1px solid rgba(198, 169, 107, .32);
+    border-radius: 14px;
+    background: var(--surface-card);
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    text-align: left;
+}
+.setting-item:last-child { border-bottom: 0; }
+
+.settings-container select { min-width: 112px; }
+
+/* Přepínač (checkbox schovaný uvnitř <label class="toggle-switch">) */
+.toggle-switch {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    transform: scale(.82);
+    transform-origin: right center;
+}
+.toggle-switch input { width: 0; height: 0; opacity: 0; }
+
+.slider-round {
+    position: absolute;
+    inset: 0;
+    border-radius: 34px;
+    background: rgba(255, 255, 255, .2);
+    cursor: pointer;
+}
+.slider-round::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--gradient-2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
+}
+.toggle-switch input:checked + .slider-round { background: rgba(78, 205, 196, .3); }
+.toggle-switch input:checked + .slider-round::before { transform: translateX(26px); background: var(--gradient-2); }
+.toggle-switch input:focus-visible + .slider-round { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+@media (max-width: 420px) {
+    .settings-container { margin-bottom: 8px; padding: 8px 10px; }
+    .setting-item { gap: 7px; padding: 6px 0; }
+}
+
+
+/* Akce nastavení: Uložit a Zpět vedle sebe i na úzkých displejích. */
+.settings-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin: 12px auto 0;
+}
+.settings-actions > .menu-btn {
+    flex: 0 0 auto;
+}
