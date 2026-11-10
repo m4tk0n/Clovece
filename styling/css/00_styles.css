@@ -17,6 +17,12 @@
     --menu-logo-bottom-gap: 62px;
     --menu-main-button-height: 52px;
     --menu-main-button-padding: 13px 18px;
+    --menu-online-panel-max: 820px;
+    --menu-online-content-max: 760px;
+    --menu-local-games-panel-max: 620px;
+    --menu-local-games-content-max: 500px;
+    --menu-profile-panel-max: 560px;
+    --menu-profile-content-max: 460px;
 
     --menu-bg-start: #080f13;
     --menu-bg-middle: #14231f;
