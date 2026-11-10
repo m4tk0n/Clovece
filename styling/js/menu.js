@@ -7,11 +7,11 @@
 const SCREEN_CONFIG = Object.freeze({
     login:       { id: 'login-screen',       file: 'login',       css: ['css/10_auth.css'] },
     register:    { id: 'register-screen',    file: 'register',    css: ['css/10_auth.css'] },
-    lobby:       { id: 'lobby-screen',       file: 'lobby',       css: ['css/14_online.css'] },
+    lobby:       { id: 'lobby-screen',       file: 'lobby',       css: ['css/09_game-list.css', 'css/14_online.css'] },
     room:        { id: 'room-screen',        file: 'room',        css: ['css/14_online.css'] },
     settings:    { id: 'settings-screen',    file: 'settings',    css: ['css/12_settings.css'] },
     rules:       { id: 'rules-screen',       file: 'rules',       css: ['css/13_rules.css'] },
-    'local-games': { id: 'local-games-screen', file: 'local-games', css: ['css/15_local-games.css'] },
+    'local-games': { id: 'local-games-screen', file: 'local-games', css: ['css/09_game-list.css', 'css/15_local-games.css'] },
     profile:     { id: 'profile-screen',     file: 'profile',     css: ['css/10_auth.css', 'css/11_profile.css'] }
 });
 
