@@ -6,10 +6,10 @@ declare(strict_types=1);
  * Používá původní HTML obrazovek, ale vlastní navigaci a načítání stylů.
  */
 $assets = [
-    'css/00_styles.css',
     'css/01_reset.css',
     'css/02_menu-base.css',
     'css/03_main-menu.css',
+    'css/00_styles.css', // centrální proměnné a přepisy se aplikují jako poslední
 ];
 $screenCss = [
     'css/10_auth.css',
