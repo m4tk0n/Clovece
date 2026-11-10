@@ -1,10 +1,10 @@
 # Vývoj menu
 
-Vývojové menu je dostupné na `/styling/`. Produkční `index.php`, produkční CSS ani produkční navigace se při úpravách tohoto prostředí nemění.
+Vývojové menu je dostupné na `/styling/`. Produkční `index.php`, HTML obrazovky, CSS ani produkční navigace se při úpravách tohoto prostředí nemění.
 
 ## Rozsah
 
-Menu používá původní HTML obrazovky z `/screens/`:
+Menu používá pracovní kopie původních HTML obrazovek v `/styling/screens/`:
 
 - hlavní menu,
 - přihlášení a registrace,
