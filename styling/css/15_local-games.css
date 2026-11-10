@@ -88,3 +88,13 @@
     }
 }
 
+
+/* Kontejner online položek v přehledu rozehraných her. */
+#local-games-screen #online-games-list {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+}
+@media (max-width: 420px) {
+    #local-games-screen #online-games-list { gap: 5px; }
+}
