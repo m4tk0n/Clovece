@@ -141,7 +141,7 @@ async function openGamesList() {
     await showMenuScreen('local-games');
     try {
         const online = await import('./online.js');
-        await online.initOnline({ gamesContainerId: 'online-games-list' });
+        await online.initOnline({ gamesContainerId: 'online-games-list', controls: false });
     } catch (error) {
         console.error('Seznam online her se nepodařilo načíst:', error);
         showToast('Seznam rozehraných her se nepodařilo načíst.');
