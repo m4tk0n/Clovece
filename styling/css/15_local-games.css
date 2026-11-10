@@ -2,8 +2,8 @@
 /* /css/components-local-games.css */
 /* Obrazovka rozehraných her – lokální i online */
 #local-games-screen {
-    --panel-max: 620px;
-    --content-max: 500px;
+    --panel-max: var(--menu-local-games-panel-max);
+    --content-max: var(--menu-local-games-content-max);
 }
 
 #local-games-screen .menu-bg {
