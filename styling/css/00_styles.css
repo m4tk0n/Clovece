@@ -1,0 +1,16 @@
+:root {
+  --page-gutter: 12px;
+  --touch: 36px;
+
+  --bg: #0e1118;
+  --fg: #c8d0db;
+  --muted: #9aa3b2;
+  --card: #111827;
+  --line: #1f2937;
+  --accent: #0b1220;
+  --shadow: 0 8px 24px rgba(0,0,0,.35);
+
+  --yellow: #f6c445;
+  --red: #ef4444;
+  --green: #2ecc71;
+}
