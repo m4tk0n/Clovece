@@ -50,6 +50,8 @@
     gap:6px;
     width:max-content;
     max-width:calc(100vw - 8px);
+    max-height:calc(55vh - var(--debug-dice-reserve, 0px));
+    overflow:hidden;
     padding:4px 6px;
     border:1px solid rgba(255,0,0,.7);
     border-radius:4px;
@@ -64,6 +66,7 @@
 }
 .clovece-debug-overlay .debug-overlay-toggle {
     align-self:stretch;
+    flex:0 0 20px;
     min-width:20px;
     padding:0 4px;
     border:1px solid #a33;
@@ -76,40 +79,41 @@
 }
 .clovece-debug-overlay .debug-overlay-content {
     display:flex;
+    flex:1 1 auto;
     flex-direction:column;
-    justify-content:center;
+    justify-content:flex-start;
     min-width:0;
+    min-height:0;
+    max-height:calc(55vh - var(--debug-dice-reserve, 0px) - 12px);
     gap:2px;
+    overflow-x:hidden;
+    overflow-y:scroll;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+    scrollbar-width:thin;
+    scrollbar-color:#a33 rgba(255,255,255,.08);
 }
 .clovece-debug-overlay .debug-overlay-content.is-draggable {
     cursor:grab;
-    touch-action:none;
+    touch-action:pan-y;
 }
-.clovece-debug-overlay .debug-overlay-content.is-dragging {
-    cursor:grabbing;
-}
+.clovece-debug-overlay .debug-overlay-content.is-dragging { cursor:grabbing; }
 .clovece-debug-overlay .debug-overlay-camera,
 .clovece-debug-overlay .debug-overlay-meta,
+.clovece-debug-overlay .debug-overlay-details { display:none; }
+.clovece-debug-overlay .debug-overlay-camera.is-visible { display:block; color:#ffb45e; }
+.clovece-debug-overlay .debug-overlay-details.is-visible { display:block; }
 .clovece-debug-overlay .debug-overlay-details {
-    display:none;
-}
-.clovece-debug-overlay .debug-overlay-camera.is-visible {
-    display:block;
-    color:#ffb45e;
-}
-.clovece-debug-overlay .debug-overlay-details.is-visible {
-    display:block;
-}
-.clovece-debug-overlay .debug-overlay-details {
+    flex:0 0 auto;
     margin-top:5px;
     padding-top:5px;
     border-top:1px solid #a33;
-    max-height:55vh;
-    overflow:auto;
+    max-height:none;
+    overflow:visible;
     white-space:pre-wrap;
     overflow-wrap:anywhere;
 }
-
 /* Kostky jsou v samostatném řádku pod celou horní lištou desky. */
 .board-dice-trainer-slot{display:flex;justify-content:center;width:100%;margin:5px 0 7px}
 .board-dice-display-btn{font:700 7px/1.2 "Press Start 2P",monospace!important}
@@ -121,8 +125,8 @@
 
 
 .clovece-debug-overlay .debug-overlay-ai-weights {
-    display:none; margin-top:5px; padding-top:5px; border-top:1px solid #a33;
-    max-height:55vh; overflow:auto; color:#ffd28a; font:9px/1.4 system-ui,sans-serif;
+    display:none; flex:0 0 auto; margin-top:5px; padding-top:5px; border-top:1px solid #a33;
+    max-height:none; overflow:visible; color:#ffd28a; font:9px/1.4 system-ui,sans-serif;
 }
 .clovece-debug-overlay .debug-overlay-ai-weights.is-visible { display:block; }
 .clovece-debug-overlay .debug-ai-heading { margin-bottom:5px; font-weight:800; color:#fff0c8; }
@@ -135,3 +139,5 @@
 .clovece-debug-overlay .debug-ai-weight-table thead th { color:#fff0c8; font-weight:700; }
 .clovece-debug-overlay .debug-ai-note { margin-top:4px; color:#d5bd91; font-size:8px; }
 .clovece-debug-overlay .debug-ai-results { margin-top:7px; padding-top:5px; border-top:1px solid rgba(255,255,255,.2); white-space:normal; overflow-wrap:anywhere; }
+
+.clovece-debug-overlay.is-expanded .debug-overlay-content{max-height:calc(55vh - var(--debug-dice-reserve, 0px) - 12px);}
