@@ -1,5 +1,6 @@
 // /debug/js/ai-strategy.js
 import { AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS, getAIWeightValues, getAIStrategicWeights } from './ai-weight-config.js';
+import { AI_EXTENDED_WEIGHT_DEFINITIONS, AI_EXTENDED_WEIGHT_VALUES } from './ai-extended-weights.js';
 export { AI_WEIGHT_DEFINITIONS } from './ai-weight-config.js';
 
 /**
@@ -617,11 +618,89 @@ function simulateOpponentResponses(state, targetPlayerId, targetPieceId, depende
     return responses;
 }
 
+/** Jednohodové riziko vyhození každé vlastní figurky (podle vzdáleností soupeřů). */
+function fastPieceThreats(game, playerId) {
+    const pieces = game.pieces[playerId]?.pieces || [];
+    return pieces.map(piece => {
+        if (!isMainTrackPiece(piece, game.trackLength)) return 0;
+        const target = (game.players[playerId].start + piece.steps) % game.trackLength;
+        let threat = 0;
+        for (const opponent of game.players) {
+            if (opponent.id === playerId || opponent.finished) continue;
+            for (const other of game.pieces[opponent.id]?.pieces || []) {
+                if (!isMainTrackPiece(other, game.trackLength)) continue;
+                const attacker = (game.players[opponent.id].start + other.steps) % game.trackLength;
+                const distance = (target - attacker + game.trackLength) % game.trackLength;
+                if (distance >= 1 && distance <= 6) threat += estimateCaptureProbability(distance);
+            }
+        }
+        return Math.min(1, threat);
+    });
+}
+
+/** Rozšířené signály 11–18. Vše z dat, která engine už zná; žádné nové simulace. */
+function computeExtendedSignals({ game, state, candidate, playerId, threatsBefore, deployedPiece, captured, diceSimulation }) {
+    const trackLength = game.trackLength;
+    const moved = candidate.pieceId;
+    const after = fastPieceThreats(state, playerId);
+    const ownAfter = state.pieces[playerId].pieces;
+    const rescueThreatened = clampSignal(Math.max(0, (threatsBefore[moved] || 0) - (after[moved] || 0)));
+    const exposed = after.filter(value => value >= 0.15).length;
+    const multiThreat = exposed >= 2 ? -clampSignal((exposed - 1) / 2) : 0;
+    const sacrificeChoice = clampSignal(after.reduce((sum, value, index) =>
+        sum + ((threatsBefore[index] || 0) - value) * Math.max(0, ownAfter[index].steps) / trackLength, 0));
+    const holdPosition = -clampSignal(Math.max(0, (after[moved] || 0) - (threatsBefore[moved] || 0)));
+    const activeBefore = game.pieces[playerId].pieces.filter(piece => piece.steps >= 0 && piece.steps < trackLength + 3).length;
+    const strategicDeploy = deployedPiece ? 1 / (1 + activeBefore) : 0;
+
+    const maxPips = ownAfter.length * (trackLength + 4);
+    let leadProgress = 0;
+    for (const player of state.players) {
+        leadProgress = Math.max(leadProgress, 1 - calculatePlayerPips(state, player.id) / Math.max(1, maxPips));
+    }
+    const lateGame = Math.max(0, Math.min(1, (leadProgress - 0.6) / 0.4));
+    const endgameSafety = -lateGame * Math.max(0, ...after);
+
+    let leaderId = null;
+    let leaderPips = Infinity;
+    for (const player of game.players) {
+        if (player.id === playerId || player.finished) continue;
+        const pips = calculatePlayerPips(game, player.id);
+        if (pips < leaderPips) { leaderPips = pips; leaderId = player.id; }
+    }
+    let competitiveEdge = 0;
+    if (leaderId !== null) {
+        const hitLeader = captured && !captured.ownPiece && captured.playerId === leaderId
+            ? clampSignal(Math.max(0, game.pieces[leaderId].pieces[captured.pieceId]?.steps ?? 0) / trackLength) : 0;
+        let threatLeader = 0;
+        const mine = state.pieces[playerId].pieces[moved];
+        if (mine && isMainTrackPiece(mine, trackLength)) {
+            const myPosition = (state.players[playerId].start + mine.steps) % trackLength;
+            for (const other of state.pieces[leaderId]?.pieces || []) {
+                if (!isMainTrackPiece(other, trackLength)) continue;
+                const position = (state.players[leaderId].start + other.steps) % trackLength;
+                const distance = (position - myPosition + trackLength) % trackLength;
+                if (distance >= 1 && distance <= 6) threatLeader += estimateCaptureProbability(distance);
+            }
+        }
+        competitiveEdge = clampSignal(0.6 * hitLeader + 0.4 * Math.min(1, threatLeader));
+    }
+    const longTermPlan = clampSignal(diceSimulation.filter(item => item.capture || item.finish || item.bonusRoll).length / 6);
+
+    const signals = { rescueThreatened, multiThreat, sacrificeChoice, holdPosition,
+        strategicDeploy, endgameSafety, competitiveEdge, longTermPlan };
+    return AI_EXTENDED_WEIGHT_DEFINITIONS.map(item => Number(signals[item.key] || 0));
+}
+
+
 export function evaluateTacticalCandidates(game, candidates, weights = getAIStrategicWeights(), dependencies = {}, options = {}) {
     const detail = options.detail !== false;
     const deepThreat = options.level === 'hard';
     const playerId = game.currentPlayer;
     const beforeThreat = estimateFastTrackThreat(game, playerId);
+    const threatsBefore = fastPieceThreats(game, playerId);
+    const extendedWeights = AI_EXTENDED_WEIGHT_DEFINITIONS.map((item, index) =>
+        Number.isFinite(Number(weights?.[item.key])) ? Number(weights[item.key]) : AI_EXTENDED_WEIGHT_VALUES[index]);
     const strategicWeights = { ...getAIStrategicWeights(), ...(weights || {}) };
     return candidates.map(candidate => {
         const state = candidate.state;
@@ -633,6 +712,7 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
                 factors: {
                     winning: true,
                     weightSignals: Array(AI_WEIGHT_COUNT).fill(0),
+                    extendedSignals: Array(AI_EXTENDED_WEIGHT_DEFINITIONS.length).fill(0),
                     weightSignalsByName: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, 0])),
                     weightContributions: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, 0])),
                     diceSimulation: []
@@ -685,11 +765,18 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
             flexibility
         };
         const weightSignals = AI_WEIGHT_DEFINITIONS.map(item => Number(signals[item.key] || 0));
+        const extendedSignals = computeExtendedSignals({
+            game, state, candidate, playerId, threatsBefore, deployedPiece, captured, diceSimulation
+        });
         const score = winning ? 1000000 : AI_WEIGHT_DEFINITIONS.reduce((sum, item) =>
-            sum + strategicWeights[item.key] * signals[item.key], 0);
+            sum + strategicWeights[item.key] * signals[item.key], 0)
+            + extendedSignals.reduce((sum, value, index) => sum + extendedWeights[index] * value, 0);
         const factors = {
             ...signals,
             weightSignals,
+            extendedSignals,
+            extendedContributions: Object.fromEntries(AI_EXTENDED_WEIGHT_DEFINITIONS.map((item, index) =>
+                [item.key, Number((extendedWeights[index] * extendedSignals[index]).toFixed(6))])),
             weightContributions: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item =>
                 [item.key, Number((strategicWeights[item.key] * signals[item.key]).toFixed(6))])),
             ownProgressRaw: Number(ownProgressRaw.toFixed(4)),
@@ -749,7 +836,10 @@ export function computeMoveSignals(game, dependencies, options = {}) {
         return {
             pieceId,
             winning: Boolean(item?.factors?.winning),
-            signals: item?.factors?.weightSignals ? [...item.factors.weightSignals] : Array(AI_WEIGHT_COUNT).fill(0)
+            signals: [
+                ...(item?.factors?.weightSignals || Array(AI_WEIGHT_COUNT).fill(0)),
+                ...(item?.factors?.extendedSignals || Array(AI_EXTENDED_WEIGHT_DEFINITIONS.length).fill(0))
+            ]
         };
     });
 }
