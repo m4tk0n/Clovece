@@ -69,7 +69,7 @@ async function prepareStyles(name) {
     }
 }
 
-async function loadScreen(name) {
+export async function loadMenuScreen(name) {
     const config = SCREEN_CONFIG[name];
     if (!config) throw new Error('Neznámá obrazovka: ' + name);
     const existing = $(config.id);
@@ -97,7 +97,7 @@ async function loadScreen(name) {
 
 export async function showMenuScreen(name) {
     const token = ++navigationToken;
-    const target = name === 'main-menu' ? $('main-menu') : await loadScreen(name);
+    const target = name === 'main-menu' ? $('main-menu') : await loadMenuScreen(name);
     await prepareStyles(name);
     if (token !== navigationToken) return false;
 
@@ -120,7 +120,7 @@ async function ensureAuth() {
 }
 
 async function openSettings() {
-    await loadScreen('settings');
+    await loadMenuScreen('settings');
     await prepareStyles('settings');
     if (!settingsModulePromise) settingsModulePromise = import('../../js/settings.js');
     const module = await settingsModulePromise;
@@ -129,7 +129,7 @@ async function openSettings() {
 }
 
 async function openProfile() {
-    await loadScreen('profile');
+    await loadMenuScreen('profile');
     await prepareStyles('profile');
     if (!profileModulePromise) profileModulePromise = import('../../js/profile.js');
     await showMenuScreen('profile');
@@ -139,7 +139,13 @@ async function openProfile() {
 
 async function openGamesList() {
     await showMenuScreen('local-games');
-    showToast('Seznam rozehraných her bude napojen na herní účty v další části.');
+    try {
+        const online = await import('./online.js');
+        await online.initOnline({ gamesContainerId: 'online-games-list' });
+    } catch (error) {
+        console.error('Seznam online her se nepodařilo načíst:', error);
+        showToast('Seznam rozehraných her se nepodařilo načíst.');
+    }
 }
 
 function closeAccountMenu() {
@@ -154,7 +160,13 @@ function bindMainMenu() {
     $('create-room-btn')?.addEventListener('click', openGamesList);
     $('join-room-btn')?.addEventListener('click', async () => {
         await showMenuScreen('lobby');
-        showToast('Online místnost bude napojena v samostatném kroku.');
+        try {
+            const online = await import('./online.js');
+            await online.initOnline();
+        } catch (error) {
+            console.error('Online lobby se nepodařilo načíst:', error);
+            showToast('Online lobby se nepodařilo načíst.');
+        }
     });
     $('settings-btn')?.addEventListener('click', () => void openSettings());
     $('rules-btn')?.addEventListener('click', () => void showMenuScreen('rules'));
@@ -190,6 +202,12 @@ function bindMainMenu() {
 
 function bindScreenActions() {
     const container = $('screen-container');
+    container.addEventListener('keydown', event => {
+        if (event.target.id === 'room-code-input' && event.key === 'Enter') {
+            event.preventDefault();
+            void window.joinRoom?.(event.target.value.trim());
+        }
+    });
     container.addEventListener('click', event => {
         const button = event.target.closest('button[id]');
         if (!button) return;
@@ -207,6 +225,10 @@ function bindScreenActions() {
         };
         const destination = routes[button.id];
         if (destination) void showMenuScreen(destination);
+        if (button.id === 'join-room-btn-lobby') {
+            const value = $('room-code-input')?.value.trim();
+            if (value) void window.joinRoom?.(value);
+        }
     });
 }
 
