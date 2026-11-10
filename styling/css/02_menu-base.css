@@ -98,10 +98,10 @@
 }
 
 @media (max-width: 600px) {
-    .menu-screen .glitch { margin-bottom: 12px; font-size: var(--menu-screen-title-size, clamp(26px, 8vw, 34px)); }
+    .menu-screen .glitch { margin-bottom: 12px; }
 }
 @media (max-width: 420px) {
-    .menu-screen .glitch { margin-bottom: 9px; font-size: var(--menu-screen-title-size, clamp(22px, 7vw, 29px)); }
+    .menu-screen .glitch { margin-bottom: 9px; }
     .menu-screen h3,
     .menu-screen h4 { margin: 8px 0 5px; font-size: 12px; }
 }
@@ -155,10 +155,10 @@
 }
 
 @media (max-width: 600px) {
-    .menu-btn { min-height: var(--menu-control-height, 38px); font-size: 11px; }
+    .menu-btn { font-size: 11px; }
 }
 @media (max-width: 420px) {
-    .menu-btn { min-height: var(--menu-control-height, 35px); padding: 5px 10px; font-size: 10px; }
+    .menu-btn { padding: 5px 10px; font-size: 10px; }
 }
 
 
