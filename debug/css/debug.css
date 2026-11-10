@@ -86,7 +86,7 @@
     max-height:calc(55vh - var(--debug-dice-reserve, 0px) - 12px);
     gap:2px;
     overflow-x:hidden;
-    overflow-y:auto;
+    overflow-y:scroll;
     overscroll-behavior:contain;
     -webkit-overflow-scrolling:touch;
     touch-action:pan-y;
@@ -97,21 +97,12 @@
     cursor:grab;
     touch-action:pan-y;
 }
-.clovece-debug-overlay .debug-overlay-content.is-dragging {
-    cursor:grabbing;
-}
+.clovece-debug-overlay .debug-overlay-content.is-dragging { cursor:grabbing; }
 .clovece-debug-overlay .debug-overlay-camera,
 .clovece-debug-overlay .debug-overlay-meta,
-.clovece-debug-overlay .debug-overlay-details {
-    display:none;
-}
-.clovece-debug-overlay .debug-overlay-camera.is-visible {
-    display:block;
-    color:#ffb45e;
-}
-.clovece-debug-overlay .debug-overlay-details.is-visible {
-    display:block;
-}
+.clovece-debug-overlay .debug-overlay-details { display:none; }
+.clovece-debug-overlay .debug-overlay-camera.is-visible { display:block; color:#ffb45e; }
+.clovece-debug-overlay .debug-overlay-details.is-visible { display:block; }
 .clovece-debug-overlay .debug-overlay-details {
     flex:0 0 auto;
     margin-top:5px;
@@ -122,7 +113,6 @@
     white-space:pre-wrap;
     overflow-wrap:anywhere;
 }
-
 /* Kostky jsou v samostatném řádku pod celou horní lištou desky. */
 .board-dice-trainer-slot{display:flex;justify-content:center;width:100%;margin:5px 0 7px}
 .board-dice-display-btn{font:700 7px/1.2 "Press Start 2P",monospace!important}
