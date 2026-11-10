@@ -6,7 +6,7 @@
    ============================================================ */
 
 /* ---------- LOBBY ---------- */
-#lobby-screen { --panel-max: 820px; --content-max: 760px; }
+#lobby-screen { --panel-max: var(--menu-online-panel-max); --content-max: var(--menu-online-content-max); }
 
 /* Popisek vlevo, pole vpravo; tlačítka přes celou šířku. */
 .lobby-actions {
