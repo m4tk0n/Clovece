@@ -17,10 +17,10 @@
 
 /* ---------- 1. Obrazovka a panel ---------- */
 .menu-screen {
-    --panel-max: 680px;
-    --panel-pad: clamp(16px, 2.5vw, 26px);
-    --panel-radius: 22px;
-    --content-max: 620px;
+    --panel-max: var(--menu-panel-max, 680px);
+    --panel-pad: var(--menu-panel-padding, clamp(16px, 2.5vw, 26px));
+    --panel-radius: var(--menu-panel-radius, 22px);
+    --content-max: var(--menu-content-max, 620px);
 
     position: fixed;
     inset: 0;
@@ -66,15 +66,11 @@
 
 @media (max-width: 600px) {
     .menu-screen {
-        --panel-pad: 14px 12px;
-        --panel-radius: 18px;
         padding-inline: 10px;
     }
 }
 @media (max-width: 420px) {
     .menu-screen {
-        --panel-pad: 11px 9px;
-        --panel-radius: 14px;
         padding-inline: 6px;
     }
 }
@@ -85,7 +81,7 @@
     margin: 0 0 16px;
     color: #f6edda;
     font-family: var(--font-title);
-    font-size: clamp(27px, 5vw, 42px);
+    font-size: var(--menu-screen-title-size, clamp(27px, 5vw, 42px));
     line-height: 1;
     letter-spacing: .045em;
     text-transform: uppercase;
@@ -102,10 +98,10 @@
 }
 
 @media (max-width: 600px) {
-    .menu-screen .glitch { margin-bottom: 12px; font-size: clamp(26px, 8vw, 34px); }
+    .menu-screen .glitch { margin-bottom: 12px; font-size: var(--menu-screen-title-size, clamp(26px, 8vw, 34px)); }
 }
 @media (max-width: 420px) {
-    .menu-screen .glitch { margin-bottom: 9px; font-size: clamp(22px, 7vw, 29px); }
+    .menu-screen .glitch { margin-bottom: 9px; font-size: var(--menu-screen-title-size, clamp(22px, 7vw, 29px)); }
     .menu-screen h3,
     .menu-screen h4 { margin: 8px 0 5px; font-size: 12px; }
 }
@@ -122,11 +118,11 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    min-height: 40px;
+    min-height: var(--menu-control-height, 40px);
     margin: 4px 0;
     padding: 8px 16px;
     border: 1px solid var(--gold-line);
-    border-radius: 12px;
+    border-radius: var(--menu-control-radius, 12px);
     background: linear-gradient(110deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .035));
     box-shadow: 0 5px 14px rgba(0, 0, 0, .18), inset 0 1px rgba(255, 255, 255, .06);
     color: var(--ink);
@@ -159,10 +155,10 @@
 }
 
 @media (max-width: 600px) {
-    .menu-btn { min-height: 38px; font-size: 11px; }
+    .menu-btn { min-height: var(--menu-control-height, 38px); font-size: 11px; }
 }
 @media (max-width: 420px) {
-    .menu-btn { min-height: 35px; padding: 5px 10px; font-size: 10px; }
+    .menu-btn { min-height: var(--menu-control-height, 35px); padding: 5px 10px; font-size: 10px; }
 }
 
 
