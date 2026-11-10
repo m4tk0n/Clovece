@@ -1,0 +1,58 @@
+/* Isolated menu stylesheet, based on css/components-auth.css. */
+/* /css/components-auth.css */
+/* ============================================================
+   PŘIHLÁŠENÍ a REGISTRACE (#login-screen, #register-screen)
+   Základ (tlačítka, inputy, nadpisy) je v menu-base.css.
+   ============================================================ */
+
+.auth-form {
+    max-width: 440px;
+    margin: 0 auto 12px;
+    padding: 16px;
+    border: 1px solid var(--gold-line-soft);
+    border-radius: 14px;
+    background: var(--surface-card);
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 12px;
+    text-align: left;
+}
+.form-group label { display: block; margin-bottom: 5px; }
+.form-group :is(input, select) { width: 100%; }
+
+/* Ikona sedí uvnitř pole (je poslední prvek skupiny, pole je pod popiskem). */
+.form-group input { padding-left: 34px; }
+.form-group i {
+    position: absolute;
+    left: 12px;
+    bottom: 20px;
+    transform: translateY(50%);
+    color: var(--ink-dim);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.auth-link {
+    margin: 10px 0 14px;
+    color: rgba(255, 255, 255, .7);
+    font-size: 13px;
+}
+
+@media (max-width: 420px) {
+    .auth-form { margin-bottom: 8px; padding: 10px; }
+    .form-group { margin-bottom: 8px; }
+}
+
+.auth-message {
+    min-height: 18px;
+    margin: 8px auto 12px;
+    max-width: 440px;
+    font-size: 13px;
+    text-align: center;
+}
+.auth-message:empty { display: none; }
+.auth-message.error { color: #ff9b9b; }
+.auth-message.success { color: #8ce4d3; }
+.auth-form button:disabled { opacity: .6; cursor: wait; }
