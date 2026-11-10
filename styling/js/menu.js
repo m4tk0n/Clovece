@@ -58,9 +58,10 @@ function loadStyle(path) {
     return promise;
 }
 
-async function prepareStyles(name) {
+async function prepareStyles(name, token = navigationToken) {
     const required = SCREEN_CONFIG[name]?.css || [];
     await Promise.all(required.map(loadStyle));
+    if (token !== navigationToken) return;
     for (const [path] of loadedStyles) {
         if (!required.includes(path)) {
             document.querySelector('link[data-menu-style="' + path + '"]')?.remove();
@@ -97,15 +98,22 @@ export async function loadMenuScreen(name) {
 
 export async function showMenuScreen(name) {
     const token = ++navigationToken;
-    const target = name === 'main-menu' ? $('main-menu') : await loadMenuScreen(name);
-    await prepareStyles(name);
-    if (token !== navigationToken) return false;
+    try {
+        const target = name === 'main-menu' ? $('main-menu') : await loadMenuScreen(name);
+        if (token !== navigationToken) return false;
+        await prepareStyles(name, token);
+        if (token !== navigationToken) return false;
 
-    document.querySelectorAll('.menu-screen').forEach(screen => {
-        screen.classList.toggle('hidden', screen !== target);
-    });
-    window.scrollTo(0, 0);
-    return true;
+        document.querySelectorAll('.menu-screen').forEach(screen => {
+            screen.classList.toggle('hidden', screen !== target);
+        });
+        window.scrollTo(0, 0);
+        return true;
+    } catch (error) {
+        console.error('Menu obrazovku se nepodařilo otevřít:', error);
+        showToast(error.message || 'Menu obrazovku se nepodařilo otevřít.');
+        return false;
+    }
 }
 window.showScreen = showMenuScreen;
 
@@ -121,7 +129,6 @@ async function ensureAuth() {
 
 async function openSettings() {
     await loadMenuScreen('settings');
-    await prepareStyles('settings');
     if (!settingsModulePromise) settingsModulePromise = import('../../js/settings.js');
     const module = await settingsModulePromise;
     module.initSettings();
@@ -130,7 +137,6 @@ async function openSettings() {
 
 async function openProfile() {
     await loadMenuScreen('profile');
-    await prepareStyles('profile');
     if (!profileModulePromise) profileModulePromise = import('../../js/profile.js');
     await showMenuScreen('profile');
     const module = await profileModulePromise;
