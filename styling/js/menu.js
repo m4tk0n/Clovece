@@ -16,6 +16,7 @@ const SCREEN_CONFIG = Object.freeze({
 });
 
 const loadedScreens = new Map();
+let screenCssVersions = null;
 const loadedStyles = new Map();
 let navigationToken = 0;
 let authModulePromise = null;
@@ -36,9 +37,13 @@ function showToast(message) {
 
 function loadStyle(path) {
     if (loadedStyles.has(path)) return loadedStyles.get(path);
+    if (!screenCssVersions) {
+        try { screenCssVersions = JSON.parse(document.body.dataset.screenCssVersions || '{}'); }
+        catch { screenCssVersions = {}; }
+    }
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = path;
+    link.href = path + '?v=' + encodeURIComponent(screenCssVersions[path] || 1);
     link.dataset.menuStyle = path;
     const promise = new Promise((resolve, reject) => {
         link.addEventListener('load', resolve, { once: true });
