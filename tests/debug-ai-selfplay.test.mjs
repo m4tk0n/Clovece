@@ -8,7 +8,7 @@ import {
 } from '../debug/js/game-engine.js';
 import { computeMoveSignals, getDifficultyProfile } from '../debug/js/ai-strategy.js';
 import { AI_WEIGHT_DEFINITIONS } from '../debug/js/ai-weight-config.js';
-import { main as trainMain, playGame, evaluateMatch, randomFor } from '../debug/scripts/train-selfplay.mjs';
+import { main as trainMain, playGame, evaluateMatch, randomFor } from '../debug/Scripts/train-selfplay.mjs';
 
 function scenario(difficulty = 'medium') {
     const game = createGame(1, 1, [], [], 40, {}, difficulty);
