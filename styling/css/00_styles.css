@@ -17,6 +17,19 @@
     --menu-logo-bottom-gap: 62px;
     --menu-main-button-height: 52px;
     --menu-main-button-padding: 13px 18px;
+    --menu-screen-title-size: clamp(27px, 5vw, 42px);
+    --menu-logo-margin-top: 18px;
+    --menu-logo-radius: 24px;
+    --menu-main-button-radius: 15px;
+    --menu-feature-button-height: 60px;
+    --menu-main-content-top-padding: 54px;
+    --menu-title-margin-top: 24px;
+    --menu-short-logo-width: 88px;
+    --menu-short-logo-height: 54px;
+    --menu-short-logo-margin: 10px auto 14px;
+    --menu-short-button-height: 43px;
+    --menu-short-button-padding-block: 9px;
+    --menu-short-panel-padding: 20px 26px 18px;
     --menu-online-panel-max: 820px;
     --menu-online-content-max: 760px;
     --menu-local-games-panel-max: 620px;
@@ -74,37 +87,6 @@ body { min-height: 100vh; min-height: 100dvh; }
     padding-left: var(--menu-page-gutter);
     padding-right: var(--menu-page-gutter);
 }
-.menu-screen {
-    --panel-max: var(--menu-panel-max);
-    --panel-pad: var(--menu-panel-padding);
-    --panel-radius: var(--menu-panel-radius);
-    --content-max: var(--menu-content-max);
-}
-#main-menu.menu-screen {
-    --panel-max: var(--menu-panel-max);
-    --panel-pad: var(--menu-panel-padding);
-    --panel-radius: var(--menu-panel-radius);
-    --content-max: var(--menu-content-max);
-}
-.menu-screen .menu-bg { background: var(--surface-panel); }
-.menu-screen .menu-content { font-family: var(--font-ui); }
-.menu-screen .glitch { font-family: var(--font-title); }
-.menu-btn {
-    min-height: var(--menu-control-height);
-    border-radius: var(--menu-control-radius);
-    font-family: var(--font-ui);
-}
-#main-menu .menu-buttons { gap: var(--menu-control-gap); }
-#main-menu .game-title { font-size: var(--menu-title-size); }
-#main-menu .game-logo {
-    width: var(--menu-logo-width);
-    height: var(--menu-logo-height);
-    margin-bottom: var(--menu-logo-bottom-gap);
-}
-#main-menu .menu-buttons .menu-btn {
-    min-height: var(--menu-main-button-height);
-    padding: var(--menu-main-button-padding);
-}
 .menu-screen :focus-visible {
     outline: 2px solid var(--gold-light);
     outline-offset: 3px;
@@ -138,6 +120,13 @@ body { min-height: 100vh; min-height: 100dvh; }
         --menu-logo-height: 68px;
         --menu-logo-bottom-gap: 58px;
         --menu-main-button-height: 47px;
+        --menu-screen-title-size: clamp(26px, 8vw, 34px);
+        --menu-logo-margin-top: 14px;
+        --menu-logo-radius: 19px;
+        --menu-main-button-radius: 13px;
+        --menu-feature-button-height: 54px;
+        --menu-main-content-top-padding: 48px;
+        --menu-title-margin-top: 20px;
         --menu-main-button-padding: 11px 14px;
     }
 }
@@ -153,6 +142,12 @@ body { min-height: 100vh; min-height: 100dvh; }
         --menu-logo-height: 54px;
         --menu-logo-bottom-gap: 52px;
         --menu-main-button-height: 40px;
+        --menu-screen-title-size: clamp(22px, 7vw, 29px);
+        --menu-logo-margin-top: 9px;
+        --menu-logo-radius: 15px;
+        --menu-feature-button-height: 44px;
+        --menu-main-content-top-padding: 42px;
+        --menu-title-margin-top: 16px;
         --menu-main-button-padding: 8px 10px;
     }
 }
