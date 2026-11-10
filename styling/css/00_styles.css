@@ -8,6 +8,8 @@
     --menu-content-max: 440px;
     --menu-panel-padding: clamp(16px, 4vw, 38px);
     --menu-panel-radius: 24px;
+    --menu-main-panel-padding: clamp(22px, 4vw, 38px);
+    --menu-main-panel-radius: 28px;
     --menu-control-height: 48px;
     --menu-control-radius: 13px;
     --menu-control-gap: 9px;
@@ -113,6 +115,8 @@ body { min-height: 100vh; min-height: 100dvh; }
         --menu-page-gutter: 8px;
         --menu-panel-padding: 16px 12px;
         --menu-panel-radius: 18px;
+        --menu-main-panel-padding: 22px 17px 18px;
+        --menu-main-panel-radius: 22px;
         --menu-control-height: 44px;
         --menu-control-gap: 7px;
         --menu-title-size: clamp(39px, 11vw, 54px);
@@ -135,6 +139,8 @@ body { min-height: 100vh; min-height: 100dvh; }
         --menu-page-gutter: 5px;
         --menu-panel-padding: 12px 9px;
         --menu-panel-radius: 15px;
+        --menu-main-panel-padding: 16px 11px 13px;
+        --menu-main-panel-radius: 16px;
         --menu-control-height: 40px;
         --menu-control-gap: 6px;
         --menu-title-size: clamp(34px, 10vw, 42px);
