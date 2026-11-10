@@ -12,6 +12,7 @@ $assets = [
     'css/00_styles.css', // centrální proměnné a přepisy se aplikují jako poslední
 ];
 $screenCss = [
+    'css/09_game-list.css',
     'css/10_auth.css',
     'css/11_profile.css',
     'css/12_settings.css',
