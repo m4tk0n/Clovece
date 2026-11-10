@@ -93,14 +93,12 @@ function schedulePoll() {
 function renderGame(data) {
     const game = data.game;
     if (['active', 'finished'].includes(game.status) && game.state) {
-        void import('../../js/online/game-view.js').then(({ renderOnlineGame }) =>
-            renderOnlineGame(data, {
-                state: onlineRuntimeState, loadScreen, showScreen, initOnlineGameControls, sendGameAction
-            })
-        ).catch(error => {
-            console.error('Online herní runtime se nepodařilo načíst:', error);
-            notify('Hru se nepodařilo zobrazit: ' + error.message);
-        });
+        const status = $('room-status-display');
+        if (status) {
+            status.textContent = game.status === 'finished'
+                ? 'Dokončeno – herní obrazovka bude doplněna později'
+                : 'Hra spuštěna – herní obrazovka bude doplněna později';
+        }
         return;
     }
     void import('../../js/online/room-view.js').then(({ renderRoomView }) =>
