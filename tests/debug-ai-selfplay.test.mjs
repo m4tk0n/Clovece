@@ -8,9 +8,10 @@ import {
 } from '../debug/js/game-engine.js';
 import { computeMoveSignals, getDifficultyProfile } from '../debug/js/ai-strategy.js';
 import { AI_WEIGHT_DEFINITIONS } from '../debug/js/ai-weight-config.js';
-import { AI_EXTENDED_WEIGHT_DEFINITIONS } from '../debug/js/ai-extended-weights.js';
+import { AI_BASELINE_WEIGHTS } from '../debug/js/ai-baseline-weights.js';
 
-const ALL_DEFINITIONS = [...AI_WEIGHT_DEFINITIONS, ...AI_EXTENDED_WEIGHT_DEFINITIONS];
+const ALL_DEFINITIONS = AI_WEIGHT_DEFINITIONS;
+const AI_EXTENDED_WEIGHT_DEFINITIONS = AI_WEIGHT_DEFINITIONS.slice(10);
 import { main as trainMain, playGame, evaluateMatch, randomFor } from '../debug/scripts/train-selfplay.mjs';
 
 function scenario(difficulty = 'medium') {
@@ -64,7 +65,9 @@ test('computeMoveSignals vrací 10 základních + 8 rozšířených signálů v 
 });
 
 test('rozšířené váhy jsou ve výchozím stavu nulové a nemění původní rozhodnutí', () => {
+    assert.equal(AI_WEIGHT_DEFINITIONS.length, 18);
     assert.equal(AI_EXTENDED_WEIGHT_DEFINITIONS.length, 8);
+    assert.deepEqual(Object.keys(AI_BASELINE_WEIGHTS), AI_WEIGHT_DEFINITIONS.map(item => item.key));
     assert.deepEqual(AI_EXTENDED_WEIGHT_DEFINITIONS.map(item => item.id), [11, 12, 13, 14, 15, 16, 17, 18]);
     assert.ok(AI_EXTENDED_WEIGHT_DEFINITIONS.every(item => item.defaultValue === 0));
     const game = scenario();
