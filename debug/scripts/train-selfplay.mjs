@@ -16,22 +16,24 @@
 import { mkdir, open, readFile, rename } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { createGame, rollDice, getValidMoves, movePiece, advanceTurn } from '../js/game-engine.js';
-import { computeMoveSignals } from '../js/ai-strategy.js';
+import { computeMoveSignals, calculatePlayerPips } from '../js/ai-strategy.js';
 import { AI_WEIGHT_DEFINITIONS } from '../js/ai-weight-config.js';
-import { AI_EXTENDED_WEIGHT_DEFINITIONS } from '../js/ai-extended-weights.js';
+import { AI_BASELINE_WEIGHTS } from '../js/ai-baseline-weights.js';
 
-// Trénuje se deset základních vah (ID 1–10) i osm rozšířených (ID 11–18).
-const ALL_DEFINITIONS = [...AI_WEIGHT_DEFINITIONS, ...AI_EXTENDED_WEIGHT_DEFINITIONS];
+// Trénuje se všech 18 vah z jediné centrální definice (ID 1–10 základní, 11–18 rozšířené).
+// Porovnávací základna je NEMĚNNÁ původní AI (ai-baseline-weights.js), ne aktuální výchozí váhy.
+const ALL_DEFINITIONS = AI_WEIGHT_DEFINITIONS;
 export const KEYS = ALL_DEFINITIONS.map(item => item.key);
 const MIN = ALL_DEFINITIONS.map(item => item.min);
 const MAX = ALL_DEFINITIONS.map(item => item.max);
 export const RANGE = ALL_DEFINITIONS.map(item => item.max - item.min);
-export const DEFAULT_WEIGHTS = ALL_DEFINITIONS.map(item => item.defaultValue);
-const ALL_SETUPS = [
+export const DEFAULT_WEIGHTS = KEYS.map(key => AI_BASELINE_WEIGHTS[key]);
+// turnLimit: velké desky potřebují mnohem víc tahů (naměřeno: 6 hráčů/48 polí nedokončí ani za 700 tahů).
+export const ALL_SETUPS = [
     { playerCount: 2, boardSize: 40 },
     { playerCount: 4, boardSize: 40 },
-    { playerCount: 6, boardSize: 48 },
-    { playerCount: 8, boardSize: 80 }
+    { playerCount: 6, boardSize: 48, turnLimit: 3000, large: true },
+    { playerCount: 8, boardSize: 80, turnLimit: 4500, large: true }
 ];
 const dependencies = { getValidMoves, movePiece, rollDice, advanceTurn };
 
@@ -92,7 +94,8 @@ export function playGame({ setup, policies, seed, maxTurns }) {
     game.currentPlayer = 0;
     const records = policies.map(() => []);
     let guard = 0;
-    while (game.winner === null && game.turnNumber <= maxTurns && guard++ < 200000) {
+    const turnLimit = setup.turnLimit || maxTurns;
+    while (game.winner === null && game.turnNumber <= turnLimit && guard++ < 400000) {
         if (game.phase === 'roll') {
             const result = rollDice(game, 1 + Math.floor(random() * 6));
             if (!result.turnEnded && game.phase === 'no-move') advanceTurn(game);
@@ -106,28 +109,42 @@ export function playGame({ setup, policies, seed, maxTurns }) {
         if (record) records[seat].push(record);
         movePiece(game, pieceId);
     }
-    return { winner: game.winner, cutoff: game.winner === null, turns: game.turnNumber, records };
+    // Vedoucí hráč podle zbývajících kroků při vypršení limitu: jen orientační náhrada vítěze.
+    let leader = null;
+    if (game.winner === null) {
+        let best = Infinity;
+        for (const player of game.players) {
+            const pips = calculatePlayerPips(game, player.id);
+            if (pips < best) { best = pips; leader = player.id; }
+        }
+    }
+    return { winner: game.winner, cutoff: game.winner === null, leader, turns: game.turnNumber, records };
 }
 
 /** Kandidát (deterministicky) proti soupeřům; sedadlo kandidáta se střídá. */
-export function evaluateMatch({ candidate, opponent, setups, games, seedBase, maxTurns }) {
-    let wins = 0, decisive = 0, cutoffs = 0, expected = 0, variance = 0;
+export function evaluateMatch({ candidate, opponent, setups, games, seedBase, maxTurns, useSurrogate = false }) {
+    let wins = 0, decisive = 0, cutoffs = 0, expected = 0, variance = 0, surrogate = 0;
     for (let index = 0; index < games; index++) {
         const setup = setups[index % setups.length];
         const seat = Math.floor(index / setups.length) % setup.playerCount;
         const policies = Array.from({ length: setup.playerCount }, (_, id) =>
             id === seat ? { type: 'weights', weights: candidate, temperature: 0 } : opponent);
         const result = playGame({ setup, policies, seed: seedBase + index, maxTurns });
-        if (result.cutoff) { cutoffs++; continue; }
+        let winner = result.winner;
+        if (result.cutoff) {
+            if (!useSurrogate) { cutoffs++; continue; }
+            winner = result.leader;   // orientační: vedoucí podle zbývajících kroků
+            surrogate++;
+        }
         decisive++;
-        if (result.winner === seat) wins++;
+        if (winner === seat) wins++;
         const p = 1 / setup.playerCount;
         expected += p;
         variance += p * (1 - p);
     }
     const z = variance > 0 ? (wins - expected) / Math.sqrt(variance) : 0;
     return {
-        games, decisive, cutoffs, wins,
+        games, decisive, cutoffs, wins, surrogate,
         winRate: decisive ? wins / decisive : 0,
         chanceRate: decisive ? expected / decisive : 0,
         z
@@ -182,7 +199,8 @@ function parseArgs(argv) {
         batch: number('batch', 16, 2, 500),
         learningRate: number('lr', 0.01, 0.0005, 0.2),
         temperature: number('temperature', 6, 0.5, 100),
-        setups: ALL_SETUPS.slice(0, number('setups', 2, 1, 4)),
+        // Trénink jen na deskách 40 polí (2 a 4 hráči): partie na 48/80 polích jsou příliš dlouhé a skoro vždy skončí limitem.
+        setups: ALL_SETUPS.slice(0, number('setups', 2, 1, 2)),
         maxTurns: number('max-turns', 1500, 100, 20000),
         evalEvery: number('eval-every', 20, 1, 100000),
         gateGames: number('gate-games', 120, 10, 5000),

@@ -9,7 +9,7 @@
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { evaluateMatch, toObject, clampVector, KEYS as keys, DEFAULT_WEIGHTS as defaults } from './train-selfplay.mjs';
+import { evaluateMatch, toObject, clampVector, ALL_SETUPS, KEYS as keys, DEFAULT_WEIGHTS as defaults } from './train-selfplay.mjs';
 import { AI_WEIGHT_DEFINITIONS } from '../js/ai-weight-config.js';
 
 const argv = process.argv.slice(2);
@@ -22,6 +22,7 @@ const configDir = resolve(read('config-dir', 'debug/config'));
 const jsPath = resolve(read('js-file', 'debug/js/ai-tactical-weights.js'));
 const games = Math.max(100, Number(read('games', 600)));
 const approve = argv.includes('--approve');
+const bigGames = Math.max(0, Number(read('big-games', 0)));
 
 const basicKeys = new Set(AI_WEIGHT_DEFINITIONS.map(item => item.key));
 
@@ -47,6 +48,18 @@ for (const key of keys) {
     const before = defaults[keys.indexOf(key)];
     const after = champion[keys.indexOf(key)];
     process.stdout.write('  ' + key.padEnd(18) + String(before).padStart(8) + ' → ' + after.toFixed(3) + '\n');
+}
+
+if (bigGames > 0) {
+    // Orientační kontrola na deskách 48 a 80 polí. Partie nedoběhnou, vítěz = vedoucí podle zbývajících kroků.
+    // Nepočítá se do podmínky nasazení.
+    const large = evaluateMatch({
+        candidate: champion, opponent: { type: 'weights', weights: defaults, temperature: 0 },
+        setups: ALL_SETUPS.filter(item => item.large), games: bigGames, seedBase: 32000000, maxTurns: 1500, useSurrogate: true
+    });
+    process.stdout.write('Velké desky (48 a 80 polí, ORIENTAČNĚ, ' + large.surrogate + '/' + large.decisive +
+        ' partií rozhodnuto podle vedoucího při limitu): ' + large.wins + '/' + large.decisive + ' výher (' +
+        (large.winRate * 100).toFixed(1) + ' %, náhodná šance ' + (large.chanceRate * 100).toFixed(1) + ' %), z = ' + large.z.toFixed(2) + '\n');
 }
 
 if (!approve) {
