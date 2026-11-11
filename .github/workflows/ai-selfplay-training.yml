@@ -115,7 +115,14 @@ jobs:
         if: always() && steps.progress.outputs.done == 'true'
         run: |
           node --experimental-default-type=module debug/scripts/promote-weights.mjs \
-            --checkpoint=artifacts/selfplay-checkpoint.json --games=600 | tee artifacts/validation.txt
+            --checkpoint=artifacts/selfplay-checkpoint.json --games=600 --big-games=12 | tee artifacts/validation.txt
+
+      - name: Ablation - real contribution of the new weights 11-18 (only when finished)
+        if: always() && steps.progress.outputs.done == 'true'
+        timeout-minutes: 15
+        run: |
+          node --experimental-default-type=module debug/scripts/ablate-signals.mjs \
+            --checkpoint=artifacts/selfplay-checkpoint.json --games=150 --out=artifacts/ablation.json | tee artifacts/ablation.txt
 
       - name: Upload results
         if: always()
