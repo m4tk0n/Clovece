@@ -10,5 +10,13 @@ export const AI_TACTICAL_WEIGHTS = Object.freeze({
   "homeProgress": 20,
   "bonusContinuation": 10,
   "startFieldRisk": 18,
-  "flexibility": 4
+  "flexibility": 4,
+  "rescueThreatened": 0,
+  "multiThreat": 0,
+  "sacrificeChoice": 0,
+  "holdPosition": 0,
+  "strategicDeploy": 0,
+  "endgameSafety": 0,
+  "competitiveEdge": 0,
+  "longTermPlan": 0
 });

@@ -1,6 +1,6 @@
 // /debug/js/ai-weight-config.js
 import { AI_TACTICAL_WEIGHTS } from './ai-tactical-weights.js';
-// Jediná aktivní konfigurace strategické AI: přesně deset srozumitelných vah.
+// Jediná aktivní konfigurace strategické AI: 18 srozumitelných vah (ID 1–10 základní, 11–18 rozšířené).
 export const AI_WEIGHT_DEFINITIONS = Object.freeze([
     { id: 1, key: 'progressToGoal', name: 'Postup k cíli', description: 'Oceňuje zkrácení zbývající cesty vlastní figurky.', defaultValue: AI_TACTICAL_WEIGHTS.progressToGoal, min: 0, max: 20 },
     { id: 2, key: 'finishPiece', name: 'Dokončení figurky', description: 'Priorita bezpečného dokončení figurky na D4.', defaultValue: AI_TACTICAL_WEIGHTS.finishPiece, min: 0, max: 300 },
@@ -11,7 +11,15 @@ export const AI_WEIGHT_DEFINITIONS = Object.freeze([
     { id: 7, key: 'homeProgress', name: 'Postup v cílovém domečku', description: 'Oceňuje vstup do cílové dráhy a postup k D4.', defaultValue: AI_TACTICAL_WEIGHTS.homeProgress, min: 0, max: 120 },
     { id: 8, key: 'bonusContinuation', name: 'Bonusový hod a pokračování', description: 'Oceňuje možnosti navazujícího tahu a řetězení šestek.', defaultValue: AI_TACTICAL_WEIGHTS.bonusContinuation, min: 0, max: 80 },
     { id: 9, key: 'startFieldRisk', name: 'Bezpečnost a riziko startovních polí', description: 'Trestá vystavení figurky vyhození včetně soupeřových startovních polí.', defaultValue: AI_TACTICAL_WEIGHTS.startFieldRisk, min: 0, max: 120 },
-    { id: 10, key: 'flexibility', name: 'Strategická flexibilita', description: 'Oceňuje zachování více kvalitních možností pro další tahy.', defaultValue: AI_TACTICAL_WEIGHTS.flexibility, min: 0, max: 40 }
+    { id: 10, key: 'flexibility', name: 'Strategická flexibilita', description: 'Oceňuje zachování více kvalitních možností pro další tahy.', defaultValue: AI_TACTICAL_WEIGHTS.flexibility, min: 0, max: 40 },
+    { id: 11, key: 'rescueThreatened', name: 'Záchrana ohrožené figurky', description: 'Odměna za snížení rizika vyhození právě tažené figurky (kdy má smysl utéct před soupeřem).', defaultValue: AI_TACTICAL_WEIGHTS.rescueThreatened, min: -30, max: 30 },
+    { id: 12, key: 'multiThreat', name: 'Vícenásobné ohrožení', description: 'Trestá stav, kdy soupeř po tahu ohrožuje dvě nebo více vlastních figurek.', defaultValue: AI_TACTICAL_WEIGHTS.multiThreat, min: -30, max: 30 },
+    { id: 13, key: 'sacrificeChoice', name: 'Výběr oběti', description: 'Snížení rizika vážené postupem figurky: raději zachránit tu, která došla dál.', defaultValue: AI_TACTICAL_WEIGHTS.sacrificeChoice, min: -30, max: 30 },
+    { id: 14, key: 'holdPosition', name: 'Poziční výhoda', description: 'Trestá opuštění bezpečné pozice do rizika; učí, kdy je lepší zůstat stát.', defaultValue: AI_TACTICAL_WEIGHTS.holdPosition, min: -30, max: 30 },
+    { id: 15, key: 'strategicDeploy', name: 'Strategické nasazování', description: 'Nasazení další figurky se hodnotí podle počtu figurek, které už jsou ve hře.', defaultValue: AI_TACTICAL_WEIGHTS.strategicDeploy, min: -30, max: 30 },
+    { id: 16, key: 'endgameSafety', name: 'Závěrečná fáze hry', description: 'Ve fázi, kdy se někdo blíží vítězství, mění význam bezpečnosti vlastních figurek.', defaultValue: AI_TACTICAL_WEIGHTS.endgameSafety, min: -30, max: 30 },
+    { id: 17, key: 'competitiveEdge', name: 'Konkurenční výhoda', description: 'Odměna za vyhození nebo ohrožení figurek soupeře, který má nejblíže k vítězství.', defaultValue: AI_TACTICAL_WEIGHTS.competitiveEdge, min: -30, max: 30 },
+    { id: 18, key: 'longTermPlan', name: 'Plánování dopředu (další hod)', description: 'Šance, že následující hod přinese vyhození, dokončení nebo bonus. Výhled jen na jeden hod.', defaultValue: AI_TACTICAL_WEIGHTS.longTermPlan, min: -30, max: 30 }
 ]);
 export const AI_WEIGHT_KEYS = Object.freeze(AI_WEIGHT_DEFINITIONS.map(item => item.key));
 export const AI_WEIGHT_COUNT = AI_WEIGHT_DEFINITIONS.length;

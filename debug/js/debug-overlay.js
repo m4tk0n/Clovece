@@ -3,7 +3,7 @@
  * Diagnostický panel aktivovaný pouze v režimu ?debug=1.
  * Zobrazuje deset aktivních strategických vah a stav tréninku.
  */
-import { AI_WEIGHT_DEFINITIONS, getAIWeightValues, setAIWeightOverrides } from '../../js/ai-weight-config.js';
+import { AI_WEIGHT_DEFINITIONS, getAIWeightValues, setAIWeightOverrides } from './ai-weight-config.js';
 import { loadAIWeightOverrides } from '../../js/ai-training-knowledge.js';
 
 export function formatDebugWeight(value) {

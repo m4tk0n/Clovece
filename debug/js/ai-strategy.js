@@ -1,6 +1,5 @@
 // /debug/js/ai-strategy.js
 import { AI_WEIGHT_COUNT, AI_WEIGHT_DEFINITIONS, getAIWeightValues, getAIStrategicWeights } from './ai-weight-config.js';
-import { AI_EXTENDED_WEIGHT_DEFINITIONS, AI_EXTENDED_WEIGHT_VALUES } from './ai-extended-weights.js';
 export { AI_WEIGHT_DEFINITIONS } from './ai-weight-config.js';
 
 /**
@@ -618,31 +617,46 @@ function simulateOpponentResponses(state, targetPlayerId, targetPieceId, depende
     return responses;
 }
 
-/** Jednohodové riziko vyhození každé vlastní figurky (podle vzdáleností soupeřů). */
-function fastPieceThreats(game, playerId) {
-    const pieces = game.pieces[playerId]?.pieces || [];
-    return pieces.map(piece => {
-        if (!isMainTrackPiece(piece, game.trackLength)) return 0;
-        const target = (game.players[playerId].start + piece.steps) % game.trackLength;
-        let threat = 0;
-        for (const opponent of game.players) {
-            if (opponent.id === playerId || opponent.finished) continue;
-            for (const other of game.pieces[opponent.id]?.pieces || []) {
-                if (!isMainTrackPiece(other, game.trackLength)) continue;
-                const attacker = (game.players[opponent.id].start + other.steps) % game.trackLength;
-                const distance = (target - attacker + game.trackLength) % game.trackLength;
-                if (distance >= 1 && distance <= 6) threat += estimateCaptureProbability(distance);
+/**
+ * Přesné jednohodové riziko vyhození každé vlastní figurky: pro každého soupeře projde
+ * všech šest hodů a všechny legální tahy herního enginu (včetně pravidel nasazení,
+ * startovních polí i cílové dráhy) a zjistí, které figurky lze vyhodit.
+ */
+function exactPieceThreats(state, playerId, dependencies) {
+    const { getValidMoves, movePiece, rollDice } = dependencies;
+    const count = state.pieces[playerId]?.pieces.length || 0;
+    const survive = Array(count).fill(1);
+    for (const opponent of state.players) {
+        if (opponent.id === playerId || opponent.finished) continue;
+        const hits = Array(count).fill(0);
+        for (let dice = 1; dice <= 6; dice++) {
+            const branch = cloneGame(state);
+            branch.currentPlayer = opponent.id;
+            branch.phase = 'roll';
+            branch.diceValue = 0;
+            const result = rollDice(branch, dice);
+            if (branch.phase !== 'move') continue;
+            const legal = result.validMoves || getValidMoves(branch, opponent.id);
+            const hitNow = new Set();
+            for (const pieceId of legal) {
+                const next = cloneGame(branch);
+                const move = movePiece(next, pieceId);
+                if (move.captured && !move.captured.ownPiece && move.captured.playerId === playerId) {
+                    hitNow.add(move.captured.pieceId);
+                }
             }
+            for (const id of hitNow) hits[id] += 1 / 6;
         }
-        return Math.min(1, threat);
-    });
+        hits.forEach((value, index) => { survive[index] *= 1 - Math.min(1, value); });
+    }
+    return survive.map(value => 1 - value);
 }
 
-/** Rozšířené signály 11–18. Vše z dat, která engine už zná; žádné nové simulace. */
-function computeExtendedSignals({ game, state, candidate, playerId, threatsBefore, deployedPiece, captured, diceSimulation }) {
+/** Rozšířené signály ID 11–18. Riziko se počítá simulací soupeřových tahů v enginu. */
+function computeExtendedSignals({ game, state, candidate, playerId, threatsBefore, deployedPiece, captured, diceSimulation, dependencies }) {
     const trackLength = game.trackLength;
     const moved = candidate.pieceId;
-    const after = fastPieceThreats(state, playerId);
+    const after = exactPieceThreats(state, playerId, dependencies);
     const ownAfter = state.pieces[playerId].pieces;
     const rescueThreatened = clampSignal(Math.max(0, (threatsBefore[moved] || 0) - (after[moved] || 0)));
     const exposed = after.filter(value => value >= 0.15).length;
@@ -672,35 +686,42 @@ function computeExtendedSignals({ game, state, candidate, playerId, threatsBefor
     if (leaderId !== null) {
         const hitLeader = captured && !captured.ownPiece && captured.playerId === leaderId
             ? clampSignal(Math.max(0, game.pieces[leaderId].pieces[captured.pieceId]?.steps ?? 0) / trackLength) : 0;
+        // Ohrožení vedoucího soupeře: engine zjistí, zda by příští hod mohl vyhodit jeho figurku.
         let threatLeader = 0;
         const mine = state.pieces[playerId].pieces[moved];
         if (mine && isMainTrackPiece(mine, trackLength)) {
-            const myPosition = (state.players[playerId].start + mine.steps) % trackLength;
-            for (const other of state.pieces[leaderId]?.pieces || []) {
-                if (!isMainTrackPiece(other, trackLength)) continue;
-                const position = (state.players[leaderId].start + other.steps) % trackLength;
-                const distance = (position - myPosition + trackLength) % trackLength;
-                if (distance >= 1 && distance <= 6) threatLeader += estimateCaptureProbability(distance);
+            const probe = cloneGame(state);
+            probe.currentPlayer = playerId;
+            let hitDice = 0;
+            for (let dice = 1; dice <= 6; dice++) {
+                const branch = cloneGame(probe);
+                branch.phase = 'roll';
+                branch.diceValue = 0;
+                const result = dependencies.rollDice(branch, dice);
+                if (branch.phase !== 'move') continue;
+                const legal = result.validMoves || dependencies.getValidMoves(branch, playerId);
+                if (legal.includes(moved)) {
+                    const next = cloneGame(branch);
+                    const move = dependencies.movePiece(next, moved);
+                    if (move.captured && !move.captured.ownPiece && move.captured.playerId === leaderId) hitDice++;
+                }
             }
+            threatLeader = hitDice / 6;
         }
-        competitiveEdge = clampSignal(0.6 * hitLeader + 0.4 * Math.min(1, threatLeader));
+        competitiveEdge = clampSignal(0.6 * hitLeader + 0.4 * threatLeader);
     }
     const longTermPlan = clampSignal(diceSimulation.filter(item => item.capture || item.finish || item.bonusRoll).length / 6);
 
-    const signals = { rescueThreatened, multiThreat, sacrificeChoice, holdPosition,
+    return { rescueThreatened, multiThreat, sacrificeChoice, holdPosition,
         strategicDeploy, endgameSafety, competitiveEdge, longTermPlan };
-    return AI_EXTENDED_WEIGHT_DEFINITIONS.map(item => Number(signals[item.key] || 0));
 }
-
 
 export function evaluateTacticalCandidates(game, candidates, weights = getAIStrategicWeights(), dependencies = {}, options = {}) {
     const detail = options.detail !== false;
     const deepThreat = options.level === 'hard';
     const playerId = game.currentPlayer;
     const beforeThreat = estimateFastTrackThreat(game, playerId);
-    const threatsBefore = fastPieceThreats(game, playerId);
-    const extendedWeights = AI_EXTENDED_WEIGHT_DEFINITIONS.map((item, index) =>
-        Number.isFinite(Number(weights?.[item.key])) ? Number(weights[item.key]) : AI_EXTENDED_WEIGHT_VALUES[index]);
+    const threatsBefore = exactPieceThreats(game, playerId, dependencies);
     const strategicWeights = { ...getAIStrategicWeights(), ...(weights || {}) };
     return candidates.map(candidate => {
         const state = candidate.state;
@@ -712,7 +733,6 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
                 factors: {
                     winning: true,
                     weightSignals: Array(AI_WEIGHT_COUNT).fill(0),
-                    extendedSignals: Array(AI_EXTENDED_WEIGHT_DEFINITIONS.length).fill(0),
                     weightSignalsByName: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, 0])),
                     weightContributions: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item => [item.key, 0])),
                     diceSimulation: []
@@ -764,19 +784,15 @@ export function evaluateTacticalCandidates(game, candidates, weights = getAIStra
             startFieldRisk,
             flexibility
         };
+        Object.assign(signals, computeExtendedSignals({
+            game, state, candidate, playerId, threatsBefore, deployedPiece, captured, diceSimulation, dependencies
+        }));
         const weightSignals = AI_WEIGHT_DEFINITIONS.map(item => Number(signals[item.key] || 0));
-        const extendedSignals = computeExtendedSignals({
-            game, state, candidate, playerId, threatsBefore, deployedPiece, captured, diceSimulation
-        });
         const score = winning ? 1000000 : AI_WEIGHT_DEFINITIONS.reduce((sum, item) =>
-            sum + strategicWeights[item.key] * signals[item.key], 0)
-            + extendedSignals.reduce((sum, value, index) => sum + extendedWeights[index] * value, 0);
+            sum + strategicWeights[item.key] * signals[item.key], 0);
         const factors = {
             ...signals,
             weightSignals,
-            extendedSignals,
-            extendedContributions: Object.fromEntries(AI_EXTENDED_WEIGHT_DEFINITIONS.map((item, index) =>
-                [item.key, Number((extendedWeights[index] * extendedSignals[index]).toFixed(6))])),
             weightContributions: Object.fromEntries(AI_WEIGHT_DEFINITIONS.map(item =>
                 [item.key, Number((strategicWeights[item.key] * signals[item.key]).toFixed(6))])),
             ownProgressRaw: Number(ownProgressRaw.toFixed(4)),
@@ -836,10 +852,7 @@ export function computeMoveSignals(game, dependencies, options = {}) {
         return {
             pieceId,
             winning: Boolean(item?.factors?.winning),
-            signals: [
-                ...(item?.factors?.weightSignals || Array(AI_WEIGHT_COUNT).fill(0)),
-                ...(item?.factors?.extendedSignals || Array(AI_EXTENDED_WEIGHT_DEFINITIONS.length).fill(0))
-            ]
+            signals: item?.factors?.weightSignals ? [...item.factors.weightSignals] : Array(AI_WEIGHT_COUNT).fill(0)
         };
     });
 }
