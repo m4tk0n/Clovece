@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// /debug/scripts/train-selfplay.mjs
 /**
  * Self-play trénink osmnácti strategických vah (10 základních + 8 rozšířených) (debug prostředí).
  *
