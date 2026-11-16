@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// /debug/scripts/ablate-signals.mjs
 /**
  * Skutečný přínos jednotlivých vah (ablace).
  *
