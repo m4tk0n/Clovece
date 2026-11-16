@@ -1,4 +1,4 @@
-// /styling/screens/register.php
+<?php // /styling/screens/register.php ?>
 <!-- Register Screen -->
     <div id="register-screen" class="menu-screen hidden">
         <div class="menu-bg">
