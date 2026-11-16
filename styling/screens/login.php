@@ -1,4 +1,4 @@
-// /styling/screens/login.php
+<?php // /styling/screens/login.php ?>
 <!-- Login Screen -->
     <div id="login-screen" class="menu-screen hidden">
         <div class="menu-bg">
