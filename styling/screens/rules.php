@@ -1,4 +1,4 @@
-// /styling/screens/rules.php
+<?php // /styling/screens/rules.php ?>
 <!-- Rules Screen -->
     <div id="rules-screen" class="menu-screen hidden">
         <div class="menu-bg">
