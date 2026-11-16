@@ -1,5 +1,5 @@
-// /scripts/ai-tournament.mjs
 #!/usr/bin/env node
+// /scripts/ai-tournament.mjs
 /**
  * Turnaj kandidátní neuronové AI proti taktickému učiteli.
  * Kandidát hraje vždy jen na jednom místě; jeho pozice se mezi hrami rotuje.
