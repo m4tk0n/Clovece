@@ -1,4 +1,4 @@
-// /styling/screens/local-games.php
+<?php // /styling/screens/local-games.php ?>
 <!-- Games List Screen -->
 <div id="local-games-screen" class="menu-screen hidden">
     <div class="menu-bg">
