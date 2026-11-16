@@ -1,4 +1,5 @@
 <?php
+// /styling/index.php
 declare(strict_types=1);
 
 /**
