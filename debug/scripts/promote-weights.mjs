@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// /debug/scripts/promote-weights.mjs
 /**
  * Přenos natrénovaných vah do debug AI (debug/js/ai-tactical-weights.js).
  *
