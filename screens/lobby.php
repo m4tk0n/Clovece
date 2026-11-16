@@ -1,4 +1,4 @@
-// /screens/lobby.php
+<?php // /screens/lobby.php ?>
 <!-- Lobby Screen -->
     <div id="lobby-screen" class="menu-screen hidden">
         <div class="menu-bg">
