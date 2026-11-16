@@ -1,4 +1,4 @@
-// /screens/game.php
+<?php // /screens/game.php ?>
 <!-- Game Screen -->
     <div id="game-screen" class="game-screen hidden">
         <div class="game-header">
