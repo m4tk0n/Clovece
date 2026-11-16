@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// /debug/scripts/train-cem.mjs
 /**
  * Přímá optimalizace vah podle míry výher (Cross-Entropy Method).
  *
