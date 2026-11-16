@@ -1,3 +1,4 @@
+<!-- /styling/README.md -->
 # Vývoj menu
 
 Vývojové menu je dostupné na `/styling/`. Produkční `index.php`, HTML obrazovky, CSS ani produkční navigace se při úpravách tohoto prostředí nemění.
