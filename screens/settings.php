@@ -1,4 +1,4 @@
-// /screens/settings.php
+<?php // /screens/settings.php ?>
 <!-- Settings Screen -->
     <div id="settings-screen" class="menu-screen hidden">
         <div class="menu-bg">
