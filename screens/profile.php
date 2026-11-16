@@ -1,4 +1,4 @@
-// /screens/profile.php
+<?php // /screens/profile.php ?>
 <!-- Account Profile Screen -->
 <div id="profile-screen" class="menu-screen hidden">
     <div class="menu-bg">
